@@ -139,7 +139,7 @@ npm run dev
 NODE_ENV=development
 
 # API endpoint
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:3031
 
 # LocalStack endpoint
 LOCALSTACK_ENDPOINT=http://localhost:4566
@@ -211,7 +211,7 @@ node --version  # Should be 18+
 npm install
 
 # Check API server
-curl http://localhost:3001/health
+curl http://localhost:3031/health
 ```
 
 **System tray not working**
@@ -224,10 +224,10 @@ curl http://localhost:3001/health
 
 ```bash
 # Check if port is in use
-lsof -i :3000
+lsof -i :3030
 
 # Check API server
-curl http://localhost:3001/health
+curl http://localhost:3031/health
 ```
 
 ### Debug Mode

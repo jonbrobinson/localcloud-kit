@@ -70,7 +70,7 @@ A robust Express.js API server that manages LocalStack operations, resource auto
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Next.js GUI   │    │  Express API    │    │   LocalStack    │
-│   (Port 3000)   │◄──►│   (Port 3001)   │◄──►│   (Port 4566)   │
+│   (Port 3030)   │◄──►│   (Port 3031)   │◄──►│   (Port 4566)   │
 │                 │    │                 │    │                 │
 │ • Dashboard     │    │ • LocalStack    │    │ • S3 Buckets    │
 │ • Resource List │    │   Management    │    │ • DynamoDB      │
@@ -243,7 +243,7 @@ Returns available resource templates.
 
 ```bash
 # Server Configuration
-PORT=3001
+PORT=3031
 NODE_ENV=development
 
 # LocalStack Configuration
@@ -255,7 +255,7 @@ LOG_LEVEL=info
 LOG_FILE_PATH=logs/
 
 # Security Configuration
-CORS_ORIGIN=http://localhost:3000
+CORS_ORIGIN=http://localhost:3030
 ```
 
 ### Project Configuration
@@ -317,7 +317,7 @@ const logger = winston.createLogger({
 ```javascript
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+    origin: process.env.CORS_ORIGIN || "http://localhost:3030",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -349,7 +349,7 @@ app.use(
 node --version  # Should be 18+
 
 # Check port availability
-lsof -i :3001
+lsof -i :3031
 
 # Check dependencies
 npm install
@@ -401,13 +401,13 @@ The API provides comprehensive health monitoring:
 
 ```bash
 # Basic health check
-curl http://localhost:3001/health
+curl http://localhost:3031/health
 
 # LocalStack status
-curl http://localhost:3001/localstack/status
+curl http://localhost:3031/localstack/status
 
 # Resource status
-curl http://localhost:3001/resources/status
+curl http://localhost:3031/resources/status
 ```
 
 ### Metrics (Future Feature)

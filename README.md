@@ -18,8 +18,8 @@ A comprehensive LocalStack automation template with multiple approaches (Terrafo
 
 This will start:
 
-- LocalStack Manager Web GUI (http://localhost:3000)
-- LocalStack Manager API Server (http://localhost:3001)
+- LocalStack Manager Web GUI (http://localhost:3030)
+- LocalStack Manager API Server (http://localhost:3031)
 - LocalStack (http://localhost:4566)
 
 ### Option 2: Individual Components
@@ -140,7 +140,7 @@ terraform apply -var="project_name=my-project" -var="environment=dev"
 
 ### 3. Manage via GUI
 
-- Open http://localhost:3000 (Web) or launch desktop app
+- Open http://localhost:3030 (Web) or launch desktop app
 - Configure project settings
 - Select resource template
 - Create/destroy resources with one click
@@ -172,10 +172,10 @@ LOCALSTACK_HOST=localhost
 LOCALSTACK_PORT=4566
 
 # GUI
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:3031
 
 # API Server
-PORT=3001
+PORT=3031
 NODE_ENV=development
 ```
 
@@ -250,10 +250,10 @@ netstat -an | grep 4566
 
 ```bash
 # Check API server
-curl http://localhost:3001/health
+curl http://localhost:3031/health
 
 # Check GUI
-curl http://localhost:3000
+curl http://localhost:3030
 ```
 
 **Resources not creating**
