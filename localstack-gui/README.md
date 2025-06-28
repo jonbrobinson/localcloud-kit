@@ -96,7 +96,7 @@ A modern, web-based GUI for managing LocalStack resources with real-time monitor
 
 3. **Create Resources**
 
-   - Select automation approach (Shell/Python/Terraform)
+   - Select automation approach (Shell Scripts)
    - Choose a resource template or customize
    - Click "Create Resources"
 
@@ -122,18 +122,6 @@ A modern, web-based GUI for managing LocalStack resources with real-time monitor
 - Fastest execution
 - Minimal dependencies
 - Best for quick prototyping
-
-#### Python Scripts
-
-- Boto3 integration
-- Rich error handling
-- Good for complex workflows
-
-#### Terraform
-
-- Infrastructure as Code
-- State management
-- Best for production-like environments
 
 ## 🎨 Branding
 
