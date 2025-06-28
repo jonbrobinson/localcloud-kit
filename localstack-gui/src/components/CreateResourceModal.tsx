@@ -14,6 +14,7 @@ interface CreateResourceModalProps {
   onSubmit: (request: CreateResourceRequest) => void;
   config: ProjectConfig;
   approach: "shell";
+  loading?: boolean;
 }
 
 const predefinedTemplates: ResourceTemplate[] = [
@@ -85,6 +86,7 @@ export default function CreateResourceModal({
   onSubmit,
   config,
   approach,
+  loading = false,
 }: CreateResourceModalProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string>("basic");
   const [projectName, setProjectName] = useState(config.projectName);
@@ -95,7 +97,6 @@ export default function CreateResourceModal({
     lambda: false,
     apigateway: false,
   });
-  const [loading, setLoading] = useState(false);
 
   const handleTemplateChange = (templateId: string) => {
     setSelectedTemplate(templateId);
@@ -114,21 +115,16 @@ export default function CreateResourceModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
-    try {
-      const request: CreateResourceRequest = {
-        projectName,
-        environment: environment as "dev" | "uat" | "prod",
-        approach,
-        resources,
-        template: selectedTemplate,
-      };
+    const request: CreateResourceRequest = {
+      projectName,
+      environment: environment as "dev" | "uat" | "prod",
+      approach,
+      resources,
+      template: selectedTemplate,
+    };
 
-      await onSubmit(request);
-    } finally {
-      setLoading(false);
-    }
+    await onSubmit(request);
   };
 
   if (!isOpen) return null;
@@ -307,19 +303,25 @@ export default function CreateResourceModal({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-end space-x-3">
+              <div className="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  disabled={loading}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || !Object.values(resources).some(Boolean)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={loading}
+                  className="flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all shadow-md"
                 >
+                  {loading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  ) : (
+                    <span>Create Resources</span>
+                  )}
                   {loading ? "Creating..." : "Create Resources"}
                 </button>
               </div>

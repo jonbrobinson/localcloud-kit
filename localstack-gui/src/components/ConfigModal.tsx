@@ -9,6 +9,7 @@ interface ConfigModalProps {
   onClose: () => void;
   onSubmit: (config: ProjectConfig) => void;
   config: ProjectConfig;
+  loading?: boolean;
 }
 
 export default function ConfigModal({
@@ -16,19 +17,13 @@ export default function ConfigModal({
   onClose,
   onSubmit,
   config,
+  loading = false,
 }: ConfigModalProps) {
   const [formData, setFormData] = useState<ProjectConfig>(config);
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      await onSubmit(formData);
-    } finally {
-      setLoading(false);
-    }
+    await onSubmit(formData);
   };
 
   const handleInputChange = (field: keyof ProjectConfig, value: string) => {
@@ -185,15 +180,19 @@ export default function ConfigModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  disabled={loading}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all shadow-md"
+                  className="flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all shadow-md"
                 >
+                  {loading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  ) : null}
                   {loading ? "Saving..." : "Save Configuration"}
                 </button>
               </div>
