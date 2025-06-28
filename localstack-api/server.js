@@ -15,7 +15,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "http://localhost:3030",
     methods: ["GET", "POST"],
   },
 });
@@ -512,7 +512,7 @@ cron.schedule("*/30 * * * * *", () => {
 // Initial status check
 setTimeout(checkLocalStackStatus, 2000);
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3031;
 
 server.listen(PORT, () => {
   addLog(
@@ -524,7 +524,7 @@ server.listen(PORT, () => {
 ╔══════════════════════════════════════════════════════════════╗
 ║                    🚀 LocalStack Manager                    ║
 ║                                                              ║
-║  📊 Dashboard: http://localhost:3000                        ║
+║  📊 Dashboard: http://localhost:3030                        ║
 ║  🔧 API Server: http://localhost:${PORT}                    ║
 ║                                                              ║
 ║  💼 Powered by CloudStack Solutions                         ║

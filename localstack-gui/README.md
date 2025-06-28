@@ -36,7 +36,7 @@ A modern, web-based GUI for managing LocalStack resources with real-time monitor
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Next.js GUI   │    │  Express API    │    │   LocalStack    │
-│   (Port 3000)   │◄──►│   (Port 3001)   │◄──►│   (Port 4566)   │
+│   (Port 3030)   │◄──►│   (Port 3031)   │◄──►│   (Port 4566)   │
 │                 │    │                 │    │                 │
 │ • Dashboard     │    │ • LocalStack    │    │ • S3 Buckets    │
 │ • Resource List │    │   Management    │    │ • DynamoDB      │
@@ -77,8 +77,8 @@ A modern, web-based GUI for managing LocalStack resources with real-time monitor
    ```
 
 4. **Access the Application**
-   - Web GUI: http://localhost:3000
-   - API Server: http://localhost:3001
+   - Web GUI: http://localhost:3030
+   - API Server: http://localhost:3031
 
 ## 📖 Usage
 
@@ -157,11 +157,11 @@ A modern, web-based GUI for managing LocalStack resources with real-time monitor
 
 ```bash
 # API Server
-PORT=3001
+PORT=3031
 NODE_ENV=development
 
 # Next.js GUI
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:3031
 ```
 
 ### Project Configuration
