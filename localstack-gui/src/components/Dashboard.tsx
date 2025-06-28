@@ -40,6 +40,20 @@ export default function Dashboard() {
   const [showLogs, setShowLogs] = useState(false);
   const [selectedApproach, setSelectedApproach] = useState<"shell">("shell");
 
+  // Loading states for buttons
+  const [localstackLoading, setLocalstackLoading] = useState<{
+    start: boolean;
+    stop: boolean;
+    restart: boolean;
+  }>({
+    start: false,
+    stop: false,
+    restart: false,
+  });
+  const [createLoading, setCreateLoading] = useState(false);
+  const [destroyLoading, setDestroyLoading] = useState(false);
+  const [configLoading, setConfigLoading] = useState(false);
+
   const automationApproaches: AutomationApproach[] = [
     {
       id: "shell",
@@ -83,6 +97,9 @@ export default function Dashboard() {
   const handleLocalStackAction = async (
     action: "start" | "stop" | "restart"
   ) => {
+    // Set loading state for the specific action
+    setLocalstackLoading((prev) => ({ ...prev, [action]: true }));
+
     try {
       let response;
       switch (action) {
@@ -99,16 +116,33 @@ export default function Dashboard() {
 
       if (response.success) {
         toast.success(`LocalStack ${action} successful`);
-        await loadInitialData();
+
+        // Wait a moment for the action to complete, then refresh status
+        setTimeout(async () => {
+          await loadInitialData();
+        }, 2000);
       } else {
         toast.error(response.error || `Failed to ${action} LocalStack`);
+        // Still refresh status to get current state
+        await loadInitialData();
       }
     } catch (error) {
-      toast.error(`Failed to ${action} LocalStack`);
+      console.error(`LocalStack ${action} error:`, error);
+      toast.error(
+        `Failed to ${action} LocalStack: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+      // Still refresh status to get current state
+      await loadInitialData();
+    } finally {
+      // Clear loading state
+      setLocalstackLoading((prev) => ({ ...prev, [action]: false }));
     }
   };
 
   const handleCreateResources = async (request: any) => {
+    setCreateLoading(true);
     try {
       const response = await resourceApi.create({
         ...request,
@@ -123,11 +157,19 @@ export default function Dashboard() {
         toast.error(response.error || "Failed to create resources");
       }
     } catch (error) {
-      toast.error("Failed to create resources");
+      console.error("Create resources error:", error);
+      toast.error(
+        `Failed to create resources: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setCreateLoading(false);
     }
   };
 
   const handleDestroyResources = async (resourceIds: string[]) => {
+    setDestroyLoading(true);
     try {
       const response = await resourceApi.destroy({
         projectName: config.projectName,
@@ -143,11 +185,19 @@ export default function Dashboard() {
         toast.error(response.error || "Failed to destroy resources");
       }
     } catch (error) {
-      toast.error("Failed to destroy resources");
+      console.error("Destroy resources error:", error);
+      toast.error(
+        `Failed to destroy resources: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setDestroyLoading(false);
     }
   };
 
   const handleConfigUpdate = async (newConfig: ProjectConfig) => {
+    setConfigLoading(true);
     try {
       const response = await configApi.updateProjectConfig(newConfig);
       if (response.success) {
@@ -159,7 +209,14 @@ export default function Dashboard() {
         toast.error(response.error || "Failed to update configuration");
       }
     } catch (error) {
-      toast.error("Failed to update configuration");
+      console.error("Config update error:", error);
+      toast.error(
+        `Failed to update configuration: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setConfigLoading(false);
     }
   };
 
@@ -225,9 +282,14 @@ export default function Dashboard() {
               </button>
               <button
                 onClick={() => setShowConfigModal(true)}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                disabled={configLoading}
+                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
               >
-                <Cog6ToothIcon className="h-4 w-4 mr-2" />
+                {configLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
+                ) : (
+                  <Cog6ToothIcon className="h-4 w-4 mr-2" />
+                )}
                 Config
               </button>
             </div>
@@ -245,26 +307,51 @@ export default function Dashboard() {
             <div className="flex space-x-2">
               <button
                 onClick={() => handleLocalStackAction("start")}
-                disabled={localstackStatus.running}
+                disabled={
+                  localstackStatus.running ||
+                  localstackLoading.start ||
+                  localstackLoading.restart
+                }
                 className="flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
               >
-                <PlayIcon className="h-4 w-4 mr-2" />
-                Start
+                {localstackLoading.start ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                ) : (
+                  <PlayIcon className="h-4 w-4 mr-2" />
+                )}
+                {localstackLoading.start ? "Starting..." : "Start"}
               </button>
               <button
                 onClick={() => handleLocalStackAction("stop")}
-                disabled={!localstackStatus.running}
+                disabled={
+                  !localstackStatus.running ||
+                  localstackLoading.stop ||
+                  localstackLoading.restart
+                }
                 className="flex items-center px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
               >
-                <StopIcon className="h-4 w-4 mr-2" />
-                Stop
+                {localstackLoading.stop ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                ) : (
+                  <StopIcon className="h-4 w-4 mr-2" />
+                )}
+                {localstackLoading.stop ? "Stopping..." : "Stop"}
               </button>
               <button
                 onClick={() => handleLocalStackAction("restart")}
-                className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                disabled={
+                  localstackLoading.restart ||
+                  localstackLoading.start ||
+                  localstackLoading.stop
+                }
+                className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
-                <ArrowPathIcon className="h-4 w-4 mr-2" />
-                Restart
+                {localstackLoading.restart ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                ) : (
+                  <ArrowPathIcon className="h-4 w-4 mr-2" />
+                )}
+                {localstackLoading.restart ? "Restarting..." : "Restart"}
               </button>
             </div>
           </div>
@@ -286,10 +373,15 @@ export default function Dashboard() {
                 </select>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md"
+                  disabled={createLoading}
+                  className="flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all shadow-md"
                 >
-                  <PlusIcon className="h-4 w-4 mr-2" />
-                  Create Resources
+                  {createLoading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  ) : (
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                  )}
+                  {createLoading ? "Creating..." : "Create Resources"}
                 </button>
               </div>
             </div>
@@ -298,6 +390,7 @@ export default function Dashboard() {
               onDestroy={handleDestroyResources}
               projectName={config.projectName}
               environment={config.environment}
+              loading={destroyLoading}
             />
           </div>
         )}
@@ -362,6 +455,7 @@ export default function Dashboard() {
           onSubmit={handleCreateResources}
           config={config}
           approach={selectedApproach}
+          loading={createLoading}
         />
       )}
 
@@ -371,6 +465,7 @@ export default function Dashboard() {
           onClose={() => setShowConfigModal(false)}
           onSubmit={handleConfigUpdate}
           config={config}
+          loading={configLoading}
         />
       )}
 

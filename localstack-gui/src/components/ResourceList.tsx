@@ -16,6 +16,7 @@ interface ResourceListProps {
   onDestroy: (resourceIds: string[]) => void;
   projectName: string;
   environment: string;
+  loading?: boolean;
 }
 
 export default function ResourceList({
@@ -23,6 +24,7 @@ export default function ResourceList({
   onDestroy,
   projectName,
   environment,
+  loading = false,
 }: ResourceListProps) {
   const [selectedResources, setSelectedResources] = useState<string[]>([]);
   const [showDetails, setShowDetails] = useState<string | null>(null);
@@ -128,10 +130,17 @@ export default function ResourceList({
           {selectedResources.length > 0 && (
             <button
               onClick={handleDestroySelected}
-              className="flex items-center px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+              disabled={loading}
+              className="flex items-center px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
             >
-              <TrashIcon className="h-4 w-4 mr-2" />
-              Destroy Selected ({selectedResources.length})
+              {loading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              ) : (
+                <TrashIcon className="h-4 w-4 mr-2" />
+              )}
+              {loading
+                ? "Destroying..."
+                : `Destroy Selected (${selectedResources.length})`}
             </button>
           )}
         </div>
