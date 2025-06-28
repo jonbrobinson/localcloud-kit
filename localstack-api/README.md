@@ -46,7 +46,7 @@ A robust Express.js API server that manages LocalStack operations, resource auto
 
 ### Resource Automation
 
-- **Multi-Approach Support**: Shell, Python, Terraform automation
+- **Shell Script Support**: Fast, reliable command-line automation
 - **Resource Templates**: Predefined common AWS setups
 - **Environment Management**: dev, uat, prod environments
 - **Real-time Operations**: Live resource creation/destruction
@@ -473,9 +473,7 @@ The API is designed to work seamlessly with:
 
 The API orchestrates automation scripts:
 
-- **Shell Scripts**: Fast command-line automation
-- **Python Scripts**: Boto3-based resource management
-- **Terraform**: Infrastructure as Code
+- **Shell Scripts**: Fast command-line automation with AWS CLI
 
 ### External Services
 

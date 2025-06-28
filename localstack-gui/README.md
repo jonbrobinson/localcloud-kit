@@ -299,3 +299,16 @@ npm start
 **Built with ❤️ by CloudStack Solutions**
 
 _Enterprise AWS Development Tools_
+
+### Resource Automation
+
+- **Shell Script Support**: Fast, reliable command-line automation
+- **Resource Templates**: Predefined common AWS setups
+- **Environment Management**: dev, uat, prod environments
+- **Real-time Operations**: Live resource creation/destruction
+
+### Automation Scripts
+
+The GUI orchestrates automation scripts:
+
+- **Shell Scripts**: Fast command-line automation with AWS CLI
