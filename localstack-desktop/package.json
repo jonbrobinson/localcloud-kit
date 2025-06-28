@@ -1,0 +1,49 @@
+{
+  "name": "localstack-desktop",
+  "version": "1.0.0",
+  "description": "Desktop application for LocalStack management",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "dist": "electron-builder --publish=never"
+  },
+  "dependencies": {
+    "electron": "^27.0.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.6.4"
+  },
+  "build": {
+    "appId": "com.localstack.desktop",
+    "productName": "LocalStack Manager",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "icon": "assets/icon.icns"
+    },
+    "win": {
+      "icon": "assets/icon.ico"
+    },
+    "linux": {
+      "icon": "assets/icon.png"
+    }
+  },
+  "keywords": [
+    "localstack",
+    "aws",
+    "desktop",
+    "electron"
+  ],
+  "author": "LocalStack Team",
+  "license": "MIT"
+}
