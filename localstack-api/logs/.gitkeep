@@ -1,0 +1,3 @@
+# This file ensures the logs directory is tracked in git
+# Log files (*.log) are ignored by .gitignore
+# The directory is created automatically by start-gui.sh if it doesn't exist 
