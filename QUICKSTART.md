@@ -5,88 +5,80 @@ Get up and running with LocalStack automation in 5 minutes!
 ## 🚀 Prerequisites
 
 1. **Docker and Docker Compose** (already installed)
-2. **Choose your automation approach:**
-   - **Terraform**: Install Terraform
-   - **Python**: Install Python 3.8+ and dependencies
-   - **Shell**: Install AWS CLI and jq
+2. **AWS CLI**: For shell script automation
+3. **Node.js 18+**: For GUI system (optional)
 
 ## 📦 Installation
 
-### Option 1: Terraform Approach
+### Install AWS CLI
 
 ```bash
-# Install Terraform
-brew install terraform  # macOS
-# or download from https://terraform.io/downloads
+# macOS
+brew install awscli
 
-# Set your project name
-export PROJECT_NAME="my-awesome-project"
+# Ubuntu/Debian
+sudo apt-get install awscli
+
+# Windows
+# Download from https://aws.amazon.com/cli/
+
+# Configure for LocalStack
+aws configure set aws_access_key_id test
+aws configure set aws_secret_access_key test
+aws configure set region us-east-1
+aws configure set output json
 ```
 
-### Option 2: Python Approach
+### Set Your Project Name
 
 ```bash
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Set your project name
-export PROJECT_NAME="my-awesome-project"
-```
-
-### Option 3: Shell Approach
-
-```bash
-# Install AWS CLI and jq
-brew install awscli jq  # macOS
-# or: sudo apt-get install awscli jq  # Ubuntu
-
-# Set your project name
 export PROJECT_NAME="my-awesome-project"
 ```
 
 ## 🎯 Quick Start
 
-### 1. Start LocalStack
+### Option 1: All-in-One GUI (Recommended)
+
+```bash
+# Start everything with one command
+./start-gui.sh
+```
+
+This starts:
+
+- LocalStack Manager Web GUI (http://localhost:3030)
+- LocalStack Manager API Server (http://localhost:3031)
+- LocalStack (http://localhost:4566)
+
+### Option 2: Command Line
+
+#### 1. Start LocalStack
 
 ```bash
 make start
 ```
 
-### 2. Create Resources (Choose One)
-
-**Terraform:**
-
-```bash
-make terraform-create ENV=dev
-```
-
-**Python:**
-
-```bash
-make python-create ENV=dev
-```
-
-**Shell:**
+#### 2. Create Resources
 
 ```bash
 make shell-create ENV=dev
 ```
 
-### 3. Test Your Setup
+#### 3. Test Your Setup
 
 ```bash
 # List your resources
-make python-list ENV=dev  # or terraform-list, shell-list
+make shell-list ENV=dev
 
 # Test the API (get URL from the list output)
 curl http://localhost:4566/restapis/{api-id}/dev/_user_request_/hello
 ```
 
-### 4. Clean Up (Optional)
+#### 4. Clean Up (Optional)
 
 ```bash
 # Destroy resources
-make python-destroy ENV=dev  # or terraform-destroy, shell-destroy
+make shell-destroy ENV=dev
 
 # Stop LocalStack
 make stop
@@ -108,9 +100,9 @@ After running the automation, you'll have:
 ```bash
 # Start fresh each day
 make start
-make python-create ENV=dev
+make shell-create ENV=dev
 # ... work on your code ...
-make python-destroy ENV=dev
+make shell-destroy ENV=dev
 make stop
 ```
 
@@ -119,9 +111,9 @@ make stop
 ```bash
 # Create test environment
 make start
-make python-create ENV=dev
+make shell-create ENV=dev
 # ... run tests ...
-make python-destroy ENV=dev
+make shell-destroy ENV=dev
 make stop
 ```
 
@@ -130,11 +122,22 @@ make stop
 ```bash
 # Keep resources between sessions
 make start
-make python-create ENV=dev
+make shell-create ENV=dev
 # ... work on your code ...
 make stop
 # Later...
 make start  # Resources are still there!
+```
+
+### GUI Workflow
+
+```bash
+# Start GUI system
+./start-gui.sh
+
+# Open browser to http://localhost:3030
+# Use the web interface to manage resources
+# Press Ctrl+C to stop GUI
 ```
 
 ## 🎨 Customization
@@ -143,28 +146,33 @@ make start  # Resources are still there!
 
 ```bash
 export PROJECT_NAME="my-new-project"
-make python-create ENV=dev
+make shell-create ENV=dev
 ```
 
 ### Different Environment
 
 ```bash
-make python-create ENV=uat
-make python-create ENV=prod
+make shell-create ENV=uat
+make shell-create ENV=prod
 ```
 
-### Multiple Approaches
+### Resource Templates
 
 ```bash
-# Try different approaches
-make terraform-create ENV=dev
-make terraform-destroy ENV=dev
+# Basic setup (S3 + DynamoDB)
+./scripts/shell/create_resources.sh my-project dev --template basic
 
-make python-create ENV=dev
-make python-destroy ENV=dev
+# Serverless setup (S3 + DynamoDB + Lambda + API Gateway)
+./scripts/shell/create_resources.sh my-project dev --template serverless
 
-make shell-create ENV=dev
-make shell-destroy ENV=dev
+# Storage only (S3 bucket)
+./scripts/shell/create_resources.sh my-project dev --template storage
+
+# Database only (DynamoDB table)
+./scripts/shell/create_resources.sh my-project dev --template database
+
+# API only (Lambda + API Gateway)
+./scripts/shell/create_resources.sh my-project dev --template api
 ```
 
 ## 🆘 Need Help?
@@ -177,28 +185,50 @@ make logs      # View logs
 make help      # All available commands
 ```
 
+### GUI Status
+
+```bash
+# Check if GUI is running
+curl http://localhost:3031/health
+curl http://localhost:3030
+
+# Start GUI if needed
+make gui-start
+```
+
 ### Common Issues
 
-1. **Port conflicts**: Ensure ports 4566 and 4510-4559 are free
+1. **Port conflicts**: Ensure ports 4566, 3030, and 3031 are free
 2. **Permission issues**: Check Docker permissions
 3. **Resource conflicts**: Use `make clean` to reset everything
+4. **AWS CLI not found**: Install AWS CLI and configure for LocalStack
 
 ### Get Help
 
-- Check the specific README for your approach:
-  - [Terraform](./scripts/terraform/README.md)
-  - [Python](./scripts/python/README.md)
-  - [Shell](./scripts/shell/README.md)
+- Check the shell scripts documentation: [Shell Scripts](./scripts/shell/README.md)
 - View all available commands: `make help`
+- GUI documentation: [Web GUI](./localstack-gui/README.md)
 
 ## 🎉 You're Ready!
 
 You now have a fully automated LocalStack setup with:
 
-- ✅ Multiple automation approaches
+- ✅ Fast shell script automation
+- ✅ Modern GUI management
 - ✅ Environment support (dev/uat/prod)
 - ✅ Consistent naming conventions
-- ✅ Team-friendly documentation
-- ✅ Easy cleanup and management
+- ✅ Resource templates
+- ✅ Universal compatibility
 
-Choose your preferred approach and start building!
+## 🚀 Next Steps
+
+1. **Explore the GUI**: Open http://localhost:3030
+2. **Try different templates**: Use the template options
+3. **Set up your project**: Configure your project name
+4. **Automate your workflow**: Integrate with your development process
+
+---
+
+**Built with ❤️ by CloudStack Solutions**
+
+_Enterprise AWS Development Tools_

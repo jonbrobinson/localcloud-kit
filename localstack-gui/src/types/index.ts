@@ -24,11 +24,10 @@ export interface ProjectConfig {
 }
 
 export interface AutomationApproach {
-  id: "terraform" | "python" | "shell";
+  id: "shell";
   name: string;
   description: string;
-  available: boolean;
-  default: boolean;
+  icon: string;
 }
 
 export interface ResourceTemplate {
@@ -53,22 +52,17 @@ export interface LogEntry {
 
 export interface CreateResourceRequest {
   projectName: string;
-  environment: "dev" | "uat" | "prod";
-  approach: "terraform" | "python" | "shell";
-  resources: {
-    s3: boolean;
-    dynamodb: boolean;
-    lambda: boolean;
-    apigateway: boolean;
-  };
+  environment: string;
+  approach: "shell";
+  resources: string[];
   template?: string;
 }
 
 export interface DestroyResourceRequest {
   projectName: string;
-  environment: "dev" | "uat" | "prod";
-  approach: "terraform" | "python" | "shell";
-  resources: string[];
+  environment: string;
+  approach: "shell";
+  resourceIds?: string[];
 }
 
 export interface ApiResponse<T = any> {

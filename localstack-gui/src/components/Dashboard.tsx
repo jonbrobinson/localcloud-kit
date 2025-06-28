@@ -38,9 +38,16 @@ export default function Dashboard() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
-  const [selectedApproach, setSelectedApproach] = useState<
-    "terraform" | "python" | "shell"
-  >("shell");
+  const [selectedApproach, setSelectedApproach] = useState<"shell">("shell");
+
+  const automationApproaches: AutomationApproach[] = [
+    {
+      id: "shell",
+      name: "Shell Scripts",
+      description: "Fast command-line automation with AWS CLI",
+      icon: "⚡",
+    },
+  ];
 
   // Load initial data
   useEffect(() => {
@@ -275,9 +282,7 @@ export default function Dashboard() {
                   onChange={(e) => setSelectedApproach(e.target.value as any)}
                   className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="shell">Shell Scripts (Default)</option>
-                  <option value="python">Python Scripts</option>
-                  <option value="terraform">Terraform</option>
+                  <option value="shell">Shell Scripts</option>
                 </select>
                 <button
                   onClick={() => setShowCreateModal(true)}

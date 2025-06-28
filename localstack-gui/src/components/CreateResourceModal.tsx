@@ -13,7 +13,7 @@ interface CreateResourceModalProps {
   onClose: () => void;
   onSubmit: (request: CreateResourceRequest) => void;
   config: ProjectConfig;
-  approach: "terraform" | "python" | "shell";
+  approach: "shell";
 }
 
 const predefinedTemplates: ResourceTemplate[] = [

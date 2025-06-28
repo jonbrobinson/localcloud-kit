@@ -203,20 +203,14 @@ async function createResources(request) {
 
     switch (approach) {
       case "shell":
-        command = `./scripts/shell/create_resources.sh ${projectName} ${environment}`;
-        break;
-      case "python":
-        command = `python3 scripts/python/create_resources.py --project ${projectName} --environment ${environment}`;
-        break;
-      case "terraform":
-        command = `cd scripts/terraform && terraform apply -var="project_name=${projectName}" -var="environment=${environment}" -auto-approve`;
+        command = `cd scripts/shell && ./create_resources.sh ${projectName} ${environment}`;
         break;
       default:
-        throw new Error(`Unknown approach: ${approach}`);
+        throw new Error(`Unsupported automation approach: ${approach}`);
     }
 
-    // Add resource flags for shell and python scripts
-    if (approach === "shell" || approach === "python") {
+    // Add resource flags for shell scripts
+    if (approach === "shell") {
       const resourceFlags = [];
       if (resources.s3) resourceFlags.push("--s3");
       if (resources.dynamodb) resourceFlags.push("--dynamodb");
@@ -273,16 +267,10 @@ async function destroyResources(request) {
 
     switch (approach) {
       case "shell":
-        command = `./scripts/shell/destroy_resources.sh ${projectName} ${environment}`;
-        break;
-      case "python":
-        command = `python3 scripts/python/destroy_resources.py --project ${projectName} --environment ${environment}`;
-        break;
-      case "terraform":
-        command = `cd scripts/terraform && terraform destroy -var="project_name=${projectName}" -var="environment=${environment}" -auto-approve`;
+        command = `cd scripts/shell && ./destroy_resources.sh ${projectName} ${environment}`;
         break;
       default:
-        throw new Error(`Unknown approach: ${approach}`);
+        throw new Error(`Unsupported automation approach: ${approach}`);
     }
 
     const { stdout, stderr } = await execAsync(command, {
@@ -326,16 +314,10 @@ async function listResources(projectName, environment, approach) {
 
     switch (approach) {
       case "shell":
-        command = `./scripts/shell/list_resources.sh ${projectName} ${environment}`;
-        break;
-      case "python":
-        command = `python3 scripts/python/list_resources.py --project ${projectName} --environment ${environment}`;
-        break;
-      case "terraform":
-        command = `cd scripts/terraform && terraform state list`;
+        command = `cd scripts/shell && ./list_resources.sh ${projectName} ${environment}`;
         break;
       default:
-        throw new Error(`Unknown approach: ${approach}`);
+        throw new Error(`Unsupported automation approach: ${approach}`);
     }
 
     const { stdout, stderr } = await execAsync(command, {

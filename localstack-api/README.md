@@ -84,8 +84,6 @@ A robust Express.js API server that manages LocalStack operations, resource auto
                     │   Scripts       │
                     │                 │
                     │ • Shell Scripts │
-                    │ • Python Scripts│
-                    │ • Terraform     │
                     └─────────────────┘
 ```
 
