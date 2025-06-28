@@ -2,7 +2,7 @@
 
 > **Enterprise AWS Development Tools** by CloudStack Solutions
 
-A comprehensive LocalStack automation template with multiple approaches (Terraform, Python, Shell) and a modern GUI for resource management.
+A comprehensive LocalStack automation template with shell-based automation and a modern GUI for resource management.
 
 ![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)
 ![CloudStack Solutions](https://img.shields.io/badge/Powered%20by-CloudStack%20Solutions-indigo?style=for-the-badge)
@@ -72,9 +72,7 @@ localstack-template/
 │   ├── 📁 logs/                # Application logs
 │   └── 📄 README.md            # API documentation
 ├── 📁 scripts/                 # Automation scripts
-│   ├── 📁 shell/               # Shell-based automation
-│   ├── 📁 python/              # Python-based automation
-│   └── 📁 terraform/           # Terraform-based automation
+│   └── 📁 shell/               # Shell-based automation
 ├── 📄 docker-compose.yml       # LocalStack configuration
 ├── 📄 start-gui.sh             # All-in-one startup script
 └── 📄 README.md                # This file
@@ -84,7 +82,7 @@ localstack-template/
 
 ### Core Automation
 
-- **Multi-Approach Support**: Terraform, Python (boto3), Shell scripts
+- **Shell Script Automation**: Fast, reliable command-line automation
 - **Environment Management**: dev, uat, prod environments
 - **Resource Templates**: Predefined common AWS setups
 - **Naming Conventions**: Consistent resource naming across environments
@@ -102,15 +100,13 @@ localstack-template/
 - **Network Accessible**: Team collaboration ready
 - **Professional Branding**: CloudStack Solutions design
 - **Advanced Mode**: Detailed resource management
-- **Automation Choice**: User-selectable automation approach
+- **Universal Access**: Shell scripts work on any system
 
 ## 🛠️ Prerequisites
 
 - **Docker & Docker Compose**: For LocalStack
 - **Node.js 18+**: For GUI and API server
-- **Python 3.8+**: For Python automation scripts
-- **Terraform**: For Terraform automation (optional)
-- **AWS CLI**: For shell automation (optional)
+- **AWS CLI**: For shell automation
 
 ## 📖 Usage
 
@@ -127,15 +123,8 @@ docker-compose up -d
 ### 2. Create Resources
 
 ```bash
-# Using shell scripts (default)
+# Using shell scripts (standard approach)
 ./scripts/shell/create_resources.sh my-project dev --s3 --dynamodb
-
-# Using Python scripts
-python3 scripts/python/create_resources.py --project my-project --environment dev --s3 --dynamodb
-
-# Using Terraform
-cd scripts/terraform
-terraform apply -var="project_name=my-project" -var="environment=dev"
 ```
 
 ### 3. Manage via GUI
@@ -184,7 +173,7 @@ NODE_ENV=development
 - **Project Name**: Used for resource naming
 - **Environment**: dev/uat/prod for isolation
 - **AWS Region**: Target region for resources
-- **Automation Approach**: Shell/Python/Terraform
+- **Automation Approach**: Shell scripts (standard)
 
 ## 📊 Resource Templates
 
@@ -196,25 +185,15 @@ NODE_ENV=development
 | **Database Only** | DynamoDB table for data      | DynamoDB                          |
 | **API Only**      | API Gateway with Lambda      | Lambda, API Gateway               |
 
-## 🚀 Automation Approaches
+## 🚀 Automation Approach
 
-### Shell Scripts (Default)
+### Shell Scripts (Standard)
 
 - **Speed**: Fastest execution
-- **Dependencies**: Minimal requirements
+- **Dependencies**: Minimal requirements (just AWS CLI)
+- **Universal**: Works on any system with bash
 - **Use Case**: Quick prototyping and development
-
-### Python Scripts
-
-- **Integration**: Full boto3 support
-- **Error Handling**: Rich error management
-- **Use Case**: Complex workflows and automation
-
-### Terraform
-
-- **Infrastructure as Code**: Declarative configuration
-- **State Management**: Resource state tracking
-- **Use Case**: Production-like environments
+- **Accessibility**: No programming knowledge required
 
 ## 🔒 Security
 
@@ -280,7 +259,7 @@ ls -la scripts/shell/
 - 📖 [Web GUI Guide](localstack-gui/README.md) - Next.js interface
 - 📖 [Desktop App Guide](localstack-desktop/README.md) - Electron application
 - 📖 [API Server Guide](localstack-api/README.md) - Express backend
-- 📖 [Automation Scripts](scripts/README.md) - Shell, Python, Terraform
+- 📖 [Shell Scripts](scripts/shell/README.md) - Automation scripts
 
 ### External Resources
 
@@ -301,7 +280,7 @@ ls -la scripts/shell/
 
 - **Frontend**: TypeScript, Tailwind CSS, ESLint
 - **Backend**: Node.js, Express, Winston logging
-- **Automation**: Shell, Python, Terraform best practices
+- **Automation**: Shell scripts with best practices
 
 ## 📄 License
 
