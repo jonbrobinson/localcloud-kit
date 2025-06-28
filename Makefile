@@ -11,12 +11,12 @@ AWS_REGION ?= us-east-1
 GREEN := \033[0;32m
 YELLOW := \033[1;33m
 RED := \033[0;31m
+BLUE := \033[0;34m
 NC := \033[0m # No Color
 
 .PHONY: help start stop restart status logs clean
-.PHONY: terraform-create terraform-destroy terraform-plan
-.PHONY: python-create python-destroy python-list
 .PHONY: shell-create shell-destroy shell-list
+.PHONY: gui-start gui-stop gui-restart
 .PHONY: setup check-prerequisites
 
 # Default target
@@ -26,13 +26,10 @@ help: ## Show this help message
 	@echo "$(YELLOW)LocalStack Management:$(NC)"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "(start|stop|restart|status|logs|clean)"
 	@echo ""
-	@echo "$(YELLOW)Resource Creation (Terraform):$(NC)"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "terraform"
+	@echo "$(YELLOW)GUI Management:$(NC)"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "gui"
 	@echo ""
-	@echo "$(YELLOW)Resource Creation (Python):$(NC)"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "python"
-	@echo ""
-	@echo "$(YELLOW)Resource Creation (Shell):$(NC)"
+	@echo "$(YELLOW)Resource Creation (Shell Scripts):$(NC)"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "shell"
 	@echo ""
 	@echo "$(YELLOW)Setup and Utilities:$(NC)"
@@ -40,8 +37,7 @@ help: ## Show this help message
 	@echo ""
 	@echo "$(YELLOW)Usage Examples:$(NC)"
 	@echo "  make start                    # Start LocalStack"
-	@echo "  make terraform-create ENV=dev # Create resources with Terraform"
-	@echo "  make python-create ENV=dev    # Create resources with Python"
+	@echo "  make gui-start                # Start GUI system (Web + API)"
 	@echo "  make shell-create ENV=dev     # Create resources with Shell scripts"
 	@echo "  make clean                    # Clean up all resources"
 
@@ -71,77 +67,33 @@ logs: ## View LocalStack logs
 
 clean: ## Clean up all resources and stop LocalStack
 	@echo "$(YELLOW)Cleaning up all resources...$(NC)"
-	@make terraform-destroy ENV=dev || true
-	@make terraform-destroy ENV=uat || true
-	@make terraform-destroy ENV=prod || true
-	@make python-destroy ENV=dev || true
-	@make python-destroy ENV=uat || true
-	@make python-destroy ENV=prod || true
 	@make shell-destroy ENV=dev || true
 	@make shell-destroy ENV=uat || true
 	@make shell-destroy ENV=prod || true
+	@make gui-stop || true
 	@make stop
 	@echo "$(GREEN)Cleanup complete$(NC)"
 
-# Terraform Commands
-terraform-create: check-prerequisites ## Create resources using Terraform
-	@echo "$(GREEN)Creating resources with Terraform for environment: $(ENVIRONMENT)$(NC)"
-	@cd scripts/terraform && \
-	export AWS_ENDPOINT_URL=$(AWS_ENDPOINT) && \
-	export AWS_REGION=$(AWS_REGION) && \
-	export PROJECT_NAME=$(PROJECT_NAME) && \
-	export ENVIRONMENT=$(ENVIRONMENT) && \
-	terraform init && \
-	terraform plan -var="project_name=$(PROJECT_NAME)" -var="environment=$(ENVIRONMENT)" && \
-	terraform apply -auto-approve -var="project_name=$(PROJECT_NAME)" -var="environment=$(ENVIRONMENT)"
+# GUI Management
+gui-start: ## Start the LocalStack Manager GUI system
+	@echo "$(BLUE)Starting LocalStack Manager GUI...$(NC)"
+	@echo "$(GREEN)Starting API Server...$(NC)"
+	@cd localstack-api && npm install && npm start &
+	@echo "$(GREEN)Starting Web GUI...$(NC)"
+	@cd localstack-gui && npm install && npm run dev &
+	@echo "$(GREEN)GUI System started!$(NC)"
+	@echo "$(YELLOW)Web GUI: http://localhost:3030$(NC)"
+	@echo "$(YELLOW)API Server: http://localhost:3031$(NC)"
 
-terraform-destroy: ## Destroy resources using Terraform
-	@echo "$(YELLOW)Destroying resources with Terraform for environment: $(ENVIRONMENT)$(NC)"
-	@cd scripts/terraform && \
-	export AWS_ENDPOINT_URL=$(AWS_ENDPOINT) && \
-	export AWS_REGION=$(AWS_REGION) && \
-	export PROJECT_NAME=$(PROJECT_NAME) && \
-	export ENVIRONMENT=$(ENVIRONMENT) && \
-	terraform destroy -auto-approve -var="project_name=$(PROJECT_NAME)" -var="environment=$(ENVIRONMENT)"
+gui-stop: ## Stop the LocalStack Manager GUI system
+	@echo "$(YELLOW)Stopping LocalStack Manager GUI...$(NC)"
+	@pkill -f "next dev" || true
+	@pkill -f "node.*server.js" || true
+	@echo "$(GREEN)GUI System stopped$(NC)"
 
-terraform-plan: ## Plan Terraform changes
-	@echo "$(YELLOW)Planning Terraform changes for environment: $(ENVIRONMENT)$(NC)"
-	@cd scripts/terraform && \
-	export AWS_ENDPOINT_URL=$(AWS_ENDPOINT) && \
-	export AWS_REGION=$(AWS_REGION) && \
-	export PROJECT_NAME=$(PROJECT_NAME) && \
-	export ENVIRONMENT=$(ENVIRONMENT) && \
-	terraform plan -var="project_name=$(PROJECT_NAME)" -var="environment=$(ENVIRONMENT)"
+gui-restart: gui-stop gui-start ## Restart the LocalStack Manager GUI system
 
-# Python Commands
-python-create: check-prerequisites ## Create resources using Python scripts
-	@echo "$(GREEN)Creating resources with Python for environment: $(ENVIRONMENT)$(NC)"
-	@cd scripts/python && \
-	export AWS_ENDPOINT_URL=$(AWS_ENDPOINT) && \
-	export AWS_REGION=$(AWS_REGION) && \
-	export PROJECT_NAME=$(PROJECT_NAME) && \
-	export ENVIRONMENT=$(ENVIRONMENT) && \
-	python create_resources.py
-
-python-destroy: ## Destroy resources using Python scripts
-	@echo "$(YELLOW)Destroying resources with Python for environment: $(ENVIRONMENT)$(NC)"
-	@cd scripts/python && \
-	export AWS_ENDPOINT_URL=$(AWS_ENDPOINT) && \
-	export AWS_REGION=$(AWS_REGION) && \
-	export PROJECT_NAME=$(PROJECT_NAME) && \
-	export ENVIRONMENT=$(ENVIRONMENT) && \
-	python destroy_resources.py
-
-python-list: ## List resources using Python scripts
-	@echo "$(YELLOW)Listing resources with Python for environment: $(ENVIRONMENT)$(NC)"
-	@cd scripts/python && \
-	export AWS_ENDPOINT_URL=$(AWS_ENDPOINT) && \
-	export AWS_REGION=$(AWS_REGION) && \
-	export PROJECT_NAME=$(PROJECT_NAME) && \
-	export ENVIRONMENT=$(ENVIRONMENT) && \
-	python list_resources.py
-
-# Shell Commands
+# Shell Commands (Standard Automation)
 shell-create: check-prerequisites ## Create resources using Shell scripts
 	@echo "$(GREEN)Creating resources with Shell scripts for environment: $(ENVIRONMENT)$(NC)"
 	@cd scripts/shell && \
@@ -172,13 +124,15 @@ shell-list: ## List resources using Shell scripts
 # Setup and Utilities
 setup: ## Initial setup - create directories and install dependencies
 	@echo "$(GREEN)Setting up LocalStack template...$(NC)"
-	@mkdir -p scripts/{python,shell,terraform}
+	@mkdir -p scripts/shell
 	@mkdir -p config/{dev,uat,prod}
-	@pip install -r requirements.txt 2>/dev/null || echo "$(YELLOW)Please install Python dependencies manually$(NC)"
+	@chmod +x scripts/shell/*.sh
 	@echo "$(GREEN)Setup complete$(NC)"
 
 check-prerequisites: ## Check if prerequisites are installed
 	@echo "$(YELLOW)Checking prerequisites...$(NC)"
 	@command -v docker >/dev/null 2>&1 || { echo "$(RED)Docker is required but not installed$(NC)"; exit 1; }
 	@command -v docker-compose >/dev/null 2>&1 || { echo "$(RED)Docker Compose is required but not installed$(NC)"; exit 1; }
+	@command -v aws >/dev/null 2>&1 || { echo "$(RED)AWS CLI is required but not installed$(NC)"; exit 1; }
+	@command -v node >/dev/null 2>&1 || { echo "$(RED)Node.js is required but not installed$(NC)"; exit 1; }
 	@echo "$(GREEN)Prerequisites check passed$(NC)" 
