@@ -11,6 +11,7 @@ echo "║                                                              ║"
 echo "║  💼 Powered by CloudStack Solutions                         ║"
 echo "║  🏢 Enterprise AWS Development Tools                        ║"
 echo "║  📦 LocalStack Manager v1.0.0                               ║"
+echo "║  🐳 Containerized with Docker                               ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -38,8 +39,61 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if Node.js is installed
-check_node() {
+# Check if Docker is installed
+check_docker() {
+    if ! command -v docker &> /dev/null; then
+        print_error "Docker is not installed. Please install Docker first."
+        exit 1
+    fi
+    
+    print_success "Docker $(docker --version) detected"
+}
+
+# Check if Docker Compose is installed
+check_docker_compose() {
+    if ! command -v docker-compose &> /dev/null; then
+        print_error "Docker Compose is not installed. Please install Docker Compose first."
+        exit 1
+    fi
+    
+    print_success "Docker Compose $(docker-compose --version) detected"
+}
+
+# Start services with Docker Compose
+start_docker_services() {
+    print_status "Starting LocalStack Manager with Docker Compose..."
+    
+    # Build and start services
+    docker-compose up --build -d
+    
+    print_success "Docker services started"
+    print_status "Waiting for services to be ready..."
+    
+    # Wait for GUI to be ready
+    local max_attempts=30
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        if curl -s http://localhost:3030/health > /dev/null 2>&1; then
+            print_success "All services are ready!"
+            break
+        fi
+        
+        print_status "Waiting for services... (attempt $attempt/$max_attempts)"
+        sleep 2
+        attempt=$((attempt + 1))
+    done
+    
+    if [ $attempt -gt $max_attempts ]; then
+        print_warning "Services may still be starting up. Please check manually."
+    fi
+}
+
+# Start services with traditional method (for development)
+start_traditional_services() {
+    print_status "Starting LocalStack Manager with traditional method..."
+    
+    # Check if Node.js is installed
     if ! command -v node &> /dev/null; then
         print_error "Node.js is not installed. Please install Node.js 18+ first."
         exit 1
@@ -52,20 +106,16 @@ check_node() {
     fi
     
     print_success "Node.js $(node --version) detected"
-}
-
-# Check if npm is installed
-check_npm() {
+    
+    # Check if npm is installed
     if ! command -v npm &> /dev/null; then
         print_error "npm is not installed. Please install npm first."
         exit 1
     fi
     
     print_success "npm $(npm --version) detected"
-}
-
-# Install dependencies for GUI
-install_gui_deps() {
+    
+    # Install dependencies for GUI
     print_status "Installing GUI dependencies..."
     cd localstack-gui
     if [ ! -d "node_modules" ]; then
@@ -75,10 +125,8 @@ install_gui_deps() {
         print_status "GUI dependencies already installed"
     fi
     cd ..
-}
-
-# Install dependencies for API
-install_api_deps() {
+    
+    # Install dependencies for API
     print_status "Installing API dependencies..."
     cd localstack-api
     if [ ! -d "node_modules" ]; then
@@ -88,10 +136,8 @@ install_api_deps() {
         print_status "API dependencies already installed"
     fi
     cd ..
-}
-
-# Start the API server
-start_api() {
+    
+    # Start the API server
     print_status "Starting LocalStack Manager API server..."
     cd localstack-api
     
@@ -115,10 +161,8 @@ start_api() {
     fi
     
     cd ..
-}
-
-# Start the GUI
-start_gui() {
+    
+    # Start the GUI
     print_status "Starting LocalStack Manager GUI..."
     cd localstack-gui
     
@@ -166,36 +210,67 @@ trap cleanup SIGINT SIGTERM
 main() {
     print_status "Initializing LocalStack Manager..."
     
-    # Check prerequisites
-    check_node
-    check_npm
-    
-    # Install dependencies
-    install_gui_deps
-    install_api_deps
-    
-    # Start services
-    start_api
-    start_gui
-    
-    echo ""
-    echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║                    🎉 Startup Complete!                      ║"
-    echo "║                                                              ║"
-    echo "║  📊 Dashboard: http://localhost:3030                        ║"
-    echo "║  🔧 API Server: http://localhost:3031                       ║"
-    echo "║                                                              ║"
-    echo "║  💼 Powered by CloudStack Solutions                         ║"
-    echo "║  🏢 Enterprise AWS Development Tools                        ║"
-    echo "╚══════════════════════════════════════════════════════════════╝"
-    echo ""
-    print_status "Press Ctrl+C to stop all services"
-    
-    # Keep the script running
-    while true; do
-        sleep 1
-    done
+    # Check if Docker method is preferred
+    if [ "$1" = "--docker" ] || [ "$1" = "-d" ]; then
+        print_status "Using Docker method..."
+        check_docker
+        check_docker_compose
+        start_docker_services
+        
+        echo ""
+        echo "╔══════════════════════════════════════════════════════════════╗"
+        echo "║                    🎉 Docker Startup Complete!               ║"
+        echo "║                                                              ║"
+        echo "║  📊 Dashboard: http://localhost:3030                        ║"
+        echo "║  🔧 API Server: http://localhost:3030/api                   ║"
+        echo "║  🐳 LocalStack: http://localhost:4566                       ║"
+        echo "║                                                              ║"
+        echo "║  💼 Powered by CloudStack Solutions                         ║"
+        echo "║  🏢 Enterprise AWS Development Tools                        ║"
+        echo "╚══════════════════════════════════════════════════════════════╝"
+        echo ""
+        print_status "Use 'docker-compose down' to stop all services"
+        print_status "Use 'docker-compose logs -f' to view logs"
+        
+    else
+        print_status "Using traditional method (for development)..."
+        print_warning "Docker method is recommended. Use './start-gui.sh --docker' for Docker setup."
+        start_traditional_services
+        
+        echo ""
+        echo "╔══════════════════════════════════════════════════════════════╗"
+        echo "║                    🎉 Startup Complete!                      ║"
+        echo "║                                                              ║"
+        echo "║  📊 Dashboard: http://localhost:3030                        ║"
+        echo "║  🔧 API Server: http://localhost:3031                       ║"
+        echo "║                                                              ║"
+        echo "║  💼 Powered by CloudStack Solutions                         ║"
+        echo "║  🏢 Enterprise AWS Development Tools                        ║"
+        echo "╚══════════════════════════════════════════════════════════════╝"
+        echo ""
+        print_status "Press Ctrl+C to stop all services"
+        
+        # Keep the script running
+        while true; do
+            sleep 1
+        done
+    fi
 }
+
+# Show usage if help requested
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    echo "LocalStack Manager Startup Script"
+    echo ""
+    echo "Usage:"
+    echo "  ./start-gui.sh              # Start with traditional method (development)"
+    echo "  ./start-gui.sh --docker     # Start with Docker (recommended)"
+    echo "  ./start-gui.sh -d           # Start with Docker (short form)"
+    echo "  ./start-gui.sh --help       # Show this help"
+    echo ""
+    echo "Docker method is recommended for production and team environments."
+    echo "Traditional method is useful for development and debugging."
+    exit 0
+fi
 
 # Run main function
 main "$@" 

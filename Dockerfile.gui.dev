@@ -1,0 +1,20 @@
+# Development Dockerfile for Next.js GUI
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY localstack-gui/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY localstack-gui/ ./
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["npm", "run", "dev"] 

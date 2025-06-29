@@ -101,7 +101,7 @@ export default function CreateResourceModal({
   const handleTemplateChange = (templateId: string) => {
     setSelectedTemplate(templateId);
     const template = predefinedTemplates.find((t) => t.id === templateId);
-    if (template) {
+    if (template) {   
       setResources(template.resources);
     }
   };
