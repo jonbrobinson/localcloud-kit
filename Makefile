@@ -44,7 +44,7 @@ help: ## Show this help message
 # Docker Management
 start: ## Start all services with Docker Compose
 	@echo "$(GREEN)Starting LocalStack Template with Docker...$(NC)"
-	docker-compose up --build -d
+	docker compose up --build -d
 	@echo "$(GREEN)Waiting for services to be ready...$(NC)"
 	@until curl -s http://localhost:3030/health > /dev/null; do sleep 2; done
 	@echo "$(GREEN)All services are ready!$(NC)"
@@ -54,29 +54,29 @@ start: ## Start all services with Docker Compose
 
 stop: ## Stop all Docker services
 	@echo "$(YELLOW)Stopping all services...$(NC)"
-	docker-compose down
+	docker compose down
 
 restart: stop start ## Restart all Docker services
 
 status: ## Check Docker services status
 	@echo "$(YELLOW)Docker Services Status:$(NC)"
-	@docker-compose ps
+	@docker compose ps
 	@echo ""
 	@echo "$(YELLOW)Health Checks:$(NC)"
 	@curl -s http://localhost:3030/health || echo "$(RED)GUI/API not responding$(NC)"
 	@curl -s http://localhost:4566/_localstack/health || echo "$(RED)LocalStack not responding$(NC)"
 
 logs: ## View Docker services logs
-	docker-compose logs -f
+	docker compose logs -f
 
 docker-logs: ## View specific service logs
 	@echo "$(YELLOW)Available services: gui, api, nginx, localstack$(NC)"
 	@echo "$(YELLOW)Usage: make docker-logs SERVICE=gui$(NC)"
-	@if [ "$(SERVICE)" != "" ]; then docker-compose logs -f $(SERVICE); fi
+	@if [ "$(SERVICE)" != "" ]; then docker compose logs -f $(SERVICE); fi
 
 docker-build: ## Build Docker images
 	@echo "$(GREEN)Building Docker images...$(NC)"
-	docker-compose build
+	docker compose build
 
 clean: ## Clean up all resources and stop services
 	@echo "$(YELLOW)Cleaning up all resources...$(NC)"
@@ -89,14 +89,14 @@ clean: ## Clean up all resources and stop services
 # GUI Management
 gui-start: ## Start the LocalStack Manager GUI system with Docker
 	@echo "$(BLUE)Starting LocalStack Manager GUI with Docker...$(NC)"
-	docker-compose up --build -d gui api nginx
+	docker compose up --build -d gui api nginx
 	@echo "$(GREEN)GUI System started!$(NC)"
 	@echo "$(YELLOW)Web GUI: http://localhost:3030$(NC)"
 	@echo "$(YELLOW)API Server: http://localhost:3030/api$(NC)"
 
 gui-stop: ## Stop the LocalStack Manager GUI system
 	@echo "$(YELLOW)Stopping LocalStack Manager GUI...$(NC)"
-	docker-compose stop gui api nginx
+	docker compose stop gui api nginx
 	@echo "$(GREEN)GUI System stopped$(NC)"
 
 gui-restart: gui-stop gui-start ## Restart the LocalStack Manager GUI system
@@ -142,6 +142,6 @@ setup: ## Initial setup - create directories and install dependencies
 check-prerequisites: ## Check if prerequisites are installed
 	@echo "$(YELLOW)Checking prerequisites...$(NC)"
 	@command -v docker >/dev/null 2>&1 || { echo "$(RED)Docker is required but not installed$(NC)"; exit 1; }
-	@command -v docker-compose >/dev/null 2>&1 || { echo "$(RED)Docker Compose is required but not installed$(NC)"; exit 1; }
+	@command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1 || { echo "$(RED)Docker Compose is required but not installed$(NC)"; exit 1; }
 	@command -v aws >/dev/null 2>&1 || { echo "$(YELLOW)AWS CLI is not installed (optional for local development)$(NC)"; }
 	@echo "$(GREEN)Prerequisites check passed$(NC)" 

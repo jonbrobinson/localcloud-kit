@@ -64,7 +64,7 @@ start_docker_services() {
     print_status "Starting LocalStack Manager with Docker Compose..."
     
     # Build and start services
-    docker-compose up --build -d
+    docker compose up --build -d
     
     print_success "Docker services started"
     print_status "Waiting for services to be ready..."
