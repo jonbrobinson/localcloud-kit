@@ -7,7 +7,7 @@ set -e  # Exit on any error
 
 # Configuration
 PROJECT_NAME=${1:-"localstack-template"}
-AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localhost:4566"}
+AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
 NAME_PREFIX="$PROJECT_NAME"
