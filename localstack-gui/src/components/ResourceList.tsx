@@ -15,7 +15,6 @@ interface ResourceListProps {
   resources: Resource[];
   onDestroy: (resourceIds: string[]) => void;
   projectName: string;
-  environment: string;
   loading?: boolean;
 }
 
@@ -23,7 +22,6 @@ export default function ResourceList({
   resources,
   onDestroy,
   projectName,
-  environment,
   loading = false,
 }: ResourceListProps) {
   const [selectedResources, setSelectedResources] = useState<string[]>([]);
@@ -100,8 +98,7 @@ export default function ResourceList({
   };
 
   const filteredResources = resources.filter(
-    (resource) =>
-      resource.project === projectName && resource.environment === environment
+    (resource) => resource.project === projectName
   );
 
   if (filteredResources.length === 0) {
@@ -112,8 +109,7 @@ export default function ResourceList({
           No Resources Found
         </h3>
         <p className="text-gray-500">
-          No resources found for project "{projectName}" in {environment}{" "}
-          environment.
+          No resources found for project "{projectName}".
         </p>
       </div>
     );
@@ -166,7 +162,7 @@ export default function ResourceList({
                     {resource.name}
                   </h4>
                   <p className="text-sm text-gray-500 capitalize">
-                    {resource.type} • {resource.project}-{resource.environment}
+                    {resource.type} • {resource.project}
                   </p>
                 </div>
               </div>

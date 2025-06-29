@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   PlusIcon,
   TrashIcon,
-  Cog6ToothIcon,
   DocumentTextIcon,
   ServerIcon,
 } from "@heroicons/react/24/outline";
@@ -20,7 +19,6 @@ import { useLocalStackData } from "@/hooks/useLocalStackData";
 import StatusCard from "./StatusCard";
 import ResourceList from "./ResourceList";
 import CreateResourceModal from "./CreateResourceModal";
-import ConfigModal from "./ConfigModal";
 import LogViewer from "./LogViewer";
 import Image from "next/image";
 
@@ -35,13 +33,11 @@ export default function Dashboard() {
   } = useLocalStackData();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showConfigModal, setShowConfigModal] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
 
   // Loading states for buttons
   const [createLoading, setCreateLoading] = useState(false);
   const [destroyLoading, setDestroyLoading] = useState(false);
-  const [configLoading, setConfigLoading] = useState(false);
 
   const handleCreateResources = async (request: CreateResourceRequest) => {
     setCreateLoading(true);
@@ -89,29 +85,6 @@ export default function Dashboard() {
       );
     } finally {
       setDestroyLoading(false);
-    }
-  };
-
-  const handleConfigUpdate = async (newConfig: ProjectConfig) => {
-    setConfigLoading(true);
-    try {
-      const response = await configApi.updateProjectConfig(newConfig);
-      if (response.success) {
-        toast.success("Configuration updated");
-        setShowConfigModal(false);
-        await loadInitialData();
-      } else {
-        toast.error(response.error || "Failed to update configuration");
-      }
-    } catch (error) {
-      console.error("Config update error:", error);
-      toast.error(
-        `Failed to update configuration: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-    } finally {
-      setConfigLoading(false);
     }
   };
 
@@ -195,18 +168,6 @@ export default function Dashboard() {
                 <DocumentTextIcon className="h-4 w-4 mr-2" />
                 Logs
               </button>
-              <button
-                onClick={() => setShowConfigModal(true)}
-                disabled={configLoading}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
-              >
-                {configLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
-                ) : (
-                  <Cog6ToothIcon className="h-4 w-4 mr-2" />
-                )}
-                Config
-              </button>
             </div>
           </div>
         </div>
@@ -254,7 +215,6 @@ export default function Dashboard() {
               resources={resources}
               onDestroy={handleDestroyResources}
               projectName={config.projectName}
-              environment={config.environment}
               loading={destroyLoading}
             />
           </div>
@@ -265,18 +225,12 @@ export default function Dashboard() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Current Configuration
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Project
               </label>
               <p className="mt-1 text-sm text-gray-900">{config.projectName}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Environment
-              </label>
-              <p className="mt-1 text-sm text-gray-900">{config.environment}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -320,16 +274,6 @@ export default function Dashboard() {
           onSubmit={handleCreateResources}
           config={config}
           loading={createLoading}
-        />
-      )}
-
-      {showConfigModal && (
-        <ConfigModal
-          isOpen={showConfigModal}
-          onClose={() => setShowConfigModal(false)}
-          onSubmit={handleConfigUpdate}
-          config={config}
-          loading={configLoading}
         />
       )}
 
