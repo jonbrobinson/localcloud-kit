@@ -62,7 +62,7 @@ export interface CreateResourceRequest {
 
 export interface DestroyResourceRequest {
   projectName: string;
-  resourceIds?: string[];
+  resourceIds: string[];
 }
 
 export interface ApiResponse<T = any> {

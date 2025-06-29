@@ -272,21 +272,21 @@ async function createSingleResource(projectName, resourceType) {
 
 async function destroyResources(request) {
   try {
-    const { projectName, resources } = request;
+    const { projectName, resourceIds } = request;
 
     addLog(
       "info",
-      `Destroying specific resources for ${projectName}: ${resources.join(
-        ", "
-      )}`,
+      `Destroying specific resources for ${projectName}: ${
+        resourceIds ? resourceIds.join(", ") : "all resources"
+      }`,
       "automation"
     );
 
     let command = `./destroy_resources.sh ${projectName} local`;
 
     // Add specific resource IDs if provided
-    if (resources && resources.length > 0) {
-      command += ` ${resources.join(" ")}`;
+    if (resourceIds && resourceIds.length > 0) {
+      command += ` ${resourceIds.join(" ")}`;
     }
 
     const { stdout, stderr } = await execAsync(command, {
@@ -313,6 +313,40 @@ async function destroyResources(request) {
     addLog(
       "error",
       `Failed to destroy resources: ${error.message}`,
+      "automation"
+    );
+    return { success: false, error: error.message };
+  }
+}
+
+async function destroySingleResource(projectName, resourceType, resourceName) {
+  try {
+    let command = `./destroy_single_resource.sh ${projectName} ${resourceType} ${resourceName}`;
+
+    const { stdout, stderr } = await execAsync(command, {
+      cwd: "/app/scripts/shell",
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `Resource destruction warning: ${stderr}`, "automation");
+    }
+
+    addLog(
+      "success",
+      `Resource destroyed successfully for ${projectName}`,
+      "automation"
+    );
+
+    return { success: true, message: "Resource destroyed successfully" };
+  } catch (error) {
+    addLog(
+      "error",
+      `Failed to destroy resource: ${error.message}`,
       "automation"
     );
     return { success: false, error: error.message };
@@ -479,6 +513,31 @@ app.post("/resources/create-single", async (req, res) => {
 app.post("/resources/destroy", async (req, res) => {
   const result = await destroyResources(req.body);
   res.json(result);
+});
+
+app.post("/resources/destroy-single", async (req, res) => {
+  try {
+    const { projectName, resourceType, resourceName } = req.body;
+
+    if (!projectName || !resourceType) {
+      return res.status(400).json({
+        success: false,
+        error: "projectName and resourceType are required",
+      });
+    }
+
+    const result = await destroySingleResource(
+      projectName,
+      resourceType,
+      resourceName
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
 });
 
 app.get("/resources/status", async (req, res) => {
