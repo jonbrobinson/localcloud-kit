@@ -161,20 +161,20 @@ make shell-create ENV=prod
 ### Resource Templates
 
 ```bash
-# Basic setup (S3 + DynamoDB)
-./scripts/shell/create_resources.sh my-project dev --template basic
+# Basic template (S3 + DynamoDB)
+./scripts/shell/create_resources.sh localstack-template dev --template basic
 
-# Serverless setup (S3 + DynamoDB + Lambda + API Gateway)
-./scripts/shell/create_resources.sh my-project dev --template serverless
+# Serverless template (Lambda + API Gateway + DynamoDB)
+./scripts/shell/create_resources.sh localstack-template dev --template serverless
 
-# Storage only (S3 bucket)
-./scripts/shell/create_resources.sh my-project dev --template storage
+# Storage template (S3 + CloudFront)
+./scripts/shell/create_resources.sh localstack-template dev --template storage
 
-# Database only (DynamoDB table)
-./scripts/shell/create_resources.sh my-project dev --template database
+# Database template (RDS + ElastiCache)
+./scripts/shell/create_resources.sh localstack-template dev --template database
 
-# API only (Lambda + API Gateway)
-./scripts/shell/create_resources.sh my-project dev --template api
+# API template (API Gateway + Lambda)
+./scripts/shell/create_resources.sh localstack-template dev --template api
 ```
 
 ## 🆘 Need Help?

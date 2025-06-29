@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { LocalStackStatus, Resource, ProjectConfig } from "@/types";
 import { localstackApi, resourceApi, configApi } from "@/services/api";
 
@@ -16,7 +16,7 @@ export function useLocalStackData() {
       health: "unknown",
     },
     projectConfig: {
-      projectName: "my-project",
+      projectName: "localstack-template",
       awsEndpoint: "http://localhost:4566",
       awsRegion: "us-east-1",
     },
@@ -25,14 +25,16 @@ export function useLocalStackData() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setError(null);
-      const [localstackStatus, projectConfig, resources] = await Promise.all([
+      const [localstackStatus, projectConfig] = await Promise.all([
         localstackApi.getStatus(),
         configApi.getProjectConfig(),
-        resourceApi.getStatus(data.projectConfig.projectName),
       ]);
+
+      // Use the current project config to fetch resources
+      const resources = await resourceApi.getStatus(projectConfig.projectName);
 
       setData({
         localstackStatus,
@@ -47,13 +49,13 @@ export function useLocalStackData() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
     const interval = setInterval(loadData, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadData]);
 
   return {
     ...data,

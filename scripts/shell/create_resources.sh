@@ -1,9 +1,11 @@
 #!/bin/sh
 
+set -e  # Exit on any error
+set -x  # Print each command before executing (debug)
+export AWS_PAGER=""
+
 # LocalStack Resource Creation Script
 # Creates S3, DynamoDB, Lambda, and API Gateway resources using AWS CLI
-
-set -e  # Exit on any error
 
 # Configuration
 PROJECT_NAME=${1:-"localstack-template"}

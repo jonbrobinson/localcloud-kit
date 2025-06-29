@@ -164,9 +164,20 @@ async function destroyResources(request) {
   try {
     const { projectName, resources } = request;
 
-    addLog("info", `Destroying resources for ${projectName}`, "automation");
+    addLog(
+      "info",
+      `Destroying specific resources for ${projectName}: ${resources.join(
+        ", "
+      )}`,
+      "automation"
+    );
 
     let command = `./destroy_resources.sh ${projectName} local`;
+
+    // Add specific resource IDs if provided
+    if (resources && resources.length > 0) {
+      command += ` ${resources.join(" ")}`;
+    }
 
     const { stdout, stderr } = await execAsync(command, {
       cwd: "/app/scripts/shell",

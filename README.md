@@ -2,7 +2,7 @@
 
 > **Enterprise AWS Development Tools** by CloudStack Solutions
 
-A comprehensive LocalStack automation template with shell-based automation and a modern GUI for resource management, all containerized with Docker.
+A comprehensive LocalStack automation template with shell-based automation and a modern web GUI for resource management, all containerized with Docker.
 
 ![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)
 ![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)
@@ -53,9 +53,6 @@ localstack-template/
 │   │   ├── 📁 services/        # API services
 │   │   └── 📁 types/           # TypeScript types
 │   └── 📄 README.md            # Web GUI documentation
-├── 📁 localstack-desktop/      # Electron Desktop App
-│   ├── 📄 main.js              # Electron main process
-│   └── 📄 README.md            # Desktop app documentation
 ├── 📁 localstack-api/          # Express API Server
 │   ├── 📄 server.js            # API server
 │   ├── 📁 logs/                # Application logs
@@ -82,7 +79,6 @@ localstack-template/
 ### GUI Management
 
 - **Web Interface**: Modern Next.js dashboard with hot reloading
-- **Desktop App**: Native Electron application
 - **Real-time Monitoring**: Live status and resource tracking
 - **Log Viewer**: Real-time log monitoring with filtering
 
@@ -121,7 +117,7 @@ make start
 
 ```bash
 # Using shell scripts (standard approach)
-./scripts/shell/create_resources.sh my-project dev --s3 --dynamodb
+./scripts/shell/create_resources.sh localstack-template dev --s3 --dynamodb
 ```
 
 ### 3. Manage via GUI
@@ -139,13 +135,6 @@ make start
 - **Log Viewer**: Real-time logs with filtering
 - **Network Accessible**: Team collaboration
 - **Hot Reloading**: Instant code updates during development
-
-### Desktop Application (Electron)
-
-- **Native Experience**: Desktop app with system tray
-- **Offline Capability**: Works without internet
-- **Cross-platform**: Windows, macOS, Linux
-- **Professional UI**: Enterprise-grade interface
 
 ## 🔧 Configuration
 
@@ -255,7 +244,6 @@ ls -la scripts/shell/
 ### Component Documentation
 
 - 📖 [Web GUI Guide](localstack-gui/README.md) - Next.js interface
-- 📖 [Desktop App Guide](localstack-desktop/README.md) - Electron application
 - 📖 [API Server Guide](localstack-api/README.md) - Express backend
 - 📖 [Shell Scripts](scripts/shell/README.md) - Automation scripts
 

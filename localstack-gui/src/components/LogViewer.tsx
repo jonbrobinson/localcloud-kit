@@ -89,6 +89,15 @@ export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
     (log) => filter === "all" || log.source === filter
   );
 
+  useEffect(() => {
+    if (autoScroll && isOpen && filteredLogs.length > 0) {
+      const logContent = document.getElementById("log-content");
+      if (logContent) {
+        logContent.scrollTop = logContent.scrollHeight;
+      }
+    }
+  }, [filteredLogs, autoScroll, isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -171,9 +180,12 @@ export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
             </div>
 
             {/* Log Content */}
-            <div className="max-h-96 overflow-y-auto bg-gray-900 text-green-400 font-mono text-sm">
+            <div
+              className="max-h-96 overflow-y-auto bg-gray-900 text-green-200 font-mono text-sm"
+              id="log-content"
+            >
               {filteredLogs.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
+                <div className="p-4 text-center text-gray-400">
                   <div className="flex items-center justify-center space-x-2 mb-2">
                     <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded flex items-center justify-center">
                       <span className="text-white font-bold text-xs">CS</span>
@@ -206,7 +218,9 @@ export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
                       >
                         {log.level}
                       </span>
-                      <span className="flex-1">{log.message}</span>
+                      <span className="flex-1 text-green-200 break-words whitespace-pre-line">
+                        {log.message}
+                      </span>
                     </div>
                   ))}
                 </div>

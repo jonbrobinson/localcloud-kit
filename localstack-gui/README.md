@@ -42,77 +42,37 @@ A modern, web-based GUI for managing LocalStack resources with real-time monitor
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🛠️ Installation
+## 🚀 Getting Started
 
-### Prerequisites
+### Development Mode
 
-- Node.js 18+
-- Docker & Docker Compose
-- LocalStack setup (see main project README)
+```bash
+# Install dependencies
+npm install
 
-### Quick Start
+# Start development server
+npm run dev
+```
 
-1. **Install Dependencies**
+The GUI will be available at http://localhost:3000
 
-   ```bash
-   cd localstack-gui
-   npm install
-   ```
+### Production Build
 
-2. **Start the GUI**
+```bash
+# Build for production
+npm run build
 
-   ```bash
-   npm run dev
-   ```
+# Start production server
+npm start
+```
 
-3. **Start the API Server**
+## 🎨 Features
 
-   ```bash
-   cd ../localstack-api
-   npm install
-   npm start
-   ```
-
-4. **Access the Application**
-   - Web GUI: http://localhost:3030
-   - API Server: http://localhost:3031
-
-## 📖 Usage
-
-### Getting Started
-
-1. **Launch LocalStack**
-
-   - Click "Start" in the LocalStack Status section
-   - Wait for health check to complete
-
-2. **Create Resources**
-
-   - Choose a resource template or customize
-   - Click "Create Resources"
-
-3. **Monitor & Manage**
-   - View real-time resource status
-   - Check logs for detailed information
-   - Destroy resources when done
-
-### Resource Templates
-
-| Template          | Description                  | Resources                         |
-| ----------------- | ---------------------------- | --------------------------------- |
-| **Basic Setup**   | S3 bucket and DynamoDB table | S3, DynamoDB                      |
-| **Serverless**    | Complete serverless stack    | S3, DynamoDB, Lambda, API Gateway |
-| **Storage Only**  | S3 bucket for file storage   | S3                                |
-| **Database Only** | DynamoDB table for data      | DynamoDB                          |
-| **API Only**      | API Gateway with Lambda      | Lambda, API Gateway               |
-
-### Automation
-
-#### Shell Scripts
-
-- Fastest execution
-- Minimal dependencies
-- Best for quick prototyping
+- **Real-time Dashboard**: Live LocalStack status monitoring
+- **Resource Management**: Create and destroy AWS resources
+- **Log Viewer**: Real-time log monitoring with filtering
+- **Responsive Design**: Works on desktop and mobile
+- **Hot Reloading**: Instant updates during development
 
 ## 🎨 Branding
 
