@@ -85,7 +85,6 @@ localstack-template/
 - **Desktop App**: Native Electron application
 - **Real-time Monitoring**: Live status and resource tracking
 - **Log Viewer**: Real-time log monitoring with filtering
-- **Configuration Management**: Project and environment settings
 
 ### Containerization
 
@@ -128,7 +127,6 @@ make start
 ### 3. Manage via GUI
 
 - Open http://localhost:3030
-- Configure project settings
 - Select resource template
 - Create/destroy resources with one click
 
@@ -139,7 +137,6 @@ make start
 - **Real-time Dashboard**: Live LocalStack status
 - **Resource Management**: Create/destroy with templates
 - **Log Viewer**: Real-time logs with filtering
-- **Configuration**: Project and environment settings
 - **Network Accessible**: Team collaboration
 - **Hot Reloading**: Instant code updates during development
 
@@ -167,6 +164,8 @@ The application runs entirely in containers with the following setup:
 - **API Endpoints**: http://localhost:3030/api/\*
 - **Health Check**: http://localhost:3030/health
 - **LocalStack Health**: http://localhost:3030/localstack/health
+
+> **Note**: The URLs above are for accessing the application from your host machine. Within the container network, services communicate using internal hostnames (e.g., `localstack:4566` for the API server to reach LocalStack).
 
 ### Project Configuration
 
@@ -228,7 +227,7 @@ netstat -an | grep 4566
 
 ```bash
 # Check API server
-curl http://localhost:3031/health
+curl http://localhost:3030/api/health
 
 # Check GUI
 curl http://localhost:3030
@@ -238,7 +237,7 @@ curl http://localhost:3030
 
 ```bash
 # Check LocalStack health
-curl http://localhost:4566/health
+curl http://localhost:4566/_localstack/health
 
 # Check automation script permissions
 ls -la scripts/shell/

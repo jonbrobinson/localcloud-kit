@@ -28,21 +28,19 @@ This guide explains how to run the LocalStack Manager using Docker containers wi
 
 ## Quick Start
 
-### Production Setup
+### Development Setup
 
-1. **Clone and setup environment:**
+1. **Clone the repository:**
 
    ```bash
    git clone <repository>
    cd localstack-template
-   cp env.example .env
-   # Edit .env if needed
    ```
 
 2. **Build and start all services:**
 
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
 
 3. **Access the application:**
@@ -50,33 +48,16 @@ This guide explains how to run the LocalStack Manager using Docker containers wi
    - **API**: http://localhost:3030/api
    - **LocalStack**: http://localhost:4566
 
-### Development Setup
-
-1. **Start development environment:**
-
-   ```bash
-   docker-compose -f docker-compose.dev.yml up --build
-   ```
-
-2. **Access development services:**
-   - **GUI**: http://localhost:3000 (with hot reload)
-   - **API**: http://localhost:3031 (with hot reload)
-   - **LocalStack**: http://localhost:4566
-
 ## URL Structure
 
-### Production (via Nginx Proxy)
+### Development (via Nginx Proxy)
 
 - **Main Application**: `http://localhost:3030`
 - **API Endpoints**: `http://localhost:3030/api/*`
 - **Health Check**: `http://localhost:3030/health`
 - **LocalStack Health**: `http://localhost:3030/localstack/health`
 
-### Development (Direct Access)
-
-- **GUI**: `http://localhost:3000`
-- **API**: `http://localhost:3031`
-- **LocalStack**: `http://localhost:4566`
+> **Note**: The URLs above are for accessing the application from your host machine. Within the container network, services communicate using internal hostnames (e.g., `localstack:4566` for the API server to reach LocalStack).
 
 ## Services
 
@@ -89,14 +70,12 @@ This guide explains how to run the LocalStack Manager using Docker containers wi
 
 ### 2. Next.js GUI
 
-- **Production**: Multi-stage build with standalone output
 - **Development**: Hot reload with volume mounts
 - **Port**: `3000` (internal)
-- **Features**: Dashboard, resource management, configuration
+- **Features**: Dashboard, resource management
 
 ### 3. Express.js API
 
-- **Production**: Optimized build
 - **Development**: Hot reload with volume mounts
 - **Port**: `3031` (internal)
 - **Features**: LocalStack management, resource automation
@@ -106,26 +85,6 @@ This guide explains how to run the LocalStack Manager using Docker containers wi
 - **Image**: `localstack/localstack:latest`
 - **Port**: `4566:4566`
 - **Features**: AWS services emulation
-
-## Environment Variables
-
-### Core Configuration
-
-```bash
-# LocalStack
-LOCALSTACK_VOLUME_DIR=./volume
-DEBUG=1
-
-# AWS
-AWS_DEFAULT_REGION=us-east-1
-AWS_ACCESS_KEY_ID=test
-AWS_SECRET_ACCESS_KEY=test
-
-# Application
-NODE_ENV=production
-PORT=3031
-NEXT_PUBLIC_API_URL=http://localhost:3030/api
-```
 
 ## Volume Mounts
 
@@ -149,20 +108,10 @@ The development setup includes hot reloading for both GUI and API:
 
 ```bash
 # Start development environment
-docker-compose -f docker-compose.dev.yml up
+docker compose up
 
 # Make changes to code
 # Changes are automatically reflected in the running containers
-```
-
-### Building for Production
-
-```bash
-# Build production images
-docker-compose build
-
-# Start production environment
-docker-compose up
 ```
 
 ## Troubleshooting
@@ -176,17 +125,17 @@ docker-compose up
    lsof -i :3030
 
    # Stop conflicting services
-   docker-compose down
+   docker compose down
    ```
 
 2. **Build Failures**
 
    ```bash
    # Clean build
-   docker-compose build --no-cache
+   docker compose build --no-cache
 
    # Check logs
-   docker-compose logs [service-name]
+   docker compose logs [service-name]
    ```
 
 3. **Permission Issues**
@@ -212,52 +161,26 @@ curl http://localhost:3030/api/health
 
 ```bash
 # View all logs
-docker-compose logs
+docker compose logs
 
 # View specific service logs
-docker-compose logs gui
-docker-compose logs api
-docker-compose logs nginx
-docker-compose logs localstack
+docker compose logs gui
+docker compose logs api
+docker compose logs nginx
+docker compose logs localstack
 
 # Follow logs in real-time
-docker-compose logs -f
+docker compose logs -f
 ```
-
-## Production Deployment
-
-### Environment Setup
-
-1. Copy `env.example` to `.env`
-2. Update environment variables for production
-3. Ensure proper file permissions
-
-### Security Considerations
-
-- Use proper AWS credentials in production
-- Configure firewall rules
-- Use HTTPS in production (add SSL certificate)
-- Set appropriate resource limits
-
-### Scaling
-
-- Use Docker Swarm or Kubernetes for multi-node deployment
-- Configure load balancing for high availability
-- Set up monitoring and alerting
 
 ## File Structure
 
 ```
 localstack-template/
-├── docker-compose.yml          # Production compose file
-├── docker-compose.dev.yml      # Development compose file
-├── Dockerfile.gui              # Production GUI Dockerfile
-├── Dockerfile.gui.dev          # Development GUI Dockerfile
-├── Dockerfile.api              # Production API Dockerfile
-├── Dockerfile.api.dev          # Development API Dockerfile
+├── docker-compose.yml          # Development compose file
+├── Dockerfile.gui              # GUI Dockerfile
+├── Dockerfile.api              # API Dockerfile
 ├── nginx.conf                  # Nginx reverse proxy configuration
-├── env.example                 # Environment variables template
-├── .env                        # Environment variables (create from example)
 ├── localstack-gui/             # Next.js GUI application
 ├── localstack-api/             # Express.js API server
 ├── scripts/shell/              # Automation scripts
@@ -272,33 +195,16 @@ localstack-template/
 
 ```bash
 # Start development environment
-docker-compose -f docker-compose.dev.yml up
+docker compose up
 
 # Start in background
-docker-compose -f docker-compose.dev.yml up -d
+docker compose up -d
 
 # View logs
-docker-compose -f docker-compose.dev.yml logs -f
+docker compose logs -f
 
 # Stop development environment
-docker-compose -f docker-compose.dev.yml down
-```
-
-### Production
-
-```bash
-# Build and start production
-docker-compose up --build
-
-# Start in background
-docker-compose up -d
-
-# Stop production
-docker-compose down
-
-# Rebuild specific service
-docker-compose build gui
-docker-compose build api
+docker compose down
 ```
 
 ### Maintenance
@@ -308,9 +214,9 @@ docker-compose build api
 docker system prune
 
 # Remove all containers and volumes
-docker-compose down -v
+docker compose down -v
 
 # Update images
-docker-compose pull
-docker-compose up -d
+docker compose pull
+docker compose up -d
 ```

@@ -39,10 +39,8 @@ A robust Express.js API server that manages LocalStack operations, resource auto
 
 ### LocalStack Management
 
-- **Start/Stop/Restart**: Full LocalStack lifecycle management
 - **Health Monitoring**: Real-time status checking
 - **Log Management**: Comprehensive logging with Winston
-- **Docker Integration**: Seamless Docker Compose operations
 
 ### Resource Automation
 
@@ -75,7 +73,7 @@ A robust Express.js API server that manages LocalStack operations, resource auto
 │ • Dashboard     │    │ • LocalStack    │    │ • S3 Buckets    │
 │ • Resource List │    │   Management    │    │ • DynamoDB      │
 │ • Modals        │    │ • Resource Ops  │    │ • Lambda        │
-│ • Real-time     │    │ • Configuration │    │ • API Gateway   │
+│ • Real-time     │    │                 │    │ • API Gateway   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                               │
                               ▼
@@ -119,30 +117,6 @@ GET /localstack/status
 
 Returns current LocalStack status and health information.
 
-#### Start LocalStack
-
-```http
-POST /localstack/start
-```
-
-Starts LocalStack using Docker Compose.
-
-#### Stop LocalStack
-
-```http
-POST /localstack/stop
-```
-
-Stops LocalStack and cleans up containers.
-
-#### Restart LocalStack
-
-```http
-POST /localstack/restart
-```
-
-Restarts LocalStack with full cleanup.
-
 #### Get Logs
 
 ```http
@@ -156,7 +130,7 @@ Returns application logs with filtering options.
 #### List Resources
 
 ```http
-GET /resources/list?projectName=my-project&environment=dev&approach=shell
+GET /resources/list?projectName=my-project&environment=dev
 ```
 
 Lists resources for a specific project and environment.
@@ -170,7 +144,6 @@ Content-Type: application/json
 {
   "projectName": "my-project",
   "environment": "dev",
-  "approach": "shell",
   "resources": {
     "s3": true,
     "dynamodb": true,
@@ -190,7 +163,6 @@ Content-Type: application/json
 {
   "projectName": "my-project",
   "environment": "dev",
-  "approach": "shell",
   "resources": ["resource-id-1", "resource-id-2"]
 }
 ```
@@ -203,29 +175,7 @@ GET /resources/status?projectName=my-project&environment=dev
 
 Returns current resource status and details.
 
-### Configuration Management
-
-#### Get Project Config
-
-```http
-GET /config/project
-```
-
-Returns current project configuration.
-
-#### Update Project Config
-
-```http
-PUT /config/project
-Content-Type: application/json
-
-{
-  "projectName": "my-project",
-  "environment": "dev",
-  "awsRegion": "us-east-1",
-  "awsEndpoint": "http://localhost:4566"
-}
-```
+### Templates
 
 #### Get Templates
 
@@ -246,7 +196,6 @@ NODE_ENV=development
 
 # LocalStack Configuration
 LOCALSTACK_ENDPOINT=http://localhost:4566
-DOCKER_COMPOSE_PATH=../docker-compose.yml
 
 # Logging Configuration
 LOG_LEVEL=info
@@ -254,19 +203,6 @@ LOG_FILE_PATH=logs/
 
 # Security Configuration
 CORS_ORIGIN=http://localhost:3030
-```
-
-### Project Configuration
-
-The API server maintains in-memory configuration that can be updated via API calls:
-
-```javascript
-{
-  projectName: 'localstack-template',
-  environment: 'dev',
-  awsRegion: 'us-east-1',
-  awsEndpoint: 'http://localhost:4566'
-}
 ```
 
 ## 📝 Logging
@@ -356,12 +292,8 @@ npm install
 **LocalStack operations failing**
 
 ```bash
-# Check Docker
-docker --version
-docker-compose --version
-
 # Check LocalStack health
-curl http://localhost:4566/health
+curl http://localhost:4566/_localstack/health
 
 # Check logs
 tail -f logs/combined.log
@@ -377,7 +309,7 @@ ls -la ../scripts/shell/
 aws configure list
 
 # Check LocalStack status
-curl http://localhost:4566/health
+curl http://localhost:4566/_localstack/health
 ```
 
 ### Debug Mode

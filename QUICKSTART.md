@@ -47,8 +47,10 @@ export PROJECT_NAME="my-awesome-project"
 This starts:
 
 - LocalStack Manager Web GUI (http://localhost:3030)
-- LocalStack Manager API Server (http://localhost:3031)
+- LocalStack Manager API Server (http://localhost:3030/api)
 - LocalStack (http://localhost:4566)
+
+> **Note**: The URLs above are for accessing the application from your host machine. Within the container network, services communicate using internal hostnames (e.g., `localstack:4566` for the API server to reach LocalStack).
 
 ### Option 2: Command Line
 
@@ -189,7 +191,7 @@ make help      # All available commands
 
 ```bash
 # Check if GUI is running
-curl http://localhost:3031/health
+curl http://localhost:3030/api/health
 curl http://localhost:3030
 
 # Start GUI if needed
@@ -198,7 +200,7 @@ make gui-start
 
 ### Common Issues
 
-1. **Port conflicts**: Ensure ports 4566, 3030, and 3031 are free
+1. **Port conflicts**: Ensure ports 4566 and 3030 are free
 2. **Permission issues**: Check Docker permissions
 3. **Resource conflicts**: Use `make clean` to reset everything
 4. **AWS CLI not found**: Install AWS CLI and configure for LocalStack
