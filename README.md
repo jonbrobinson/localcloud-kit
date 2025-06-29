@@ -14,7 +14,7 @@ A comprehensive LocalStack automation template with shell-based automation and a
 
 ```bash
 # Start everything with one command
-docker-compose up --build
+docker compose up --build
 ```
 
 This will start:
@@ -112,7 +112,7 @@ localstack-template/
 
 ```bash
 # Using Docker Compose (recommended)
-docker-compose up --build
+docker compose up --build
 
 # Or using Makefile
 make start
@@ -173,7 +173,6 @@ The application runs entirely in containers with the following setup:
 - **Project Name**: Used for resource naming
 - **Environment**: dev/uat/prod for isolation
 - **AWS Region**: Target region for resources
-- **Automation Approach**: Shell scripts (standard)
 
 ## 📊 Resource Templates
 
@@ -185,7 +184,7 @@ The application runs entirely in containers with the following setup:
 | **Database Only** | DynamoDB table for data      | DynamoDB                          |
 | **API Only**      | API Gateway with Lambda      | Lambda, API Gateway               |
 
-## 🚀 Automation Approach
+## 🚀 Automation
 
 ### Shell Scripts (Standard)
 
@@ -219,7 +218,7 @@ The application runs entirely in containers with the following setup:
 ```bash
 # Check Docker
 docker --version
-docker-compose --version
+docker compose version
 
 # Check ports
 netstat -an | grep 4566
@@ -247,7 +246,7 @@ ls -la scripts/shell/
 
 ### Logs
 
-- **LocalStack**: `docker-compose logs localstack`
+- **LocalStack**: `docker compose logs localstack`
 - **API Server**: `localstack-api/logs/`
 - **GUI**: Browser developer tools
 - **Automation**: Script output and error logs

@@ -193,35 +193,25 @@ async function restartLocalStack() {
 // Resource Management Functions
 async function createResources(request) {
   try {
-    const { projectName, environment, approach, resources, template } = request;
+    const { projectName, environment, resources, template } = request;
 
     addLog(
       "info",
-      `Creating resources for ${projectName}-${environment} using ${approach}`,
+      `Creating resources for ${projectName}-${environment}`,
       "automation"
     );
 
-    let command;
-
-    switch (approach) {
-      case "shell":
-        command = `./create_resources.sh ${projectName} ${environment}`;
-        break;
-      default:
-        throw new Error(`Unsupported automation approach: ${approach}`);
-    }
+    let command = `./create_resources.sh ${projectName} ${environment}`;
 
     // Add resource flags for shell scripts
-    if (approach === "shell") {
-      const resourceFlags = [];
-      if (resources.s3) resourceFlags.push("--s3");
-      if (resources.dynamodb) resourceFlags.push("--dynamodb");
-      if (resources.lambda) resourceFlags.push("--lambda");
-      if (resources.apigateway) resourceFlags.push("--apigateway");
+    const resourceFlags = [];
+    if (resources.s3) resourceFlags.push("--s3");
+    if (resources.dynamodb) resourceFlags.push("--dynamodb");
+    if (resources.lambda) resourceFlags.push("--lambda");
+    if (resources.apigateway) resourceFlags.push("--apigateway");
 
-      if (resourceFlags.length > 0) {
-        command += ` ${resourceFlags.join(" ")}`;
-      }
+    if (resourceFlags.length > 0) {
+      command += ` ${resourceFlags.join(" ")}`;
     }
 
     const { stdout, stderr } = await execAsync(command, {
@@ -256,23 +246,15 @@ async function createResources(request) {
 
 async function destroyResources(request) {
   try {
-    const { projectName, environment, approach, resources } = request;
+    const { projectName, environment, resources } = request;
 
     addLog(
       "info",
-      `Destroying resources for ${projectName}-${environment} using ${approach}`,
+      `Destroying resources for ${projectName}-${environment}`,
       "automation"
     );
 
-    let command;
-
-    switch (approach) {
-      case "shell":
-        command = `./destroy_resources.sh ${projectName} ${environment}`;
-        break;
-      default:
-        throw new Error(`Unsupported automation approach: ${approach}`);
-    }
+    let command = `./destroy_resources.sh ${projectName} ${environment}`;
 
     const { stdout, stderr } = await execAsync(command, {
       cwd: path.join(__dirname, "scripts", "shell"),
@@ -304,17 +286,9 @@ async function destroyResources(request) {
   }
 }
 
-async function listResources(projectName, environment, approach) {
+async function listResources(projectName, environment) {
   try {
-    let command;
-
-    switch (approach) {
-      case "shell":
-        command = `./list_resources.sh ${projectName} ${environment}`;
-        break;
-      default:
-        throw new Error(`Unsupported automation approach: ${approach}`);
-    }
+    let command = `./list_resources.sh ${projectName} ${environment}`;
 
     const { stdout, stderr } = await execAsync(command, {
       cwd: path.join(__dirname, "scripts", "shell"),
@@ -396,8 +370,8 @@ app.get("/localstack/logs", (req, res) => {
 
 // Resource Management
 app.get("/resources/list", async (req, res) => {
-  const { projectName, environment, approach } = req.query;
-  const resources = await listResources(projectName, environment, approach);
+  const { projectName, environment } = req.query;
+  const resources = await listResources(projectName, environment);
   res.json({ success: true, data: resources });
 });
 
@@ -413,7 +387,7 @@ app.post("/resources/destroy", async (req, res) => {
 
 app.get("/resources/status", async (req, res) => {
   const { projectName, environment } = req.query;
-  const resources = await listResources(projectName, environment, "shell");
+  const resources = await listResources(projectName, environment);
   res.json({ success: true, data: resources });
 });
 

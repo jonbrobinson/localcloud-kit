@@ -53,7 +53,6 @@ export interface LogEntry {
 export interface CreateResourceRequest {
   projectName: string;
   environment: string;
-  approach: "shell";
   resources: {
     s3: boolean;
     dynamodb: boolean;
@@ -66,7 +65,6 @@ export interface CreateResourceRequest {
 export interface DestroyResourceRequest {
   projectName: string;
   environment: string;
-  approach: "shell";
   resourceIds?: string[];
 }
 
