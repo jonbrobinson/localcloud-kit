@@ -88,7 +88,6 @@ export default function CreateResourceModal({
 }: CreateResourceModalProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string>("basic");
   const [projectName, setProjectName] = useState(config.projectName);
-  const [environment, setEnvironment] = useState(config.environment);
   const [resources, setResources] = useState({
     s3: true,
     dynamodb: true,
@@ -116,7 +115,6 @@ export default function CreateResourceModal({
 
     const request: CreateResourceRequest = {
       projectName,
-      environment: environment as "dev" | "uat" | "prod",
       resources,
       template: selectedTemplate,
     };
@@ -158,7 +156,7 @@ export default function CreateResourceModal({
 
             <form onSubmit={handleSubmit}>
               {/* Project Configuration */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Project Name
@@ -173,25 +171,6 @@ export default function CreateResourceModal({
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     Used for resource naming and organization
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Environment
-                  </label>
-                  <select
-                    value={environment}
-                    onChange={(e) =>
-                      setEnvironment(e.target.value as "dev" | "uat" | "prod")
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  >
-                    <option value="dev">Development</option>
-                    <option value="uat">UAT</option>
-                    <option value="prod">Production</option>
-                  </select>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Environment for resource isolation
                   </p>
                 </div>
               </div>

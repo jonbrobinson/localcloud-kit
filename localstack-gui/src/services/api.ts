@@ -48,12 +48,9 @@ export const localstackApi = {
 
 // Resource Management
 export const resourceApi = {
-  list: async (
-    projectName: string,
-    environment: string
-  ): Promise<Resource[]> => {
+  list: async (projectName: string): Promise<Resource[]> => {
     const response = await api.get<ApiResponse<Resource[]>>(`/resources/list`, {
-      params: { projectName, environment },
+      params: { projectName },
     });
     return response.data.data || [];
   },
@@ -68,14 +65,11 @@ export const resourceApi = {
     return response.data;
   },
 
-  getStatus: async (
-    projectName: string,
-    environment: string
-  ): Promise<Resource[]> => {
+  getStatus: async (projectName: string): Promise<Resource[]> => {
     const response = await api.get<ApiResponse<Resource[]>>(
       `/resources/status`,
       {
-        params: { projectName, environment },
+        params: { projectName },
       }
     );
     return response.data.data || [];

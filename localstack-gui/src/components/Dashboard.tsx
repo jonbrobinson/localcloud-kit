@@ -62,25 +62,18 @@ export default function Dashboard() {
 
   const loadInitialData = async () => {
     try {
-      const [status, projectConfig] = await Promise.all([
+      const [localstackStatus, projectConfig, resources] = await Promise.all([
         localstackApi.getStatus(),
         configApi.getProjectConfig(),
+        resourceApi.getStatus(config.projectName),
       ]);
 
-      setLocalstackStatus(status);
+      setLocalstackStatus(localstackStatus);
       setConfig(projectConfig);
-
-      if (status.running) {
-        const resourceList = await resourceApi.getStatus(
-          projectConfig.projectName,
-          projectConfig.environment
-        );
-        setResources(resourceList);
-      }
+      setResources(resources);
     } catch (error) {
       console.error("Failed to load initial data:", error);
-    } finally {
-      setLoading(false);
+      toast.error("Failed to load initial data");
     }
   };
 
@@ -159,7 +152,6 @@ export default function Dashboard() {
     try {
       const response = await resourceApi.destroy({
         projectName: config.projectName,
-        environment: config.environment,
         resources: resourceIds,
       });
 

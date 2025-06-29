@@ -48,11 +48,11 @@ let localstackStatus = {
   uptime: null,
 };
 
+// Default project configuration
 let projectConfig = {
-  projectName: "localstack-template",
-  environment: "dev",
-  awsRegion: process.env.AWS_DEFAULT_REGION || "us-east-1",
-  awsEndpoint: process.env.AWS_ENDPOINT_URL || "http://localhost:4566",
+  projectName: "my-project",
+  awsEndpoint: "http://localhost:4566",
+  awsRegion: "us-east-1",
 };
 
 // Middleware
@@ -193,15 +193,11 @@ async function restartLocalStack() {
 // Resource Management Functions
 async function createResources(request) {
   try {
-    const { projectName, environment, resources, template } = request;
+    const { projectName, resources, template } = request;
 
-    addLog(
-      "info",
-      `Creating resources for ${projectName}-${environment}`,
-      "automation"
-    );
+    addLog("info", `Creating resources for ${projectName}`, "automation");
 
-    let command = `./create_resources.sh ${projectName} ${environment}`;
+    let command = `./create_resources.sh ${projectName} local`;
 
     // Add resource flags for shell scripts
     const resourceFlags = [];
@@ -229,7 +225,7 @@ async function createResources(request) {
 
     addLog(
       "success",
-      `Resources created successfully for ${projectName}-${environment}`,
+      `Resources created successfully for ${projectName}`,
       "automation"
     );
 
@@ -246,15 +242,11 @@ async function createResources(request) {
 
 async function destroyResources(request) {
   try {
-    const { projectName, environment, resources } = request;
+    const { projectName, resources } = request;
 
-    addLog(
-      "info",
-      `Destroying resources for ${projectName}-${environment}`,
-      "automation"
-    );
+    addLog("info", `Destroying resources for ${projectName}`, "automation");
 
-    let command = `./destroy_resources.sh ${projectName} ${environment}`;
+    let command = `./destroy_resources.sh ${projectName} local`;
 
     const { stdout, stderr } = await execAsync(command, {
       cwd: path.join(__dirname, "scripts", "shell"),
@@ -271,7 +263,7 @@ async function destroyResources(request) {
 
     addLog(
       "success",
-      `Resources destroyed successfully for ${projectName}-${environment}`,
+      `Resources destroyed successfully for ${projectName}`,
       "automation"
     );
 
@@ -286,9 +278,9 @@ async function destroyResources(request) {
   }
 }
 
-async function listResources(projectName, environment) {
+async function listResources(projectName) {
   try {
-    let command = `./list_resources.sh ${projectName} ${environment}`;
+    let command = `./list_resources.sh ${projectName} local`;
 
     const { stdout, stderr } = await execAsync(command, {
       cwd: path.join(__dirname, "scripts", "shell"),
@@ -370,8 +362,8 @@ app.get("/localstack/logs", (req, res) => {
 
 // Resource Management
 app.get("/resources/list", async (req, res) => {
-  const { projectName, environment } = req.query;
-  const resources = await listResources(projectName, environment);
+  const { projectName } = req.query;
+  const resources = await listResources(projectName);
   res.json({ success: true, data: resources });
 });
 
@@ -386,20 +378,56 @@ app.post("/resources/destroy", async (req, res) => {
 });
 
 app.get("/resources/status", async (req, res) => {
-  const { projectName, environment } = req.query;
-  const resources = await listResources(projectName, environment);
+  const { projectName } = req.query;
+  const resources = await listResources(projectName);
   res.json({ success: true, data: resources });
 });
 
 // Configuration Management
 app.get("/config/project", (req, res) => {
-  res.json({ success: true, data: projectConfig });
+  res.json({
+    success: true,
+    data: projectConfig,
+  });
 });
 
-app.put("/config/project", (req, res) => {
-  projectConfig = { ...projectConfig, ...req.body };
-  addLog("info", "Project configuration updated", "gui");
-  res.json({ success: true, message: "Configuration updated successfully" });
+app.post("/config/project", async (req, res) => {
+  try {
+    const { projectName, awsEndpoint, awsRegion } = req.body;
+
+    // Validate required fields
+    if (!projectName || !awsEndpoint || !awsRegion) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing required fields: projectName, awsEndpoint, awsRegion",
+      });
+    }
+
+    // Update project configuration
+    projectConfig = {
+      projectName,
+      awsEndpoint,
+      awsRegion,
+    };
+
+    addLog("info", `Project configuration updated: ${projectName}`, "config");
+
+    res.json({
+      success: true,
+      data: projectConfig,
+      message: "Project configuration updated successfully",
+    });
+  } catch (error) {
+    addLog(
+      "error",
+      `Failed to update project configuration: ${error.message}`,
+      "config"
+    );
+    res.status(500).json({
+      success: false,
+      error: "Failed to update project configuration",
+    });
+  }
 });
 
 app.get("/config/templates", (req, res) => {
