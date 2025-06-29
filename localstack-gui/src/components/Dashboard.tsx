@@ -242,7 +242,12 @@ export default function Dashboard() {
               <label className="block text-sm font-medium text-gray-700">
                 Endpoint
               </label>
-              <p className="mt-1 text-sm text-gray-900">{config.awsEndpoint}</p>
+              <p className="mt-1 text-sm text-gray-900">
+                {config.awsEndpoint.replace(
+                  "localstack:4566",
+                  "localhost:4566"
+                )}
+              </p>
             </div>
           </div>
         </div>

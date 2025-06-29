@@ -18,17 +18,14 @@ A modern, web-based GUI for managing LocalStack resources with real-time monitor
 - **Real-time Monitoring**: Live status updates and resource tracking
 - **Log Viewer**: Real-time log monitoring with filtering capabilities
 
-### Automation Approaches
+### Automation
 
-- **Shell Scripts** (Default): Fast and reliable shell-based automation
-- **Python Scripts**: Boto3-based resource management
-- **Terraform**: Infrastructure as Code approach
+- **Shell Scripts**: Fast and reliable shell-based automation
 
 ### Enterprise Features
 
 - **Network Accessible**: Accessible across your development team
 - **Advanced Mode**: Detailed resource information and management
-- **Configuration Management**: Project and environment settings
 - **Professional Branding**: CloudStack Solutions enterprise design
 
 ## 🏗️ Architecture
@@ -41,7 +38,7 @@ A modern, web-based GUI for managing LocalStack resources with real-time monitor
 │ • Dashboard     │    │ • LocalStack    │    │ • S3 Buckets    │
 │ • Resource List │    │   Management    │    │ • DynamoDB      │
 │ • Modals        │    │ • Resource Ops  │    │ • Lambda        │
-│ • Real-time     │    │ • Configuration │    │ • API Gateway   │
+│ • Real-time     │    │                 │    │ • API Gateway   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -89,18 +86,12 @@ A modern, web-based GUI for managing LocalStack resources with real-time monitor
    - Click "Start" in the LocalStack Status section
    - Wait for health check to complete
 
-2. **Configure Project**
+2. **Create Resources**
 
-   - Click "Config" to set project name and environment
-   - Choose your preferred AWS region
-
-3. **Create Resources**
-
-   - Select automation approach (Shell Scripts)
    - Choose a resource template or customize
    - Click "Create Resources"
 
-4. **Monitor & Manage**
+3. **Monitor & Manage**
    - View real-time resource status
    - Check logs for detailed information
    - Destroy resources when done
@@ -115,9 +106,9 @@ A modern, web-based GUI for managing LocalStack resources with real-time monitor
 | **Database Only** | DynamoDB table for data      | DynamoDB                          |
 | **API Only**      | API Gateway with Lambda      | Lambda, API Gateway               |
 
-### Automation Approaches
+### Automation
 
-#### Shell Scripts (Default)
+#### Shell Scripts
 
 - Fastest execution
 - Minimal dependencies
@@ -176,10 +167,8 @@ NEXT_PUBLIC_API_URL=http://localhost:3031
 - `POST /resources/destroy` - Destroy resources
 - `GET /resources/status` - Get resource status
 
-### Configuration
+### Templates
 
-- `GET /config/project` - Get project config
-- `PUT /config/project` - Update project config
 - `GET /config/templates` - Get resource templates
 
 ## 🚀 Desktop Application

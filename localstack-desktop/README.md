@@ -56,7 +56,6 @@ A cross-platform Electron desktop application for managing LocalStack resources 
 - **Secure**: No sensitive data exposure
 - **Network Ready**: Accessible across development team
 - **Professional UI**: Enterprise-grade interface design
-- **Configuration Management**: Project and environment settings
 
 ## 🏗️ Architecture
 
@@ -76,7 +75,7 @@ A cross-platform Electron desktop application for managing LocalStack resources 
                               ▼
                     ┌─────────────────┐
                     │  Express API    │
-                    │   (Port 3001)   │
+                    │   (Port 3031)   │
                     └─────────────────┘
                               │
                               ▼
@@ -286,7 +285,7 @@ npm start
 LocalStack must be running:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Web GUI Alternative

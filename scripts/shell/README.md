@@ -257,7 +257,7 @@ sudo apt-get install awscli
 
 ```bash
 # Check LocalStack status
-curl http://localhost:4566/health
+curl http://localhost:4566/_localstack/health
 
 # Check Docker
 docker ps | grep localstack
@@ -299,7 +299,7 @@ export AWS_CLI_DEBUG=1
 
 ```bash
 # 1. Start LocalStack
-docker-compose up -d
+docker compose up -d
 
 # 2. Create development resources
 ./create_resources.sh my-project dev --template basic
@@ -357,7 +357,7 @@ The shell scripts integrate seamlessly with the LocalStack Manager GUI:
 set -e
 
 # Start LocalStack
-docker-compose up -d
+docker compose up -d
 
 # Wait for LocalStack to be ready
 sleep 10
