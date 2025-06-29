@@ -38,7 +38,6 @@ export default function Dashboard() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
-  const [selectedApproach, setSelectedApproach] = useState<"shell">("shell");
 
   // Loading states for buttons
   const [localstackLoading, setLocalstackLoading] = useState<{
@@ -53,15 +52,6 @@ export default function Dashboard() {
   const [createLoading, setCreateLoading] = useState(false);
   const [destroyLoading, setDestroyLoading] = useState(false);
   const [configLoading, setConfigLoading] = useState(false);
-
-  const automationApproaches: AutomationApproach[] = [
-    {
-      id: "shell",
-      name: "Shell Scripts",
-      description: "Fast command-line automation with AWS CLI",
-      icon: "⚡",
-    },
-  ];
 
   // Load initial data
   useEffect(() => {
@@ -146,7 +136,7 @@ export default function Dashboard() {
     try {
       const response = await resourceApi.create({
         ...request,
-        approach: selectedApproach,
+        approach: "shell",
       });
 
       if (response.success) {
@@ -174,7 +164,7 @@ export default function Dashboard() {
       const response = await resourceApi.destroy({
         projectName: config.projectName,
         environment: config.environment,
-        approach: selectedApproach,
+        approach: "shell",
         resources: resourceIds,
       });
 
@@ -364,13 +354,6 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Resources</h2>
               <div className="flex items-center space-x-4">
-                <select
-                  value={selectedApproach}
-                  onChange={(e) => setSelectedApproach(e.target.value as any)}
-                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="shell">Shell Scripts</option>
-                </select>
                 <button
                   onClick={() => setShowCreateModal(true)}
                   disabled={createLoading}
@@ -454,7 +437,7 @@ export default function Dashboard() {
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateResources}
           config={config}
-          approach={selectedApproach}
+          approach="shell"
           loading={createLoading}
         />
       )}

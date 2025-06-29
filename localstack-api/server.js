@@ -83,9 +83,12 @@ function addLog(level, message, source = "api") {
 // LocalStack Management Functions
 async function checkLocalStackStatus() {
   try {
-    const response = await axios.get(`${localstackStatus.endpoint}/health`, {
-      timeout: 5000,
-    });
+    const response = await axios.get(
+      `${localstackStatus.endpoint}/_localstack/health`,
+      {
+        timeout: 5000,
+      }
+    );
 
     if (response.status === 200) {
       localstackStatus.running = true;
@@ -94,7 +97,7 @@ async function checkLocalStackStatus() {
     } else {
       localstackStatus.running = false;
       localstackStatus.health = "unhealthy";
-      addLog("warning", "LocalStack is running but unhealthy", "localstack");
+      addLog("warn", "LocalStack is running but unhealthy", "localstack");
     }
   } catch (error) {
     localstackStatus.running = false;
@@ -119,7 +122,7 @@ async function startLocalStack() {
     });
 
     if (stderr) {
-      addLog("warning", `LocalStack start warning: ${stderr}`, "localstack");
+      addLog("warn", `LocalStack start warning: ${stderr}`, "localstack");
     }
 
     addLog("success", "LocalStack started successfully", "localstack");
@@ -149,7 +152,7 @@ async function stopLocalStack() {
     });
 
     if (stderr) {
-      addLog("warning", `LocalStack stop warning: ${stderr}`, "localstack");
+      addLog("warn", `LocalStack stop warning: ${stderr}`, "localstack");
     }
 
     localstackStatus.running = false;
@@ -232,7 +235,7 @@ async function createResources(request) {
     });
 
     if (stderr) {
-      addLog("warning", `Resource creation warning: ${stderr}`, "automation");
+      addLog("warn", `Resource creation warning: ${stderr}`, "automation");
     }
 
     addLog(
@@ -283,11 +286,7 @@ async function destroyResources(request) {
     });
 
     if (stderr) {
-      addLog(
-        "warning",
-        `Resource destruction warning: ${stderr}`,
-        "automation"
-      );
+      addLog("warn", `Resource destruction warning: ${stderr}`, "automation");
     }
 
     addLog(
@@ -329,26 +328,29 @@ async function listResources(projectName, environment, approach) {
       },
     });
 
-    // Parse the output and return structured data
-    // This is a simplified version - you'd want to parse the actual output
-    const resources = [];
+    if (stderr) {
+      addLog("warn", `Resource listing warning: ${stderr}`, "automation");
+    }
 
-    if (stdout) {
-      const lines = stdout.trim().split("\n");
-      lines.forEach((line, index) => {
-        if (line.trim()) {
-          resources.push({
-            id: `resource-${index}`,
-            name: line.trim(),
-            type: "unknown",
-            status: "active",
-            environment,
-            project: projectName,
-            createdAt: new Date().toISOString(),
-            details: { output: line.trim() },
-          });
-        }
-      });
+    // Parse the output as JSON array
+    let resources = [];
+    try {
+      resources = JSON.parse(stdout);
+      if (!Array.isArray(resources)) {
+        addLog(
+          "error",
+          "Resource listing output is not a JSON array",
+          "automation"
+        );
+        resources = [];
+      }
+    } catch (err) {
+      addLog(
+        "error",
+        `Failed to parse resource listing JSON: ${err.message}`,
+        "automation"
+      );
+      resources = [];
     }
 
     return resources;
