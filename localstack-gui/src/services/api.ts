@@ -70,11 +70,6 @@ export const configApi = {
     return response.data.data!;
   },
 
-  updateProjectConfig: async (config: ProjectConfig): Promise<ApiResponse> => {
-    const response = await api.put<ApiResponse>("/config/project", config);
-    return response.data;
-  },
-
   getTemplates: async (): Promise<any[]> => {
     const response = await api.get<ApiResponse<any[]>>("/config/templates");
     return response.data.data || [];

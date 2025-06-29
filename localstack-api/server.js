@@ -48,9 +48,9 @@ let localstackStatus = {
   uptime: null,
 };
 
-// Default project configuration
+// Default project configuration (hardcoded for local development)
 let projectConfig = {
-  projectName: "my-project",
+  projectName: "localstack-dev",
   awsEndpoint: "http://localstack:4566",
   awsRegion: "us-east-1",
 };
@@ -294,45 +294,6 @@ app.get("/config/project", (req, res) => {
     success: true,
     data: projectConfig,
   });
-});
-
-app.post("/config/project", async (req, res) => {
-  try {
-    const { projectName, awsEndpoint, awsRegion } = req.body;
-
-    // Validate required fields
-    if (!projectName || !awsEndpoint || !awsRegion) {
-      return res.status(400).json({
-        success: false,
-        error: "Missing required fields: projectName, awsEndpoint, awsRegion",
-      });
-    }
-
-    // Update project configuration
-    projectConfig = {
-      projectName,
-      awsEndpoint,
-      awsRegion,
-    };
-
-    addLog("info", `Project configuration updated: ${projectName}`, "config");
-
-    res.json({
-      success: true,
-      data: projectConfig,
-      message: "Project configuration updated successfully",
-    });
-  } catch (error) {
-    addLog(
-      "error",
-      `Failed to update project configuration: ${error.message}`,
-      "config"
-    );
-    res.status(500).json({
-      success: false,
-      error: "Failed to update project configuration",
-    });
-  }
 });
 
 app.get("/config/templates", (req, res) => {
