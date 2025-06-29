@@ -50,11 +50,10 @@ export const localstackApi = {
 export const resourceApi = {
   list: async (
     projectName: string,
-    environment: string,
-    approach: string
+    environment: string
   ): Promise<Resource[]> => {
     const response = await api.get<ApiResponse<Resource[]>>(`/resources/list`, {
-      params: { projectName, environment, approach },
+      params: { projectName, environment },
     });
     return response.data.data || [];
   },

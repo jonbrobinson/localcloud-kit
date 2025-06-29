@@ -131,14 +131,10 @@ export default function Dashboard() {
     }
   };
 
-  const handleCreateResources = async (request: any) => {
+  const handleCreateResources = async (request: CreateResourceRequest) => {
     setCreateLoading(true);
     try {
-      const response = await resourceApi.create({
-        ...request,
-        approach: "shell",
-      });
-
+      const response = await resourceApi.create(request);
       if (response.success) {
         toast.success("Resources created successfully");
         setShowCreateModal(false);
@@ -164,7 +160,6 @@ export default function Dashboard() {
       const response = await resourceApi.destroy({
         projectName: config.projectName,
         environment: config.environment,
-        approach: "shell",
         resources: resourceIds,
       });
 
@@ -437,7 +432,6 @@ export default function Dashboard() {
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateResources}
           config={config}
-          approach="shell"
           loading={createLoading}
         />
       )}

@@ -13,7 +13,6 @@ interface CreateResourceModalProps {
   onClose: () => void;
   onSubmit: (request: CreateResourceRequest) => void;
   config: ProjectConfig;
-  approach: "shell";
   loading?: boolean;
 }
 
@@ -85,7 +84,6 @@ export default function CreateResourceModal({
   onClose,
   onSubmit,
   config,
-  approach,
   loading = false,
 }: CreateResourceModalProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string>("basic");
@@ -101,7 +99,7 @@ export default function CreateResourceModal({
   const handleTemplateChange = (templateId: string) => {
     setSelectedTemplate(templateId);
     const template = predefinedTemplates.find((t) => t.id === templateId);
-    if (template) {   
+    if (template) {
       setResources(template.resources);
     }
   };
@@ -119,7 +117,6 @@ export default function CreateResourceModal({
     const request: CreateResourceRequest = {
       projectName,
       environment: environment as "dev" | "uat" | "prod",
-      approach,
       resources,
       template: selectedTemplate,
     };
@@ -280,27 +277,6 @@ export default function CreateResourceModal({
                       </span>
                     </label>
                   ))}
-                </div>
-              </div>
-
-              {/* Approach Information */}
-              <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">
-                  Automation Approach
-                </h4>
-                <p className="text-sm text-gray-600">
-                  Using{" "}
-                  <span className="font-medium capitalize">{approach}</span>{" "}
-                  scripts to create resources.
-                  {approach === "shell" && " (Default)"}
-                </p>
-                <div className="mt-2 flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">CS</span>
-                  </div>
-                  <span className="text-xs text-gray-500">
-                    Powered by CloudStack Solutions
-                  </span>
                 </div>
               </div>
 
