@@ -27,6 +27,24 @@ tmp_add_resource() {
   echo "$1" >> "$TMPFILE"
 }
 
+# Parse --verbose flag
+VERBOSE=false
+for arg in "$@"; do
+  if [ "$arg" = "--verbose" ]; then
+    VERBOSE=true
+    break
+  fi
+done
+if [ "$LOG_OUTPUT" = "1" ]; then
+  VERBOSE=true
+fi
+
+log() {
+  if [ "$VERBOSE" = true ]; then
+    echo "$1"
+  fi
+}
+
 list_s3_buckets() {
   buckets=$($AWS_CMD s3api list-buckets --query "Buckets[?starts_with(Name, '$NAME_PREFIX')].{Name:Name,CreationDate:CreationDate}" --output json)
   echo "$buckets" | jq -c '.[]' | while read row; do
@@ -86,6 +104,7 @@ main() {
     echo "LocalStack is not running at $AWS_ENDPOINT. Please start it first." >&2
     exit 1
   fi
+  log "Listing resources for project: $PROJECT_NAME"
   list_s3_buckets
   list_dynamodb_tables
   list_lambda_functions

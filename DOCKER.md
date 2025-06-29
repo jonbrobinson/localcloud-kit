@@ -177,16 +177,18 @@ docker compose logs -f
 
 ```
 localstack-template/
-├── docker-compose.yml          # Development compose file
-├── Dockerfile.gui              # GUI Dockerfile
-├── Dockerfile.api              # API Dockerfile
-├── nginx.conf                  # Nginx reverse proxy configuration
-├── localstack-gui/             # Next.js GUI application
-├── localstack-api/             # Express.js API server
-├── scripts/shell/              # Automation scripts
-├── config/                     # Configuration files
-├── logs/                       # Application logs
-└── volume/                     # LocalStack persistent data
+├── 📁 localstack-api/          # Express API Server
+│   ├── 📄 server.js            # API server
+│   ├── 📁 logs/                # Application logs
+│   └── 📄 README.md            # API documentation
+├── 📁 scripts/                 # Automation scripts
+│   └── 📁 shell/               # Shell-based automation
+├── 📄 docker-compose.yml       # Docker Compose configuration
+├── 📄 Dockerfile.gui           # GUI container build
+├── 📄 Dockerfile.api           # API container build
+├── 📄 nginx.conf               # Reverse proxy configuration
+├── 📄 start-gui.sh             # All-in-one startup script
+└── 📄 README.md                # This file
 ```
 
 ## Commands Reference
@@ -220,4 +222,3 @@ docker compose down -v
 docker compose pull
 docker compose up -d
 ```
- 

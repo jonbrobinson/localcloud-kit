@@ -16,6 +16,24 @@ AWS_REGION=${AWS_REGION:-"us-east-1"}
 NAME_PREFIX="$PROJECT_NAME"
 AWS_CMD="aws --endpoint-url=${AWS_ENDPOINT} --region=${AWS_REGION}"
 
+# Parse --verbose flag
+VERBOSE=false
+for arg in "$@"; do
+  if [ "$arg" = "--verbose" ]; then
+    VERBOSE=true
+    break
+  fi
+done
+if [ "$LOG_OUTPUT" = "1" ]; then
+  VERBOSE=true
+fi
+
+log() {
+  if [ "$VERBOSE" = true ]; then
+    echo "$1"
+  fi
+}
+
 # Function to list bucket contents
 list_bucket_contents() {
     local bucket_name="$1"
@@ -51,11 +69,11 @@ list_project_buckets() {
 main() {
     if [ -z "$BUCKET_NAME" ]; then
         # List all buckets for the project
-        echo "Listing buckets for project: $PROJECT_NAME"
+        log "Listing buckets for project: $PROJECT_NAME"
         list_project_buckets
     else
         # List contents of specific bucket
-        echo "Listing contents of bucket: $BUCKET_NAME"
+        log "Listing contents of bucket: $BUCKET_NAME"
         list_bucket_contents "$BUCKET_NAME"
     fi
 }
