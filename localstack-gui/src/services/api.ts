@@ -45,6 +45,17 @@ export const resourceApi = {
     return response.data;
   },
 
+  createSingle: async (
+    projectName: string,
+    resourceType: string
+  ): Promise<ApiResponse> => {
+    const response = await api.post<ApiResponse>("/resources/create-single", {
+      projectName,
+      resourceType,
+    });
+    return response.data;
+  },
+
   destroy: async (request: DestroyResourceRequest): Promise<ApiResponse> => {
     const response = await api.post<ApiResponse>("/resources/destroy", request);
     return response.data;

@@ -117,18 +117,121 @@ async function createResources(request) {
 
     addLog("info", `Creating resources for ${projectName}`, "automation");
 
-    let command = `./create_resources.sh ${projectName} local`;
+    // Create resources individually for better control
+    const createdResources = [];
+    const errors = [];
 
-    // Add resource flags for shell scripts
-    const resourceFlags = [];
-    if (resources.s3) resourceFlags.push("--s3");
-    if (resources.dynamodb) resourceFlags.push("--dynamodb");
-    if (resources.lambda) resourceFlags.push("--lambda");
-    if (resources.apigateway) resourceFlags.push("--apigateway");
-
-    if (resourceFlags.length > 0) {
-      command += ` ${resourceFlags.join(" ")}`;
+    // Create S3 bucket if requested
+    if (resources.s3) {
+      try {
+        const result = await createSingleResource(projectName, "s3");
+        createdResources.push(result);
+        addLog("success", `S3 bucket created: ${result.name}`, "automation");
+      } catch (error) {
+        errors.push(`S3: ${error.message}`);
+        addLog(
+          "error",
+          `Failed to create S3 bucket: ${error.message}`,
+          "automation"
+        );
+      }
     }
+
+    // Create DynamoDB table if requested
+    if (resources.dynamodb) {
+      try {
+        const result = await createSingleResource(projectName, "dynamodb");
+        createdResources.push(result);
+        addLog(
+          "success",
+          `DynamoDB table created: ${result.name}`,
+          "automation"
+        );
+      } catch (error) {
+        errors.push(`DynamoDB: ${error.message}`);
+        addLog(
+          "error",
+          `Failed to create DynamoDB table: ${error.message}`,
+          "automation"
+        );
+      }
+    }
+
+    // Create Lambda function if requested
+    if (resources.lambda) {
+      try {
+        const result = await createSingleResource(projectName, "lambda");
+        createdResources.push(result);
+        addLog(
+          "success",
+          `Lambda function created: ${result.name}`,
+          "automation"
+        );
+      } catch (error) {
+        errors.push(`Lambda: ${error.message}`);
+        addLog(
+          "error",
+          `Failed to create Lambda function: ${error.message}`,
+          "automation"
+        );
+      }
+    }
+
+    // Create API Gateway if requested
+    if (resources.apigateway) {
+      try {
+        const result = await createSingleResource(projectName, "apigateway");
+        createdResources.push(result);
+        addLog("success", `API Gateway created: ${result.name}`, "automation");
+      } catch (error) {
+        errors.push(`API Gateway: ${error.message}`);
+        addLog(
+          "error",
+          `Failed to create API Gateway: ${error.message}`,
+          "automation"
+        );
+      }
+    }
+
+    if (errors.length > 0) {
+      addLog(
+        "warn",
+        `Some resources failed to create: ${errors.join(", ")}`,
+        "automation"
+      );
+      return {
+        success: createdResources.length > 0,
+        message: `Created ${
+          createdResources.length
+        } resources successfully. Errors: ${errors.join(", ")}`,
+        createdResources,
+        errors,
+      };
+    }
+
+    addLog(
+      "success",
+      `All ${createdResources.length} resources created successfully for ${projectName}`,
+      "automation"
+    );
+    return {
+      success: true,
+      message: `All ${createdResources.length} resources created successfully`,
+      createdResources,
+    };
+  } catch (error) {
+    addLog(
+      "error",
+      `Failed to create resources: ${error.message}`,
+      "automation"
+    );
+    return { success: false, error: error.message };
+  }
+}
+
+async function createSingleResource(projectName, resourceType) {
+  try {
+    let command = `./create_single_resource.sh ${projectName} ${resourceType}`;
 
     const { stdout, stderr } = await execAsync(command, {
       cwd: "/app/scripts/shell",
@@ -140,23 +243,30 @@ async function createResources(request) {
     });
 
     if (stderr) {
-      addLog("warn", `Resource creation warning: ${stderr}`, "automation");
+      addLog(
+        "warn",
+        `Single resource creation warning: ${stderr}`,
+        "automation"
+      );
     }
 
-    addLog(
-      "success",
-      `Resources created successfully for ${projectName}`,
-      "automation"
-    );
-
-    return { success: true, message: "Resources created successfully" };
+    // Parse the output to get resource details
+    try {
+      const resourceInfo = JSON.parse(stdout);
+      return resourceInfo;
+    } catch (parseError) {
+      // If output is not JSON, create a basic resource info object
+      return {
+        id: `${resourceType}-${projectName}-${resourceType}`,
+        name: `${projectName}-${resourceType}`,
+        type: resourceType,
+        status: "active",
+        project: projectName,
+        createdAt: new Date().toISOString(),
+      };
+    }
   } catch (error) {
-    addLog(
-      "error",
-      `Failed to create resources: ${error.message}`,
-      "automation"
-    );
-    return { success: false, error: error.message };
+    throw new Error(`Failed to create ${resourceType}: ${error.message}`);
   }
 }
 
@@ -339,6 +449,31 @@ app.get("/resources/list", async (req, res) => {
 app.post("/resources/create", async (req, res) => {
   const result = await createResources(req.body);
   res.json(result);
+});
+
+app.post("/resources/create-single", async (req, res) => {
+  try {
+    const { projectName, resourceType } = req.body;
+
+    if (!projectName || !resourceType) {
+      return res.status(400).json({
+        success: false,
+        error: "projectName and resourceType are required",
+      });
+    }
+
+    const result = await createSingleResource(projectName, resourceType);
+    res.json({
+      success: true,
+      message: `${resourceType} resource created successfully`,
+      data: result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
 });
 
 app.post("/resources/destroy", async (req, res) => {

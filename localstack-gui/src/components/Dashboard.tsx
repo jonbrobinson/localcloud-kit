@@ -72,6 +72,35 @@ export default function Dashboard() {
     }
   };
 
+  const handleCreateSingleResource = async (resourceType: string) => {
+    setCreateLoading(true);
+    try {
+      const response = await resourceApi.createSingle(
+        config.projectName,
+        resourceType
+      );
+      if (response.success) {
+        toast.success(`${resourceType} resource created successfully`);
+        setTimeout(async () => {
+          await loadInitialData();
+        }, 1000);
+      } else {
+        toast.error(
+          response.error || `Failed to create ${resourceType} resource`
+        );
+      }
+    } catch (error) {
+      console.error(`Create ${resourceType} resource error:`, error);
+      toast.error(
+        `Failed to create ${resourceType} resource: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   const handleDestroyResources = async (resourceIds: string[]) => {
     setDestroyLoading(true);
     try {
@@ -224,6 +253,43 @@ export default function Dashboard() {
                   />
                   Refresh
                 </button>
+
+                {/* Individual Resource Creation Buttons */}
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleCreateSingleResource("s3")}
+                    disabled={createLoading}
+                    className="flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
+                    title="Create S3 Bucket"
+                  >
+                    🪣 S3
+                  </button>
+                  <button
+                    onClick={() => handleCreateSingleResource("dynamodb")}
+                    disabled={createLoading}
+                    className="flex items-center px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                    title="Create DynamoDB Table"
+                  >
+                    🗄️ DynamoDB
+                  </button>
+                  <button
+                    onClick={() => handleCreateSingleResource("lambda")}
+                    disabled={createLoading}
+                    className="flex items-center px-3 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                    title="Create Lambda Function"
+                  >
+                    ⚡ Lambda
+                  </button>
+                  <button
+                    onClick={() => handleCreateSingleResource("apigateway")}
+                    disabled={createLoading}
+                    className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    title="Create API Gateway"
+                  >
+                    🌐 API Gateway
+                  </button>
+                </div>
+
                 <button
                   onClick={() => setShowCreateModal(true)}
                   disabled={createLoading}
@@ -234,7 +300,7 @@ export default function Dashboard() {
                   ) : (
                     <PlusIcon className="h-4 w-4 mr-2" />
                   )}
-                  {createLoading ? "Creating..." : "Create Resources"}
+                  {createLoading ? "Creating..." : "Create Multiple"}
                 </button>
               </div>
             </div>

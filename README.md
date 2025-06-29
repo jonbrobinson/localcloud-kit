@@ -71,6 +71,7 @@ localstack-manager/
 
 ### Core Automation
 
+- **Individual Resource Creation**: Create resources one at a time or in batches
 - **Shell Script Automation**: Fast, reliable command-line automation
 - **Environment Management**: dev, uat, prod environments
 - **Resource Templates**: Predefined common AWS setups
@@ -79,6 +80,8 @@ localstack-manager/
 ### GUI Management
 
 - **Web Interface**: Modern Next.js dashboard with hot reloading
+- **Individual Resource Buttons**: Quick creation of S3, DynamoDB, Lambda, and API Gateway
+- **Batch Resource Creation**: Create multiple resources at once with templates
 - **Real-time Monitoring**: Live status and resource tracking
 - **Log Viewer**: Real-time log monitoring with filtering
 
@@ -115,10 +118,27 @@ make start
 
 ### 2. Create Resources
 
+#### Individual Resource Creation (Recommended)
+
+Use the web GUI to create resources individually:
+
+- **S3 Bucket**: Click the 🪣 S3 button
+- **DynamoDB Table**: Click the 🗄️ DynamoDB button
+- **Lambda Function**: Click the ⚡ Lambda button
+- **API Gateway**: Click the 🌐 API Gateway button
+
+#### Batch Resource Creation
+
 ```bash
 # Using shell scripts (standard approach)
 ./scripts/shell/create_resources.sh localstack-manager dev --s3 --dynamodb
 ```
+
+#### Via Web GUI
+
+- Open http://localhost:3030
+- Use individual resource buttons for quick creation
+- Or use "Create Multiple" for batch creation with templates
 
 ### 3. Manage via GUI
 
