@@ -37,6 +37,12 @@ A robust Express.js API server that manages LocalStack operations, resource auto
 
 ## 🎯 Features
 
+- **Resource Management**: Create, list, and destroy AWS resources
+- **Real-time Logging**: Live log streaming with Socket.IO
+- **Health Monitoring**: LocalStack status and health checks
+- **Template Support**: Predefined resource templates
+- **Web GUI**: Modern Next.js interface
+
 ### LocalStack Management
 
 - **Health Monitoring**: Real-time status checking
@@ -130,7 +136,7 @@ Returns application logs with filtering options.
 #### List Resources
 
 ```http
-GET /resources/list?projectName=my-project&environment=dev
+GET /resources/list?projectName=localstack-template&environment=dev
 ```
 
 Lists resources for a specific project and environment.
@@ -142,7 +148,7 @@ POST /resources/create
 Content-Type: application/json
 
 {
-  "projectName": "my-project",
+  "projectName": "localstack-template",
   "environment": "dev",
   "resources": {
     "s3": true,
@@ -161,16 +167,15 @@ POST /resources/destroy
 Content-Type: application/json
 
 {
-  "projectName": "my-project",
-  "environment": "dev",
-  "resources": ["resource-id-1", "resource-id-2"]
+  "projectName": "localstack-template",
+  "resources": ["s3-localstack-template-bucket", "dynamodb-localstack-template-table"]
 }
 ```
 
 #### Get Resource Status
 
 ```http
-GET /resources/status?projectName=my-project&environment=dev
+GET /resources/status?projectName=localstack-template&environment=dev
 ```
 
 Returns current resource status and details.

@@ -6,6 +6,7 @@ import {
   TrashIcon,
   DocumentTextIcon,
   ServerIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
 import {
@@ -39,6 +40,10 @@ export default function Dashboard() {
   const [createLoading, setCreateLoading] = useState(false);
   const [destroyLoading, setDestroyLoading] = useState(false);
 
+  // Debug logging
+  console.log("Dashboard render - showCreateModal:", showCreateModal);
+  console.log("Dashboard render - config:", config);
+
   const handleCreateResources = async (request: CreateResourceRequest) => {
     setCreateLoading(true);
     try {
@@ -46,7 +51,9 @@ export default function Dashboard() {
       if (response.success) {
         toast.success("Resources created successfully");
         setShowCreateModal(false);
-        await loadInitialData();
+        setTimeout(async () => {
+          await loadInitialData();
+        }, 1000);
       } else {
         toast.error(response.error || "Failed to create resources");
       }
@@ -197,6 +204,16 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Resources</h2>
               <div className="flex items-center space-x-4">
+                <button
+                  onClick={loadInitialData}
+                  disabled={loading}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  <ArrowPathIcon
+                    className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+                  />
+                  Refresh
+                </button>
                 <button
                   onClick={() => setShowCreateModal(true)}
                   disabled={createLoading}
