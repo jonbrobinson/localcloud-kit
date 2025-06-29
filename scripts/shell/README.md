@@ -68,30 +68,30 @@ aws configure set output json
 
 ```bash
 # Basic usage
-./create_resources.sh localstack-template dev --s3 --dynamodb
+./create_resources.sh localstack-dev dev --s3 --dynamodb
 
 # Examples
-./create_resources.sh localstack-template dev --template basic
-./create_resources.sh localstack-template uat --template serverless
-./create_resources.sh localstack-template prod --s3 --lambda --apigateway
+./create_resources.sh localstack-dev dev --template basic
+./create_resources.sh localstack-dev uat --template serverless
+./create_resources.sh localstack-dev prod --s3 --lambda --apigateway
 ```
 
 ### List Resources
 
 ```bash
 # List all resources for a project/environment
-./list_resources.sh localstack-template dev
-./list_resources.sh localstack-template uat
+./list_resources.sh localstack-dev dev
+./list_resources.sh localstack-dev uat
 ```
 
 ### Destroy Resources
 
 ```bash
 # Destroy specific resources by ID
-./destroy_resources.sh localstack-template dev s3-localstack-template-bucket dynamodb-localstack-template-table
+./destroy_resources.sh localstack-dev dev s3-localstack-dev-bucket dynamodb-localstack-dev-table
 
 # Destroy all resources for a project/environment
-./destroy_resources.sh localstack-template dev
+./destroy_resources.sh localstack-dev dev
 ```
 
 ## 🔧 Configuration
@@ -104,7 +104,7 @@ export LOCALSTACK_ENDPOINT="http://localhost:4566"
 export AWS_DEFAULT_REGION="us-east-1"
 
 # Project Configuration
-export PROJECT_NAME="localstack-template"
+export PROJECT_NAME="localstack-dev"
 export ENVIRONMENT="dev"
 ```
 
@@ -118,16 +118,16 @@ All resources follow this pattern:
 
 Examples:
 
-- `localstack-template-dev-s3-bucket`
-- `localstack-template-uat-dynamodb-table`
-- `localstack-template-prod-lambda-function`
+- `localstack-dev-dev-s3-bucket`
+- `localstack-dev-uat-dynamodb-table`
+- `localstack-dev-prod-lambda-function`
 
 ## 📊 Resource Templates
 
 ### Basic Setup
 
 ```bash
-./create_resources.sh localstack-template dev --template basic
+./create_resources.sh localstack-dev dev --template basic
 ```
 
 Creates:
@@ -138,7 +138,7 @@ Creates:
 ### Serverless
 
 ```bash
-./create_resources.sh localstack-template dev --template serverless
+./create_resources.sh localstack-dev dev --template serverless
 ```
 
 Creates:
@@ -151,7 +151,7 @@ Creates:
 ### Storage Only
 
 ```bash
-./create_resources.sh localstack-template dev --template storage
+./create_resources.sh localstack-dev dev --template storage
 ```
 
 Creates:
@@ -161,7 +161,7 @@ Creates:
 ### Database Only
 
 ```bash
-./create_resources.sh localstack-template dev --template database
+./create_resources.sh localstack-dev dev --template database
 ```
 
 Creates:
@@ -171,7 +171,7 @@ Creates:
 ### API Only
 
 ```bash
-./create_resources.sh localstack-template dev --template api
+./create_resources.sh localstack-dev dev --template api
 ```
 
 Creates:
@@ -184,7 +184,7 @@ Creates:
 ### Create Resources
 
 ```bash
-./create_resources.sh localstack-template dev --s3 --dynamodb
+./create_resources.sh localstack-dev dev --s3 --dynamodb
 
 Options:
   --s3                    Create S3 bucket
@@ -206,7 +206,7 @@ Templates:
 ### List Resources
 
 ```bash
-./list_resources.sh localstack-template dev
+./list_resources.sh localstack-dev dev
 
 Options:
   --region <region>      AWS region (default: us-east-1)
@@ -216,7 +216,7 @@ Options:
 ### Destroy Resources
 
 ```bash
-./destroy_resources.sh localstack-template dev
+./destroy_resources.sh localstack-dev dev
 
 Options:
   --region <region>      AWS region (default: us-east-1)
@@ -294,7 +294,7 @@ aws --endpoint-url=http://localhost:4566 s3 ls
 export AWS_CLI_DEBUG=1
 
 # Run with verbose output
-./create_resources.sh localstack-template dev --s3 --verbose
+./create_resources.sh localstack-dev dev --s3 --verbose
 ```
 
 ## 📚 Examples
@@ -306,13 +306,13 @@ export AWS_CLI_DEBUG=1
 docker compose up -d
 
 # 2. Create development resources
-./create_resources.sh localstack-template dev --template basic
+./create_resources.sh localstack-dev dev --template basic
 
 # 3. List resources
-./list_resources.sh localstack-template dev
+./list_resources.sh localstack-dev dev
 
 # 4. Clean up when done
-./destroy_resources.sh localstack-template dev
+./destroy_resources.sh localstack-dev dev
 ```
 
 ### Testing Different Configurations
@@ -333,13 +333,13 @@ docker compose up -d
 
 ```bash
 # Development environment
-./create_resources.sh localstack-template dev --template basic
+./create_resources.sh localstack-dev dev --template basic
 
 # UAT environment
-./create_resources.sh localstack-template uat --template serverless
+./create_resources.sh localstack-dev uat --template serverless
 
 # Production-like environment
-./create_resources.sh localstack-template prod --template serverless
+./create_resources.sh localstack-dev prod --template serverless
 ```
 
 ## 🔄 Integration

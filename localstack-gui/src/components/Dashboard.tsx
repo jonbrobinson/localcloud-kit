@@ -7,6 +7,7 @@ import {
   DocumentTextIcon,
   ServerIcon,
   ArrowPathIcon,
+  FolderIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
 import {
@@ -21,6 +22,7 @@ import StatusCard from "./StatusCard";
 import ResourceList from "./ResourceList";
 import CreateResourceModal from "./CreateResourceModal";
 import LogViewer from "./LogViewer";
+import BucketViewer from "./BucketViewer";
 import Image from "next/image";
 
 export default function Dashboard() {
@@ -35,6 +37,7 @@ export default function Dashboard() {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
+  const [showBuckets, setShowBuckets] = useState(false);
 
   // Loading states for buttons
   const [createLoading, setCreateLoading] = useState(false);
@@ -175,6 +178,13 @@ export default function Dashboard() {
                 <DocumentTextIcon className="h-4 w-4 mr-2" />
                 Logs
               </button>
+              <button
+                onClick={() => setShowBuckets(true)}
+                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                <FolderIcon className="h-4 w-4 mr-2" />
+                S3 Buckets
+              </button>
             </div>
           </div>
         </div>
@@ -301,6 +311,14 @@ export default function Dashboard() {
 
       {showLogs && (
         <LogViewer isOpen={showLogs} onClose={() => setShowLogs(false)} />
+      )}
+
+      {showBuckets && (
+        <BucketViewer
+          isOpen={showBuckets}
+          onClose={() => setShowBuckets(false)}
+          projectName={config.projectName}
+        />
       )}
     </div>
   );

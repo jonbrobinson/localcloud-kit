@@ -136,7 +136,7 @@ Returns application logs with filtering options.
 #### List Resources
 
 ```http
-GET /resources/list?projectName=localstack-template&environment=dev
+GET /resources/list?projectName=localstack-dev&environment=dev
 ```
 
 Lists resources for a specific project and environment.
@@ -148,7 +148,7 @@ POST /resources/create
 Content-Type: application/json
 
 {
-  "projectName": "localstack-template",
+  "projectName": "localstack-dev",
   "environment": "dev",
   "resources": {
     "s3": true,
@@ -167,15 +167,15 @@ POST /resources/destroy
 Content-Type: application/json
 
 {
-  "projectName": "localstack-template",
-  "resources": ["s3-localstack-template-bucket", "dynamodb-localstack-template-table"]
+  "projectName": "localstack-dev",
+  "resources": ["s3-localstack-dev-bucket", "dynamodb-localstack-dev-table"]
 }
 ```
 
 #### Get Resource Status
 
 ```http
-GET /resources/status?projectName=localstack-template&environment=dev
+GET /resources/status?projectName=localstack-dev&environment=dev
 ```
 
 Returns current resource status and details.

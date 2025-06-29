@@ -88,5 +88,42 @@ export const healthApi = {
   },
 };
 
+// S3 Bucket Management
+export const s3Api = {
+  // List all buckets for a project
+  getBuckets: async (projectName: string): Promise<ApiResponse<any[]>> => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/s3/buckets?projectName=${encodeURIComponent(
+          projectName
+        )}`
+      );
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch buckets:", error);
+      return { success: false, error: "Failed to fetch buckets" };
+    }
+  },
+
+  // List contents of a specific bucket
+  getBucketContents: async (
+    projectName: string,
+    bucketName: string
+  ): Promise<ApiResponse<any[]>> => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/s3/bucket/${encodeURIComponent(
+          bucketName
+        )}/contents?projectName=${encodeURIComponent(projectName)}`
+      );
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch bucket contents:", error);
+      return { success: false, error: "Failed to fetch bucket contents" };
+    }
+  },
+};
+
 export default api;
- 

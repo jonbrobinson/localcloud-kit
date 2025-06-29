@@ -16,7 +16,7 @@ export function useLocalStackData() {
       health: "unknown",
     },
     projectConfig: {
-      projectName: "localstack-template",
+      projectName: "localstack-dev",
       awsEndpoint: "http://localhost:4566",
       awsRegion: "us-east-1",
     },
