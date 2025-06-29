@@ -51,7 +51,7 @@ let localstackStatus = {
 // Default project configuration
 let projectConfig = {
   projectName: "my-project",
-  awsEndpoint: "http://localhost:4566",
+  awsEndpoint: "http://localstack:4566",
   awsRegion: "us-east-1",
 };
 
@@ -110,86 +110,6 @@ async function checkLocalStackStatus() {
   }
 }
 
-async function startLocalStack() {
-  try {
-    addLog("info", "Starting LocalStack...", "localstack");
-
-    // Change to the parent directory where docker-compose.yml is located
-    const parentDir = path.join(__dirname, "..");
-
-    const { stdout, stderr } = await execAsync("docker compose up -d", {
-      cwd: parentDir,
-    });
-
-    if (stderr) {
-      addLog("warn", `LocalStack start warning: ${stderr}`, "localstack");
-    }
-
-    addLog("success", "LocalStack started successfully", "localstack");
-
-    // Wait a bit and check status
-    setTimeout(checkLocalStackStatus, 5000);
-
-    return { success: true, message: "LocalStack started successfully" };
-  } catch (error) {
-    addLog(
-      "error",
-      `Failed to start LocalStack: ${error.message}`,
-      "localstack"
-    );
-    return { success: false, error: error.message };
-  }
-}
-
-async function stopLocalStack() {
-  try {
-    addLog("info", "Stopping LocalStack...", "localstack");
-
-    const parentDir = path.join(__dirname, "..");
-
-    const { stdout, stderr } = await execAsync("docker compose down", {
-      cwd: parentDir,
-    });
-
-    if (stderr) {
-      addLog("warn", `LocalStack stop warning: ${stderr}`, "localstack");
-    }
-
-    localstackStatus.running = false;
-    localstackStatus.health = "unknown";
-
-    addLog("success", "LocalStack stopped successfully", "localstack");
-
-    return { success: true, message: "LocalStack stopped successfully" };
-  } catch (error) {
-    addLog(
-      "error",
-      `Failed to stop LocalStack: ${error.message}`,
-      "localstack"
-    );
-    return { success: false, error: error.message };
-  }
-}
-
-async function restartLocalStack() {
-  try {
-    addLog("info", "Restarting LocalStack...", "localstack");
-
-    await stopLocalStack();
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    await startLocalStack();
-
-    return { success: true, message: "LocalStack restarted successfully" };
-  } catch (error) {
-    addLog(
-      "error",
-      `Failed to restart LocalStack: ${error.message}`,
-      "localstack"
-    );
-    return { success: false, error: error.message };
-  }
-}
-
 // Resource Management Functions
 async function createResources(request) {
   try {
@@ -211,7 +131,7 @@ async function createResources(request) {
     }
 
     const { stdout, stderr } = await execAsync(command, {
-      cwd: path.join(__dirname, "scripts", "shell"),
+      cwd: "/app/scripts/shell",
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
@@ -249,7 +169,7 @@ async function destroyResources(request) {
     let command = `./destroy_resources.sh ${projectName} local`;
 
     const { stdout, stderr } = await execAsync(command, {
-      cwd: path.join(__dirname, "scripts", "shell"),
+      cwd: "/app/scripts/shell",
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
@@ -283,7 +203,7 @@ async function listResources(projectName) {
     let command = `./list_resources.sh ${projectName} local`;
 
     const { stdout, stderr } = await execAsync(command, {
-      cwd: path.join(__dirname, "scripts", "shell"),
+      cwd: "/app/scripts/shell",
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
@@ -339,21 +259,6 @@ app.get("/health", (req, res) => {
 // LocalStack Management
 app.get("/localstack/status", (req, res) => {
   res.json({ success: true, data: localstackStatus });
-});
-
-app.post("/localstack/start", async (req, res) => {
-  const result = await startLocalStack();
-  res.json(result);
-});
-
-app.post("/localstack/stop", async (req, res) => {
-  const result = await stopLocalStack();
-  res.json(result);
-});
-
-app.post("/localstack/restart", async (req, res) => {
-  const result = await restartLocalStack();
-  res.json(result);
 });
 
 app.get("/localstack/logs", (req, res) => {

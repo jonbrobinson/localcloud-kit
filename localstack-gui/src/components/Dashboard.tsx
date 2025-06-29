@@ -1,10 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
-  PlayIcon,
-  StopIcon,
-  ArrowPathIcon,
   PlusIcon,
   TrashIcon,
   Cog6ToothIcon,
@@ -12,8 +9,14 @@ import {
   ServerIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
-import { LocalStackStatus, Resource, ProjectConfig } from "@/types";
+import {
+  LocalStackStatus,
+  Resource,
+  ProjectConfig,
+  CreateResourceRequest,
+} from "@/types";
 import { localstackApi, resourceApi, configApi } from "@/services/api";
+import { useLocalStackData } from "@/hooks/useLocalStackData";
 import StatusCard from "./StatusCard";
 import ResourceList from "./ResourceList";
 import CreateResourceModal from "./CreateResourceModal";
@@ -22,107 +25,23 @@ import LogViewer from "./LogViewer";
 import Image from "next/image";
 
 export default function Dashboard() {
-  const [localstackStatus, setLocalstackStatus] = useState<LocalStackStatus>({
-    running: false,
-    endpoint: "http://localhost:4566",
-    health: "unknown",
-  });
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [config, setConfig] = useState<ProjectConfig>({
-    projectName: "localstack-template",
-    environment: "dev",
-    awsRegion: "us-east-1",
-    awsEndpoint: "http://localhost:4566",
-  });
-  const [loading, setLoading] = useState(true);
+  const {
+    localstackStatus,
+    projectConfig: config,
+    resources,
+    loading,
+    error,
+    refetch: loadInitialData,
+  } = useLocalStackData();
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
 
   // Loading states for buttons
-  const [localstackLoading, setLocalstackLoading] = useState<{
-    start: boolean;
-    stop: boolean;
-    restart: boolean;
-  }>({
-    start: false,
-    stop: false,
-    restart: false,
-  });
   const [createLoading, setCreateLoading] = useState(false);
   const [destroyLoading, setDestroyLoading] = useState(false);
   const [configLoading, setConfigLoading] = useState(false);
-
-  // Load initial data
-  useEffect(() => {
-    loadInitialData();
-    const interval = setInterval(loadInitialData, 5000); // Refresh every 5 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadInitialData = async () => {
-    try {
-      const [localstackStatus, projectConfig, resources] = await Promise.all([
-        localstackApi.getStatus(),
-        configApi.getProjectConfig(),
-        resourceApi.getStatus(config.projectName),
-      ]);
-
-      setLocalstackStatus(localstackStatus);
-      setConfig(projectConfig);
-      setResources(resources);
-    } catch (error) {
-      console.error("Failed to load initial data:", error);
-      toast.error("Failed to load initial data");
-    }
-  };
-
-  const handleLocalStackAction = async (
-    action: "start" | "stop" | "restart"
-  ) => {
-    // Set loading state for the specific action
-    setLocalstackLoading((prev) => ({ ...prev, [action]: true }));
-
-    try {
-      let response;
-      switch (action) {
-        case "start":
-          response = await localstackApi.start();
-          break;
-        case "stop":
-          response = await localstackApi.stop();
-          break;
-        case "restart":
-          response = await localstackApi.restart();
-          break;
-      }
-
-      if (response.success) {
-        toast.success(`LocalStack ${action} successful`);
-
-        // Wait a moment for the action to complete, then refresh status
-        setTimeout(async () => {
-          await loadInitialData();
-        }, 2000);
-      } else {
-        toast.error(response.error || `Failed to ${action} LocalStack`);
-        // Still refresh status to get current state
-        await loadInitialData();
-      }
-    } catch (error) {
-      console.error(`LocalStack ${action} error:`, error);
-      toast.error(
-        `Failed to ${action} LocalStack: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-      // Still refresh status to get current state
-      await loadInitialData();
-    } finally {
-      // Clear loading state
-      setLocalstackLoading((prev) => ({ ...prev, [action]: false }));
-    }
-  };
 
   const handleCreateResources = async (request: CreateResourceRequest) => {
     setCreateLoading(true);
@@ -178,7 +97,6 @@ export default function Dashboard() {
     try {
       const response = await configApi.updateProjectConfig(newConfig);
       if (response.success) {
-        setConfig(newConfig);
         toast.success("Configuration updated");
         setShowConfigModal(false);
         await loadInitialData();
@@ -214,6 +132,26 @@ export default function Dashboard() {
             </h2>
           </div>
           <p className="text-gray-600">Loading LocalStack Manager...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 to-pink-100">
+        <div className="text-center">
+          <div className="text-red-600 text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            Failed to Load Data
+          </h2>
+          <p className="text-gray-600 mb-4">{error.message}</p>
+          <button
+            onClick={loadInitialData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -281,55 +219,12 @@ export default function Dashboard() {
             <h2 className="text-lg font-semibold text-gray-900">
               LocalStack Status
             </h2>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handleLocalStackAction("start")}
-                disabled={
-                  localstackStatus.running ||
-                  localstackLoading.start ||
-                  localstackLoading.restart
-                }
-                className="flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
-              >
-                {localstackLoading.start ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                ) : (
-                  <PlayIcon className="h-4 w-4 mr-2" />
-                )}
-                {localstackLoading.start ? "Starting..." : "Start"}
-              </button>
-              <button
-                onClick={() => handleLocalStackAction("stop")}
-                disabled={
-                  !localstackStatus.running ||
-                  localstackLoading.stop ||
-                  localstackLoading.restart
-                }
-                className="flex items-center px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
-              >
-                {localstackLoading.stop ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                ) : (
-                  <StopIcon className="h-4 w-4 mr-2" />
-                )}
-                {localstackLoading.stop ? "Stopping..." : "Stop"}
-              </button>
-              <button
-                onClick={() => handleLocalStackAction("restart")}
-                disabled={
-                  localstackLoading.restart ||
-                  localstackLoading.start ||
-                  localstackLoading.stop
-                }
-                className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                {localstackLoading.restart ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                ) : (
-                  <ArrowPathIcon className="h-4 w-4 mr-2" />
-                )}
-                {localstackLoading.restart ? "Restarting..." : "Restart"}
-              </button>
+            <div className="text-sm text-gray-500">
+              Use{" "}
+              <code className="bg-gray-100 px-1 rounded">
+                docker compose up -d
+              </code>{" "}
+              to start LocalStack
             </div>
           </div>
           <StatusCard status={localstackStatus} />
