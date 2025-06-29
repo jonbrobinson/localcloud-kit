@@ -254,6 +254,59 @@ async function listResources(projectName) {
   }
 }
 
+async function listBucketContents(projectName, bucketName) {
+  try {
+    let command = `./list_bucket_contents.sh ${projectName} local`;
+
+    if (bucketName) {
+      command += ` ${bucketName}`;
+    }
+
+    const { stdout, stderr } = await execAsync(command, {
+      cwd: "/app/scripts/shell",
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `Bucket listing warning: ${stderr}`, "automation");
+    }
+
+    // Parse the output as JSON
+    let contents = [];
+    try {
+      contents = JSON.parse(stdout);
+      if (!Array.isArray(contents)) {
+        addLog(
+          "error",
+          "Bucket listing output is not a JSON array",
+          "automation"
+        );
+        contents = [];
+      }
+    } catch (err) {
+      addLog(
+        "error",
+        `Failed to parse bucket listing JSON: ${err.message}`,
+        "automation"
+      );
+      contents = [];
+    }
+
+    return contents;
+  } catch (error) {
+    addLog(
+      "error",
+      `Failed to list bucket contents: ${error.message}`,
+      "automation"
+    );
+    return [];
+  }
+}
+
 // API Routes
 
 // Health check
@@ -351,6 +404,20 @@ app.get("/config/templates", (req, res) => {
     },
   ];
   res.json({ success: true, data: templates });
+});
+
+// S3 Bucket Management
+app.get("/s3/buckets", async (req, res) => {
+  const { projectName } = req.query;
+  const buckets = await listBucketContents(projectName);
+  res.json({ success: true, data: buckets });
+});
+
+app.get("/s3/bucket/:bucketName/contents", async (req, res) => {
+  const { projectName } = req.query;
+  const { bucketName } = req.params;
+  const contents = await listBucketContents(projectName, bucketName);
+  res.json({ success: true, data: contents });
 });
 
 // Socket.IO connection handling

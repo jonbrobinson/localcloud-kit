@@ -109,6 +109,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3031
 - **Environment**: dev/uat/prod for resource isolation
 - **AWS Region**: Target region for resource deployment
 - **LocalStack Endpoint**: LocalStack service URL
+- **The default project name is 'localstack-dev'.**
 
 ## 📊 API Endpoints
 

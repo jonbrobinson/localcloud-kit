@@ -162,19 +162,19 @@ make shell-create ENV=prod
 
 ```bash
 # Basic template (S3 + DynamoDB)
-./scripts/shell/create_resources.sh localstack-template dev --template basic
+./scripts/shell/create_resources.sh localstack-dev dev --template basic
 
 # Serverless template (Lambda + API Gateway + DynamoDB)
-./scripts/shell/create_resources.sh localstack-template dev --template serverless
+./scripts/shell/create_resources.sh localstack-dev dev --template serverless
 
 # Storage template (S3 + CloudFront)
-./scripts/shell/create_resources.sh localstack-template dev --template storage
+./scripts/shell/create_resources.sh localstack-dev dev --template storage
 
 # Database template (RDS + ElastiCache)
-./scripts/shell/create_resources.sh localstack-template dev --template database
+./scripts/shell/create_resources.sh localstack-dev dev --template database
 
 # API template (API Gateway + Lambda)
-./scripts/shell/create_resources.sh localstack-template dev --template api
+./scripts/shell/create_resources.sh localstack-dev dev --template api
 ```
 
 ## 🆘 Need Help?
