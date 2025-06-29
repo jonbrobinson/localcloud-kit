@@ -25,21 +25,6 @@ export const localstackApi = {
     return response.data.data!;
   },
 
-  start: async (): Promise<ApiResponse> => {
-    const response = await api.post<ApiResponse>("/localstack/start");
-    return response.data;
-  },
-
-  stop: async (): Promise<ApiResponse> => {
-    const response = await api.post<ApiResponse>("/localstack/stop");
-    return response.data;
-  },
-
-  restart: async (): Promise<ApiResponse> => {
-    const response = await api.post<ApiResponse>("/localstack/restart");
-    return response.data;
-  },
-
   getLogs: async (): Promise<LogEntry[]> => {
     const response = await api.get<ApiResponse<LogEntry[]>>("/localstack/logs");
     return response.data.data || [];
