@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import {
   XMarkIcon,
-  ArrowDownIcon,
   TrashIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { LogEntry } from "@/types";
 import { localstackApi } from "@/services/api";
@@ -101,146 +101,124 @@ export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          onClick={onClose}
-        ></div>
-
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-          <div className="bg-white">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">CS</span>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Log Viewer
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      CloudStack Solutions
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={loadLogs}
-                    disabled={loading}
-                    className="px-3 py-1 text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50 transition-colors"
-                  >
-                    {loading ? "Loading..." : "Refresh"}
-                  </button>
-                  <button
-                    onClick={clearLogs}
-                    className="flex items-center px-3 py-1 text-sm text-red-600 hover:text-red-700 transition-colors"
-                  >
-                    <TrashIcon className="h-4 w-4 mr-1" />
-                    Clear
-                  </button>
-                  <button
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <XMarkIcon className="h-6 w-6" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Filters */}
-              <div className="mt-4 flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Filter:
-                  </label>
-                  <select
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value as any)}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  >
-                    <option value="all">All Sources</option>
-                    <option value="localstack">LocalStack</option>
-                    <option value="automation">Automation</option>
-                    <option value="gui">GUI</option>
-                  </select>
-                </div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={autoScroll}
-                    onChange={(e) => setAutoScroll(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors"
-                  />
-                  <span className="text-sm text-gray-700">Auto-scroll</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-3/4 flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-2xl font-bold text-gray-900">Log Viewer</h2>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Filter:
                 </label>
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value as any)}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All Sources</option>
+                  <option value="localstack">LocalStack</option>
+                  <option value="automation">Automation</option>
+                  <option value="gui">GUI</option>
+                </select>
               </div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={autoScroll}
+                  onChange={(e) => setAutoScroll(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="text-sm text-gray-700">Auto-scroll</span>
+              </label>
             </div>
-
-            {/* Log Content */}
-            <div
-              className="max-h-96 overflow-y-auto bg-gray-900 text-green-200 font-mono text-sm"
-              id="log-content"
+          </div>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={loadLogs}
+              disabled={loading}
+              className="flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50"
             >
-              {filteredLogs.length === 0 ? (
-                <div className="p-4 text-center text-gray-400">
-                  <div className="flex items-center justify-center space-x-2 mb-2">
-                    <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-indigo-600 rounded flex items-center justify-center">
-                      <span className="text-white font-bold text-xs">CS</span>
-                    </div>
-                    <span className="text-sm">No logs available</span>
-                  </div>
-                  <p className="text-xs text-gray-400">
-                    CloudStack Solutions Log Viewer
+              <ArrowPathIcon
+                className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+              />
+              {loading ? "Loading..." : "Refresh"}
+            </button>
+            <button
+              onClick={clearLogs}
+              className="flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700"
+            >
+              <TrashIcon className="h-4 w-4 mr-2" />
+              Clear
+            </button>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+              aria-label="Close"
+            >
+              <XMarkIcon className="h-6 w-6" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-hidden">
+          <div
+            className="h-full overflow-y-auto bg-gray-900 text-green-200 font-mono text-sm"
+            id="log-content"
+          >
+            {filteredLogs.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-gray-400">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">📋</div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No Logs Available
+                  </h3>
+                  <p className="text-gray-500">
+                    No logs found for the selected filter.
                   </p>
                 </div>
-              ) : (
-                <div className="p-4 space-y-2">
-                  {filteredLogs.map((log, index) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <span className="text-xs text-gray-500 min-w-[80px]">
-                        {new Date(log.timestamp).toLocaleTimeString()}
-                      </span>
-                      <span className="text-lg">{getLogIcon(log.level)}</span>
-                      <span
-                        className={`px-2 py-1 text-xs rounded ${getSourceColor(
-                          log.source
-                        )}`}
-                      >
-                        {log.source}
-                      </span>
-                      <span
-                        className={`px-2 py-1 text-xs rounded border ${getLogColor(
-                          log.level
-                        )}`}
-                      >
-                        {log.level}
-                      </span>
-                      <span className="flex-1 text-green-200 break-words whitespace-pre-line">
-                        {log.message}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="px-6 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-200">
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">CS</span>
-                  </div>
-                  <span>
-                    Showing {filteredLogs.length} of {logs.length} logs
-                  </span>
-                </div>
-                <span>Last updated: {new Date().toLocaleTimeString()}</span>
               </div>
-            </div>
+            ) : (
+              <div className="p-4 space-y-2">
+                {filteredLogs.map((log, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <span className="text-xs text-gray-500 min-w-[80px]">
+                      {new Date(log.timestamp).toLocaleTimeString()}
+                    </span>
+                    <span className="text-lg">{getLogIcon(log.level)}</span>
+                    <span
+                      className={`px-2 py-1 text-xs rounded ${getSourceColor(
+                        log.source
+                      )}`}
+                    >
+                      {log.source}
+                    </span>
+                    <span
+                      className={`px-2 py-1 text-xs rounded border ${getLogColor(
+                        log.level
+                      )}`}
+                    >
+                      {log.level}
+                    </span>
+                    <span className="flex-1 text-green-200 break-words whitespace-pre-line">
+                      {log.message}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
+          <div className="flex items-center justify-between text-sm text-gray-600">
+            <span>
+              Showing {filteredLogs.length} of {logs.length} logs
+            </span>
+            <span>Last updated: {new Date().toLocaleTimeString()}</span>
           </div>
         </div>
       </div>
