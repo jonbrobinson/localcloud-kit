@@ -54,7 +54,12 @@ export interface CreateResourceRequest {
   projectName: string;
   environment: string;
   approach: "shell";
-  resources: string[];
+  resources: {
+    s3: boolean;
+    dynamodb: boolean;
+    lambda: boolean;
+    apigateway: boolean;
+  };
   template?: string;
 }
 
