@@ -91,8 +91,9 @@ list_api_gateways() {
   apis=$($AWS_CMD apigateway get-rest-apis --query "items[?starts_with(name, '$NAME_PREFIX')].{Name:name,Id:id,Description:description,CreatedDate:createdDate}" --output json)
   echo "$apis" | jq -c '.[]' | while read row; do
     name=$(echo "$row" | jq -r .Name)
-    id="apigateway-$name"
-    obj=$(jq -nc --arg id "$id" --arg name "$name" --arg type apigateway --arg status active --arg project "$PROJECT_NAME" --arg createdAt "$NOW" '{id:$id,name:$name,type:$type,status:$status,project:$project,createdAt:$createdAt}')
+    api_id=$(echo "$row" | jq -r .Id)
+    id="apigateway-$api_id"
+    obj=$(jq -nc --arg id "$id" --arg name "$name" --arg type apigateway --arg status active --arg project "$PROJECT_NAME" --arg createdAt "$NOW" --arg apiId "$api_id" '{id:$id,name:$name,type:$type,status:$status,project:$project,createdAt:$createdAt,details:{apiId:$apiId}}')
     tmp_add_resource "$obj"
   done
 }
