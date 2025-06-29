@@ -106,7 +106,7 @@ export default function Dashboard() {
     try {
       const response = await resourceApi.destroy({
         projectName: config.projectName,
-        resources: resourceIds,
+        resourceIds: resourceIds,
       });
 
       if (response.success) {
