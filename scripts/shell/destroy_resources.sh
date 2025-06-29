@@ -1,7 +1,6 @@
 #!/bin/sh
 
 set -e
-set -x
 export AWS_PAGER=""
 
 # LocalStack Resource Destruction Script

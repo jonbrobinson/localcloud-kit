@@ -1,7 +1,6 @@
 #!/bin/sh
 
 set -e  # Exit on any error
-set -x  # Print each command before executing (debug)
 export AWS_PAGER=""
 
 # LocalStack Single Resource Creation Script
