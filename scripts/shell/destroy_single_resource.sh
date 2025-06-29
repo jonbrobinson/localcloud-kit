@@ -80,16 +80,24 @@ destroy_lambda_function() {
 
 destroy_api_gateway() {
   if [ -n "$RESOURCE_NAME" ]; then
-    API_NAME="$RESOURCE_NAME"
+    # If resource name is provided, it could be either the API name or ID
+    # First try to use it as an API ID
+    API_ID="$RESOURCE_NAME"
   else
-    API_NAME="${NAME_PREFIX}-api"
+    # Find the API by name pattern
+    API_ID=$($AWS_CMD apigateway get-rest-apis --query "items[?starts_with(name, '$NAME_PREFIX')].id" --output text 2>/dev/null | head -1)
+    if [ -z "$API_ID" ]; then
+      log "No API Gateway found for project: $PROJECT_NAME"
+      echo "{\"success\": false, \"message\": \"No API Gateway found for project $PROJECT_NAME\"}"
+      return
+    fi
   fi
   
-  log "Destroying API Gateway: $API_NAME"
-  $AWS_CMD apigateway delete-rest-api --rest-api-id $API_NAME 2>/dev/null || true
-  log "Deleted API Gateway: $API_NAME"
+  log "Destroying API Gateway with ID: $API_ID"
+  $AWS_CMD apigateway delete-rest-api --rest-api-id $API_ID 2>/dev/null || true
+  log "Deleted API Gateway: $API_ID"
   
-  echo "{\"success\": true, \"message\": \"API Gateway $API_NAME destroyed successfully\"}"
+  echo "{\"success\": true, \"message\": \"API Gateway $API_ID destroyed successfully\"}"
 }
 
 main() {
