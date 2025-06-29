@@ -17,14 +17,14 @@ NC := \033[0m # No Color
 .PHONY: help start stop restart status logs clean
 .PHONY: shell-create shell-destroy shell-list
 .PHONY: gui-start gui-stop gui-restart
-.PHONY: setup check-prerequisites
+.PHONY: setup check-prerequisites docker-build docker-logs
 
 # Default target
 help: ## Show this help message
 	@echo "$(GREEN)LocalStack Template - Available Commands$(NC)"
 	@echo ""
-	@echo "$(YELLOW)LocalStack Management:$(NC)"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "(start|stop|restart|status|logs|clean)"
+	@echo "$(YELLOW)Docker Management:$(NC)"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "(start|stop|restart|status|logs|clean|docker)"
 	@echo ""
 	@echo "$(YELLOW)GUI Management:$(NC)"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "gui"
@@ -36,59 +36,67 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "(setup|check)"
 	@echo ""
 	@echo "$(YELLOW)Usage Examples:$(NC)"
-	@echo "  make start                    # Start LocalStack"
-	@echo "  make gui-start                # Start GUI system (Web + API)"
+	@echo "  make start                    # Start all services with Docker"
+	@echo "  make gui-start                # Start GUI system with Docker"
 	@echo "  make shell-create ENV=dev     # Create resources with Shell scripts"
 	@echo "  make clean                    # Clean up all resources"
 
-# LocalStack Management
-start: ## Start LocalStack container
-	@echo "$(GREEN)Starting LocalStack...$(NC)"
-	docker-compose up -d
-	@echo "$(GREEN)Waiting for LocalStack to be ready...$(NC)"
-	@until curl -s $(AWS_ENDPOINT) > /dev/null; do sleep 2; done
-	@echo "$(GREEN)LocalStack is ready at $(AWS_ENDPOINT)$(NC)"
+# Docker Management
+start: ## Start all services with Docker Compose
+	@echo "$(GREEN)Starting LocalStack Template with Docker...$(NC)"
+	docker-compose up --build -d
+	@echo "$(GREEN)Waiting for services to be ready...$(NC)"
+	@until curl -s http://localhost:3030/health > /dev/null; do sleep 2; done
+	@echo "$(GREEN)All services are ready!$(NC)"
+	@echo "$(YELLOW)GUI: http://localhost:3030$(NC)"
+	@echo "$(YELLOW)API: http://localhost:3030/api$(NC)"
+	@echo "$(YELLOW)LocalStack: http://localhost:4566$(NC)"
 
-stop: ## Stop LocalStack container
-	@echo "$(YELLOW)Stopping LocalStack...$(NC)"
+stop: ## Stop all Docker services
+	@echo "$(YELLOW)Stopping all services...$(NC)"
 	docker-compose down
 
-restart: stop start ## Restart LocalStack container
+restart: stop start ## Restart all Docker services
 
-status: ## Check LocalStack status
-	@echo "$(YELLOW)LocalStack Status:$(NC)"
+status: ## Check Docker services status
+	@echo "$(YELLOW)Docker Services Status:$(NC)"
 	@docker-compose ps
 	@echo ""
-	@echo "$(YELLOW)LocalStack Health Check:$(NC)"
-	@curl -s $(AWS_ENDPOINT) || echo "$(RED)LocalStack is not responding$(NC)"
+	@echo "$(YELLOW)Health Checks:$(NC)"
+	@curl -s http://localhost:3030/health || echo "$(RED)GUI/API not responding$(NC)"
+	@curl -s http://localhost:4566/_localstack/health || echo "$(RED)LocalStack not responding$(NC)"
 
-logs: ## View LocalStack logs
-	docker-compose logs -f localstack
+logs: ## View Docker services logs
+	docker-compose logs -f
 
-clean: ## Clean up all resources and stop LocalStack
+docker-logs: ## View specific service logs
+	@echo "$(YELLOW)Available services: gui, api, nginx, localstack$(NC)"
+	@echo "$(YELLOW)Usage: make docker-logs SERVICE=gui$(NC)"
+	@if [ "$(SERVICE)" != "" ]; then docker-compose logs -f $(SERVICE); fi
+
+docker-build: ## Build Docker images
+	@echo "$(GREEN)Building Docker images...$(NC)"
+	docker-compose build
+
+clean: ## Clean up all resources and stop services
 	@echo "$(YELLOW)Cleaning up all resources...$(NC)"
 	@make shell-destroy ENV=dev || true
 	@make shell-destroy ENV=uat || true
 	@make shell-destroy ENV=prod || true
-	@make gui-stop || true
 	@make stop
 	@echo "$(GREEN)Cleanup complete$(NC)"
 
 # GUI Management
-gui-start: ## Start the LocalStack Manager GUI system
-	@echo "$(BLUE)Starting LocalStack Manager GUI...$(NC)"
-	@echo "$(GREEN)Starting API Server...$(NC)"
-	@cd localstack-api && npm install && npm start &
-	@echo "$(GREEN)Starting Web GUI...$(NC)"
-	@cd localstack-gui && npm install && npm run dev &
+gui-start: ## Start the LocalStack Manager GUI system with Docker
+	@echo "$(BLUE)Starting LocalStack Manager GUI with Docker...$(NC)"
+	docker-compose up --build -d gui api nginx
 	@echo "$(GREEN)GUI System started!$(NC)"
 	@echo "$(YELLOW)Web GUI: http://localhost:3030$(NC)"
-	@echo "$(YELLOW)API Server: http://localhost:3031$(NC)"
+	@echo "$(YELLOW)API Server: http://localhost:3030/api$(NC)"
 
 gui-stop: ## Stop the LocalStack Manager GUI system
 	@echo "$(YELLOW)Stopping LocalStack Manager GUI...$(NC)"
-	@pkill -f "next dev" || true
-	@pkill -f "node.*server.js" || true
+	docker-compose stop gui api nginx
 	@echo "$(GREEN)GUI System stopped$(NC)"
 
 gui-restart: gui-stop gui-start ## Restart the LocalStack Manager GUI system
@@ -126,6 +134,8 @@ setup: ## Initial setup - create directories and install dependencies
 	@echo "$(GREEN)Setting up LocalStack template...$(NC)"
 	@mkdir -p scripts/shell
 	@mkdir -p config/{dev,uat,prod}
+	@mkdir -p logs
+	@mkdir -p volume
 	@chmod +x scripts/shell/*.sh
 	@echo "$(GREEN)Setup complete$(NC)"
 
@@ -133,6 +143,5 @@ check-prerequisites: ## Check if prerequisites are installed
 	@echo "$(YELLOW)Checking prerequisites...$(NC)"
 	@command -v docker >/dev/null 2>&1 || { echo "$(RED)Docker is required but not installed$(NC)"; exit 1; }
 	@command -v docker-compose >/dev/null 2>&1 || { echo "$(RED)Docker Compose is required but not installed$(NC)"; exit 1; }
-	@command -v aws >/dev/null 2>&1 || { echo "$(RED)AWS CLI is required but not installed$(NC)"; exit 1; }
-	@command -v node >/dev/null 2>&1 || { echo "$(RED)Node.js is required but not installed$(NC)"; exit 1; }
+	@command -v aws >/dev/null 2>&1 || { echo "$(YELLOW)AWS CLI is not installed (optional for local development)$(NC)"; }
 	@echo "$(GREEN)Prerequisites check passed$(NC)" 

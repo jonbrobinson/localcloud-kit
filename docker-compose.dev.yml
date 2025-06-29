@@ -4,7 +4,7 @@ services:
   # LocalStack - AWS Services Emulation
   localstack:
     image: localstack/localstack:latest
-    container_name: localstack
+    container_name: localstack-dev
     ports:
       - "4566:4566"
     environment:
@@ -16,21 +16,25 @@ services:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
     volumes:
-      - "./volume:/var/lib/localstack"
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - localstack-network
 
-  # Next.js GUI Application (with hot reload)
+  # Next.js GUI Application (Development with hot reload)
   gui:
     build:
       context: .
-      dockerfile: Dockerfile.gui
-    container_name: localstack-gui
+      dockerfile: Dockerfile.gui.dev
+    container_name: localstack-gui-dev
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3030/api
     volumes:
       - ./localstack-gui:/app
       - /app/node_modules
       - /app/.next
+      - ./config:/app/config:ro
     ports:
       - "3000:3000"
     depends_on:
@@ -40,13 +44,14 @@ services:
     restart: unless-stopped
     command: npm run dev
 
-  # Express.js API Server (with hot reload)
+  # Express.js API Server (Development with hot reload)
   api:
     build:
       context: .
-      dockerfile: Dockerfile.api
-    container_name: localstack-api
+      dockerfile: Dockerfile.api.dev
+    container_name: localstack-api-dev
     environment:
+      - NODE_ENV=development
       - PORT=3031
       - AWS_ENDPOINT_URL=http://localstack:4566
       - AWS_DEFAULT_REGION=us-east-1
@@ -55,6 +60,7 @@ services:
     volumes:
       - ./localstack-api:/app
       - /app/node_modules
+      - ./config:/app/config:ro
       - ./logs:/app/logs
     ports:
       - "3031:3031"
@@ -64,22 +70,6 @@ services:
       - localstack-network
     restart: unless-stopped
     command: npm run dev
-
-  # Nginx Reverse Proxy
-  nginx:
-    image: nginx:alpine
-    container_name: localstack-nginx
-    ports:
-      - "3030:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - gui
-      - api
-      - localstack
-    networks:
-      - localstack-network
-    restart: unless-stopped
 
 networks:
   localstack-network:

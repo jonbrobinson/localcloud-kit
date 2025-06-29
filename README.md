@@ -2,57 +2,46 @@
 
 > **Enterprise AWS Development Tools** by CloudStack Solutions
 
-A comprehensive LocalStack automation template with shell-based automation and a modern GUI for resource management.
+A comprehensive LocalStack automation template with shell-based automation and a modern GUI for resource management, all containerized with Docker.
 
 ![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)
+![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)
 ![CloudStack Solutions](https://img.shields.io/badge/Powered%20by-CloudStack%20Solutions-indigo?style=for-the-badge)
 
 ## 🚀 Quick Start
 
-### Option 1: All-in-One Startup (Recommended)
+### All-in-One Docker Setup (Recommended)
 
 ```bash
 # Start everything with one command
-./start-gui.sh
+docker-compose up --build
 ```
 
 This will start:
 
-- LocalStack Manager Web GUI (http://localhost:3030)
-- LocalStack Manager API Server (http://localhost:3031)
-- LocalStack (http://localhost:4566)
+- **LocalStack Manager Web GUI**: http://localhost:3030
+- **LocalStack Manager API Server**: http://localhost:3030/api
+- **LocalStack**: http://localhost:4566
+- **Nginx Reverse Proxy**: http://localhost:3030
 
-### Option 2: Individual Components
+### Alternative Startup Methods
 
-#### Web GUI
-
-```bash
-cd localstack-gui
-npm install
-npm run dev
-```
-
-📖 [Web GUI Documentation](localstack-gui/README.md)
-
-#### Desktop Application
+#### Using Makefile
 
 ```bash
-cd localstack-desktop
-npm install
-npm start
+# Start all services
+make start
+
+# Start with GUI
+make gui-start
 ```
 
-📖 [Desktop App Documentation](localstack-desktop/README.md)
-
-#### API Server
+#### Using Start Script
 
 ```bash
-cd localstack-api
-npm install
-npm start
+# Start with the original script (for development)
+./start-gui.sh
 ```
-
-📖 [API Server Documentation](localstack-api/README.md)
 
 ## 🏗️ Project Structure
 
@@ -73,7 +62,10 @@ localstack-template/
 │   └── 📄 README.md            # API documentation
 ├── 📁 scripts/                 # Automation scripts
 │   └── 📁 shell/               # Shell-based automation
-├── 📄 docker-compose.yml       # LocalStack configuration
+├── 📄 docker-compose.yml       # Docker Compose configuration
+├── 📄 Dockerfile.gui           # GUI container build
+├── 📄 Dockerfile.api           # API container build
+├── 📄 nginx.conf               # Reverse proxy configuration
 ├── 📄 start-gui.sh             # All-in-one startup script
 └── 📄 README.md                # This file
 ```
@@ -89,11 +81,18 @@ localstack-template/
 
 ### GUI Management
 
-- **Web Interface**: Modern Next.js dashboard
+- **Web Interface**: Modern Next.js dashboard with hot reloading
 - **Desktop App**: Native Electron application
 - **Real-time Monitoring**: Live status and resource tracking
 - **Log Viewer**: Real-time log monitoring with filtering
 - **Configuration Management**: Project and environment settings
+
+### Containerization
+
+- **Docker Compose**: Single command startup
+- **Hot Reloading**: Development-friendly with live code updates
+- **Reverse Proxy**: Clean URL routing with Nginx
+- **Network Isolation**: Secure container networking
 
 ### Enterprise Features
 
@@ -104,20 +103,19 @@ localstack-template/
 
 ## 🛠️ Prerequisites
 
-- **Docker & Docker Compose**: For LocalStack
-- **Node.js 18+**: For GUI and API server
-- **AWS CLI**: For shell automation
+- **Docker & Docker Compose**: For containerized services
+- **AWS CLI**: For shell automation (optional, for local development)
 
 ## 📖 Usage
 
-### 1. Start LocalStack
+### 1. Start All Services
 
 ```bash
-# Using Docker Compose
-docker-compose up -d
+# Using Docker Compose (recommended)
+docker-compose up --build
 
-# Or using the GUI
-./start-gui.sh
+# Or using Makefile
+make start
 ```
 
 ### 2. Create Resources
@@ -129,7 +127,7 @@ docker-compose up -d
 
 ### 3. Manage via GUI
 
-- Open http://localhost:3030 (Web) or launch desktop app
+- Open http://localhost:3030
 - Configure project settings
 - Select resource template
 - Create/destroy resources with one click
@@ -143,6 +141,7 @@ docker-compose up -d
 - **Log Viewer**: Real-time logs with filtering
 - **Configuration**: Project and environment settings
 - **Network Accessible**: Team collaboration
+- **Hot Reloading**: Instant code updates during development
 
 ### Desktop Application (Electron)
 
@@ -153,20 +152,21 @@ docker-compose up -d
 
 ## 🔧 Configuration
 
-### Environment Variables
+### Docker Environment
 
-```bash
-# LocalStack
-LOCALSTACK_HOST=localhost
-LOCALSTACK_PORT=4566
+The application runs entirely in containers with the following setup:
 
-# GUI
-NEXT_PUBLIC_API_URL=http://localhost:3031
+- **GUI**: Next.js app with hot reloading
+- **API**: Express.js server with hot reloading
+- **LocalStack**: AWS services emulation
+- **Nginx**: Reverse proxy for clean routing
 
-# API Server
-PORT=3031
-NODE_ENV=development
-```
+### URL Structure
+
+- **Main Application**: http://localhost:3030
+- **API Endpoints**: http://localhost:3030/api/\*
+- **Health Check**: http://localhost:3030/health
+- **LocalStack Health**: http://localhost:3030/localstack/health
 
 ### Project Configuration
 
