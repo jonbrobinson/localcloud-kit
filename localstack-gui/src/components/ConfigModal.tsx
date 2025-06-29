@@ -19,18 +19,20 @@ export default function ConfigModal({
   config,
   loading = false,
 }: ConfigModalProps) {
-  const [formData, setFormData] = useState<ProjectConfig>(config);
+  const [projectName, setProjectName] = useState(config.projectName);
+  const [awsEndpoint, setAwsEndpoint] = useState(config.awsEndpoint);
+  const [awsRegion, setAwsRegion] = useState(config.awsRegion);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData);
-  };
 
-  const handleInputChange = (field: keyof ProjectConfig, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    const request: ProjectConfig = {
+      projectName,
+      awsEndpoint,
+      awsRegion,
+    };
+
+    await onSubmit(request);
   };
 
   if (!isOpen) return null;
@@ -52,14 +54,14 @@ export default function ConfigModal({
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">
-                    Configuration
+                    Project Configuration
                   </h3>
                   <p className="text-sm text-gray-500">CloudStack Solutions</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600"
               >
                 <XMarkIcon className="h-6 w-6" />
               </button>
@@ -67,17 +69,14 @@ export default function ConfigModal({
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                {/* Project Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Project Name
                   </label>
                   <input
                     type="text"
-                    value={formData.projectName}
-                    onChange={(e) =>
-                      handleInputChange("projectName", e.target.value)
-                    }
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     placeholder="my-project"
                     required
@@ -87,38 +86,32 @@ export default function ConfigModal({
                   </p>
                 </div>
 
-                {/* Environment */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Environment
+                    AWS Endpoint URL
                   </label>
-                  <select
-                    value={formData.environment}
-                    onChange={(e) =>
-                      handleInputChange("environment", e.target.value)
-                    }
+                  <input
+                    type="url"
+                    value={awsEndpoint}
+                    onChange={(e) => setAwsEndpoint(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  >
-                    <option value="dev">Development</option>
-                    <option value="uat">UAT</option>
-                    <option value="prod">Production</option>
-                  </select>
+                    placeholder="http://localhost:4566"
+                    required
+                  />
                   <p className="mt-1 text-xs text-gray-500">
-                    Environment for resource isolation
+                    LocalStack endpoint URL
                   </p>
                 </div>
 
-                {/* AWS Region */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     AWS Region
                   </label>
                   <select
-                    value={formData.awsRegion}
-                    onChange={(e) =>
-                      handleInputChange("awsRegion", e.target.value)
-                    }
+                    value={awsRegion}
+                    onChange={(e) => setAwsRegion(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    required
                   >
                     <option value="us-east-1">
                       US East (N. Virginia) - us-east-1
@@ -134,49 +127,12 @@ export default function ConfigModal({
                     </option>
                   </select>
                   <p className="mt-1 text-xs text-gray-500">
-                    AWS region for resource deployment
-                  </p>
-                </div>
-
-                {/* AWS Endpoint */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    LocalStack Endpoint
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.awsEndpoint}
-                    onChange={(e) =>
-                      handleInputChange("awsEndpoint", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="http://localhost:4566"
-                    required
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    LocalStack service endpoint URL
+                    AWS region for resource creation
                   </p>
                 </div>
               </div>
 
-              {/* CloudStack Solutions Info */}
-              <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-5 h-5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">CS</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">
-                    CloudStack Solutions
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600">
-                  Enterprise AWS Development Tools • Professional LocalStack
-                  Management
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-end space-x-3 mt-6">
+              <div className="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={onClose}
@@ -192,7 +148,9 @@ export default function ConfigModal({
                 >
                   {loading ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  ) : null}
+                  ) : (
+                    <span>Save Configuration</span>
+                  )}
                   {loading ? "Saving..." : "Save Configuration"}
                 </button>
               </div>

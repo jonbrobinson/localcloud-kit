@@ -18,9 +18,8 @@ export interface Resource {
 
 export interface ProjectConfig {
   projectName: string;
-  environment: "dev" | "uat" | "prod";
-  awsRegion: string;
   awsEndpoint: string;
+  awsRegion: string;
 }
 
 export interface AutomationApproach {
@@ -52,7 +51,6 @@ export interface LogEntry {
 
 export interface CreateResourceRequest {
   projectName: string;
-  environment: string;
   resources: {
     s3: boolean;
     dynamodb: boolean;
@@ -64,7 +62,6 @@ export interface CreateResourceRequest {
 
 export interface DestroyResourceRequest {
   projectName: string;
-  environment: string;
   resourceIds?: string[];
 }
 
