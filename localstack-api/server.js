@@ -43,7 +43,7 @@ const logger = winston.createLogger({
 let logs = [];
 let localstackStatus = {
   running: false,
-  endpoint: "http://localhost:4566",
+  endpoint: process.env.AWS_ENDPOINT_URL || "http://localhost:4566",
   health: "unknown",
   uptime: null,
 };
@@ -51,8 +51,8 @@ let localstackStatus = {
 let projectConfig = {
   projectName: "localstack-template",
   environment: "dev",
-  awsRegion: "us-east-1",
-  awsEndpoint: "http://localhost:4566",
+  awsRegion: process.env.AWS_DEFAULT_REGION || "us-east-1",
+  awsEndpoint: process.env.AWS_ENDPOINT_URL || "http://localhost:4566",
 };
 
 // Middleware
@@ -117,7 +117,7 @@ async function startLocalStack() {
     // Change to the parent directory where docker-compose.yml is located
     const parentDir = path.join(__dirname, "..");
 
-    const { stdout, stderr } = await execAsync("docker-compose up -d", {
+    const { stdout, stderr } = await execAsync("docker compose up -d", {
       cwd: parentDir,
     });
 
@@ -147,7 +147,7 @@ async function stopLocalStack() {
 
     const parentDir = path.join(__dirname, "..");
 
-    const { stdout, stderr } = await execAsync("docker-compose down", {
+    const { stdout, stderr } = await execAsync("docker compose down", {
       cwd: parentDir,
     });
 
@@ -201,12 +201,11 @@ async function createResources(request) {
       "automation"
     );
 
-    const parentDir = path.join(__dirname, "..");
     let command;
 
     switch (approach) {
       case "shell":
-        command = `cd scripts/shell && ./create_resources.sh ${projectName} ${environment}`;
+        command = `./create_resources.sh ${projectName} ${environment}`;
         break;
       default:
         throw new Error(`Unsupported automation approach: ${approach}`);
@@ -226,7 +225,7 @@ async function createResources(request) {
     }
 
     const { stdout, stderr } = await execAsync(command, {
-      cwd: parentDir,
+      cwd: path.join(__dirname, "scripts", "shell"),
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
@@ -265,19 +264,18 @@ async function destroyResources(request) {
       "automation"
     );
 
-    const parentDir = path.join(__dirname, "..");
     let command;
 
     switch (approach) {
       case "shell":
-        command = `cd scripts/shell && ./destroy_resources.sh ${projectName} ${environment}`;
+        command = `./destroy_resources.sh ${projectName} ${environment}`;
         break;
       default:
         throw new Error(`Unsupported automation approach: ${approach}`);
     }
 
     const { stdout, stderr } = await execAsync(command, {
-      cwd: parentDir,
+      cwd: path.join(__dirname, "scripts", "shell"),
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
@@ -308,19 +306,18 @@ async function destroyResources(request) {
 
 async function listResources(projectName, environment, approach) {
   try {
-    const parentDir = path.join(__dirname, "..");
     let command;
 
     switch (approach) {
       case "shell":
-        command = `cd scripts/shell && ./list_resources.sh ${projectName} ${environment}`;
+        command = `./list_resources.sh ${projectName} ${environment}`;
         break;
       default:
         throw new Error(`Unsupported automation approach: ${approach}`);
     }
 
     const { stdout, stderr } = await execAsync(command, {
-      cwd: parentDir,
+      cwd: path.join(__dirname, "scripts", "shell"),
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: projectConfig.awsEndpoint,

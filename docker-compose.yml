@@ -31,8 +31,6 @@ services:
       - ./localstack-gui:/app
       - /app/node_modules
       - /app/.next
-    ports:
-      - "3000:3000"
     depends_on:
       - api
     networks:
@@ -56,6 +54,7 @@ services:
       - ./localstack-api:/app
       - /app/node_modules
       - ./logs:/app/logs
+      - ./scripts:/app/scripts
     ports:
       - "3031:3031"
     depends_on:
