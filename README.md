@@ -1,4 +1,4 @@
-# LocalStack Template
+# LocalStack Manager
 
 > **Enterprise AWS Development Tools** by CloudStack Solutions
 
@@ -46,7 +46,7 @@ make gui-start
 ## 🏗️ Project Structure
 
 ```
-localstack-template/
+localstack-manager/
 ├── 📁 localstack-gui/          # Next.js Web GUI
 │   ├── 📁 src/
 │   │   ├── 📁 components/      # React components
@@ -117,7 +117,7 @@ make start
 
 ```bash
 # Using shell scripts (standard approach)
-./scripts/shell/create_resources.sh localstack-template dev --s3 --dynamodb
+./scripts/shell/create_resources.sh localstack-manager dev --s3 --dynamodb
 ```
 
 ### 3. Manage via GUI
@@ -270,7 +270,7 @@ ls -la scripts/shell/
 
 ## 📄 License
 
-**LocalStack Template** by CloudStack Solutions
+**LocalStack Manager** by CloudStack Solutions
 
 - **License**: MIT
 - **Copyright**: © 2024 CloudStack Solutions
