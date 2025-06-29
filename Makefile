@@ -133,7 +133,6 @@ shell-list: ## List resources using Shell scripts
 setup: ## Initial setup - create directories and install dependencies
 	@echo "$(GREEN)Setting up LocalStack template...$(NC)"
 	@mkdir -p scripts/shell
-	@mkdir -p config/{dev,uat,prod}
 	@mkdir -p logs
 	@mkdir -p volume
 	@chmod +x scripts/shell/*.sh

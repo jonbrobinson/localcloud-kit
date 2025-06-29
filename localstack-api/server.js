@@ -256,7 +256,7 @@ async function listResources(projectName) {
 
 async function listBucketContents(projectName, bucketName) {
   try {
-    let command = `./list_bucket_contents.sh ${projectName} local`;
+    let command = `./list_bucket_contents.sh ${projectName} dev`;
 
     if (bucketName) {
       command += ` ${bucketName}`;
