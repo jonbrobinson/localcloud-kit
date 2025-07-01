@@ -22,6 +22,9 @@ const themeMap: Record<string, string> = {
   hljs: "github.css",
   "hljs-tomorrow": "base16/tomorrow.css",
   "hljs-atom-dark": "atom-one-dark.css",
+  "hljs-atom-light": "atom-one-light.css",
+  "hljs-github-dark": "github-dark.css",
+  "hljs-github-dark-dimmed": "github-dark-dimmed.css",
   "hljs-solarized": "base16/solarized-light.css",
   "hljs-dark": "dark.css",
 };
@@ -680,9 +683,12 @@ export default function ConnectionGuide() {
             onChange={(e) => setSelectedTheme(e.target.value)}
             className="bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="hljs">GitHub</option>
-            <option value="hljs-tomorrow">Tomorrow</option>
+            <option value="hljs">GitHub (Light)</option>
+            <option value="hljs-tomorrow">Tomorrow (Light)</option>
             <option value="hljs-atom-dark">Atom One Dark</option>
+            <option value="hljs-atom-light">Atom One Light</option>
+            <option value="hljs-github-dark">GitHub Dark</option>
+            <option value="hljs-github-dark-dimmed">GitHub Dark Dimmed</option>
             <option value="hljs-solarized">Solarized Light</option>
             <option value="hljs-dark">Dark</option>
           </select>
