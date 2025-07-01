@@ -229,9 +229,15 @@ async function createResources(request) {
   }
 }
 
-async function createSingleResource(projectName, resourceType) {
+async function createSingleResource(projectName, resourceType, config = {}) {
   try {
     let command = `./create_single_resource.sh ${projectName} ${resourceType}`;
+
+    // For DynamoDB with configuration, pass the config as JSON
+    if (resourceType === "dynamodb" && config.dynamodbConfig) {
+      const configJson = JSON.stringify(config.dynamodbConfig);
+      command += ` --config '${configJson}'`;
+    }
 
     const { stdout, stderr } = await execAsync(command, {
       cwd: "/app/scripts/shell",
@@ -487,7 +493,7 @@ app.post("/resources/create", async (req, res) => {
 
 app.post("/resources/create-single", async (req, res) => {
   try {
-    const { projectName, resourceType } = req.body;
+    const { projectName, resourceType, ...config } = req.body;
 
     if (!projectName || !resourceType) {
       return res.status(400).json({
@@ -496,7 +502,11 @@ app.post("/resources/create-single", async (req, res) => {
       });
     }
 
-    const result = await createSingleResource(projectName, resourceType);
+    const result = await createSingleResource(
+      projectName,
+      resourceType,
+      config
+    );
     res.json({
       success: true,
       message: `${resourceType} resource created successfully`,

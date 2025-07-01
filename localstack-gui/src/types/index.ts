@@ -29,6 +29,24 @@ export interface AutomationApproach {
   icon: string;
 }
 
+export interface DynamoDBGSI {
+  indexName: string;
+  partitionKey: string;
+  sortKey?: string;
+  projectionType: "ALL" | "KEYS_ONLY" | "INCLUDE";
+  nonKeyAttributes?: string[];
+}
+
+export interface DynamoDBTableConfig {
+  tableName: string;
+  partitionKey: string;
+  sortKey?: string;
+  billingMode: "PAY_PER_REQUEST" | "PROVISIONED";
+  readCapacity?: number;
+  writeCapacity?: number;
+  gsis: DynamoDBGSI[];
+}
+
 export interface ResourceTemplate {
   id: string;
   name: string;
@@ -58,6 +76,13 @@ export interface CreateResourceRequest {
     apigateway: boolean;
   };
   template?: string;
+  dynamodbConfig?: DynamoDBTableConfig;
+}
+
+export interface CreateSingleResourceRequest {
+  projectName: string;
+  resourceType: "s3" | "dynamodb" | "lambda" | "apigateway";
+  dynamodbConfig?: DynamoDBTableConfig;
 }
 
 export interface DestroyResourceRequest {

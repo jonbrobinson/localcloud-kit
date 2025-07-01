@@ -15,12 +15,14 @@ import {
   Resource,
   ProjectConfig,
   CreateResourceRequest,
+  DynamoDBTableConfig,
 } from "@/types";
 import { localstackApi, resourceApi, configApi } from "@/services/api";
 import { useLocalStackData } from "@/hooks/useLocalStackData";
 import StatusCard from "./StatusCard";
 import ResourceList from "./ResourceList";
 import CreateResourceModal from "./CreateResourceModal";
+import DynamoDBConfigModal from "./DynamoDBConfigModal";
 import LogViewer from "./LogViewer";
 import BucketViewer from "./BucketViewer";
 import Image from "next/image";
@@ -36,6 +38,7 @@ export default function Dashboard() {
   } = useLocalStackData();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDynamoDBConfig, setShowDynamoDBConfig] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const [showBuckets, setShowBuckets] = useState(false);
 
@@ -73,6 +76,12 @@ export default function Dashboard() {
   };
 
   const handleCreateSingleResource = async (resourceType: string) => {
+    // Special handling for DynamoDB - show config modal instead
+    if (resourceType === "dynamodb") {
+      setShowDynamoDBConfig(true);
+      return;
+    }
+
     setCreateLoading(true);
     try {
       const response = await resourceApi.createSingle(
@@ -93,6 +102,37 @@ export default function Dashboard() {
       console.error(`Create ${resourceType} resource error:`, error);
       toast.error(
         `Failed to create ${resourceType} resource: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleCreateDynamoDBTable = async (
+    dynamodbConfig: DynamoDBTableConfig
+  ) => {
+    setCreateLoading(true);
+    try {
+      const response = await resourceApi.createSingleWithConfig(
+        config.projectName,
+        "dynamodb",
+        { dynamodbConfig }
+      );
+      if (response.success) {
+        toast.success("DynamoDB table created successfully");
+        setShowDynamoDBConfig(false);
+        setTimeout(async () => {
+          await loadInitialData();
+        }, 1000);
+      } else {
+        toast.error(response.error || "Failed to create DynamoDB table");
+      }
+    } catch (error) {
+      console.error("Create DynamoDB table error:", error);
+      toast.error(
+        `Failed to create DynamoDB table: ${
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
@@ -371,6 +411,16 @@ export default function Dashboard() {
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateResources}
           config={config}
+          loading={createLoading}
+        />
+      )}
+
+      {showDynamoDBConfig && (
+        <DynamoDBConfigModal
+          isOpen={showDynamoDBConfig}
+          onClose={() => setShowDynamoDBConfig(false)}
+          onSubmit={handleCreateDynamoDBTable}
+          projectName={config.projectName}
           loading={createLoading}
         />
       )}
