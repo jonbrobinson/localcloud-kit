@@ -50,7 +50,6 @@ export default function Dashboard() {
   const [destroyLoading, setDestroyLoading] = useState(false);
 
   // Debug logging
-  console.log("Dashboard render - showCreateModal:", showCreateModal);
   console.log("Dashboard render - config:", config);
 
   const handleCreateSingleResource = async (resourceType: string) => {
