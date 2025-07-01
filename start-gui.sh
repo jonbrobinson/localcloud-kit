@@ -89,16 +89,6 @@ start_docker_services() {
     fi
 }
 
-# Function to handle cleanup on exit
-cleanup() {
-    print_status "Shutting down LocalStack Manager..."
-    docker compose down
-    print_success "LocalStack Manager stopped"
-}
-
-# Set up signal handlers
-trap cleanup EXIT INT TERM
-
 # Main execution
 main() {
     print_status "Initializing LocalStack Manager..."
