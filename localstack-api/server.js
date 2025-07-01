@@ -602,6 +602,50 @@ async function queryDynamoDBTable(
   }
 }
 
+async function getDynamoDBTableSchema(projectName, tableName) {
+  try {
+    let command = `aws dynamodb describe-table --table-name "${tableName}" --endpoint-url "${projectConfig.awsEndpoint}" --region "${projectConfig.awsRegion}"`;
+
+    const { stdout, stderr } = await execAsync(command, {
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog(
+        "warn",
+        `DynamoDB describe-table warning: ${stderr}`,
+        "automation"
+      );
+    }
+
+    // Parse the output as JSON
+    let result = null;
+    try {
+      result = JSON.parse(stdout);
+    } catch (err) {
+      addLog(
+        "error",
+        `Failed to parse DynamoDB describe-table JSON: ${err.message}`,
+        "automation"
+      );
+      return null;
+    }
+
+    return result;
+  } catch (error) {
+    addLog(
+      "error",
+      `Failed to get DynamoDB table schema: ${error.message}`,
+      "automation"
+    );
+    return null;
+  }
+}
+
 // API Routes
 
 // Health check
@@ -822,6 +866,75 @@ app.get("/dynamodb/table/:tableName/query", async (req, res) => {
       sortValue,
       parseInt(limit)
     );
+    res.json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+app.post("/dynamodb/table/:tableName/item", async (req, res) => {
+  try {
+    const { projectName } = req.body;
+    const { tableName } = req.params;
+    const { item } = req.body;
+    if (!projectName || !tableName || !item) {
+      return res.status(400).json({
+        success: false,
+        error: "projectName, tableName, and item are required",
+      });
+    }
+    // Stringify item for shell script
+    const itemJson = JSON.stringify(item).replace(/'/g, "'''");
+    const command = `/usr/bin/sh /app/scripts/shell/put_dynamodb_item.sh '${projectName}' '${tableName}' '${itemJson}'`;
+    const { stdout, stderr } = await execAsync(command, {
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+    if (stderr) {
+      addLog("warn", `DynamoDB put-item warning: ${stderr}`, "automation");
+    }
+    addLog(
+      "success",
+      `Item added to DynamoDB table ${tableName}`,
+      "automation"
+    );
+    res.json({ success: true });
+  } catch (error) {
+    addLog(
+      "error",
+      `Failed to add item to DynamoDB: ${error.message}`,
+      "automation"
+    );
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/dynamodb/table/:tableName/schema", async (req, res) => {
+  try {
+    const { projectName } = req.query;
+    const { tableName } = req.params;
+
+    if (!projectName || !tableName) {
+      return res.status(400).json({
+        success: false,
+        error: "projectName and tableName are required",
+      });
+    }
+
+    const result = await getDynamoDBTableSchema(projectName, tableName);
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        error: "Table not found or failed to get schema",
+      });
+    }
+
     res.json({ success: true, data: result });
   } catch (error) {
     res.status(500).json({
