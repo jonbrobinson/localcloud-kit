@@ -14,6 +14,7 @@ interface DynamoDBViewerProps {
   skName?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface DynamoDBItem {
   [key: string]: any;
 }
@@ -22,6 +23,7 @@ interface ScanResult {
   items: DynamoDBItem[];
   count: number;
   scannedCount: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lastEvaluatedKey?: any;
 }
 
@@ -122,7 +124,9 @@ export default function DynamoDBViewer({
   };
 
   // Helper to flatten DynamoDB item format
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flattenDynamoDBItem = (item: any): Record<string, any> => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const flat: Record<string, any> = {};
     for (const key in item) {
       const value = item[key];
@@ -214,6 +218,7 @@ export default function DynamoDBViewer({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleAddItem = async (item: any) => {
     setAddLoading(true);
     setError("");

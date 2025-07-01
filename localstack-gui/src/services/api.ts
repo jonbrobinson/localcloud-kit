@@ -59,6 +59,7 @@ export const resourceApi = {
   createSingleWithConfig: async (
     projectName: string,
     resourceType: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     config: any
   ): Promise<ApiResponse> => {
     const response = await api.post<ApiResponse>("/resources/create-single", {

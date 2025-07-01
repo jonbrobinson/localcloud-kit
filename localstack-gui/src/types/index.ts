@@ -13,6 +13,7 @@ export interface Resource {
   environment: string;
   project: string;
   createdAt: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   details?: Record<string, any>;
 }
 
@@ -64,6 +65,7 @@ export interface ResourceTemplate {
     lambda: boolean;
     apigateway: boolean;
   };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: Record<string, any>;
 }
 
@@ -99,6 +101,7 @@ export interface DestroyResourceRequest {
   resourceIds: string[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;

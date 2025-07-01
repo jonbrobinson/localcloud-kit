@@ -36,6 +36,7 @@ interface DynamoDBAddItemModalProps {
 }
 
 // Recursive builder for DynamoDB attribute
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildDynamoDBAttribute(attr: NestedAttribute): any {
   if (attr.type === "S") return { S: attr.value ?? "" };
   if (attr.type === "N") return { N: attr.value ?? "" };
