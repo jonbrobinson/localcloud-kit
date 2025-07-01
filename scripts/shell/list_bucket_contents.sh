@@ -16,6 +16,11 @@ AWS_REGION=${AWS_REGION:-"us-east-1"}
 NAME_PREFIX="$PROJECT_NAME"
 AWS_CMD="aws --endpoint-url=${AWS_ENDPOINT} --region=${AWS_REGION}"
 
+# Set dummy credentials for LocalStack
+export AWS_ACCESS_KEY_ID="test"
+export AWS_SECRET_ACCESS_KEY="test"
+export AWS_DEFAULT_REGION="${AWS_REGION}"
+
 # Parse --verbose flag
 VERBOSE=false
 for arg in "$@"; do
@@ -55,14 +60,14 @@ list_bucket_contents() {
         --bucket "$bucket_name" \
         --prefix "$prefix" \
         --query 'Contents[].{Key:Key,Size:Size,LastModified:LastModified,StorageClass:StorageClass}' \
-        --output json 2>/dev/null || echo '[]'
+        --output json 2>/dev/null | tr -d '\n\r' || echo '[]'
 }
 
 # Function to list buckets for project
 list_project_buckets() {
     $AWS_CMD s3api list-buckets \
         --query "Buckets[?starts_with(Name, '$NAME_PREFIX')].{Name:Name,CreationDate:CreationDate}" \
-        --output json 2>/dev/null || echo '[]'
+        --output json 2>/dev/null | tr -d '\n\r' || echo '[]'
 }
 
 # Main execution
