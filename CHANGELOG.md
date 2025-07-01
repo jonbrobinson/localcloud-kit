@@ -47,6 +47,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **refactor**: Remove "Create Multiple" button from interface
 - **refactor**: Remove unnecessary root-level package.json and package-lock.json files to clean up project structure
 
+### Documentation
+
+- **docs**: Add comprehensive changelog with Angular commit standards
+- **docs**: Update changelog dates to reflect actual commit timeline
+- **docs**: Improve README resource templates section with accurate descriptions and CLI examples
+- **docs**: Update GUI references to reflect current interface
+
+### Infrastructure
+
+- **chore**: Release v0.1.1 patch update with root package file cleanup
+- **chore**: Update README version badge to v0.1.1
+
 ## [0.1.1] - 2025-07-01
 
 ### Removed
