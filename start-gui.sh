@@ -122,12 +122,12 @@ main() {
     echo "║  🐳 LocalStack:  http://localhost:4566                      ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo ""
-    print_status "Press Ctrl+C to stop the services"
-    
-    # Keep the script running
-    while true; do
-        sleep 1
-    done
+    print_status "Use 'docker compose logs -f' to view logs"
+    print_status "Containers are running in the background"
+    echo ""
+    print_success "Startup complete! Services will continue running in background."
+    print_status "Use 'docker compose down' to stop all services"
+    exit 0
 }
 
 # Run main function
