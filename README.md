@@ -87,7 +87,7 @@ localstack-manager/
 
 - **Web Interface**: Modern Next.js dashboard with hot reloading
 - **Individual Resource Buttons**: Quick creation of S3, DynamoDB, Lambda, and API Gateway
-- **Batch Resource Creation**: Create multiple resources at once with templates
+- **Batch Resource Creation**: Create multiple resources at once with templates or individual selection
 - **Real-time Monitoring**: Live status and resource tracking
 - **Log Viewer**: Real-time log monitoring with filtering
 
@@ -138,13 +138,16 @@ Use the web GUI to create resources individually:
 ```bash
 # Using shell scripts (standard approach)
 ./scripts/shell/create_resources.sh localstack-manager dev --s3 --dynamodb
+
+# Or use predefined templates
+./scripts/shell/create_resources.sh localstack-manager dev --template basic
 ```
 
 #### Via Web GUI
 
 - Open http://localhost:3030
 - Use individual resource buttons for quick creation
-- Or use "Create Multiple" for batch creation with templates
+- Or use the resource creation modal for batch creation with templates
 
 ### 3. Manage via GUI
 
@@ -190,13 +193,32 @@ The application runs entirely in containers with the following setup:
 
 ## 📊 Resource Templates
 
-| Template          | Description                  | Resources                         |
-| ----------------- | ---------------------------- | --------------------------------- |
-| **Basic Setup**   | S3 bucket and DynamoDB table | S3, DynamoDB                      |
-| **Serverless**    | Complete serverless stack    | S3, DynamoDB, Lambda, API Gateway |
-| **Storage Only**  | S3 bucket for file storage   | S3                                |
-| **Database Only** | DynamoDB table for data      | DynamoDB                          |
-| **API Only**      | API Gateway with Lambda      | Lambda, API Gateway               |
+Available templates for quick resource creation via GUI or CLI:
+
+| Template          | Description                                           | Resources                         | CLI Example             |
+| ----------------- | ----------------------------------------------------- | --------------------------------- | ----------------------- |
+| **Basic Setup**   | S3 bucket and DynamoDB table for basic storage needs  | S3, DynamoDB                      | `--template basic`      |
+| **Serverless**    | Complete serverless stack with Lambda and API Gateway | S3, DynamoDB, Lambda, API Gateway | `--template serverless` |
+| **Storage Only**  | S3 bucket for file storage                            | S3                                | `--template storage`    |
+| **Database Only** | DynamoDB table for data storage                       | DynamoDB                          | `--template database`   |
+| **API Only**      | API Gateway with Lambda function                      | Lambda, API Gateway               | `--template api`        |
+
+### Template Usage
+
+**Via Web GUI:**
+
+- Open http://localhost:3030
+- Use individual resource buttons for quick creation
+- Or use the resource creation modal for batch creation with templates
+
+**Via CLI:**
+
+```bash
+# Create resources using templates
+./scripts/shell/create_resources.sh localstack-dev dev --template basic
+./scripts/shell/create_resources.sh localstack-dev dev --template serverless
+./scripts/shell/create_resources.sh localstack-dev dev --template storage
+```
 
 ## 🚀 Automation
 
