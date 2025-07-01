@@ -17,16 +17,21 @@ AWS_CMD="aws --endpoint-url=${AWS_ENDPOINT} --region=${AWS_REGION}"
 
 # Parse --verbose flag and --config flag
 VERBOSE=false
-DYNAMODB_CONFIG=""
-for i in "$@"; do
-  case $i in
+RESOURCE_CONFIG=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
     --verbose)
       VERBOSE=true
       shift
       ;;
     --config)
-      DYNAMODB_CONFIG="$3"
-      shift 2
+      shift
+      RESOURCE_CONFIG="$1"
+      shift
+      ;;
+    *)
+      shift
       ;;
   esac
 done
@@ -44,15 +49,16 @@ log() {
 NOW=$(date -Iseconds)
 
 create_s3_bucket() {
-  if [ -n "$DYNAMODB_CONFIG" ]; then
-    # This is actually S3 config, but we're reusing the variable name for simplicity
-    S3_CONFIG="$DYNAMODB_CONFIG"
+  if [ -n "$RESOURCE_CONFIG" ]; then
+    # Parse S3 configuration
+    S3_CONFIG="$RESOURCE_CONFIG"
     
     # Parse the JSON configuration
-    BUCKET_NAME=$(echo "$S3_CONFIG" | jq -r '.bucketName // empty')
-    BUCKET_REGION=$(echo "$S3_CONFIG" | jq -r '.region // "us-east-1"')
-    VERSIONING=$(echo "$S3_CONFIG" | jq -r '.versioning // false')
-    ENCRYPTION=$(echo "$S3_CONFIG" | jq -r '.encryption // false')
+    echo "DEBUG: S3_CONFIG = $S3_CONFIG" >&2
+    BUCKET_NAME=$(echo "$S3_CONFIG" | jq -r '.bucketName // empty' 2>/dev/null || echo "")
+    BUCKET_REGION=$(echo "$S3_CONFIG" | jq -r '.region // "us-east-1"' 2>/dev/null || echo "us-east-1")
+    VERSIONING=$(echo "$S3_CONFIG" | jq -r '.versioning // false' 2>/dev/null || echo "false")
+    ENCRYPTION=$(echo "$S3_CONFIG" | jq -r '.encryption // false' 2>/dev/null || echo "false")
     
     # Use provided bucket name or default
     if [ -z "$BUCKET_NAME" ]; then
@@ -131,15 +137,15 @@ EOF
 }
 
 create_dynamodb_table() {
-  if [ -n "$DYNAMODB_CONFIG" ]; then
+  if [ -n "$RESOURCE_CONFIG" ]; then
     # Parse the JSON configuration
-    TABLE_NAME=$(echo "$DYNAMODB_CONFIG" | jq -r '.tableName // empty')
-    PARTITION_KEY=$(echo "$DYNAMODB_CONFIG" | jq -r '.partitionKey // "pk"')
-    SORT_KEY=$(echo "$DYNAMODB_CONFIG" | jq -r '.sortKey // empty')
-    BILLING_MODE=$(echo "$DYNAMODB_CONFIG" | jq -r '.billingMode // "PAY_PER_REQUEST"')
-    READ_CAPACITY=$(echo "$DYNAMODB_CONFIG" | jq -r '.readCapacity // 5')
-    WRITE_CAPACITY=$(echo "$DYNAMODB_CONFIG" | jq -r '.writeCapacity // 5')
-    GSIS=$(echo "$DYNAMODB_CONFIG" | jq -r '.gsis // []')
+    TABLE_NAME=$(echo "$RESOURCE_CONFIG" | jq -r '.tableName // empty')
+    PARTITION_KEY=$(echo "$RESOURCE_CONFIG" | jq -r '.partitionKey // "pk"')
+    SORT_KEY=$(echo "$RESOURCE_CONFIG" | jq -r '.sortKey // empty')
+    BILLING_MODE=$(echo "$RESOURCE_CONFIG" | jq -r '.billingMode // "PAY_PER_REQUEST"')
+    READ_CAPACITY=$(echo "$RESOURCE_CONFIG" | jq -r '.readCapacity // 5')
+    WRITE_CAPACITY=$(echo "$RESOURCE_CONFIG" | jq -r '.writeCapacity // 5')
+    GSIS=$(echo "$RESOURCE_CONFIG" | jq -r '.gsis // []')
     
     # Use provided table name or default
     if [ -z "$TABLE_NAME" ]; then
