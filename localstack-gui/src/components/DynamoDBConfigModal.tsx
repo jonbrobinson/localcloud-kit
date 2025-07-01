@@ -32,7 +32,7 @@ export default function DynamoDBConfigModal({
   if (!isOpen) return null;
 
   const addGSI = () => {
-    if (gsis.length >= 4) return;
+    if (gsis.length >= 5) return;
 
     const newGSI: DynamoDBGSI = {
       indexName: `gsi-${gsis.length + 1}`,
@@ -204,17 +204,17 @@ export default function DynamoDBConfigModal({
               <button
                 type="button"
                 onClick={addGSI}
-                disabled={gsis.length >= 4}
+                disabled={gsis.length >= 5}
                 className="flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <PlusIcon className="h-4 w-4 mr-1" />
-                Add GSI ({gsis.length}/4)
+                Add GSI ({gsis.length}/5)
               </button>
             </div>
 
             {gsis.length === 0 && (
               <p className="text-sm text-gray-500 italic">
-                No GSIs configured. Click "Add GSI" to create up to 4 Global
+                No GSIs configured. Click "Add GSI" to create up to 5 Global
                 Secondary Indexes.
               </p>
             )}

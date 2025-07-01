@@ -4,17 +4,13 @@ import { useState, useEffect } from "react";
 import { XMarkIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { getDynamoDBTableSchema } from "@/services/api";
 
-interface MapItem {
-  key: string;
-  value: string;
-  type: "S" | "N" | "BOOL";
-}
+type AttributeType = "S" | "N" | "BOOL" | "M" | "L";
 
-interface Attribute {
+interface NestedAttribute {
   key: string;
-  value: string;
-  type: "S" | "N" | "BOOL" | "M";
-  mapItems?: MapItem[];
+  type: AttributeType;
+  value?: string; // for S, N, BOOL
+  children?: NestedAttribute[]; // for M, L
 }
 
 interface TableSchema {
@@ -39,6 +35,136 @@ interface DynamoDBAddItemModalProps {
   loading?: boolean;
 }
 
+// Recursive builder for DynamoDB attribute
+function buildDynamoDBAttribute(attr: NestedAttribute): any {
+  if (attr.type === "S") return { S: attr.value ?? "" };
+  if (attr.type === "N") return { N: attr.value ?? "" };
+  if (attr.type === "BOOL") return { BOOL: attr.value === "true" };
+  if (attr.type === "M" && attr.children) {
+    const mapObj: Record<string, any> = {};
+    for (const child of attr.children) {
+      if (!child.key) continue;
+      mapObj[child.key] = buildDynamoDBAttribute(child);
+    }
+    return { M: mapObj };
+  }
+  if (attr.type === "L" && attr.children) {
+    return { L: attr.children.map(buildDynamoDBAttribute) };
+  }
+  return undefined;
+}
+
+// Recursive attribute editor
+function AttributeEditor({
+  attr,
+  onChange,
+  onRemove,
+  parentType = null,
+}: {
+  attr: NestedAttribute;
+  onChange: (attr: NestedAttribute) => void;
+  onRemove?: () => void;
+  parentType?: AttributeType | null;
+}) {
+  const handleFieldChange = (field: keyof NestedAttribute, value: any) => {
+    onChange({ ...attr, [field]: value });
+  };
+
+  const handleChildChange = (idx: number, child: NestedAttribute) => {
+    const children = attr.children ? [...attr.children] : [];
+    children[idx] = child;
+    onChange({ ...attr, children });
+  };
+
+  const handleAddChild = () => {
+    const children = attr.children ? [...attr.children] : [];
+    children.push({ key: "", type: "S" });
+    onChange({ ...attr, children });
+  };
+
+  const handleRemoveChild = (idx: number) => {
+    const children = attr.children ? [...attr.children] : [];
+    children.splice(idx, 1);
+    onChange({ ...attr, children });
+  };
+
+  return (
+    <div
+      className={`border border-gray-200 rounded-md p-3 mb-3 ${
+        parentType === "L" ? "ml-6" : ""
+      }`}
+    >
+      <div className="flex items-center space-x-2 mb-2">
+        {parentType !== "L" && (
+          <input
+            type="text"
+            value={attr.key}
+            onChange={(e) => handleFieldChange("key", e.target.value)}
+            className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+            placeholder="Attribute Name"
+          />
+        )}
+        <select
+          value={attr.type}
+          onChange={(e) => handleFieldChange("type", e.target.value)}
+          className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+        >
+          <option value="S">String</option>
+          <option value="N">Number</option>
+          <option value="BOOL">Boolean</option>
+          <option value="M">Map</option>
+          <option value="L">List</option>
+        </select>
+        {attr.type !== "M" && attr.type !== "L" && (
+          <input
+            type="text"
+            value={attr.value ?? ""}
+            onChange={(e) => handleFieldChange("value", e.target.value)}
+            className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+            placeholder="Value"
+          />
+        )}
+        {onRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-red-600 hover:text-red-800"
+            aria-label="Remove"
+          >
+            <TrashIcon className="h-5 w-5" />
+          </button>
+        )}
+      </div>
+      {(attr.type === "M" || attr.type === "L") && (
+        <div className="ml-4 border-l-2 border-blue-200 pl-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              {attr.type === "M" ? "Map Items" : "List Items"}
+            </span>
+            <button
+              type="button"
+              onClick={handleAddChild}
+              className="flex items-center px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              <PlusIcon className="h-3 w-3 mr-1" />
+              Add Item
+            </button>
+          </div>
+          {attr.children?.map((child, idx) => (
+            <AttributeEditor
+              key={idx}
+              attr={child}
+              onChange={(updated) => handleChildChange(idx, updated)}
+              onRemove={() => handleRemoveChild(idx)}
+              parentType={attr.type}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DynamoDBAddItemModal({
   isOpen,
   onClose,
@@ -50,7 +176,7 @@ export default function DynamoDBAddItemModal({
   const [schema, setSchema] = useState<TableSchema | null>(null);
   const [schemaLoading, setSchemaLoading] = useState(false);
   const [keyValues, setKeyValues] = useState<Record<string, string>>({});
-  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [attributes, setAttributes] = useState<NestedAttribute[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -81,15 +207,15 @@ export default function DynamoDBAddItemModal({
   };
 
   const handleAddAttribute = () => {
-    setAttributes([...attributes, { key: "", value: "", type: "S" }]);
+    setAttributes([...attributes, { key: "", type: "S" }]);
   };
 
   const handleAddMapItem = (attributeIndex: number) => {
     const updated = [...attributes];
-    if (!updated[attributeIndex].mapItems) {
-      updated[attributeIndex].mapItems = [];
+    if (!updated[attributeIndex].children) {
+      updated[attributeIndex].children = [];
     }
-    updated[attributeIndex].mapItems!.push({ key: "", value: "", type: "S" });
+    updated[attributeIndex].children.push({ key: "", type: "S" });
     setAttributes(updated);
   };
 
@@ -98,18 +224,18 @@ export default function DynamoDBAddItemModal({
     mapItemIndex: number
   ) => {
     const updated = [...attributes];
-    updated[attributeIndex].mapItems!.splice(mapItemIndex, 1);
+    updated[attributeIndex].children!.splice(mapItemIndex, 1);
     setAttributes(updated);
   };
 
   const handleMapItemChange = (
     attributeIndex: number,
     mapItemIndex: number,
-    field: keyof MapItem,
+    field: keyof NestedAttribute,
     value: any
   ) => {
     const updated = [...attributes];
-    updated[attributeIndex].mapItems![mapItemIndex][field] = value;
+    updated[attributeIndex].children![mapItemIndex][field] = value;
     setAttributes(updated);
   };
 
@@ -119,7 +245,7 @@ export default function DynamoDBAddItemModal({
 
   const handleAttributeChange = (
     index: number,
-    field: keyof Attribute,
+    field: keyof NestedAttribute,
     value: any
   ) => {
     const updated = [...attributes];
@@ -164,23 +290,7 @@ export default function DynamoDBAddItemModal({
     // Add custom attributes
     for (const attr of attributes) {
       if (!attr.key) continue;
-      if (attr.type === "S") item[attr.key] = { S: attr.value };
-      else if (attr.type === "N") item[attr.key] = { N: attr.value };
-      else if (attr.type === "BOOL")
-        item[attr.key] = { BOOL: attr.value === "true" };
-      else if (attr.type === "M" && attr.mapItems) {
-        // Build map object
-        const mapObj: Record<string, any> = {};
-        for (const mapItem of attr.mapItems) {
-          if (!mapItem.key) continue;
-          if (mapItem.type === "S") mapObj[mapItem.key] = { S: mapItem.value };
-          else if (mapItem.type === "N")
-            mapObj[mapItem.key] = { N: mapItem.value };
-          else if (mapItem.type === "BOOL")
-            mapObj[mapItem.key] = { BOOL: mapItem.value === "true" };
-        }
-        item[attr.key] = { M: mapObj };
-      }
+      item[attr.key] = buildDynamoDBAttribute(attr);
     }
 
     onSubmit(item);
@@ -239,131 +349,18 @@ export default function DynamoDBAddItemModal({
                 Custom Attributes
               </label>
               {attributes.map((attr, idx) => (
-                <div
+                <AttributeEditor
                   key={idx}
-                  className="border border-gray-200 rounded-md p-3 mb-3"
-                >
-                  <div className="flex items-center space-x-2 mb-2">
-                    <input
-                      type="text"
-                      value={attr.key}
-                      onChange={(e) =>
-                        handleAttributeChange(idx, "key", e.target.value)
-                      }
-                      className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                      placeholder="Attribute Name"
-                    />
-                    <select
-                      value={attr.type}
-                      onChange={(e) =>
-                        handleAttributeChange(idx, "type", e.target.value)
-                      }
-                      className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    >
-                      <option value="S">String</option>
-                      <option value="N">Number</option>
-                      <option value="BOOL">Boolean</option>
-                      <option value="M">Map</option>
-                    </select>
-                    {attr.type !== "M" && (
-                      <input
-                        type="text"
-                        value={attr.value}
-                        onChange={(e) =>
-                          handleAttributeChange(idx, "value", e.target.value)
-                        }
-                        className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                        placeholder="Value"
-                      />
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAttribute(idx)}
-                      className="text-red-600 hover:text-red-800"
-                      aria-label="Remove"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-
-                  {/* Map Items */}
-                  {attr.type === "M" && (
-                    <div className="ml-4 border-l-2 border-blue-200 pl-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">
-                          Map Items
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleAddMapItem(idx)}
-                          className="flex items-center px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                        >
-                          <PlusIcon className="h-3 w-3 mr-1" />
-                          Add Item
-                        </button>
-                      </div>
-                      {attr.mapItems?.map((mapItem, mapIdx) => (
-                        <div
-                          key={mapIdx}
-                          className="flex items-center space-x-2 mb-2"
-                        >
-                          <input
-                            type="text"
-                            value={mapItem.key}
-                            onChange={(e) =>
-                              handleMapItemChange(
-                                idx,
-                                mapIdx,
-                                "key",
-                                e.target.value
-                              )
-                            }
-                            className="w-24 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-xs"
-                            placeholder="Key"
-                          />
-                          <select
-                            value={mapItem.type}
-                            onChange={(e) =>
-                              handleMapItemChange(
-                                idx,
-                                mapIdx,
-                                "type",
-                                e.target.value
-                              )
-                            }
-                            className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-xs"
-                          >
-                            <option value="S">String</option>
-                            <option value="N">Number</option>
-                            <option value="BOOL">Boolean</option>
-                          </select>
-                          <input
-                            type="text"
-                            value={mapItem.value}
-                            onChange={(e) =>
-                              handleMapItemChange(
-                                idx,
-                                mapIdx,
-                                "value",
-                                e.target.value
-                              )
-                            }
-                            className="w-24 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-xs"
-                            placeholder="Value"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveMapItem(idx, mapIdx)}
-                            className="text-red-600 hover:text-red-800"
-                            aria-label="Remove"
-                          >
-                            <TrashIcon className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                  attr={attr}
+                  onChange={(updated) => {
+                    const updatedAttrs = [...attributes];
+                    updatedAttrs[idx] = updated;
+                    setAttributes(updatedAttrs);
+                  }}
+                  onRemove={() =>
+                    setAttributes(attributes.filter((_, i) => i !== idx))
+                  }
+                />
               ))}
               <button
                 type="button"
