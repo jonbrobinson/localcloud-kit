@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  CodeBracketIcon,
-  CommandLineIcon,
-  CheckCircleIcon,
-} from "@heroicons/react/24/outline";
+import { CodeBracketIcon, CommandLineIcon } from "@heroicons/react/24/outline";
 import { SyntaxHighlighter } from "react-syntax-highlighter";
 
 interface CodeExample {
@@ -199,6 +195,58 @@ create_bucket('my-python-bucket')
 upload_file('my-python-bucket', 'local-file.txt', 'remote-file.txt')`,
     description: "Basic S3 operations with boto3",
   },
+  {
+    language: "Go",
+    title: "S3 - List and Create Buckets",
+    code: `package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/aws/aws-sdk-go-v2/aws"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/credentials"
+    "github.com/aws/aws-sdk-go-v2/service/s3"
+)
+
+func main() {
+    customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+        return aws.Endpoint{
+            URL: "http://localhost:4566",
+        }, nil
+    })
+    cfg, err := config.LoadDefaultConfig(context.TODO(),
+        config.WithRegion("us-east-1"),
+        config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("test", "test", "")),
+        config.WithEndpointResolverWithOptions(customResolver),
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+    s3Client := s3.NewFromConfig(cfg)
+
+    // List buckets
+    out, err := s3Client.ListBuckets(context.TODO(), &s3.ListBucketsInput{})
+    if err != nil {
+        log.Fatal("ListBuckets error:", err)
+    }
+    for _, b := range out.Buckets {
+        fmt.Println("Bucket:", *b.Name)
+    }
+
+    // Create bucket
+    _, err = s3Client.CreateBucket(context.TODO(), &s3.CreateBucketInput{
+        Bucket: aws.String("my-go-bucket"),
+    })
+    if err != nil {
+        log.Fatal("CreateBucket error:", err)
+    }
+    fmt.Println("Bucket my-go-bucket created successfully")
+}`,
+    description: "Basic S3 operations with AWS SDK v2 for Go",
+  },
 ];
 
 const dynamoExamples: CodeExample[] = [
@@ -314,6 +362,80 @@ put_item('my-python-table', {
     'email': {'S': 'jane@example.com'}
 })`,
     description: "Basic DynamoDB operations with boto3",
+  },
+  {
+    language: "Go",
+    title: "DynamoDB - List and Create Tables",
+    code: `package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/aws/aws-sdk-go-v2/aws"
+    "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/credentials"
+    "github.com/aws/aws-sdk-go-v2/service/dynamodb"
+    "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+)
+
+func main() {
+    customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+        return aws.Endpoint{
+            URL: "http://localhost:4566",
+        }, nil
+    })
+    cfg, err := config.LoadDefaultConfig(context.TODO(),
+        config.WithRegion("us-east-1"),
+        config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("test", "test", "")),
+        config.WithEndpointResolverWithOptions(customResolver),
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+    dynamoClient := dynamodb.NewFromConfig(cfg)
+
+    // List tables
+    out, err := dynamoClient.ListTables(context.TODO(), &dynamodb.ListTablesInput{})
+    if err != nil {
+        log.Fatal("ListTables error:", err)
+    }
+    fmt.Println("Tables:", out.TableNames)
+
+    // Create table
+    _, err = dynamoClient.CreateTable(context.TODO(), &dynamodb.CreateTableInput{
+        TableName: aws.String("my-go-table"),
+        AttributeDefinitions: []types.AttributeDefinition{{
+            AttributeName: aws.String("id"),
+            AttributeType: types.ScalarAttributeTypeS,
+        }},
+        KeySchema: []types.KeySchemaElement{{
+            AttributeName: aws.String("id"),
+            KeyType:       types.KeyTypeHash,
+        }},
+        BillingMode: types.BillingModePayPerRequest,
+    })
+    if err != nil {
+        log.Fatal("CreateTable error:", err)
+    }
+    fmt.Println("Table my-go-table created successfully")
+
+    // Put item
+    _, err = dynamoClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
+        TableName: aws.String("my-go-table"),
+        Item: map[string]types.AttributeValue{
+            "id":   &types.AttributeValueMemberS{Value: "user123"},
+            "name": &types.AttributeValueMemberS{Value: "Jane Doe"},
+            "email": &types.AttributeValueMemberS{Value: "jane@example.com"},
+        },
+    })
+    if err != nil {
+        log.Fatal("PutItem error:", err)
+    }
+    fmt.Println("Item added successfully")
+}`,
+    description: "Basic DynamoDB operations with AWS SDK v2 for Go",
   },
 ];
 
