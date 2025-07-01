@@ -2,8 +2,13 @@
 
 import { useState } from "react";
 import { CodeBracketIcon, CommandLineIcon } from "@heroicons/react/24/outline";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useEffect, useRef } from "react";
+import Prism from "prismjs";
+import "prismjs/themes/prism.css";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-go";
+import "prismjs/components/prism-java";
 
 interface CodeExample {
   language: string;
@@ -11,6 +16,35 @@ interface CodeExample {
   code: string;
   description: string;
 }
+
+const CodeBlock = ({ code, language }: { code: string; language: string }) => {
+  const codeRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (codeRef.current) {
+      Prism.highlightElement(codeRef.current);
+    }
+  }, [code]);
+
+  const languageClass =
+    language.toLowerCase() === "javascript"
+      ? "language-javascript"
+      : language.toLowerCase() === "python"
+      ? "language-python"
+      : language.toLowerCase() === "go"
+      ? "language-go"
+      : language.toLowerCase() === "java"
+      ? "language-java"
+      : "language-text";
+
+  return (
+    <pre className="p-4 rounded-lg overflow-x-auto bg-gray-100">
+      <code ref={codeRef} className={languageClass}>
+        {code}
+      </code>
+    </pre>
+  );
+};
 
 const codeExamples: CodeExample[] = [
   {
@@ -585,13 +619,7 @@ export default function ConnectionGuide() {
                 </div>
               </div>
               <div className="px-6 py-4">
-                <SyntaxHighlighter
-                  language={example.language.toLowerCase()}
-                  style={tomorrow}
-                  className="p-4 rounded-lg overflow-x-auto"
-                >
-                  {example.code}
-                </SyntaxHighlighter>
+                <CodeBlock code={example.code} language={example.language} />
               </div>
             </div>
           ))}
