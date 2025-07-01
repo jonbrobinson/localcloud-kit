@@ -346,6 +346,13 @@ curl http://localhost:4566/_localstack/health/dynamodb`,
   },
 ];
 
+const languageOptions = [
+  { value: "JavaScript", label: "JavaScript" },
+  { value: "Python", label: "Python" },
+  { value: "Go", label: "Go" },
+  { value: "Java", label: "Java" },
+];
+
 export default function ConnectionGuide() {
   const [activeTab, setActiveTab] = useState("setup");
   const [selectedLanguage, setSelectedLanguage] = useState("JavaScript");
@@ -454,9 +461,9 @@ export default function ConnectionGuide() {
           onChange={(e) => setSelectedLanguage(e.target.value)}
           className="bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          {getExamples().map((example) => (
-            <option key={example.language} value={example.language}>
-              {example.language}
+          {languageOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
