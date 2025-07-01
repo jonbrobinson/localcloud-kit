@@ -6,12 +6,19 @@ import {
   MagnifyingGlassIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
-import { localstackApi } from "@/services/api";
+import {
+  localstackApi,
+  addDynamoDBItem,
+  getDynamoDBTableSchema,
+} from "@/services/api";
+import DynamoDBAddItemModal from "./DynamoDBAddItemModal";
 
 interface DynamoDBViewerProps {
   isOpen: boolean;
   onClose: () => void;
   projectName: string;
+  pkName?: string;
+  skName?: string;
 }
 
 interface DynamoDBItem {
@@ -25,13 +32,29 @@ interface ScanResult {
   lastEvaluatedKey?: any;
 }
 
+interface TableSchema {
+  Table: {
+    KeySchema: Array<{
+      AttributeName: string;
+      KeyType: "HASH" | "RANGE";
+    }>;
+    AttributeDefinitions: Array<{
+      AttributeName: string;
+      AttributeType: "S" | "N" | "B";
+    }>;
+  };
+}
+
 export default function DynamoDBViewer({
   isOpen,
   onClose,
   projectName,
+  pkName = "pk",
+  skName = "sk",
 }: DynamoDBViewerProps) {
   const [tables, setTables] = useState<string[]>([]);
   const [selectedTable, setSelectedTable] = useState<string>("");
+  const [tableSchema, setTableSchema] = useState<TableSchema | null>(null);
   const [items, setItems] = useState<DynamoDBItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
@@ -43,6 +66,9 @@ export default function DynamoDBViewer({
     sortValue: "",
     limit: "100",
   });
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [addLoading, setAddLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -52,6 +78,7 @@ export default function DynamoDBViewer({
 
   useEffect(() => {
     if (selectedTable) {
+      loadTableSchema();
       loadTableContents();
     }
   }, [selectedTable]);
@@ -72,6 +99,18 @@ export default function DynamoDBViewer({
       console.error("Failed to load tables:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTableSchema = async () => {
+    if (!selectedTable) return;
+    try {
+      const response = await getDynamoDBTableSchema(projectName, selectedTable);
+      if (response.success) {
+        setTableSchema(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to load table schema:", error);
     }
   };
 
@@ -168,9 +207,18 @@ export default function DynamoDBViewer({
     }
   };
 
-  const addItem = async () => {
-    // TODO: Implement add item functionality
-    console.log("Add item functionality to be implemented");
+  const handleAddItem = async (item: any) => {
+    setAddLoading(true);
+    setError("");
+    try {
+      await addDynamoDBItem(projectName, selectedTable, item);
+      setAddModalOpen(false);
+      await loadTableContents();
+    } catch (err: any) {
+      setError(err.message || "Failed to add item");
+    } finally {
+      setAddLoading(false);
+    }
   };
 
   const formatValue = (value: any): string => {
@@ -182,13 +230,43 @@ export default function DynamoDBViewer({
   // Helper to get table headers with pk, sk first
   const getTableHeaders = (): string[] => {
     if (items.length === 0) return [];
+
+    // Get all unique keys from items
     const headers = new Set<string>();
     items.forEach((item) => {
       Object.keys(item).forEach((key) => headers.add(key));
     });
-    const all = Array.from(headers);
-    const rest = all.filter((h) => h !== "pk" && h !== "sk").sort();
-    return ["pk", "sk", ...rest].filter((h) => all.includes(h));
+    const allHeaders = Array.from(headers);
+
+    // If we have schema, prioritize key schema columns
+    if (tableSchema) {
+      const keyNames = tableSchema.Table.KeySchema.map(
+        (key) => key.AttributeName
+      );
+      const otherHeaders = allHeaders
+        .filter((h) => !keyNames.includes(h))
+        .sort();
+      return [...keyNames, ...otherHeaders];
+    }
+
+    // Fallback to old logic if no schema
+    const rest = allHeaders.filter((h) => h !== "pk" && h !== "sk").sort();
+    return ["pk", "sk", ...rest].filter((h) => allHeaders.includes(h));
+  };
+
+  const isKeyColumn = (columnName: string): boolean => {
+    if (!tableSchema) return columnName === "pk" || columnName === "sk";
+    return tableSchema.Table.KeySchema.some(
+      (key) => key.AttributeName === columnName
+    );
+  };
+
+  const getKeyType = (columnName: string): string => {
+    if (!tableSchema) return "";
+    const key = tableSchema.Table.KeySchema.find(
+      (k) => k.AttributeName === columnName
+    );
+    return key ? (key.KeyType === "HASH" ? "Partition Key" : "Sort Key") : "";
   };
 
   if (!isOpen) return null;
@@ -395,13 +473,6 @@ export default function DynamoDBViewer({
                       ? "Scan Table"
                       : "Execute Query"}
                   </button>
-                  <button
-                    onClick={addItem}
-                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
-                  >
-                    <PlusIcon className="h-4 w-4 mr-2" />
-                    Add Item
-                  </button>
                 </div>
               </div>
 
@@ -430,9 +501,20 @@ export default function DynamoDBViewer({
                           {getTableHeaders().map((header) => (
                             <th
                               key={header}
-                              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                              className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                                isKeyColumn(header)
+                                  ? "bg-blue-100 text-blue-800 border-r border-blue-200"
+                                  : "text-gray-500"
+                              }`}
                             >
-                              {header}
+                              <div className="flex flex-col">
+                                <span>{header}</span>
+                                {isKeyColumn(header) && (
+                                  <span className="text-xs font-normal text-blue-600 mt-1">
+                                    {getKeyType(header)}
+                                  </span>
+                                )}
+                              </div>
                             </th>
                           ))}
                         </tr>
@@ -443,7 +525,11 @@ export default function DynamoDBViewer({
                             {getTableHeaders().map((header) => (
                               <td
                                 key={header}
-                                className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                className={`px-6 py-4 whitespace-nowrap text-sm ${
+                                  isKeyColumn(header)
+                                    ? "bg-blue-50 text-blue-900 border-r border-blue-200 font-medium"
+                                    : "text-gray-900"
+                                }`}
                               >
                                 <div
                                   className="max-w-xs truncate"
@@ -462,8 +548,27 @@ export default function DynamoDBViewer({
               </div>
             </>
           )}
+
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-lg font-semibold">Items</h3>
+            <button
+              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+              onClick={() => setAddModalOpen(true)}
+            >
+              Add Item
+            </button>
+          </div>
         </div>
       </div>
+
+      <DynamoDBAddItemModal
+        isOpen={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        onSubmit={handleAddItem}
+        tableName={selectedTable}
+        projectName={projectName}
+        loading={addLoading}
+      />
     </div>
   );
 }

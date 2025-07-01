@@ -164,4 +164,31 @@ export const s3Api = {
   },
 };
 
+export async function addDynamoDBItem(
+  projectName: string,
+  tableName: string,
+  item: any
+) {
+  const res = await fetch(`/api/dynamodb/table/${tableName}/item`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ projectName, item }),
+  });
+  if (!res.ok) throw new Error("Failed to add item");
+  return res.json();
+}
+
+export async function getDynamoDBTableSchema(
+  projectName: string,
+  tableName: string
+) {
+  const res = await fetch(
+    `/api/dynamodb/table/${tableName}/schema?projectName=${encodeURIComponent(
+      projectName
+    )}`
+  );
+  if (!res.ok) throw new Error("Failed to get table schema");
+  return res.json();
+}
+
 export default api;
