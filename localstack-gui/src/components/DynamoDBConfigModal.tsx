@@ -98,7 +98,7 @@ export default function DynamoDBConfigModal({
                 type="text"
                 value={tableName}
                 onChange={(e) => setTableName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 required
               />
             </div>
@@ -114,7 +114,7 @@ export default function DynamoDBConfigModal({
                     e.target.value as "PAY_PER_REQUEST" | "PROVISIONED"
                   )
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               >
                 <option value="PAY_PER_REQUEST">Pay Per Request</option>
                 <option value="PROVISIONED">Provisioned</option>
@@ -136,7 +136,7 @@ export default function DynamoDBConfigModal({
                   type="text"
                   value={partitionKey}
                   onChange={(e) => setPartitionKey(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   required
                 />
               </div>
@@ -150,7 +150,7 @@ export default function DynamoDBConfigModal({
                   type="text"
                   value={sortKey}
                   onChange={(e) => setSortKey(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="Leave empty for simple primary key"
                 />
               </div>
@@ -173,7 +173,7 @@ export default function DynamoDBConfigModal({
                     min="1"
                     value={readCapacity}
                     onChange={(e) => setReadCapacity(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     required
                   />
                 </div>
@@ -187,7 +187,7 @@ export default function DynamoDBConfigModal({
                     min="1"
                     value={writeCapacity}
                     onChange={(e) => setWriteCapacity(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     required
                   />
                 </div>
@@ -246,7 +246,7 @@ export default function DynamoDBConfigModal({
                       onChange={(e) =>
                         updateGSI(index, "indexName", e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                       required
                     />
                   </div>
@@ -261,7 +261,7 @@ export default function DynamoDBConfigModal({
                       onChange={(e) =>
                         updateGSI(index, "partitionKey", e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                       required
                     />
                   </div>
@@ -276,7 +276,7 @@ export default function DynamoDBConfigModal({
                       onChange={(e) =>
                         updateGSI(index, "sortKey", e.target.value || undefined)
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     />
                   </div>
 
@@ -293,7 +293,7 @@ export default function DynamoDBConfigModal({
                           e.target.value as "ALL" | "KEYS_ONLY" | "INCLUDE"
                         )
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     >
                       <option value="ALL">All</option>
                       <option value="KEYS_ONLY">Keys Only</option>
