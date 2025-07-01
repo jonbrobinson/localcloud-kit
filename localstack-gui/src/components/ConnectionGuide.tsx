@@ -10,6 +10,12 @@ import "prismjs/components/prism-python";
 import "prismjs/components/prism-go";
 import "prismjs/components/prism-java";
 
+// Import additional themes
+import "prismjs/themes/prism-tomorrow.css";
+import "prismjs/themes/prism-okaidia.css";
+import "prismjs/themes/prism-solarizedlight.css";
+import "prismjs/themes/prism-dark.css";
+
 interface CodeExample {
   language: string;
   title: string;
@@ -17,7 +23,15 @@ interface CodeExample {
   description: string;
 }
 
-const CodeBlock = ({ code, language }: { code: string; language: string }) => {
+const CodeBlock = ({
+  code,
+  language,
+  theme = "prism",
+}: {
+  code: string;
+  language: string;
+  theme?: string;
+}) => {
   const codeRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -37,8 +51,11 @@ const CodeBlock = ({ code, language }: { code: string; language: string }) => {
       ? "language-java"
       : "language-text";
 
+  // Apply theme class to the pre element
+  const themeClass = theme === "prism" ? "" : theme;
+
   return (
-    <pre className="p-4 rounded-lg overflow-x-auto bg-gray-100">
+    <pre className={`p-4 rounded-lg overflow-x-auto ${themeClass}`}>
       <code ref={codeRef} className={languageClass}>
         {code}
       </code>
@@ -98,7 +115,9 @@ import (
     "context"
     "log"
 
+    "github.com/aws/aws-sdk-go-v2/aws"
     "github.com/aws/aws-sdk-go-v2/config"
+    "github.com/aws/aws-sdk-go-v2/credentials"
     "github.com/aws/aws-sdk-go-v2/service/s3"
     "github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
@@ -112,8 +131,9 @@ func main() {
     })
 
     cfg, err := config.LoadDefaultConfig(context.TODO(),
-        config.WithEndpointResolverWithOptions(customResolver),
         config.WithRegion("us-east-1"),
+        config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("test", "test", "")),
+        config.WithEndpointResolverWithOptions(customResolver),
     )
     if err != nil {
         log.Fatal(err)
@@ -484,6 +504,7 @@ const languageOptions = [
 export default function ConnectionGuide() {
   const [activeTab, setActiveTab] = useState("setup");
   const [selectedLanguage, setSelectedLanguage] = useState("JavaScript");
+  const [selectedTheme, setSelectedTheme] = useState("prism");
 
   const tabs = [
     { id: "setup", name: "Basic Setup", icon: CodeBracketIcon },
@@ -576,22 +597,40 @@ export default function ConnectionGuide() {
         </nav>
       </div>
 
-      {/* Language Selector */}
-      <div className="mb-6">
-        <label className="text-sm font-medium text-gray-700 mr-4">
-          Select Language:
-        </label>
-        <select
-          value={selectedLanguage}
-          onChange={(e) => setSelectedLanguage(e.target.value)}
-          className="bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          {languageOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+      {/* Language and Theme Selectors */}
+      <div className="mb-6 flex flex-wrap gap-4 items-center">
+        <div>
+          <label className="text-sm font-medium text-gray-700 mr-4">
+            Select Language:
+          </label>
+          <select
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            className="bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            {languageOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-sm font-medium text-gray-700 mr-4">
+            Select Theme:
+          </label>
+          <select
+            value={selectedTheme}
+            onChange={(e) => setSelectedTheme(e.target.value)}
+            className="bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="prism">Default</option>
+            <option value="prism-tomorrow">Tomorrow</option>
+            <option value="prism-okaidia">Okaidia</option>
+            <option value="prism-solarizedlight">Solarized Light</option>
+            <option value="prism-dark">Dark</option>
+          </select>
+        </div>
       </div>
 
       {/* Code Examples */}
@@ -619,7 +658,11 @@ export default function ConnectionGuide() {
                 </div>
               </div>
               <div className="px-6 py-4">
-                <CodeBlock code={example.code} language={example.language} />
+                <CodeBlock
+                  code={example.code}
+                  language={example.language}
+                  theme={selectedTheme}
+                />
               </div>
             </div>
           ))}
