@@ -5,9 +5,9 @@ import { CodeBracketIcon, CommandLineIcon } from "@heroicons/react/24/outline";
 import { useEffect, useRef } from "react";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
-import "highlight.js/styles/tomorrow.css";
-import "highlight.js/styles/okaidia.css";
-import "highlight.js/styles/solarized-light.css";
+import "highlight.js/styles/base16/tomorrow.css";
+import "highlight.js/styles/atom-one-dark.css";
+import "highlight.js/styles/base16/solarized-light.css";
 import "highlight.js/styles/dark.css";
 
 // Import language support
@@ -26,7 +26,7 @@ interface CodeExample {
 const CodeBlock = ({
   code,
   language,
-  theme = "prism",
+  theme = "hljs",
 }: {
   code: string;
   language: string;
@@ -43,7 +43,7 @@ const CodeBlock = ({
     return (
       <pre
         className={`p-4 rounded-lg overflow-x-auto ${
-          theme === "prism" ? "" : theme
+          theme === "hljs" ? "" : theme
         }`}
       >
         <code>{code}</code>
@@ -75,15 +75,15 @@ const CodeBlock = ({
     // Map theme names to highlight.js theme classes
     const getThemeClass = () => {
       switch (theme) {
-        case "prism":
+        case "hljs":
           return "hljs";
-        case "prism-tomorrow":
-          return "hljs tomorrow";
-        case "prism-okaidia":
-          return "hljs okaidia";
-        case "prism-solarizedlight":
-          return "hljs solarized-light";
-        case "prism-dark":
+        case "hljs-tomorrow":
+          return "hljs base16-tomorrow";
+        case "hljs-atom-dark":
+          return "hljs atom-one-dark";
+        case "hljs-solarized":
+          return "hljs base16-solarized-light";
+        case "hljs-dark":
           return "hljs dark";
         default:
           return "hljs";
@@ -543,7 +543,7 @@ const languageOptions = [
 export default function ConnectionGuide() {
   const [activeTab, setActiveTab] = useState("setup");
   const [selectedLanguage, setSelectedLanguage] = useState("JavaScript");
-  const [selectedTheme, setSelectedTheme] = useState("prism");
+  const [selectedTheme, setSelectedTheme] = useState("hljs");
 
   const tabs = [
     { id: "setup", name: "Basic Setup", icon: CodeBracketIcon },
@@ -663,11 +663,11 @@ export default function ConnectionGuide() {
             onChange={(e) => setSelectedTheme(e.target.value)}
             className="bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="prism">GitHub</option>
-            <option value="prism-tomorrow">Tomorrow</option>
-            <option value="prism-okaidia">Okaidia</option>
-            <option value="prism-solarizedlight">Solarized Light</option>
-            <option value="prism-dark">Dark</option>
+            <option value="hljs">GitHub</option>
+            <option value="hljs-tomorrow">Tomorrow</option>
+            <option value="hljs-atom-dark">Atom One Dark</option>
+            <option value="hljs-solarized">Solarized Light</option>
+            <option value="hljs-dark">Dark</option>
           </select>
         </div>
       </div>
