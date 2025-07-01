@@ -75,6 +75,26 @@ export default function DynamoDBViewer({
     }
   };
 
+  // Helper to flatten DynamoDB item format
+  const flattenDynamoDBItem = (item: any): Record<string, any> => {
+    const flat: Record<string, any> = {};
+    for (const key in item) {
+      const value = item[key];
+      if (typeof value === "object" && value !== null) {
+        if ("S" in value) flat[key] = value.S;
+        else if ("N" in value) flat[key] = Number(value.N);
+        else if ("BOOL" in value) flat[key] = value.BOOL;
+        else if ("NULL" in value) flat[key] = null;
+        else if ("L" in value) flat[key] = value.L.map(flattenDynamoDBItem);
+        else if ("M" in value) flat[key] = flattenDynamoDBItem(value.M);
+        else flat[key] = value;
+      } else {
+        flat[key] = value;
+      }
+    }
+    return flat;
+  };
+
   const loadTableContents = async () => {
     if (!selectedTable) return;
 
@@ -91,7 +111,11 @@ export default function DynamoDBViewer({
       );
       const data = await response.json();
       if (data.success) {
-        setItems(data.data.items || []);
+        // Flatten DynamoDB items for display
+        const items = (data.data.Items || data.data.items || []).map(
+          flattenDynamoDBItem
+        );
+        setItems(items);
         setScanResult(data.data);
       }
     } catch (error) {
@@ -130,7 +154,11 @@ export default function DynamoDBViewer({
       );
       const data = await response.json();
       if (data.success) {
-        setItems(data.data.items || []);
+        // Flatten DynamoDB items for display
+        const items = (data.data.Items || data.data.items || []).map(
+          flattenDynamoDBItem
+        );
+        setItems(items);
         setScanResult(data.data);
       }
     } catch (error) {
@@ -151,15 +179,16 @@ export default function DynamoDBViewer({
     return String(value);
   };
 
+  // Helper to get table headers with pk, sk first
   const getTableHeaders = (): string[] => {
     if (items.length === 0) return [];
-
     const headers = new Set<string>();
     items.forEach((item) => {
       Object.keys(item).forEach((key) => headers.add(key));
     });
-
-    return Array.from(headers).sort();
+    const all = Array.from(headers);
+    const rest = all.filter((h) => h !== "pk" && h !== "sk").sort();
+    return ["pk", "sk", ...rest].filter((h) => all.includes(h));
   };
 
   if (!isOpen) return null;
@@ -196,7 +225,7 @@ export default function DynamoDBViewer({
             <select
               value={selectedTable}
               onChange={(e) => setSelectedTable(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               disabled={loading}
             >
               <option value="">Choose a table...</option>
@@ -347,7 +376,7 @@ export default function DynamoDBViewer({
                           limit: e.target.value,
                         })
                       }
-                      className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                       min="1"
                       max="1000"
                     />
