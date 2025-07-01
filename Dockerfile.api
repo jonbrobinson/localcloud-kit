@@ -22,6 +22,9 @@ COPY localstack-api/ ./
 # Copy shell scripts
 COPY scripts/shell/ ./scripts/shell/
 
+# Ensure scripts are executable
+RUN chmod +x ./scripts/shell/*.sh
+
 EXPOSE 3031
 
 ENV PORT=3031

@@ -48,6 +48,11 @@ let localstackStatus = {
   uptime: null,
 };
 
+// Internal endpoint for Docker networking (used by backend)
+const internalEndpoint = "http://localstack:4566";
+// User-friendly endpoint for GUI display
+const userEndpoint = "http://localhost:4566";
+
 // Default project configuration (hardcoded for local development)
 let projectConfig = {
   projectName: "localstack-dev",
@@ -83,12 +88,9 @@ function addLog(level, message, source = "api") {
 // LocalStack Management Functions
 async function checkLocalStackStatus() {
   try {
-    const response = await axios.get(
-      `${localstackStatus.endpoint}/_localstack/health`,
-      {
-        timeout: 5000,
-      }
-    );
+    const response = await axios.get(`${internalEndpoint}/_localstack/health`, {
+      timeout: 5000,
+    });
 
     if (response.status === 200) {
       localstackStatus.running = true;
@@ -249,7 +251,7 @@ async function createSingleResource(projectName, resourceType, config = {}) {
       cwd: "/app/scripts/shell",
       env: {
         ...process.env,
-        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_ENDPOINT_URL: internalEndpoint,
         AWS_DEFAULT_REGION: projectConfig.awsRegion,
       },
     });
@@ -305,7 +307,7 @@ async function destroyResources(request) {
       cwd: "/app/scripts/shell",
       env: {
         ...process.env,
-        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_ENDPOINT_URL: internalEndpoint,
         AWS_DEFAULT_REGION: projectConfig.awsRegion,
       },
     });
@@ -339,7 +341,7 @@ async function destroySingleResource(projectName, resourceType, resourceName) {
       cwd: "/app/scripts/shell",
       env: {
         ...process.env,
-        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_ENDPOINT_URL: internalEndpoint,
         AWS_DEFAULT_REGION: projectConfig.awsRegion,
       },
     });
@@ -373,7 +375,7 @@ async function listResources(projectName) {
       cwd: "/app/scripts/shell",
       env: {
         ...process.env,
-        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_ENDPOINT_URL: internalEndpoint,
         AWS_DEFAULT_REGION: projectConfig.awsRegion,
       },
     });
@@ -422,7 +424,7 @@ async function listBucketContents(projectName, bucketName) {
       cwd: "/app/scripts/shell",
       env: {
         ...process.env,
-        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_ENDPOINT_URL: internalEndpoint,
         AWS_DEFAULT_REGION: projectConfig.awsRegion,
       },
     });
@@ -434,6 +436,9 @@ async function listBucketContents(projectName, bucketName) {
     // Parse the output as JSON
     let contents = [];
     try {
+      // Debug: Log the raw output
+      addLog("info", `Bucket listing raw output: "${stdout}"`, "automation");
+
       contents = JSON.parse(stdout);
       if (!Array.isArray(contents)) {
         addLog(
@@ -446,7 +451,7 @@ async function listBucketContents(projectName, bucketName) {
     } catch (err) {
       addLog(
         "error",
-        `Failed to parse bucket listing JSON: ${err.message}`,
+        `Failed to parse bucket listing JSON: ${err.message}. Raw output: "${stdout}"`,
         "automation"
       );
       contents = [];
@@ -471,7 +476,7 @@ async function listDynamoDBTables(projectName) {
       cwd: "/app/scripts/shell",
       env: {
         ...process.env,
-        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_ENDPOINT_URL: internalEndpoint,
         AWS_DEFAULT_REGION: projectConfig.awsRegion,
       },
     });
@@ -520,7 +525,7 @@ async function scanDynamoDBTable(projectName, tableName, limit = 100) {
       cwd: "/app/scripts/shell",
       env: {
         ...process.env,
-        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_ENDPOINT_URL: internalEndpoint,
         AWS_DEFAULT_REGION: projectConfig.awsRegion,
       },
     });
@@ -570,7 +575,7 @@ async function queryDynamoDBTable(
       cwd: "/app/scripts/shell",
       env: {
         ...process.env,
-        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_ENDPOINT_URL: internalEndpoint,
         AWS_DEFAULT_REGION: projectConfig.awsRegion,
       },
     });
@@ -604,12 +609,12 @@ async function queryDynamoDBTable(
 
 async function getDynamoDBTableSchema(projectName, tableName) {
   try {
-    let command = `aws dynamodb describe-table --table-name "${tableName}" --endpoint-url "${projectConfig.awsEndpoint}" --region "${projectConfig.awsRegion}"`;
+    let command = `aws dynamodb describe-table --table-name "${tableName}" --endpoint-url "${internalEndpoint}" --region "${projectConfig.awsRegion}"`;
 
     const { stdout, stderr } = await execAsync(command, {
       env: {
         ...process.env,
-        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_ENDPOINT_URL: internalEndpoint,
         AWS_DEFAULT_REGION: projectConfig.awsRegion,
       },
     });
@@ -661,7 +666,12 @@ app.get("/health", (req, res) => {
 
 // LocalStack Management
 app.get("/localstack/status", (req, res) => {
-  res.json({ success: true, data: localstackStatus });
+  // Return user-friendly endpoint for GUI display
+  const userFriendlyStatus = {
+    ...localstackStatus,
+    endpoint: userEndpoint,
+  };
+  res.json({ success: true, data: userFriendlyStatus });
 });
 
 app.get("/localstack/logs", (req, res) => {
@@ -747,9 +757,14 @@ app.get("/resources/status", async (req, res) => {
 
 // Configuration Management
 app.get("/config/project", (req, res) => {
+  // Return user-friendly endpoint for GUI display
+  const userFriendlyConfig = {
+    ...projectConfig,
+    awsEndpoint: userEndpoint,
+  };
   res.json({
     success: true,
-    data: projectConfig,
+    data: userFriendlyConfig,
   });
 });
 
@@ -892,7 +907,7 @@ app.post("/dynamodb/table/:tableName/item", async (req, res) => {
     const { stdout, stderr } = await execAsync(command, {
       env: {
         ...process.env,
-        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_ENDPOINT_URL: internalEndpoint,
         AWS_DEFAULT_REGION: projectConfig.awsRegion,
       },
     });
