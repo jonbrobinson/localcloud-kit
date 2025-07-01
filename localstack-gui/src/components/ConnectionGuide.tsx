@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { CodeBracketIcon, CommandLineIcon } from "@heroicons/react/24/outline";
-import { SyntaxHighlighter } from "react-syntax-highlighter";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface CodeExample {
   language: string;
@@ -584,10 +585,7 @@ export default function ConnectionGuide() {
                 </div>
               </div>
               <div className="px-6 py-4">
-                <SyntaxHighlighter
-                  language={example.language}
-                  style={SyntaxHighlighter.styles.github}
-                >
+                <SyntaxHighlighter language={example.language} style={tomorrow}>
                   {example.code}
                 </SyntaxHighlighter>
               </div>
