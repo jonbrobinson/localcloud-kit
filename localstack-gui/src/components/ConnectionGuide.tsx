@@ -27,8 +27,8 @@ const localstackConfig = {
   endpoint: 'http://localhost:4566',
   region: 'us-east-1',
   credentials: {
-    accessKeyId: 'dummy',
-    secretAccessKey: 'dummy'
+    accessKeyId: 'test',
+    secretAccessKey: 'test'
   },
   forcePathStyle: true // Required for S3
 };
@@ -49,8 +49,8 @@ from botocore.config import Config
 localstack_config = Config(
     region_name='us-east-1',
     endpoint_url='http://localhost:4566',
-    aws_access_key_id='dummy',
-    aws_secret_access_key='dummy'
+    aws_access_key_id='test',
+    aws_secret_access_key='test'
 )
 
 # Create clients
@@ -111,7 +111,7 @@ public class LocalStackExample {
         S3Client s3Client = S3Client.builder()
             .endpointOverride(URI.create("http://localhost:4566"))
             .credentialsProvider(StaticCredentialsProvider.create(
-                AwsBasicCredentials.create("dummy", "dummy")
+                AwsBasicCredentials.create("test", "test")
             ))
             .region(Region.US_EAST_1)
             .forcePathStyle(true) // Required for S3
@@ -120,7 +120,7 @@ public class LocalStackExample {
         DynamoDbClient dynamoClient = DynamoDbClient.builder()
             .endpointOverride(URI.create("http://localhost:4566"))
             .credentialsProvider(StaticCredentialsProvider.create(
-                AwsBasicCredentials.create("dummy", "dummy")
+                AwsBasicCredentials.create("test", "test")
             ))
             .region(Region.US_EAST_1)
             .build();
@@ -317,36 +317,6 @@ put_item('my-python-table', {
   },
 ];
 
-const testingExamples: CodeExample[] = [
-  {
-    language: "AWS CLI",
-    title: "Test Connection with AWS CLI",
-    code: `# Test S3
-aws --endpoint-url=http://localhost:4566 s3 ls
-
-# Test DynamoDB
-aws --endpoint-url=http://localhost:4566 dynamodb list-tables
-
-# Create a test bucket
-aws --endpoint-url=http://localhost:4566 s3 mb s3://test-bucket
-
-# List buckets
-aws --endpoint-url=http://localhost:4566 s3 ls`,
-    description: "Test your LocalStack connection using AWS CLI",
-  },
-  {
-    language: "Health Check",
-    title: "Check LocalStack Health",
-    code: `# Check LocalStack health
-curl http://localhost:4566/_localstack/health
-
-# Check specific services
-curl http://localhost:4566/_localstack/health/s3
-curl http://localhost:4566/_localstack/health/dynamodb`,
-    description: "Verify LocalStack services are running properly",
-  },
-];
-
 const languageOptions = [
   { value: "JavaScript", label: "JavaScript" },
   { value: "Python", label: "Python" },
@@ -362,7 +332,6 @@ export default function ConnectionGuide() {
     { id: "setup", name: "Basic Setup", icon: CodeBracketIcon },
     { id: "s3", name: "S3 Examples", icon: CommandLineIcon },
     { id: "dynamodb", name: "DynamoDB Examples", icon: CommandLineIcon },
-    { id: "testing", name: "Testing", icon: CheckCircleIcon },
   ];
 
   const getExamples = () => {
@@ -373,8 +342,6 @@ export default function ConnectionGuide() {
         return s3Examples;
       case "dynamodb":
         return dynamoExamples;
-      case "testing":
-        return testingExamples;
       default:
         return codeExamples;
     }
@@ -419,9 +386,9 @@ export default function ConnectionGuide() {
           <p className="text-sm font-medium text-blue-700">AWS Credentials:</p>
           <div className="bg-blue-100 p-3 rounded mt-2">
             <code className="text-blue-900 text-sm">
-              AWS_ACCESS_KEY_ID=dummy
+              AWS_ACCESS_KEY_ID=test
               <br />
-              AWS_SECRET_ACCESS_KEY=dummy
+              AWS_SECRET_ACCESS_KEY=test
               <br />
               AWS_DEFAULT_REGION=us-east-1
             </code>
@@ -540,7 +507,7 @@ export default function ConnectionGuide() {
             <ul className="space-y-1 text-sm text-gray-600">
               <li>• Connection refused: Check if LocalStack is running</li>
               <li>
-                • Invalid credentials: Use dummy credentials for LocalStack
+                • Invalid credentials: Use test credentials for LocalStack
               </li>
               <li>• S3 path style: Enable forcePathStyle for S3 operations</li>
             </ul>
