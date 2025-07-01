@@ -11,6 +11,11 @@ PROJECT_NAME=${1:-"localstack-manager"}
 AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
+# If localstack hostname is not reachable, fallback to localhost
+if ! curl -s --connect-timeout 1 "${AWS_ENDPOINT}" >/dev/null; then
+  AWS_ENDPOINT="http://localhost:4566"
+fi
+
 NAME_PREFIX="$PROJECT_NAME"
 AWS_CMD="aws --endpoint-url=${AWS_ENDPOINT} --region=${AWS_REGION}"
 
