@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { CodeBracketIcon, CommandLineIcon } from "@heroicons/react/24/outline";
-import { Highlight, themes } from "prism-react-renderer";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { tomorrow } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface CodeExample {
   language: string;
@@ -584,32 +585,13 @@ export default function ConnectionGuide() {
                 </div>
               </div>
               <div className="px-6 py-4">
-                <Highlight
-                  theme={themes.github}
-                  code={example.code}
+                <SyntaxHighlighter
                   language={example.language.toLowerCase()}
+                  style={tomorrow}
+                  className="p-4 rounded-lg overflow-x-auto"
                 >
-                  {({
-                    className,
-                    style,
-                    tokens,
-                    getLineProps,
-                    getTokenProps,
-                  }) => (
-                    <pre
-                      className={`${className} p-4 rounded-lg overflow-x-auto`}
-                      style={style}
-                    >
-                      {tokens.map((line, i) => (
-                        <div key={i} {...getLineProps({ line })}>
-                          {line.map((token, key) => (
-                            <span key={key} {...getTokenProps({ token })} />
-                          ))}
-                        </div>
-                      ))}
-                    </pre>
-                  )}
-                </Highlight>
+                  {example.code}
+                </SyntaxHighlighter>
               </div>
             </div>
           ))}
