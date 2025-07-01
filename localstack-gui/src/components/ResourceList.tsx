@@ -113,7 +113,7 @@ export default function ResourceList({
           No Resources Found
         </h3>
         <p className="text-gray-500">
-          No resources found for project "{projectName}".
+          No resources found for project &quot;{projectName}&quot;.
         </p>
       </div>
     );

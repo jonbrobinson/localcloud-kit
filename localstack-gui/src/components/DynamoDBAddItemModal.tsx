@@ -210,49 +210,6 @@ export default function DynamoDBAddItemModal({
     setAttributes([...attributes, { key: "", type: "S" }]);
   };
 
-  const handleAddMapItem = (attributeIndex: number) => {
-    const updated = [...attributes];
-    if (!updated[attributeIndex].children) {
-      updated[attributeIndex].children = [];
-    }
-    updated[attributeIndex].children.push({ key: "", type: "S" });
-    setAttributes(updated);
-  };
-
-  const handleRemoveMapItem = (
-    attributeIndex: number,
-    mapItemIndex: number
-  ) => {
-    const updated = [...attributes];
-    updated[attributeIndex].children!.splice(mapItemIndex, 1);
-    setAttributes(updated);
-  };
-
-  const handleMapItemChange = (
-    attributeIndex: number,
-    mapItemIndex: number,
-    field: keyof NestedAttribute,
-    value: any
-  ) => {
-    const updated = [...attributes];
-    updated[attributeIndex].children![mapItemIndex][field] = value;
-    setAttributes(updated);
-  };
-
-  const handleRemoveAttribute = (index: number) => {
-    setAttributes(attributes.filter((_, i) => i !== index));
-  };
-
-  const handleAttributeChange = (
-    index: number,
-    field: keyof NestedAttribute,
-    value: any
-  ) => {
-    const updated = [...attributes];
-    updated[index][field] = value;
-    setAttributes(updated);
-  };
-
   const handleKeyValueChange = (keyName: string, value: string) => {
     setKeyValues((prev) => ({ ...prev, [keyName]: value }));
   };

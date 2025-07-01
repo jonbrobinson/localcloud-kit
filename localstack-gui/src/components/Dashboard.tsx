@@ -2,22 +2,13 @@
 
 import { useState } from "react";
 import {
-  PlusIcon,
-  TrashIcon,
   DocumentTextIcon,
-  ServerIcon,
   ArrowPathIcon,
   FolderIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
-import {
-  LocalStackStatus,
-  Resource,
-  ProjectConfig,
-  DynamoDBTableConfig,
-  S3BucketConfig,
-} from "@/types";
-import { localstackApi, resourceApi, configApi } from "@/services/api";
+import { DynamoDBTableConfig, S3BucketConfig } from "@/types";
+import { resourceApi } from "@/services/api";
 import { useLocalStackData } from "@/hooks/useLocalStackData";
 import StatusCard from "./StatusCard";
 import ResourceList from "./ResourceList";
@@ -44,6 +35,9 @@ export default function Dashboard() {
   const [showLogs, setShowLogs] = useState(false);
   const [showBuckets, setShowBuckets] = useState(false);
   const [showDynamoDB, setShowDynamoDB] = useState(false);
+  const [selectedDynamoDBTable, setSelectedDynamoDBTable] =
+    useState<string>("");
+  const [selectedS3Bucket, setSelectedS3Bucket] = useState<string>("");
 
   // Loading states for buttons
   const [createLoading, setCreateLoading] = useState(false);
@@ -337,8 +331,14 @@ export default function Dashboard() {
               onDestroy={handleDestroyResources}
               projectName={config.projectName}
               loading={destroyLoading}
-              onViewS3={(bucketName) => setShowBuckets(true)}
-              onViewDynamoDB={(tableName) => setShowDynamoDB(true)}
+              onViewS3={(bucketName) => {
+                setSelectedS3Bucket(bucketName);
+                setShowBuckets(true);
+              }}
+              onViewDynamoDB={(tableName) => {
+                setSelectedDynamoDBTable(tableName);
+                setShowDynamoDB(true);
+              }}
             />
           </div>
         )}
@@ -365,12 +365,7 @@ export default function Dashboard() {
               <label className="block text-sm font-medium text-gray-700">
                 Endpoint
               </label>
-              <p className="mt-1 text-sm text-gray-900">
-                {config.awsEndpoint.replace(
-                  "localstack:4566",
-                  "localhost:4566"
-                )}
-              </p>
+              <p className="mt-1 text-sm text-gray-900">{config.awsEndpoint}</p>
             </div>
           </div>
         </div>
@@ -423,16 +418,24 @@ export default function Dashboard() {
       {showBuckets && (
         <BucketViewer
           isOpen={showBuckets}
-          onClose={() => setShowBuckets(false)}
+          onClose={() => {
+            setShowBuckets(false);
+            setSelectedS3Bucket("");
+          }}
           projectName={config.projectName}
+          selectedBucketName={selectedS3Bucket}
         />
       )}
 
       {showDynamoDB && (
         <DynamoDBViewer
           isOpen={showDynamoDB}
-          onClose={() => setShowDynamoDB(false)}
+          onClose={() => {
+            setShowDynamoDB(false);
+            setSelectedDynamoDBTable("");
+          }}
           projectName={config.projectName}
+          selectedTableName={selectedDynamoDBTable}
         />
       )}
     </div>

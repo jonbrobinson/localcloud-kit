@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   XMarkIcon,
   FolderIcon,
@@ -13,6 +13,7 @@ interface BucketViewerProps {
   isOpen: boolean;
   onClose: () => void;
   projectName: string;
+  selectedBucketName?: string;
 }
 
 interface BucketItem {
@@ -21,12 +22,14 @@ interface BucketItem {
   Size?: number;
   LastModified?: string;
   StorageClass?: string;
+  CreationDate?: string;
 }
 
 export default function BucketViewer({
   isOpen,
   onClose,
   projectName,
+  selectedBucketName,
 }: BucketViewerProps) {
   const [buckets, setBuckets] = useState<BucketItem[]>([]);
   const [selectedBucket, setSelectedBucket] = useState<string | null>(null);
@@ -34,13 +37,7 @@ export default function BucketViewer({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadBuckets();
-    }
-  }, [isOpen, projectName]);
-
-  const loadBuckets = async () => {
+  const loadBuckets = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -50,30 +47,53 @@ export default function BucketViewer({
       } else {
         setError(response.error || "Failed to load buckets");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to load buckets");
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectName]);
 
-  const loadBucketContents = async (bucketName: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await s3Api.getBucketContents(projectName, bucketName);
-      if (response.success) {
-        setBucketContents(response.data || []);
-        setSelectedBucket(bucketName);
-      } else {
-        setError(response.error || "Failed to load bucket contents");
+  const loadBucketContents = useCallback(
+    async (bucketName: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await s3Api.getBucketContents(projectName, bucketName);
+        if (response.success) {
+          setBucketContents(response.data || []);
+          setSelectedBucket(bucketName);
+        } else {
+          setError(response.error || "Failed to load bucket contents");
+        }
+      } catch {
+        setError("Failed to load bucket contents");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError("Failed to load bucket contents");
-    } finally {
-      setLoading(false);
+    },
+    [projectName]
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      loadBuckets();
     }
-  };
+  }, [isOpen, loadBuckets]);
+
+  useEffect(() => {
+    if (isOpen && selectedBucketName && buckets.length > 0) {
+      loadBucketContents(selectedBucketName);
+    }
+  }, [isOpen, selectedBucketName, buckets, loadBucketContents]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedBucket(null);
+      setBucketContents([]);
+      setError(null);
+    }
+  }, [isOpen]);
 
   const formatFileSize = (bytes: number | undefined) => {
     if (!bytes) return "0 B";

@@ -4,7 +4,6 @@ import {
   Resource,
   ProjectConfig,
   CreateResourceRequest,
-  CreateSingleResourceRequest,
   DestroyResourceRequest,
   LogEntry,
   ApiResponse,
