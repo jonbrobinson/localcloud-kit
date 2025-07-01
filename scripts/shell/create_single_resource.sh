@@ -44,9 +44,77 @@ log() {
 NOW=$(date -Iseconds)
 
 create_s3_bucket() {
-  BUCKET_NAME="${NAME_PREFIX}-bucket"
-  $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" 2>/dev/null || true
-  log "Created S3 bucket: $BUCKET_NAME"
+  if [ -n "$DYNAMODB_CONFIG" ]; then
+    # This is actually S3 config, but we're reusing the variable name for simplicity
+    S3_CONFIG="$DYNAMODB_CONFIG"
+    
+    # Parse the JSON configuration
+    BUCKET_NAME=$(echo "$S3_CONFIG" | jq -r '.bucketName // empty')
+    BUCKET_REGION=$(echo "$S3_CONFIG" | jq -r '.region // "us-east-1"')
+    VERSIONING=$(echo "$S3_CONFIG" | jq -r '.versioning // false')
+    ENCRYPTION=$(echo "$S3_CONFIG" | jq -r '.encryption // false')
+    
+    # Use provided bucket name or default
+    if [ -z "$BUCKET_NAME" ]; then
+      BUCKET_NAME="${NAME_PREFIX}-bucket"
+    fi
+    
+    log "Creating S3 bucket with configuration: $BUCKET_NAME"
+    
+    # Create the bucket
+    if [ "$BUCKET_REGION" != "us-east-1" ]; then
+      $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" --region "$BUCKET_REGION" --create-bucket-configuration LocationConstraint="$BUCKET_REGION" 2>/dev/null || true
+    else
+      $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" --region "$BUCKET_REGION" 2>/dev/null || true
+    fi
+    
+    # Enable versioning if requested
+    if [ "$VERSIONING" = "true" ]; then
+      $AWS_CMD s3api put-bucket-versioning --bucket "$BUCKET_NAME" --versioning-configuration Status=Enabled 2>/dev/null || true
+      log "Enabled versioning for bucket: $BUCKET_NAME"
+    fi
+    
+    # Enable encryption if requested
+    if [ "$ENCRYPTION" = "true" ]; then
+      $AWS_CMD s3api put-bucket-encryption --bucket "$BUCKET_NAME" --server-side-encryption-configuration '{
+        "Rules": [
+          {
+            "ApplyServerSideEncryptionByDefault": {
+              "SSEAlgorithm": "AES256"
+            }
+          }
+        ]
+      }' 2>/dev/null || true
+      log "Enabled encryption for bucket: $BUCKET_NAME"
+    fi
+    
+    log "Created S3 bucket: $BUCKET_NAME with configuration"
+    
+    # Build details JSON
+    DETAILS_JSON=$(cat <<EOF
+{
+  "bucketName": "$BUCKET_NAME",
+  "region": "$BUCKET_REGION",
+  "versioning": $VERSIONING,
+  "encryption": $ENCRYPTION
+}
+EOF
+)
+    
+  else
+    # Default simple bucket creation
+    BUCKET_NAME="${NAME_PREFIX}-bucket"
+    $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" 2>/dev/null || true
+    log "Created S3 bucket: $BUCKET_NAME"
+    
+    DETAILS_JSON=$(cat <<EOF
+{
+  "bucketName": "$BUCKET_NAME",
+  "region": "$AWS_REGION"
+}
+EOF
+)
+  fi
   
   # Return resource info as JSON
   cat <<EOF
@@ -57,10 +125,7 @@ create_s3_bucket() {
   "status": "active",
   "project": "$PROJECT_NAME",
   "createdAt": "$NOW",
-  "details": {
-    "bucketName": "$BUCKET_NAME",
-    "region": "$AWS_REGION"
-  }
+  "details": $DETAILS_JSON
 }
 EOF
 }

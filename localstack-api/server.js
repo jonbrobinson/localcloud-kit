@@ -239,6 +239,12 @@ async function createSingleResource(projectName, resourceType, config = {}) {
       command += ` --config '${configJson}'`;
     }
 
+    // For S3 with configuration, pass the config as JSON
+    if (resourceType === "s3" && config.s3Config) {
+      const configJson = JSON.stringify(config.s3Config);
+      command += ` --config '${configJson}'`;
+    }
+
     const { stdout, stderr } = await execAsync(command, {
       cwd: "/app/scripts/shell",
       env: {
