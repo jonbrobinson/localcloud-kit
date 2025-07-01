@@ -142,5 +142,4 @@ check-prerequisites: ## Check if prerequisites are installed
 	@echo "$(YELLOW)Checking prerequisites...$(NC)"
 	@command -v docker >/dev/null 2>&1 || { echo "$(RED)Docker is required but not installed$(NC)"; exit 1; }
 	@command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1 || { echo "$(RED)Docker Compose is required but not installed$(NC)"; exit 1; }
-	@command -v aws >/dev/null 2>&1 || { echo "$(YELLOW)AWS CLI is not installed (optional for local development)$(NC)"; }
 	@echo "$(GREEN)Prerequisites check passed$(NC)" 
