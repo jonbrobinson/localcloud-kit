@@ -4,6 +4,7 @@ import {
   Resource,
   ProjectConfig,
   CreateResourceRequest,
+  CreateSingleResourceRequest,
   DestroyResourceRequest,
   LogEntry,
   ApiResponse,
@@ -52,6 +53,19 @@ export const resourceApi = {
     const response = await api.post<ApiResponse>("/resources/create-single", {
       projectName,
       resourceType,
+    });
+    return response.data;
+  },
+
+  createSingleWithConfig: async (
+    projectName: string,
+    resourceType: string,
+    config: any
+  ): Promise<ApiResponse> => {
+    const response = await api.post<ApiResponse>("/resources/create-single", {
+      projectName,
+      resourceType,
+      ...config,
     });
     return response.data;
   },
