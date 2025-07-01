@@ -18,6 +18,7 @@ import S3ConfigModal from "./S3ConfigModal";
 import LogViewer from "./LogViewer";
 import BucketViewer from "./BucketViewer";
 import DynamoDBViewer from "./DynamoDBViewer";
+import ConnectionGuide from "./ConnectionGuide";
 import Image from "next/image";
 
 export default function Dashboard() {
@@ -35,6 +36,7 @@ export default function Dashboard() {
   const [showLogs, setShowLogs] = useState(false);
   const [showBuckets, setShowBuckets] = useState(false);
   const [showDynamoDB, setShowDynamoDB] = useState(false);
+  const [showConnectionGuide, setShowConnectionGuide] = useState(false);
   const [selectedDynamoDBTable, setSelectedDynamoDBTable] =
     useState<string>("");
   const [selectedS3Bucket, setSelectedS3Bucket] = useState<string>("");
@@ -265,6 +267,12 @@ export default function Dashboard() {
               >
                 🗄️ DynamoDB Tables
               </button>
+              <button
+                onClick={() => setShowConnectionGuide(true)}
+                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                🔗 Connect
+              </button>
             </div>
           </div>
         </div>
@@ -437,6 +445,49 @@ export default function Dashboard() {
           projectName={config.projectName}
           selectedTableName={selectedDynamoDBTable}
         />
+      )}
+
+      {showConnectionGuide && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+            >
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-7xl sm:w-full">
+              <div className="bg-white">
+                <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Connecting to LocalStack
+                  </h2>
+                  <button
+                    onClick={() => setShowConnectionGuide(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  <ConnectionGuide />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
