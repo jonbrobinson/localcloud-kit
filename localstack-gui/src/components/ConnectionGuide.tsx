@@ -4,11 +4,6 @@ import { useState } from "react";
 import { CodeBracketIcon, CommandLineIcon } from "@heroicons/react/24/outline";
 import { useEffect } from "react";
 import hljs from "highlight.js";
-import "highlight.js/styles/github.css";
-import "highlight.js/styles/base16/tomorrow.css";
-import "highlight.js/styles/atom-one-dark.css";
-import "highlight.js/styles/base16/solarized-light.css";
-import "highlight.js/styles/dark.css";
 
 // Import language support
 import "highlight.js/lib/languages/javascript";
@@ -22,6 +17,14 @@ interface CodeExample {
   code: string;
   description: string;
 }
+
+const themeMap: Record<string, string> = {
+  hljs: "github.css",
+  "hljs-tomorrow": "base16/tomorrow.css",
+  "hljs-atom-dark": "atom-one-dark.css",
+  "hljs-solarized": "base16/solarized-light.css",
+  "hljs-dark": "dark.css",
+};
 
 const CodeBlock = ({
   code,
@@ -56,6 +59,26 @@ const CodeBlock = ({
     const [highlightedCode, setHighlightedCode] = useState("");
 
     useEffect(() => {
+      // Dynamically inject theme CSS from public/hljs-themes
+      const themeFile = themeMap[theme] || themeMap.hljs;
+      const id = "hljs-theme-style";
+      let link = document.getElementById(id) as HTMLLinkElement | null;
+      if (link) {
+        link.href = `/hljs-themes/${themeFile}`;
+      } else {
+        link = document.createElement("link");
+        link.id = id;
+        link.rel = "stylesheet";
+        link.href = `/hljs-themes/${themeFile}`;
+        document.head.appendChild(link);
+      }
+      return () => {
+        // Optionally remove the theme link on unmount
+        // if (link) link.remove();
+      };
+    }, [theme]);
+
+    useEffect(() => {
       // Use highlight.js to generate highlighted HTML safely
       const highlighted = hljs.highlight(code, {
         language:
@@ -71,30 +94,12 @@ const CodeBlock = ({
       }).value;
 
       setHighlightedCode(highlighted);
-    }, [code, theme, language]);
-
-    // Map theme names to highlight.js theme classes
-    const getThemeClass = () => {
-      switch (theme) {
-        case "hljs":
-          return "hljs";
-        case "hljs-tomorrow":
-          return "hljs base16-tomorrow";
-        case "hljs-atom-dark":
-          return "hljs atom-one-dark";
-        case "hljs-solarized":
-          return "hljs base16-solarized-light";
-        case "hljs-dark":
-          return "hljs dark";
-        default:
-          return "hljs";
-      }
-    };
+    }, [code, language]);
 
     return (
-      <pre className={`p-4 rounded-lg overflow-x-auto ${getThemeClass()}`}>
+      <pre className="p-4 rounded-lg overflow-x-auto">
         <code
-          className="language-text"
+          className="hljs"
           dangerouslySetInnerHTML={{ __html: highlightedCode }}
         />
       </pre>
