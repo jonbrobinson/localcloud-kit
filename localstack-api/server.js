@@ -463,6 +463,145 @@ async function listBucketContents(projectName, bucketName) {
   }
 }
 
+async function listDynamoDBTables(projectName) {
+  try {
+    let command = `./list_dynamodb_tables.sh ${projectName}`;
+
+    const { stdout, stderr } = await execAsync(command, {
+      cwd: "/app/scripts/shell",
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `DynamoDB table listing warning: ${stderr}`, "automation");
+    }
+
+    // Parse the output as JSON array
+    let tables = [];
+    try {
+      tables = JSON.parse(stdout);
+      if (!Array.isArray(tables)) {
+        addLog(
+          "error",
+          "DynamoDB table listing output is not a JSON array",
+          "automation"
+        );
+        tables = [];
+      }
+    } catch (err) {
+      addLog(
+        "error",
+        `Failed to parse DynamoDB table listing JSON: ${err.message}`,
+        "automation"
+      );
+      tables = [];
+    }
+
+    return tables;
+  } catch (error) {
+    addLog(
+      "error",
+      `Failed to list DynamoDB tables: ${error.message}`,
+      "automation"
+    );
+    return [];
+  }
+}
+
+async function scanDynamoDBTable(projectName, tableName, limit = 100) {
+  try {
+    let command = `./scan_dynamodb_table.sh ${projectName} ${tableName} ${limit}`;
+
+    const { stdout, stderr } = await execAsync(command, {
+      cwd: "/app/scripts/shell",
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `DynamoDB scan warning: ${stderr}`, "automation");
+    }
+
+    // Parse the output as JSON
+    let result = { items: [], count: 0, scannedCount: 0 };
+    try {
+      result = JSON.parse(stdout);
+    } catch (err) {
+      addLog(
+        "error",
+        `Failed to parse DynamoDB scan JSON: ${err.message}`,
+        "automation"
+      );
+    }
+
+    return result;
+  } catch (error) {
+    addLog(
+      "error",
+      `Failed to scan DynamoDB table: ${error.message}`,
+      "automation"
+    );
+    return { items: [], count: 0, scannedCount: 0 };
+  }
+}
+
+async function queryDynamoDBTable(
+  projectName,
+  tableName,
+  partitionKey,
+  partitionValue,
+  sortKey,
+  sortValue,
+  limit = 100
+) {
+  try {
+    let command = `./query_dynamodb_table.sh ${projectName} ${tableName} "${partitionKey}" "${partitionValue}" "${
+      sortKey || ""
+    }" "${sortValue || ""}" ${limit}`;
+
+    const { stdout, stderr } = await execAsync(command, {
+      cwd: "/app/scripts/shell",
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: projectConfig.awsEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `DynamoDB query warning: ${stderr}`, "automation");
+    }
+
+    // Parse the output as JSON
+    let result = { items: [], count: 0, scannedCount: 0 };
+    try {
+      result = JSON.parse(stdout);
+    } catch (err) {
+      addLog(
+        "error",
+        `Failed to parse DynamoDB query JSON: ${err.message}`,
+        "automation"
+      );
+    }
+
+    return result;
+  } catch (error) {
+    addLog(
+      "error",
+      `Failed to query DynamoDB table: ${error.message}`,
+      "automation"
+    );
+    return { items: [], count: 0, scannedCount: 0 };
+  }
+}
+
 // API Routes
 
 // Health check
@@ -628,6 +767,68 @@ app.get("/s3/bucket/:bucketName/contents", async (req, res) => {
   const { bucketName } = req.params;
   const contents = await listBucketContents(projectName, bucketName);
   res.json({ success: true, data: contents });
+});
+
+// DynamoDB Table Management
+app.get("/dynamodb/tables", async (req, res) => {
+  try {
+    const { projectName } = req.query;
+    const tables = await listDynamoDBTables(projectName);
+    res.json({ success: true, data: tables });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+app.get("/dynamodb/table/:tableName/scan", async (req, res) => {
+  try {
+    const { projectName, limit = "100" } = req.query;
+    const { tableName } = req.params;
+    const result = await scanDynamoDBTable(
+      projectName,
+      tableName,
+      parseInt(limit)
+    );
+    res.json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+app.get("/dynamodb/table/:tableName/query", async (req, res) => {
+  try {
+    const {
+      projectName,
+      partitionKey,
+      partitionValue,
+      sortKey,
+      sortValue,
+      limit = "100",
+    } = req.query;
+    const { tableName } = req.params;
+
+    const result = await queryDynamoDBTable(
+      projectName,
+      tableName,
+      partitionKey,
+      partitionValue,
+      sortKey,
+      sortValue,
+      parseInt(limit)
+    );
+    res.json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
 });
 
 // Socket.IO connection handling

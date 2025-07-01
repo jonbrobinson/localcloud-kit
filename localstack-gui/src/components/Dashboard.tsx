@@ -27,6 +27,7 @@ import DynamoDBConfigModal from "./DynamoDBConfigModal";
 import S3ConfigModal from "./S3ConfigModal";
 import LogViewer from "./LogViewer";
 import BucketViewer from "./BucketViewer";
+import DynamoDBViewer from "./DynamoDBViewer";
 import Image from "next/image";
 
 export default function Dashboard() {
@@ -44,6 +45,7 @@ export default function Dashboard() {
   const [showS3Config, setShowS3Config] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const [showBuckets, setShowBuckets] = useState(false);
+  const [showDynamoDB, setShowDynamoDB] = useState(false);
 
   // Loading states for buttons
   const [createLoading, setCreateLoading] = useState(false);
@@ -291,6 +293,12 @@ export default function Dashboard() {
                 <FolderIcon className="h-4 w-4 mr-2" />
                 S3 Buckets
               </button>
+              <button
+                onClick={() => setShowDynamoDB(true)}
+                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                🗄️ DynamoDB Tables
+              </button>
             </div>
           </div>
         </div>
@@ -480,6 +488,14 @@ export default function Dashboard() {
         <BucketViewer
           isOpen={showBuckets}
           onClose={() => setShowBuckets(false)}
+          projectName={config.projectName}
+        />
+      )}
+
+      {showDynamoDB && (
+        <DynamoDBViewer
+          isOpen={showDynamoDB}
+          onClose={() => setShowDynamoDB(false)}
           projectName={config.projectName}
         />
       )}
