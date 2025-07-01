@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **style**: Fix DynamoDB table column order to show primary keys first
 - **style**: Match input, select, and checkbox stylings across all forms for consistency
 - **docs**: Rename project from LocalStack Template to LocalStack Manager
+- **style(eslint):** Clean up code to resolve ESLint warnings and set `no-explicit-any` to `warn` for practical AWS usage. Improved code quality and maintainability.
 
 ### Fixed
 
