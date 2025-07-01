@@ -32,40 +32,58 @@ const CodeBlock = ({
   language: string;
   theme?: string;
 }) => {
-  const codeRef = useRef<HTMLElement>(null);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  useEffect(() => {
-    if (codeRef.current && isClient) {
-      Prism.highlightElement(codeRef.current);
-    }
-  }, [code, isClient]);
+  // Don't render anything until client-side
+  if (!isClient) {
+    return (
+      <pre
+        className={`p-4 rounded-lg overflow-x-auto ${
+          theme === "prism" ? "" : theme
+        }`}
+      >
+        <code>{code}</code>
+      </pre>
+    );
+  }
 
-  const languageClass =
-    language.toLowerCase() === "javascript"
-      ? "language-javascript"
-      : language.toLowerCase() === "python"
-      ? "language-python"
-      : language.toLowerCase() === "go"
-      ? "language-go"
-      : language.toLowerCase() === "java"
-      ? "language-java"
-      : "language-text";
+  // Client-side only rendering with Prism
+  const ClientCodeBlock = () => {
+    const codeRef = useRef<HTMLElement>(null);
 
-  // Apply theme class to the pre element
-  const themeClass = theme === "prism" ? "" : theme;
+    useEffect(() => {
+      if (codeRef.current) {
+        Prism.highlightElement(codeRef.current);
+      }
+    }, [code]);
 
-  return (
-    <pre className={`p-4 rounded-lg overflow-x-auto ${themeClass}`}>
-      <code ref={codeRef} className={languageClass}>
-        {code}
-      </code>
-    </pre>
-  );
+    const languageClass =
+      language.toLowerCase() === "javascript"
+        ? "language-javascript"
+        : language.toLowerCase() === "python"
+        ? "language-python"
+        : language.toLowerCase() === "go"
+        ? "language-go"
+        : language.toLowerCase() === "java"
+        ? "language-java"
+        : "language-text";
+
+    const themeClass = theme === "prism" ? "" : theme;
+
+    return (
+      <pre className={`p-4 rounded-lg overflow-x-auto ${themeClass}`}>
+        <code ref={codeRef} className={languageClass}>
+          {code}
+        </code>
+      </pre>
+    );
+  };
+
+  return <ClientCodeBlock />;
 };
 
 const codeExamples: CodeExample[] = [
