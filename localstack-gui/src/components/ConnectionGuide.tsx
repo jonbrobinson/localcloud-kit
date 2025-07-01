@@ -33,12 +33,17 @@ const CodeBlock = ({
   theme?: string;
 }) => {
   const codeRef = useRef<HTMLElement>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    if (codeRef.current) {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (codeRef.current && isClient) {
       Prism.highlightElement(codeRef.current);
     }
-  }, [code]);
+  }, [code, isClient]);
 
   const languageClass =
     language.toLowerCase() === "javascript"
