@@ -57,9 +57,11 @@ const CodeBlock = ({
 
     useEffect(() => {
       if (codeRef.current) {
+        // Clear previous highlighting before applying new one
+        delete codeRef.current.dataset.highlighted;
         hljs.highlightElement(codeRef.current);
       }
-    }, [code]);
+    }, [code, theme]);
 
     const languageClass =
       language.toLowerCase() === "javascript"
