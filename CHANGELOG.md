@@ -47,6 +47,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **refactor**: Remove "Create Multiple" button from interface
 - **refactor**: Remove unnecessary root-level package.json and package-lock.json files to clean up project structure
 
+## [0.1.1] - 2025-07-01
+
+### Removed
+
+- **refactor**: Remove unnecessary root-level package.json and package-lock.json files to clean up project structure
+
 ## [0.1.0] - 2025-06-28
 
 ### Added

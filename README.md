@@ -4,7 +4,7 @@
 
 A comprehensive LocalStack automation template with shell-based automation and a modern web GUI for resource management, all containerized with Docker.
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/jonbrobinson/localstack-manager/releases/tag/v0.1.0)
+[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](https://github.com/jonbrobinson/localstack-manager/releases/tag/v0.1.1)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
