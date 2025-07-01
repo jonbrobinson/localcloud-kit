@@ -3,18 +3,18 @@
 import { useState } from "react";
 import { CodeBracketIcon, CommandLineIcon } from "@heroicons/react/24/outline";
 import { useEffect, useRef } from "react";
-import Prism from "prismjs";
-import "prismjs/themes/prism.css";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-go";
-import "prismjs/components/prism-java";
+import hljs from "highlight.js";
+import "highlight.js/styles/github.css";
+import "highlight.js/styles/tomorrow.css";
+import "highlight.js/styles/okaidia.css";
+import "highlight.js/styles/solarized-light.css";
+import "highlight.js/styles/dark.css";
 
-// Import additional themes
-import "prismjs/themes/prism-tomorrow.css";
-import "prismjs/themes/prism-okaidia.css";
-import "prismjs/themes/prism-solarizedlight.css";
-import "prismjs/themes/prism-dark.css";
+// Import language support
+import "highlight.js/lib/languages/javascript";
+import "highlight.js/lib/languages/python";
+import "highlight.js/lib/languages/go";
+import "highlight.js/lib/languages/java";
 
 interface CodeExample {
   language: string;
@@ -51,13 +51,13 @@ const CodeBlock = ({
     );
   }
 
-  // Client-side only rendering with Prism
+  // Client-side only rendering with highlight.js
   const ClientCodeBlock = () => {
     const codeRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
       if (codeRef.current) {
-        Prism.highlightElement(codeRef.current);
+        hljs.highlightElement(codeRef.current);
       }
     }, [code]);
 
@@ -72,10 +72,26 @@ const CodeBlock = ({
         ? "language-java"
         : "language-text";
 
-    const themeClass = theme === "prism" ? "" : theme;
+    // Map theme names to highlight.js theme classes
+    const getThemeClass = () => {
+      switch (theme) {
+        case "prism":
+          return "hljs";
+        case "prism-tomorrow":
+          return "hljs tomorrow";
+        case "prism-okaidia":
+          return "hljs okaidia";
+        case "prism-solarizedlight":
+          return "hljs solarized-light";
+        case "prism-dark":
+          return "hljs dark";
+        default:
+          return "hljs";
+      }
+    };
 
     return (
-      <pre className={`p-4 rounded-lg overflow-x-auto ${themeClass}`}>
+      <pre className={`p-4 rounded-lg overflow-x-auto ${getThemeClass()}`}>
         <code ref={codeRef} className={languageClass}>
           {code}
         </code>
@@ -647,7 +663,7 @@ export default function ConnectionGuide() {
             onChange={(e) => setSelectedTheme(e.target.value)}
             className="bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="prism">Default</option>
+            <option value="prism">GitHub</option>
             <option value="prism-tomorrow">Tomorrow</option>
             <option value="prism-okaidia">Okaidia</option>
             <option value="prism-solarizedlight">Solarized Light</option>
