@@ -641,10 +641,15 @@ export default function ConnectionGuide() {
       {/* Language and Theme Selectors */}
       <div className="mb-6 flex flex-wrap gap-4 items-center">
         <div>
-          <label className="text-sm font-medium text-gray-700 mr-4">
+          <label
+            htmlFor="language-selector"
+            className="text-sm font-medium text-gray-700 mr-4"
+          >
             Select Language:
           </label>
           <select
+            id="language-selector"
+            name="language-selector"
             value={selectedLanguage}
             onChange={(e) => setSelectedLanguage(e.target.value)}
             className="bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -657,10 +662,15 @@ export default function ConnectionGuide() {
           </select>
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700 mr-4">
+          <label
+            htmlFor="theme-selector"
+            className="text-sm font-medium text-gray-700 mr-4"
+          >
             Select Theme:
           </label>
           <select
+            id="theme-selector"
+            name="theme-selector"
             value={selectedTheme}
             onChange={(e) => setSelectedTheme(e.target.value)}
             className="bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
