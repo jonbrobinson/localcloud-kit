@@ -214,8 +214,8 @@ export default function DynamoDBConfigModal({
 
             {gsis.length === 0 && (
               <p className="text-sm text-gray-500 italic">
-                No GSIs configured. Click "Add GSI" to create up to 5 Global
-                Secondary Indexes.
+                No GSIs configured. Click &quot;Add GSI&quot; to create up to 5
+                Global Secondary Indexes.
               </p>
             )}
 

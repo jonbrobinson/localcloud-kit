@@ -1,22 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  XMarkIcon,
-  MagnifyingGlassIcon,
-  PlusIcon,
-} from "@heroicons/react/24/outline";
-import {
-  localstackApi,
-  addDynamoDBItem,
-  getDynamoDBTableSchema,
-} from "@/services/api";
+import { XMarkIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { addDynamoDBItem, getDynamoDBTableSchema } from "@/services/api";
 import DynamoDBAddItemModal from "./DynamoDBAddItemModal";
 
 interface DynamoDBViewerProps {
   isOpen: boolean;
   onClose: () => void;
   projectName: string;
+  selectedTableName?: string;
   pkName?: string;
   skName?: string;
 }
@@ -49,8 +42,7 @@ export default function DynamoDBViewer({
   isOpen,
   onClose,
   projectName,
-  pkName = "pk",
-  skName = "sk",
+  selectedTableName,
 }: DynamoDBViewerProps) {
   const [tables, setTables] = useState<string[]>([]);
   const [selectedTable, setSelectedTable] = useState<string>("");
@@ -68,11 +60,26 @@ export default function DynamoDBViewer({
   });
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       loadTables();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && selectedTableName && tables.length > 0) {
+      setSelectedTable(selectedTableName);
+    }
+  }, [isOpen, selectedTableName, tables]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedTable("");
+      setItems([]);
+      setTableSchema(null);
+      setScanResult(null);
+      setError(null);
     }
   }, [isOpen]);
 
