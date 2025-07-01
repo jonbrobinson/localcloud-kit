@@ -6,6 +6,7 @@ import {
   CommandLineIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
+import { SyntaxHighlighter } from "react-syntax-highlighter";
 
 interface CodeExample {
   language: string;
@@ -494,9 +495,12 @@ export default function ConnectionGuide() {
                 </div>
               </div>
               <div className="px-6 py-4">
-                <pre className="bg-gray-50 rounded-lg p-4 overflow-x-auto text-sm">
-                  <code className="text-gray-800">{example.code}</code>
-                </pre>
+                <SyntaxHighlighter
+                  language={example.language}
+                  style={SyntaxHighlighter.styles.github}
+                >
+                  {example.code}
+                </SyntaxHighlighter>
               </div>
             </div>
           ))}
