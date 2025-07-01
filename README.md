@@ -294,6 +294,7 @@ ls -la scripts/shell/
 - 📖 [Web GUI Guide](localstack-gui/README.md) - Next.js interface
 - 📖 [API Server Guide](localstack-api/README.md) - Express backend
 - 📖 [Shell Scripts](scripts/shell/README.md) - Automation scripts
+- 📖 [Connection Guide](CONNECT.md) - Connect with AWS SDKs (JavaScript, Python, Go, Java)
 
 ### External Resources
 
