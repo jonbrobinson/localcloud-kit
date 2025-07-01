@@ -11,11 +11,11 @@
   "dependencies": {
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
-    "@types/prismjs": "^1.26.5",
+    "@types/highlight.js": "^9.12.4",
     "axios": "^1.10.0",
+    "highlight.js": "^11.11.1",
     "lucide-react": "^0.525.0",
     "next": "15.3.4",
-    "prismjs": "^1.30.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
