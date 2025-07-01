@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CodeBracketIcon, CommandLineIcon } from "@heroicons/react/24/outline";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
 import "highlight.js/styles/base16/tomorrow.css";
@@ -53,26 +53,25 @@ const CodeBlock = ({
 
   // Client-side only rendering with highlight.js
   const ClientCodeBlock = () => {
-    const codeRef = useRef<HTMLElement>(null);
+    const [highlightedCode, setHighlightedCode] = useState("");
 
     useEffect(() => {
-      if (codeRef.current) {
-        // Clear previous highlighting before applying new one
-        delete codeRef.current.dataset.highlighted;
-        hljs.highlightElement(codeRef.current);
-      }
-    }, [code, theme]);
+      // Use highlight.js to generate highlighted HTML safely
+      const highlighted = hljs.highlight(code, {
+        language:
+          language.toLowerCase() === "javascript"
+            ? "javascript"
+            : language.toLowerCase() === "python"
+            ? "python"
+            : language.toLowerCase() === "go"
+            ? "go"
+            : language.toLowerCase() === "java"
+            ? "java"
+            : "text",
+      }).value;
 
-    const languageClass =
-      language.toLowerCase() === "javascript"
-        ? "language-javascript"
-        : language.toLowerCase() === "python"
-        ? "language-python"
-        : language.toLowerCase() === "go"
-        ? "language-go"
-        : language.toLowerCase() === "java"
-        ? "language-java"
-        : "language-text";
+      setHighlightedCode(highlighted);
+    }, [code, theme, language]);
 
     // Map theme names to highlight.js theme classes
     const getThemeClass = () => {
@@ -94,9 +93,10 @@ const CodeBlock = ({
 
     return (
       <pre className={`p-4 rounded-lg overflow-x-auto ${getThemeClass()}`}>
-        <code ref={codeRef} className={languageClass}>
-          {code}
-        </code>
+        <code
+          className="language-text"
+          dangerouslySetInnerHTML={{ __html: highlightedCode }}
+        />
       </pre>
     );
   };
