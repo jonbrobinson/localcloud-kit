@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat**: Add individual resource creation functionality
 - **feat**: Add "View" buttons for S3 and DynamoDB resources in resource list
 - **feat**: Add inline resource viewing without dropdown selection
+- **feat**: Add syntax highlighting with highlight.js themes for code examples in Connection Guide
 
 ### Changed
 
@@ -40,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **fix**: Resolve API Gateway deletion issue
 - **fix**: Resolve delete resources API issue
 - **fix**: Remove set -x debug mode from shell scripts to eliminate warning spam
+- **fix**: Add highlight.js theme files to git tracking by removing 'public' from .gitignore
 
 ### Removed
 
