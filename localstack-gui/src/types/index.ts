@@ -29,6 +29,13 @@ export interface AutomationApproach {
   icon: string;
 }
 
+export interface S3BucketConfig {
+  bucketName: string;
+  region?: string;
+  versioning?: boolean;
+  encryption?: boolean;
+}
+
 export interface DynamoDBGSI {
   indexName: string;
   partitionKey: string;
@@ -77,12 +84,14 @@ export interface CreateResourceRequest {
   };
   template?: string;
   dynamodbConfig?: DynamoDBTableConfig;
+  s3Config?: S3BucketConfig;
 }
 
 export interface CreateSingleResourceRequest {
   projectName: string;
   resourceType: "s3" | "dynamodb" | "lambda" | "apigateway";
   dynamodbConfig?: DynamoDBTableConfig;
+  s3Config?: S3BucketConfig;
 }
 
 export interface DestroyResourceRequest {

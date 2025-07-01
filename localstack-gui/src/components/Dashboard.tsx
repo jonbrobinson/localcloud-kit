@@ -16,6 +16,7 @@ import {
   ProjectConfig,
   CreateResourceRequest,
   DynamoDBTableConfig,
+  S3BucketConfig,
 } from "@/types";
 import { localstackApi, resourceApi, configApi } from "@/services/api";
 import { useLocalStackData } from "@/hooks/useLocalStackData";
@@ -23,6 +24,7 @@ import StatusCard from "./StatusCard";
 import ResourceList from "./ResourceList";
 import CreateResourceModal from "./CreateResourceModal";
 import DynamoDBConfigModal from "./DynamoDBConfigModal";
+import S3ConfigModal from "./S3ConfigModal";
 import LogViewer from "./LogViewer";
 import BucketViewer from "./BucketViewer";
 import Image from "next/image";
@@ -39,6 +41,7 @@ export default function Dashboard() {
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDynamoDBConfig, setShowDynamoDBConfig] = useState(false);
+  const [showS3Config, setShowS3Config] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const [showBuckets, setShowBuckets] = useState(false);
 
@@ -76,9 +79,14 @@ export default function Dashboard() {
   };
 
   const handleCreateSingleResource = async (resourceType: string) => {
-    // Special handling for DynamoDB - show config modal instead
+    // Special handling for DynamoDB and S3 - show config modals instead
     if (resourceType === "dynamodb") {
       setShowDynamoDBConfig(true);
+      return;
+    }
+
+    if (resourceType === "s3") {
+      setShowS3Config(true);
       return;
     }
 
@@ -133,6 +141,35 @@ export default function Dashboard() {
       console.error("Create DynamoDB table error:", error);
       toast.error(
         `Failed to create DynamoDB table: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleCreateS3Bucket = async (s3Config: S3BucketConfig) => {
+    setCreateLoading(true);
+    try {
+      const response = await resourceApi.createSingleWithConfig(
+        config.projectName,
+        "s3",
+        { s3Config }
+      );
+      if (response.success) {
+        toast.success("S3 bucket created successfully");
+        setShowS3Config(false);
+        setTimeout(async () => {
+          await loadInitialData();
+        }, 1000);
+      } else {
+        toast.error(response.error || "Failed to create S3 bucket");
+      }
+    } catch (error) {
+      console.error("Create S3 bucket error:", error);
+      toast.error(
+        `Failed to create S3 bucket: ${
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
@@ -420,6 +457,16 @@ export default function Dashboard() {
           isOpen={showDynamoDBConfig}
           onClose={() => setShowDynamoDBConfig(false)}
           onSubmit={handleCreateDynamoDBTable}
+          projectName={config.projectName}
+          loading={createLoading}
+        />
+      )}
+
+      {showS3Config && (
+        <S3ConfigModal
+          isOpen={showS3Config}
+          onClose={() => setShowS3Config(false)}
+          onSubmit={handleCreateS3Bucket}
           projectName={config.projectName}
           loading={createLoading}
         />
