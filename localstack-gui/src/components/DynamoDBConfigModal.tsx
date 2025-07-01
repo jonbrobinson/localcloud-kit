@@ -48,6 +48,7 @@ export default function DynamoDBConfigModal({
     setGsis(gsis.filter((_, i) => i !== index));
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateGSI = (index: number, field: keyof DynamoDBGSI, value: any) => {
     const updatedGsis = [...gsis];
     updatedGsis[index] = { ...updatedGsis[index], [field]: value };

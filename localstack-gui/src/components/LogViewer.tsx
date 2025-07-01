@@ -114,6 +114,7 @@ export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
                 </label>
                 <select
                   value={filter}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   onChange={(e) => setFilter(e.target.value as any)}
                   className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
