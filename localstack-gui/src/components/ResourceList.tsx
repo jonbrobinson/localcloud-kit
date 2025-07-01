@@ -16,6 +16,8 @@ interface ResourceListProps {
   onDestroy: (resourceIds: string[]) => void;
   projectName: string;
   loading?: boolean;
+  onViewS3?: (bucketName: string) => void;
+  onViewDynamoDB?: (tableName: string) => void;
 }
 
 export default function ResourceList({
@@ -23,6 +25,8 @@ export default function ResourceList({
   onDestroy,
   projectName,
   loading = false,
+  onViewS3,
+  onViewDynamoDB,
 }: ResourceListProps) {
   const [selectedResources, setSelectedResources] = useState<string[]>([]);
   const [showDetails, setShowDetails] = useState<string | null>(null);
@@ -177,6 +181,32 @@ export default function ResourceList({
                   <span className="ml-1 capitalize">{resource.status}</span>
                 </span>
 
+                {/* View Button for S3 and DynamoDB */}
+                {resource.status === "active" && (
+                  <>
+                    {resource.type === "s3" && onViewS3 && (
+                      <button
+                        onClick={() => onViewS3(resource.name)}
+                        className="flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                        title="View S3 Bucket Contents"
+                      >
+                        <EyeIcon className="h-3 w-3 mr-1" />
+                        View
+                      </button>
+                    )}
+                    {resource.type === "dynamodb" && onViewDynamoDB && (
+                      <button
+                        onClick={() => onViewDynamoDB(resource.name)}
+                        className="flex items-center px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors"
+                        title="View DynamoDB Table Contents"
+                      >
+                        <EyeIcon className="h-3 w-3 mr-1" />
+                        View
+                      </button>
+                    )}
+                  </>
+                )}
+
                 <button
                   onClick={() =>
                     setShowDetails(
@@ -184,6 +214,7 @@ export default function ResourceList({
                     )
                   }
                   className="text-gray-400 hover:text-gray-600"
+                  title="Show Details"
                 >
                   <EyeIcon className="h-4 w-4" />
                 </button>
@@ -239,4 +270,3 @@ export default function ResourceList({
     </div>
   );
 }
- 

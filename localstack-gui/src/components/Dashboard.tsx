@@ -14,7 +14,6 @@ import {
   LocalStackStatus,
   Resource,
   ProjectConfig,
-  CreateResourceRequest,
   DynamoDBTableConfig,
   S3BucketConfig,
 } from "@/types";
@@ -22,7 +21,7 @@ import { localstackApi, resourceApi, configApi } from "@/services/api";
 import { useLocalStackData } from "@/hooks/useLocalStackData";
 import StatusCard from "./StatusCard";
 import ResourceList from "./ResourceList";
-import CreateResourceModal from "./CreateResourceModal";
+
 import DynamoDBConfigModal from "./DynamoDBConfigModal";
 import S3ConfigModal from "./S3ConfigModal";
 import LogViewer from "./LogViewer";
@@ -40,7 +39,6 @@ export default function Dashboard() {
     refetch: loadInitialData,
   } = useLocalStackData();
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDynamoDBConfig, setShowDynamoDBConfig] = useState(false);
   const [showS3Config, setShowS3Config] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
@@ -54,31 +52,6 @@ export default function Dashboard() {
   // Debug logging
   console.log("Dashboard render - showCreateModal:", showCreateModal);
   console.log("Dashboard render - config:", config);
-
-  const handleCreateResources = async (request: CreateResourceRequest) => {
-    setCreateLoading(true);
-    try {
-      const response = await resourceApi.create(request);
-      if (response.success) {
-        toast.success("Resources created successfully");
-        setShowCreateModal(false);
-        setTimeout(async () => {
-          await loadInitialData();
-        }, 1000);
-      } else {
-        toast.error(response.error || "Failed to create resources");
-      }
-    } catch (error) {
-      console.error("Create resources error:", error);
-      toast.error(
-        `Failed to create resources: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-    } finally {
-      setCreateLoading(false);
-    }
-  };
 
   const handleCreateSingleResource = async (resourceType: string) => {
     // Special handling for DynamoDB and S3 - show config modals instead
@@ -357,36 +330,7 @@ export default function Dashboard() {
                   >
                     🗄️ DynamoDB
                   </button>
-                  <button
-                    onClick={() => handleCreateSingleResource("lambda")}
-                    disabled={createLoading}
-                    className="flex items-center px-3 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 disabled:opacity-50 transition-colors"
-                    title="Create Lambda Function"
-                  >
-                    ⚡ Lambda
-                  </button>
-                  <button
-                    onClick={() => handleCreateSingleResource("apigateway")}
-                    disabled={createLoading}
-                    className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                    title="Create API Gateway"
-                  >
-                    🌐 API Gateway
-                  </button>
                 </div>
-
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  disabled={createLoading}
-                  className="flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all shadow-md"
-                >
-                  {createLoading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  ) : (
-                    <PlusIcon className="h-4 w-4 mr-2" />
-                  )}
-                  {createLoading ? "Creating..." : "Create Multiple"}
-                </button>
               </div>
             </div>
             <ResourceList
@@ -394,6 +338,8 @@ export default function Dashboard() {
               onDestroy={handleDestroyResources}
               projectName={config.projectName}
               loading={destroyLoading}
+              onViewS3={(bucketName) => setShowBuckets(true)}
+              onViewDynamoDB={(tableName) => setShowDynamoDB(true)}
             />
           </div>
         )}
@@ -450,15 +396,6 @@ export default function Dashboard() {
       </div>
 
       {/* Modals */}
-      {showCreateModal && (
-        <CreateResourceModal
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onSubmit={handleCreateResources}
-          config={config}
-          loading={createLoading}
-        />
-      )}
 
       {showDynamoDBConfig && (
         <DynamoDBConfigModal
