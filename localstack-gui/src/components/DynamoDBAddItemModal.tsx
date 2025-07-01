@@ -4,10 +4,17 @@ import { useState, useEffect } from "react";
 import { XMarkIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { getDynamoDBTableSchema } from "@/services/api";
 
-interface Attribute {
+interface MapItem {
   key: string;
   value: string;
   type: "S" | "N" | "BOOL";
+}
+
+interface Attribute {
+  key: string;
+  value: string;
+  type: "S" | "N" | "BOOL" | "M";
+  mapItems?: MapItem[];
 }
 
 interface TableSchema {
@@ -77,6 +84,35 @@ export default function DynamoDBAddItemModal({
     setAttributes([...attributes, { key: "", value: "", type: "S" }]);
   };
 
+  const handleAddMapItem = (attributeIndex: number) => {
+    const updated = [...attributes];
+    if (!updated[attributeIndex].mapItems) {
+      updated[attributeIndex].mapItems = [];
+    }
+    updated[attributeIndex].mapItems!.push({ key: "", value: "", type: "S" });
+    setAttributes(updated);
+  };
+
+  const handleRemoveMapItem = (
+    attributeIndex: number,
+    mapItemIndex: number
+  ) => {
+    const updated = [...attributes];
+    updated[attributeIndex].mapItems!.splice(mapItemIndex, 1);
+    setAttributes(updated);
+  };
+
+  const handleMapItemChange = (
+    attributeIndex: number,
+    mapItemIndex: number,
+    field: keyof MapItem,
+    value: any
+  ) => {
+    const updated = [...attributes];
+    updated[attributeIndex].mapItems![mapItemIndex][field] = value;
+    setAttributes(updated);
+  };
+
   const handleRemoveAttribute = (index: number) => {
     setAttributes(attributes.filter((_, i) => i !== index));
   };
@@ -132,6 +168,19 @@ export default function DynamoDBAddItemModal({
       else if (attr.type === "N") item[attr.key] = { N: attr.value };
       else if (attr.type === "BOOL")
         item[attr.key] = { BOOL: attr.value === "true" };
+      else if (attr.type === "M" && attr.mapItems) {
+        // Build map object
+        const mapObj: Record<string, any> = {};
+        for (const mapItem of attr.mapItems) {
+          if (!mapItem.key) continue;
+          if (mapItem.type === "S") mapObj[mapItem.key] = { S: mapItem.value };
+          else if (mapItem.type === "N")
+            mapObj[mapItem.key] = { N: mapItem.value };
+          else if (mapItem.type === "BOOL")
+            mapObj[mapItem.key] = { BOOL: mapItem.value === "true" };
+        }
+        item[attr.key] = { M: mapObj };
+      }
     }
 
     onSubmit(item);
@@ -190,44 +239,130 @@ export default function DynamoDBAddItemModal({
                 Custom Attributes
               </label>
               {attributes.map((attr, idx) => (
-                <div key={idx} className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="text"
-                    value={attr.key}
-                    onChange={(e) =>
-                      handleAttributeChange(idx, "key", e.target.value)
-                    }
-                    className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    placeholder="Attribute Name"
-                  />
-                  <select
-                    value={attr.type}
-                    onChange={(e) =>
-                      handleAttributeChange(idx, "type", e.target.value)
-                    }
-                    className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                  >
-                    <option value="S">String</option>
-                    <option value="N">Number</option>
-                    <option value="BOOL">Boolean</option>
-                  </select>
-                  <input
-                    type="text"
-                    value={attr.value}
-                    onChange={(e) =>
-                      handleAttributeChange(idx, "value", e.target.value)
-                    }
-                    className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    placeholder="Value"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveAttribute(idx)}
-                    className="text-red-600 hover:text-red-800"
-                    aria-label="Remove"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
+                <div
+                  key={idx}
+                  className="border border-gray-200 rounded-md p-3 mb-3"
+                >
+                  <div className="flex items-center space-x-2 mb-2">
+                    <input
+                      type="text"
+                      value={attr.key}
+                      onChange={(e) =>
+                        handleAttributeChange(idx, "key", e.target.value)
+                      }
+                      className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                      placeholder="Attribute Name"
+                    />
+                    <select
+                      value={attr.type}
+                      onChange={(e) =>
+                        handleAttributeChange(idx, "type", e.target.value)
+                      }
+                      className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                    >
+                      <option value="S">String</option>
+                      <option value="N">Number</option>
+                      <option value="BOOL">Boolean</option>
+                      <option value="M">Map</option>
+                    </select>
+                    {attr.type !== "M" && (
+                      <input
+                        type="text"
+                        value={attr.value}
+                        onChange={(e) =>
+                          handleAttributeChange(idx, "value", e.target.value)
+                        }
+                        className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                        placeholder="Value"
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAttribute(idx)}
+                      className="text-red-600 hover:text-red-800"
+                      aria-label="Remove"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  {/* Map Items */}
+                  {attr.type === "M" && (
+                    <div className="ml-4 border-l-2 border-blue-200 pl-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700">
+                          Map Items
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleAddMapItem(idx)}
+                          className="flex items-center px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                          <PlusIcon className="h-3 w-3 mr-1" />
+                          Add Item
+                        </button>
+                      </div>
+                      {attr.mapItems?.map((mapItem, mapIdx) => (
+                        <div
+                          key={mapIdx}
+                          className="flex items-center space-x-2 mb-2"
+                        >
+                          <input
+                            type="text"
+                            value={mapItem.key}
+                            onChange={(e) =>
+                              handleMapItemChange(
+                                idx,
+                                mapIdx,
+                                "key",
+                                e.target.value
+                              )
+                            }
+                            className="w-24 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-xs"
+                            placeholder="Key"
+                          />
+                          <select
+                            value={mapItem.type}
+                            onChange={(e) =>
+                              handleMapItemChange(
+                                idx,
+                                mapIdx,
+                                "type",
+                                e.target.value
+                              )
+                            }
+                            className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-xs"
+                          >
+                            <option value="S">String</option>
+                            <option value="N">Number</option>
+                            <option value="BOOL">Boolean</option>
+                          </select>
+                          <input
+                            type="text"
+                            value={mapItem.value}
+                            onChange={(e) =>
+                              handleMapItemChange(
+                                idx,
+                                mapIdx,
+                                "value",
+                                e.target.value
+                              )
+                            }
+                            className="w-24 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-xs"
+                            placeholder="Value"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMapItem(idx, mapIdx)}
+                            className="text-red-600 hover:text-red-800"
+                            aria-label="Remove"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
               <button
