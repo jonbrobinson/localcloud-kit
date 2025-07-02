@@ -24,3 +24,46 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Syntax highlighting styles for FileViewerModal */
+.hljs {
+  background: transparent !important;
+  color: #e5e7eb !important;
+}
+
+.hljs-keyword {
+  color: #fbbf24 !important;
+}
+
+.hljs-string {
+  color: #34d399 !important;
+}
+
+.hljs-number {
+  color: #60a5fa !important;
+}
+
+.hljs-comment {
+  color: #6b7280 !important;
+  font-style: italic;
+}
+
+.hljs-function {
+  color: #a78bfa !important;
+}
+
+.hljs-variable {
+  color: #f87171 !important;
+}
+
+.hljs-property {
+  color: #fbbf24 !important;
+}
+
+.hljs-operator {
+  color: #e5e7eb !important;
+}
+
+.hljs-punctuation {
+  color: #e5e7eb !important;
+}
