@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { XMarkIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import hljs from "highlight.js";
-import "highlight.js/styles/tomorrow.css";
 
 interface FileViewerModalProps {
   isOpen: boolean;
@@ -199,7 +198,13 @@ export default function FileViewerModal({
           ) : fileContent ? (
             <div className="h-full overflow-auto">
               <div className="p-6">
-                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm leading-relaxed">
+                <pre
+                  className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm leading-relaxed"
+                  style={{
+                    fontFamily:
+                      'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+                  }}
+                >
                   <code
                     dangerouslySetInnerHTML={{
                       __html: highlightCode(
@@ -208,6 +213,12 @@ export default function FileViewerModal({
                           fileContent.metadata.ContentType
                         )
                       ),
+                    }}
+                    className="hljs"
+                    style={{
+                      background: "transparent",
+                      padding: 0,
+                      color: "#e5e7eb",
                     }}
                   />
                 </pre>
