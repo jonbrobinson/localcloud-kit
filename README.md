@@ -72,6 +72,7 @@ localstack-manager/
 │   ├── 📄 sample.json          # JSON example
 │   ├── 📄 sample.csv           # CSV example
 │   ├── 📄 Sample.java          # Java example
+│   ├── 📄 sample.docx          # Word document example
 │   └── 📄 README.md            # Samples documentation
 ├── 📄 docker-compose.yml       # Docker Compose configuration
 ├── 📄 Dockerfile.gui           # GUI container build
@@ -172,9 +173,10 @@ Upload sample files from the `samples/` directory to test the file viewer functi
 aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.py s3://your-bucket-name/
 aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.js s3://your-bucket-name/
 aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.json s3://your-bucket-name/
+aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.docx s3://your-bucket-name/
 ```
 
-Then view the files in the GUI to see syntax highlighting in action.
+Then view the files in the GUI to see syntax highlighting and document formatting in action.
 
 ## 🎨 GUI Features
 
