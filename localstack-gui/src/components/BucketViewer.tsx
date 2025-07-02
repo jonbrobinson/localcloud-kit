@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { s3Api } from "@/services/api";
 import FileViewerModal from "./FileViewerModal";
+import { highlightThemes, HighlightTheme } from "./highlightThemes";
 
 interface BucketViewerProps {
   isOpen: boolean;
@@ -45,6 +46,7 @@ export default function BucketViewer({
     objectKey: string;
   } | null>(null);
   const [deletingFile, setDeletingFile] = useState<string | null>(null);
+  const [selectedTheme, setSelectedTheme] = useState<HighlightTheme>("github");
 
   const loadBuckets = useCallback(async () => {
     setLoading(true);
@@ -103,6 +105,16 @@ export default function BucketViewer({
       setError(null);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("hljs-theme");
+    if (stored && highlightThemes[stored])
+      setSelectedTheme(stored as HighlightTheme);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("hljs-theme", selectedTheme);
+  }, [selectedTheme]);
 
   const formatFileSize = (bytes: number | undefined) => {
     if (!bytes) return "0 B";
@@ -181,13 +193,15 @@ export default function BucketViewer({
               {selectedBucket ? `Bucket: ${selectedBucket}` : "S3 Buckets"}
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-            aria-label="Close"
-          >
-            <XMarkIcon className="h-6 w-6" />
-          </button>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+              aria-label="Close"
+            >
+              <XMarkIcon className="h-6 w-6" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -351,6 +365,7 @@ export default function BucketViewer({
           projectName={projectName}
           bucketName={selectedFile.bucketName}
           objectKey={selectedFile.objectKey}
+          theme={selectedTheme}
         />
       )}
     </div>

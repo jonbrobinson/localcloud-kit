@@ -94,23 +94,23 @@ main() {
     print_status "Initializing LocalStack Manager..."
     
     # Check prerequisites
-    check_docker
-    check_docker_compose
+        check_docker
+        check_docker_compose
     
     # Start services
-    start_docker_services
-    
+        start_docker_services
+        
     # Display success message
-    echo ""
+        echo ""
     print_success "LocalStack Manager is now running!"
-    echo ""
-    echo "╔══════════════════════════════════════════════════════════════╗"
+        echo ""
+        echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                        🌐 Access URLs                        ║"
     echo "╠══════════════════════════════════════════════════════════════╣"
     echo "║  🖥️  Web GUI:     http://localhost:3030                     ║"
     echo "║  🔌 API Server:  http://localhost:3030/api                  ║"
     echo "║  🐳 LocalStack:  http://localhost:4566                      ║"
-    echo "╚══════════════════════════════════════════════════════════════╝"
+        echo "╚══════════════════════════════════════════════════════════════╝"
     echo ""
     print_status "Use 'docker compose logs -f' to view logs"
     print_status "Containers are running in the background"

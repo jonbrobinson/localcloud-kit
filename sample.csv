@@ -1,0 +1,4 @@
+name,age,email,active
+Alice,30,alice@example.com,true
+Bob,25,bob@example.com,false
+Charlie,35,charlie@example.com,true 
