@@ -111,6 +111,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - fix(file-viewer): Register highlight.js languages and improve language detection for Python, JavaScript, TypeScript, and Java in FileViewerModal. Syntax highlighting now works for these languages based on file extension or content type.
 
+## Features
+
+- feat(samples): Add sample files for testing (sample.py, sample.js, sample.ts, sample.json, sample.csv, Sample.java)
+- feat(highlight): Add highlightThemes.ts component for theme management
+- feat(ui): Update various components with improved styling and functionality
+- feat(api): Update server.js with enhanced error handling and debugging
+- feat(scripts): Update download_s3_object.sh with improved error handling
+- feat(startup): Update start-gui.sh with enhanced startup process
+
 ---
 
 ## Angular Commit Standards

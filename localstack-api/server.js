@@ -89,7 +89,7 @@ function addLog(level, message, source = "api") {
 async function checkLocalStackStatus() {
   try {
     const response = await axios.get(`${internalEndpoint}/_localstack/health`, {
-      timeout: 5000,
+        timeout: 5000,
     });
 
     if (response.status === 200) {
@@ -176,7 +176,7 @@ async function createResources(request) {
           `Failed to create Lambda function: ${error.message}`,
           "automation"
         );
-      }
+    }
     }
 
     // Create API Gateway if requested
@@ -848,6 +848,12 @@ app.get("/s3/bucket/:bucketName/object/:objectKey", async (req, res) => {
         AWS_DEFAULT_REGION: projectConfig.awsRegion,
       },
     });
+
+    // Debug: Log the raw output
+    console.log("[S3 Download] Raw stdout:", JSON.stringify(stdout));
+    console.log("[S3 Download] Raw stderr:", JSON.stringify(stderr));
+    addLog("info", `[S3 Download] Raw stdout: ${JSON.stringify(stdout)}`);
+    addLog("info", `[S3 Download] Raw stderr: ${JSON.stringify(stderr)}`);
 
     // Parse metadata from stderr (it's output as a comment)
     let metadata = {};

@@ -329,3 +329,4 @@ export default function DynamoDBConfigModal({
     </div>
   );
 }
+ 

@@ -60,14 +60,14 @@ download_object() {
         exit 1
     fi
     
-    # Get object content and metadata
+    # Get object content
     log "Downloading object: $object_key from bucket: $bucket_name"
     
     # Get object content
     $AWS_CMD s3api get-object \
         --bucket "$bucket_name" \
         --key "$object_key" \
-        /tmp/downloaded_object 2>/dev/null
+        /tmp/downloaded_object > /dev/null
     
     # Get object metadata
     $AWS_CMD s3api head-object \
