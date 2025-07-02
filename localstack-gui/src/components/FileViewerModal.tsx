@@ -3,6 +3,19 @@
 import { useState, useEffect } from "react";
 import { XMarkIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import hljs from "highlight.js";
+import { highlightThemes, HighlightTheme } from "./highlightThemes";
+import { marked } from "marked";
+import Papa from "papaparse";
+// Register highlight.js languages
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import python from "highlight.js/lib/languages/python";
+import java from "highlight.js/lib/languages/java";
+
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("python", python);
+hljs.registerLanguage("java", java);
 
 interface FileViewerModalProps {
   isOpen: boolean;
@@ -11,6 +24,7 @@ interface FileViewerModalProps {
   bucketName: string;
   objectKey: string;
   objectSize?: number;
+  theme?: HighlightTheme;
 }
 
 interface FileContent {
@@ -23,6 +37,48 @@ interface FileContent {
   };
 }
 
+function getViewerType(
+  contentType: string | undefined,
+  objectKey: string
+): "image" | "pdf" | "markdown" | "csv" | "json" | "code" | "plain" | "binary" {
+  if (!contentType && !objectKey) return "code";
+  const ext = objectKey.split(".").pop()?.toLowerCase() || "";
+  if (
+    contentType?.startsWith("image/") ||
+    ["png", "jpg", "jpeg", "gif", "svg", "webp", "bmp"].includes(ext)
+  )
+    return "image";
+  if (contentType === "application/pdf" || ext === "pdf") return "pdf";
+  if (contentType?.includes("markdown") || ext === "md") return "markdown";
+  if (contentType?.includes("csv") || ext === "csv") return "csv";
+  if (contentType?.includes("json") || ext === "json") return "json";
+  if (ext === "txt" || contentType === "text/plain") return "plain";
+  if (
+    [
+      "yml",
+      "yaml",
+      "xml",
+      "js",
+      "ts",
+      "tsx",
+      "py",
+      "java",
+      "c",
+      "cpp",
+      "go",
+      "rb",
+      "php",
+      "sh",
+      "sql",
+    ].includes(ext) ||
+    contentType?.startsWith("text/") ||
+    contentType?.includes("xml") ||
+    contentType?.includes("yaml")
+  )
+    return "code";
+  return "binary";
+}
+
 export default function FileViewerModal({
   isOpen,
   onClose,
@@ -30,10 +86,12 @@ export default function FileViewerModal({
   bucketName,
   objectKey,
   objectSize,
+  theme = "github",
 }: FileViewerModalProps) {
   const [fileContent, setFileContent] = useState<FileContent | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTheme, setSelectedTheme] = useState<HighlightTheme>(theme);
 
   const loadFileContent = async () => {
     if (!isOpen) return;
@@ -71,6 +129,35 @@ export default function FileViewerModal({
     }
   }, [isOpen, projectName, bucketName, objectKey]);
 
+  useEffect(() => {
+    setSelectedTheme(theme);
+  }, [theme]);
+
+  // Only show theme selector for these types
+  const themeableTypes = ["code", "json", "markdown"];
+  const showThemeSelector = themeableTypes.includes(
+    getViewerType(fileContent?.metadata.ContentType, objectKey)
+  );
+
+  // Dynamically inject highlight.js theme CSS
+  useEffect(() => {
+    if (!isOpen || !showThemeSelector) return;
+    const themeFile =
+      highlightThemes[selectedTheme] || highlightThemes["github"];
+    const id = "hljs-theme";
+    // Remove any existing theme link
+    document.querySelectorAll(`link#${id}`).forEach((el) => el.remove());
+    // Add the new theme link
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = `/hljs-themes/${themeFile}`;
+    link.id = id;
+    document.head.appendChild(link);
+    return () => {
+      document.getElementById(id)?.remove();
+    };
+  }, [selectedTheme, isOpen, showThemeSelector]);
+
   const handleDownload = () => {
     if (!fileContent) return;
 
@@ -88,24 +175,42 @@ export default function FileViewerModal({
   };
 
   const getLanguageFromContentType = (contentType?: string): string => {
-    if (!contentType) return "text";
-
-    if (contentType.includes("json")) return "json";
-    if (contentType.includes("xml")) return "xml";
-    if (contentType.includes("html")) return "html";
-    if (contentType.includes("css")) return "css";
-    if (contentType.includes("javascript") || contentType.includes("js"))
+    // Check file extension as fallback
+    const ext = objectKey.split(".").pop()?.toLowerCase() || "";
+    if (
+      ext === "js" ||
+      contentType?.includes("javascript") ||
+      contentType?.includes("js")
+    )
       return "javascript";
-    if (contentType.includes("python") || contentType.includes("py"))
+    if (ext === "ts" || ext === "tsx" || contentType?.includes("typescript"))
+      return "typescript";
+    if (
+      ext === "py" ||
+      contentType?.includes("python") ||
+      contentType?.includes("py")
+    )
       return "python";
-    if (contentType.includes("java")) return "java";
-    if (contentType.includes("sql")) return "sql";
-    if (contentType.includes("yaml") || contentType.includes("yml"))
+    if (ext === "java" || contentType?.includes("java")) return "java";
+    if (ext === "json" || contentType?.includes("json")) return "json";
+    if (ext === "xml" || contentType?.includes("xml")) return "xml";
+    if (ext === "html" || contentType?.includes("html")) return "html";
+    if (ext === "css" || contentType?.includes("css")) return "css";
+    if (ext === "sql" || contentType?.includes("sql")) return "sql";
+    if (
+      ext === "yaml" ||
+      ext === "yml" ||
+      contentType?.includes("yaml") ||
+      contentType?.includes("yml")
+    )
       return "yaml";
-    if (contentType.includes("markdown") || contentType.includes("md"))
+    if (
+      ext === "md" ||
+      contentType?.includes("markdown") ||
+      contentType?.includes("md")
+    )
       return "markdown";
-    if (contentType.includes("text/plain")) return "text";
-
+    if (ext === "txt" || contentType?.includes("text/plain")) return "text";
     return "text";
   };
 
@@ -128,6 +233,26 @@ export default function FileViewerModal({
     if (!dateString) return "Unknown";
     return new Date(dateString).toLocaleString();
   };
+
+  const viewerType = getViewerType(
+    fileContent?.metadata.ContentType,
+    objectKey
+  );
+
+  let jsonParseError: string | null = null;
+  let prettyJson = "";
+  if (viewerType === "json" && fileContent) {
+    let jsonString = fileContent.content.trim();
+    try {
+      prettyJson = JSON.stringify(JSON.parse(jsonString), null, 2);
+    } catch (e: any) {
+      jsonParseError = e.message || "Invalid JSON format.";
+      prettyJson = jsonString;
+    }
+  }
+
+  // Helper to determine if a theme is dark
+  const isDarkTheme = selectedTheme.includes("dark");
 
   if (!isOpen) return null;
 
@@ -158,6 +283,34 @@ export default function FileViewerModal({
             </div>
           </div>
           <div className="flex items-center space-x-2">
+            {/* Theme Selector (only for code/json/markdown) */}
+            {showThemeSelector && (
+              <>
+                <label
+                  className="text-xs font-semibold text-gray-700 mr-2"
+                  htmlFor="hljs-theme-select-modal"
+                >
+                  Theme:
+                </label>
+                <select
+                  id="hljs-theme-select-modal"
+                  className="border-2 border-gray-500 bg-white text-gray-900 font-semibold rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={selectedTheme}
+                  onChange={(e) =>
+                    setSelectedTheme(e.target.value as HighlightTheme)
+                  }
+                  style={{ minWidth: 140 }}
+                >
+                  {Object.keys(highlightThemes).map((key) => (
+                    <option key={key} value={key}>
+                      {key
+                        .replace(/-/g, " ")
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
             {fileContent && (
               <button
                 onClick={handleDownload}
@@ -198,30 +351,128 @@ export default function FileViewerModal({
           ) : fileContent ? (
             <div className="h-full overflow-auto">
               <div className="p-6">
-                <pre
-                  className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm leading-relaxed"
-                  style={{
-                    fontFamily:
-                      'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-                  }}
-                >
-                  <code
-                    dangerouslySetInnerHTML={{
-                      __html: highlightCode(
-                        fileContent.content,
-                        getLanguageFromContentType(
-                          fileContent.metadata.ContentType
-                        )
-                      ),
-                    }}
-                    className="hljs"
+                {viewerType === "plain" && (
+                  <pre
+                    className="bg-gray-100 text-gray-900 p-4 rounded-lg overflow-x-auto text-sm leading-relaxed font-mono shadow"
                     style={{
-                      background: "transparent",
-                      padding: 0,
-                      color: "#e5e7eb",
+                      fontFamily:
+                        'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+                    }}
+                  >
+                    {fileContent.content}
+                  </pre>
+                )}
+                {(viewerType === "code" ||
+                  viewerType === "json" ||
+                  viewerType === "markdown") && (
+                  <div
+                    className={
+                      isDarkTheme
+                        ? "bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm leading-relaxed font-mono shadow"
+                        : "bg-gray-100 text-gray-900 p-4 rounded-lg overflow-x-auto text-sm leading-relaxed font-mono shadow"
+                    }
+                    style={{
+                      fontFamily:
+                        'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+                    }}
+                  >
+                    {viewerType === "json" ? (
+                      <>
+                        {jsonParseError && (
+                          <div className="mb-2 text-red-600 text-sm font-semibold">
+                            JSON Parse Error: {jsonParseError}
+                          </div>
+                        )}
+                        <pre className="bg-transparent p-0 m-0 border-0 shadow-none">
+                          <code
+                            dangerouslySetInnerHTML={{
+                              __html: highlightCode(prettyJson, "json"),
+                            }}
+                            className="hljs"
+                            style={{ background: "transparent", padding: 0 }}
+                          />
+                        </pre>
+                      </>
+                    ) : (
+                      <pre className="bg-transparent p-0 m-0 border-0 shadow-none">
+                        <code
+                          dangerouslySetInnerHTML={{
+                            __html: highlightCode(
+                              fileContent.content,
+                              getLanguageFromContentType(
+                                fileContent.metadata.ContentType
+                              )
+                            ),
+                          }}
+                          className="hljs"
+                          style={{ background: "transparent", padding: 0 }}
+                        />
+                      </pre>
+                    )}
+                  </div>
+                )}
+                {viewerType === "image" && (
+                  <img
+                    src={`data:${
+                      fileContent.metadata.ContentType
+                    };base64,${btoa(fileContent.content)}`}
+                    alt={objectKey}
+                    className="max-w-full max-h-[60vh] mx-auto rounded shadow"
+                  />
+                )}
+                {viewerType === "pdf" && (
+                  <iframe
+                    src={`data:application/pdf;base64,${btoa(
+                      fileContent.content
+                    )}`}
+                    title={objectKey}
+                    className="w-full h-[60vh] border rounded"
+                  />
+                )}
+                {viewerType === "markdown" && (
+                  <div
+                    className="prose max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: marked.parse(fileContent.content),
                     }}
                   />
-                </pre>
+                )}
+                {viewerType === "csv" && (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-xs border border-gray-400">
+                      <tbody>
+                        {Papa.parse(fileContent.content.trim()).data.map(
+                          (row: any, i: number) => (
+                            <tr key={i}>
+                              {row.map((cell: any, j: number) => (
+                                <td
+                                  key={j}
+                                  className="border border-gray-400 px-2 py-1 whitespace-nowrap text-gray-800 font-medium"
+                                >
+                                  {cell}
+                                </td>
+                              ))}
+                            </tr>
+                          )
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {viewerType === "binary" && (
+                  <div className="text-center text-gray-500">
+                    <p>
+                      This file type cannot be previewed. Please download to
+                      view.
+                    </p>
+                    <button
+                      onClick={handleDownload}
+                      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      Download
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ) : (

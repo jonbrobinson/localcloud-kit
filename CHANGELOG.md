@@ -107,6 +107,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **fix**: Node.js version update to 22-slim for better performance
 - **fix**: Shell script debugging and error handling improvements
 
+## Fixes
+
+- fix(file-viewer): Register highlight.js languages and improve language detection for Python, JavaScript, TypeScript, and Java in FileViewerModal. Syntax highlighting now works for these languages based on file extension or content type.
+
 ---
 
 ## Angular Commit Standards
