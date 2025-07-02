@@ -6,8 +6,11 @@ import {
   FolderIcon,
   DocumentIcon,
   ArrowLeftIcon,
+  EyeIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import { s3Api } from "@/services/api";
+import FileViewerModal from "./FileViewerModal";
 
 interface BucketViewerProps {
   isOpen: boolean;
@@ -36,6 +39,12 @@ export default function BucketViewer({
   const [bucketContents, setBucketContents] = useState<BucketItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fileViewerOpen, setFileViewerOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<{
+    bucketName: string;
+    objectKey: string;
+  } | null>(null);
+  const [deletingFile, setDeletingFile] = useState<string | null>(null);
 
   const loadBuckets = useCallback(async () => {
     setLoading(true);
@@ -109,6 +118,44 @@ export default function BucketViewer({
 
   const isFolder = (key: string) => {
     return key.endsWith("/");
+  };
+
+  const handleViewFile = (objectKey: string) => {
+    if (!selectedBucket) return;
+    setSelectedFile({ bucketName: selectedBucket, objectKey });
+    setFileViewerOpen(true);
+  };
+
+  const handleDeleteFile = async (objectKey: string) => {
+    if (!selectedBucket) return;
+
+    if (!confirm(`Are you sure you want to delete "${objectKey}"?`)) {
+      return;
+    }
+
+    setDeletingFile(objectKey);
+    try {
+      const response = await s3Api.deleteObject(
+        projectName,
+        selectedBucket,
+        objectKey
+      );
+      if (response.success) {
+        // Refresh bucket contents
+        await loadBucketContents(selectedBucket);
+      } else {
+        setError(response.error || "Failed to delete file");
+      }
+    } catch {
+      setError("Failed to delete file");
+    } finally {
+      setDeletingFile(null);
+    }
+  };
+
+  const handleCloseFileViewer = () => {
+    setFileViewerOpen(false);
+    setSelectedFile(null);
   };
 
   if (!isOpen) return null;
@@ -190,6 +237,9 @@ export default function BucketViewer({
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Storage Class
                           </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -217,6 +267,31 @@ export default function BucketViewer({
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {item.StorageClass || "STANDARD"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {!isFolder(item.Key || "") && (
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={() =>
+                                      handleViewFile(item.Key || "")
+                                    }
+                                    className="p-1 text-blue-600 hover:text-blue-800"
+                                    title="View file"
+                                  >
+                                    <EyeIcon className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleDeleteFile(item.Key || "")
+                                    }
+                                    disabled={deletingFile === item.Key}
+                                    className="p-1 text-red-600 hover:text-red-800 disabled:opacity-50"
+                                    title="Delete file"
+                                  >
+                                    <TrashIcon className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -267,6 +342,17 @@ export default function BucketViewer({
           )}
         </div>
       </div>
+
+      {/* File Viewer Modal */}
+      {selectedFile && (
+        <FileViewerModal
+          isOpen={fileViewerOpen}
+          onClose={handleCloseFileViewer}
+          projectName={projectName}
+          bucketName={selectedFile.bucketName}
+          objectKey={selectedFile.objectKey}
+        />
+      )}
     </div>
   );
 }

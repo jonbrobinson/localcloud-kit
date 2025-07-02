@@ -162,6 +162,53 @@ export const s3Api = {
       return { success: false, error: "Failed to fetch bucket contents" };
     }
   },
+
+  // Download an object from a bucket
+  downloadObject: async (
+    projectName: string,
+    bucketName: string,
+    objectKey: string
+  ): Promise<ApiResponse<any>> => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/s3/bucket/${encodeURIComponent(
+          bucketName
+        )}/object/${encodeURIComponent(
+          objectKey
+        )}?projectName=${encodeURIComponent(projectName)}`
+      );
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to download object:", error);
+      return { success: false, error: "Failed to download object" };
+    }
+  },
+
+  // Delete an object from a bucket
+  deleteObject: async (
+    projectName: string,
+    bucketName: string,
+    objectKey: string
+  ): Promise<ApiResponse<any>> => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/s3/bucket/${encodeURIComponent(
+          bucketName
+        )}/object/${encodeURIComponent(
+          objectKey
+        )}?projectName=${encodeURIComponent(projectName)}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to delete object:", error);
+      return { success: false, error: "Failed to delete object" };
+    }
+  },
 };
 
 export async function addDynamoDBItem(

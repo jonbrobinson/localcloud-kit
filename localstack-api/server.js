@@ -828,6 +828,105 @@ app.get("/s3/bucket/:bucketName/contents", async (req, res) => {
   res.json({ success: true, data: contents });
 });
 
+app.get("/s3/bucket/:bucketName/object/:objectKey", async (req, res) => {
+  try {
+    const { projectName } = req.query;
+    const { bucketName, objectKey } = req.params;
+
+    if (!projectName || !bucketName || !objectKey) {
+      return res.status(400).json({
+        success: false,
+        error: "projectName, bucketName, and objectKey are required",
+      });
+    }
+
+    const command = `/usr/bin/sh /app/scripts/shell/download_s3_object.sh '${projectName}' '${bucketName}' '${objectKey}'`;
+    const { stdout, stderr } = await execAsync(command, {
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: internalEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    // Parse metadata from stderr (it's output as a comment)
+    let metadata = {};
+    if (stderr) {
+      const metadataMatch = stderr.match(/<!--METADATA:(.*?)-->/);
+      if (metadataMatch) {
+        try {
+          metadata = JSON.parse(metadataMatch[1]);
+        } catch (e) {
+          addLog(
+            "warn",
+            `Failed to parse object metadata: ${e.message}`,
+            "automation"
+          );
+        }
+      }
+    }
+
+    addLog(
+      "success",
+      `Object downloaded: ${objectKey} from bucket ${bucketName}`,
+      "automation"
+    );
+
+    res.json({
+      success: true,
+      data: {
+        content: stdout,
+        metadata: metadata,
+      },
+    });
+  } catch (error) {
+    addLog(
+      "error",
+      `Failed to download object: ${error.message}`,
+      "automation"
+    );
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/s3/bucket/:bucketName/object/:objectKey", async (req, res) => {
+  try {
+    const { projectName } = req.query;
+    const { bucketName, objectKey } = req.params;
+
+    if (!projectName || !bucketName || !objectKey) {
+      return res.status(400).json({
+        success: false,
+        error: "projectName, bucketName, and objectKey are required",
+      });
+    }
+
+    const command = `/usr/bin/sh /app/scripts/shell/delete_s3_object.sh '${projectName}' '${bucketName}' '${objectKey}'`;
+    const { stdout, stderr } = await execAsync(command, {
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: internalEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `S3 delete-object warning: ${stderr}`, "automation");
+    }
+
+    addLog(
+      "success",
+      `Object deleted: ${objectKey} from bucket ${bucketName}`,
+      "automation"
+    );
+
+    res.json({ success: true, message: stdout });
+  } catch (error) {
+    addLog("error", `Failed to delete object: ${error.message}`, "automation");
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // DynamoDB Table Management
 app.get("/dynamodb/tables", async (req, res) => {
   try {
