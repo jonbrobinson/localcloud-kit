@@ -10,6 +10,7 @@ This directory contains sample files for testing the LocalStack Manager file vie
 - **sample.json** - JSON data example
 - **sample.csv** - CSV data example
 - **Sample.java** - Java class example
+- **sample.docx** - Word document example
 
 ## Usage
 
@@ -43,6 +44,7 @@ The file viewer supports syntax highlighting for:
 
 - **Code files**: Python (.py), JavaScript (.js), TypeScript (.ts), Java (.java)
 - **Data files**: JSON (.json), CSV (.csv)
+- **Documents**: Word documents (.doc, .docx)
 - **Text files**: Plain text (.txt)
 - **Markdown**: (.md)
 - **Images**: PNG, JPG, GIF, SVG, etc.

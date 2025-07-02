@@ -1,0 +1,33 @@
+Sample Word Document
+
+This is a sample Word document created for testing the LocalStack Manager file viewer functionality.
+
+Document Information:
+- Title: Sample Document
+- Author: LocalStack Manager
+- Created: 2024
+- Purpose: Testing file viewer capabilities
+
+Content Sections:
+
+1. Introduction
+This document serves as a test file to verify that the file viewer can handle Word documents properly.
+
+2. Features
+The file viewer should be able to:
+- Display Word documents
+- Show document content
+- Handle different file formats
+- Provide download functionality
+
+3. Testing
+This document can be uploaded to S3 buckets to test:
+- File upload functionality
+- Document viewing capabilities
+- Content display formatting
+- Download features
+
+4. Conclusion
+This sample document demonstrates the various capabilities of the LocalStack Manager file viewer system.
+
+End of Document 

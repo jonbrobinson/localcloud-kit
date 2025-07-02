@@ -40,7 +40,16 @@ interface FileContent {
 function getViewerType(
   contentType: string | undefined,
   objectKey: string
-): "image" | "pdf" | "markdown" | "csv" | "json" | "code" | "plain" | "binary" {
+):
+  | "image"
+  | "pdf"
+  | "markdown"
+  | "csv"
+  | "json"
+  | "code"
+  | "plain"
+  | "binary"
+  | "document" {
   if (!contentType && !objectKey) return "code";
   const ext = objectKey.split(".").pop()?.toLowerCase() || "";
   if (
@@ -53,6 +62,13 @@ function getViewerType(
   if (contentType?.includes("csv") || ext === "csv") return "csv";
   if (contentType?.includes("json") || ext === "json") return "json";
   if (ext === "txt" || contentType === "text/plain") return "plain";
+  if (
+    ext === "doc" ||
+    ext === "docx" ||
+    contentType?.includes("word") ||
+    contentType?.includes("document")
+  )
+    return "document";
   if (
     [
       "yml",
@@ -457,6 +473,61 @@ export default function FileViewerModal({
                         )}
                       </tbody>
                     </table>
+                  </div>
+                )}
+                {viewerType === "document" && (
+                  <div className="bg-white text-gray-900 p-6 rounded-lg shadow border">
+                    <div className="prose max-w-none">
+                      <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                        {objectKey
+                          .split("/")
+                          .pop()
+                          ?.replace(/\.(doc|docx)$/i, "") || "Document"}
+                      </h1>
+                      <div
+                        className="text-gray-800 leading-relaxed"
+                        style={{
+                          fontFamily: 'Georgia, "Times New Roman", serif',
+                          lineHeight: "1.6",
+                          fontSize: "16px",
+                        }}
+                      >
+                        {fileContent.content.split("\n").map((line, index) => {
+                          if (line.trim() === "") {
+                            return <br key={index} />;
+                          }
+                          if (line.match(/^\d+\./)) {
+                            return (
+                              <p key={index} className="mb-2 ml-4">
+                                {line}
+                              </p>
+                            );
+                          }
+                          if (line.match(/^[A-Z][^:]*:$/)) {
+                            return (
+                              <h3
+                                key={index}
+                                className="text-lg font-semibold text-gray-900 mt-4 mb-2"
+                              >
+                                {line}
+                              </h3>
+                            );
+                          }
+                          if (line.startsWith("- ")) {
+                            return (
+                              <p key={index} className="mb-1 ml-4">
+                                • {line.substring(2)}
+                              </p>
+                            );
+                          }
+                          return (
+                            <p key={index} className="mb-2">
+                              {line}
+                            </p>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
                 {viewerType === "binary" && (
