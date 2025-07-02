@@ -65,6 +65,14 @@ localstack-manager/
 │   └── 📄 README.md            # API documentation
 ├── 📁 scripts/                 # Automation scripts
 │   └── 📁 shell/               # Shell-based automation
+├── 📁 samples/                 # Sample files for testing
+│   ├── 📄 sample.py            # Python example
+│   ├── 📄 sample.js            # JavaScript example
+│   ├── 📄 sample.ts            # TypeScript example
+│   ├── 📄 sample.json          # JSON example
+│   ├── 📄 sample.csv           # CSV example
+│   ├── 📄 Sample.java          # Java example
+│   └── 📄 README.md            # Samples documentation
 ├── 📄 docker-compose.yml       # Docker Compose configuration
 ├── 📄 Dockerfile.gui           # GUI container build
 ├── 📄 Dockerfile.api           # API container build
@@ -154,6 +162,19 @@ Use the web GUI to create resources individually:
 - Open http://localhost:3030
 - Select resource template
 - Create/destroy resources with one click
+
+### 4. Test File Viewer
+
+Upload sample files from the `samples/` directory to test the file viewer functionality:
+
+```bash
+# Upload sample files to test syntax highlighting
+aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.py s3://your-bucket-name/
+aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.js s3://your-bucket-name/
+aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.json s3://your-bucket-name/
+```
+
+Then view the files in the GUI to see syntax highlighting in action.
 
 ## 🎨 GUI Features
 

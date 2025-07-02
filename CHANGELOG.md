@@ -119,6 +119,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(api): Update server.js with enhanced error handling and debugging
 - feat(scripts): Update download_s3_object.sh with improved error handling
 - feat(startup): Update start-gui.sh with enhanced startup process
+- feat(organization): Move sample files to dedicated samples/ directory with documentation
 
 ---
 
