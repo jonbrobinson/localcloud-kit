@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 
 # CloudStack Solutions - Enterprise AWS Development Tools
 # Create a single AWS resource in LocalStack
 
 set -e
+export AWS_PAGER=""
 
 # Configuration
 PROJECT_NAME=${1:-"localcloud-kit"}
@@ -138,6 +139,7 @@ EOF
 create_dynamodb_table() {
   if [ -n "$RESOURCE_CONFIG" ]; then
     # Parse the JSON configuration
+    echo "DEBUG: RESOURCE_CONFIG = $RESOURCE_CONFIG" >&2
     TABLE_NAME=$(echo "$RESOURCE_CONFIG" | jq -r '.tableName // empty')
     PARTITION_KEY=$(echo "$RESOURCE_CONFIG" | jq -r '.partitionKey // "pk"')
     SORT_KEY=$(echo "$RESOURCE_CONFIG" | jq -r '.sortKey // empty')
@@ -202,13 +204,18 @@ create_dynamodb_table() {
       BILLING_ARGS="$BILLING_ARGS --provisioned-throughput ReadCapacityUnits=$READ_CAPACITY,WriteCapacityUnits=$WRITE_CAPACITY"
     fi
     
-    # Create the table
-    $AWS_CMD dynamodb create-table \
+    # Try to create the table and capture output
+    CREATE_OUTPUT=$($AWS_CMD dynamodb create-table \
       --table-name "$TABLE_NAME" \
-      --attribute-definitions "$ATTRIBUTE_DEFS" \
-      --key-schema "$KEY_SCHEMA" \
+      --attribute-definitions $ATTRIBUTE_DEFS \
+      --key-schema $KEY_SCHEMA \
       $BILLING_ARGS \
-      $GSI_ARGS 2>/dev/null || true
+      $GSI_ARGS \
+      --output json 2>&1) || {
+        echo "ERROR: Failed to create DynamoDB table: $CREATE_OUTPUT" >&2
+        exit 1
+      }
+    echo "DEBUG: CREATE_OUTPUT = $CREATE_OUTPUT" >&2
     
     log "Created DynamoDB table: $TABLE_NAME with configuration"
     
