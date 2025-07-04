@@ -321,3 +321,42 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Built with ❤️ by CloudStack Solutions**
+
+## 🛠️ Troubleshooting
+
+### Shell Script Permission Denied (e.g., 'Permission denied' on create_single_resource.sh)
+
+If you see errors like:
+
+```
+/bin/sh: ./create_single_resource.sh: Permission denied
+```
+
+This means the shell script does not have execute permissions inside the container. To fix:
+
+1. **Grant execute permissions to all shell scripts:**
+   ```sh
+   chmod +x scripts/shell/*.sh
+   git add scripts/shell/*.sh
+   git commit -m "chore(scripts): ensure all shell scripts are executable"
+   git push
+   ```
+2. **Rebuild your Docker containers:**
+   ```sh
+   docker compose build --no-cache
+   docker compose up
+   ```
+
+> **Note:**
+>
+> - Git tracks the executable bit. If you commit scripts with `+x` permissions, they will retain those permissions across branches and repositories.
+> - If you copy files outside of git (e.g., via zip or some editors), permissions may not be preserved.
+> - On Windows, the executable bit may not be respected, but on macOS and Linux it is.
+
+If you still see permission errors, you can also run this inside the running container:
+
+```sh
+docker exec localcloud-api chmod +x /app/scripts/shell/*.sh
+```
+
+---
