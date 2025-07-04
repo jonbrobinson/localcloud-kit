@@ -1,32 +1,23 @@
-# Dockerfile for Express.js API (Development)
-FROM node:22-slim
+# Use the official Node.js runtime as the base image
+FROM node:18-alpine
 
+# Set the working directory
 WORKDIR /app
 
-# Install system dependencies (AWS CLI and jq)
-RUN apt-get update && apt-get install -y \
-    awscli \
-    jq \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
 # Copy package files
-COPY localstack-api/package*.json ./
+COPY localcloud-api/package*.json ./
 
-# Install dependencies (including dev dependencies for nodemon)
-RUN npm install
+# Install dependencies
+RUN npm ci --only=production
 
-# Copy source code
-COPY localstack-api/ ./
+# Copy the rest of the application
+COPY localcloud-api/ ./
 
-# Copy shell scripts
-COPY scripts/shell/ ./scripts/shell/
+# Create logs directory
+RUN mkdir -p logs
 
-# Ensure scripts are executable
-RUN chmod +x ./scripts/shell/*.sh
-
+# Expose the port the app runs on
 EXPOSE 3031
 
-ENV PORT=3031
-
-CMD ["npm", "run", "dev"] 
+# Start the application
+CMD ["npm", "start"] 

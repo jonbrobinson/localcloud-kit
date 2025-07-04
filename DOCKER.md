@@ -177,7 +177,7 @@ docker compose logs -f
 
 ```
 localstack-template/
-├── 📁 localstack-api/          # Express API Server
+├── 📁 localcloud-api/          # Express API Server
 │   ├── 📄 server.js            # API server
 │   ├── 📁 logs/                # Application logs
 │   └── 📄 README.md            # API documentation

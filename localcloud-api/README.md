@@ -20,7 +20,7 @@ A robust Express.js API server for LocalCloud Kit, providing RESTful endpoints f
 1. **Install Dependencies**
 
    ```bash
-   cd localstack-api
+   cd localcloud-api
    npm install
    ```
 

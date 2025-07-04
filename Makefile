@@ -89,12 +89,12 @@ clean: ## Clean up all resources and stop services
 # GUI Management
 gui-start: ## Start the LocalCloud Kit GUI system with Docker
 	@echo "$(BLUE)Starting LocalCloud Kit GUI with Docker...$(NC)"
-	@docker compose up -d localstack-gui localstack-api nginx
+	@docker compose up -d localcloud-gui localcloud-api nginx
 	@echo "$(GREEN)LocalCloud Kit GUI is running at http://localhost:3030$(NC)"
 
 gui-stop: ## Stop the LocalCloud Kit GUI system
 	@echo "$(YELLOW)Stopping LocalCloud Kit GUI...$(NC)"
-	@docker compose stop localstack-gui localstack-api nginx
+	@docker compose stop localcloud-gui localcloud-api nginx
 
 gui-restart: gui-stop gui-start ## Restart the LocalCloud Kit GUI system
 
