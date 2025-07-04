@@ -121,6 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(startup): Update start-gui.sh with enhanced startup process
 - feat(organization): Move sample files to dedicated samples/ directory with documentation
 - feat(file-viewer): Add support for Word documents (.doc, .docx) with formatted text display
+- feat(branding): Rebrand project from LocalStack Manager to LocalCloud Kit for open source release
 
 ---
 

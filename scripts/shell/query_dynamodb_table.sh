@@ -1,13 +1,12 @@
 #!/bin/sh
 
-set -e  # Exit on any error
-export AWS_PAGER=""
+# CloudStack Solutions - Enterprise AWS Development Tools
+# Query DynamoDB table in LocalStack
 
-# LocalStack DynamoDB Table Query Script
-# Queries DynamoDB table contents using AWS CLI
+set -e
 
 # Configuration
-PROJECT_NAME=${1:-"localstack-manager"}
+PROJECT_NAME=${1:-"localcloud-kit"}
 TABLE_NAME=${2:-""}
 PARTITION_KEY=${3:-""}
 PARTITION_VALUE=${4:-""}

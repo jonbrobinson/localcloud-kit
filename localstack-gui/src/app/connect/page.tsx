@@ -18,7 +18,7 @@ export default function ConnectPage() {
                 />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors">
-                    LocalStack Manager
+                    LocalCloud Kit
                   </h1>
                   <p className="text-sm text-gray-500">
                     by CloudStack Solutions

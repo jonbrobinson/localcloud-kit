@@ -46,8 +46,8 @@ export PROJECT_NAME="my-awesome-project"
 
 This starts:
 
-- LocalStack Manager Web GUI (http://localhost:3030)
-- LocalStack Manager API Server (http://localhost:3030/api)
+- LocalCloud Kit Web GUI (http://localhost:3030)
+- LocalCloud Kit API Server (http://localhost:3030/api)
 - LocalStack (http://localhost:4566)
 
 > **Note**: The URLs above are for accessing the application from your host machine. Within the container network, services communicate using internal hostnames (e.g., `localstack:4566` for the API server to reach LocalStack).

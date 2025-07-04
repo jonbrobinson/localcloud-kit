@@ -1,13 +1,12 @@
 #!/bin/sh
 
-set -e  # Exit on any error
-export AWS_PAGER=""
+# CloudStack Solutions - Enterprise AWS Development Tools
+# Scan DynamoDB table in LocalStack
 
-# LocalStack DynamoDB Table Scan Script
-# Scans DynamoDB table contents using AWS CLI
+set -e
 
 # Configuration
-PROJECT_NAME=${1:-"localstack-manager"}
+PROJECT_NAME=${1:-"localcloud-kit"}
 TABLE_NAME=${2:-""}
 LIMIT=${3:-"100"}
 AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}

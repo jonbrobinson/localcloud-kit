@@ -89,7 +89,7 @@ function addLog(level, message, source = "api") {
 async function checkLocalStackStatus() {
   try {
     const response = await axios.get(`${internalEndpoint}/_localstack/health`, {
-        timeout: 5000,
+      timeout: 5000,
     });
 
     if (response.status === 200) {
@@ -176,7 +176,7 @@ async function createResources(request) {
           `Failed to create Lambda function: ${error.message}`,
           "automation"
         );
-    }
+      }
     }
 
     // Create API Gateway if requested
@@ -658,7 +658,7 @@ app.get("/health", (req, res) => {
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
-    service: "LocalStack Manager API",
+    service: "LocalCloud Kit API",
     vendor: "CloudStack Solutions",
     version: "1.0.0",
   });
@@ -1086,21 +1086,18 @@ setTimeout(checkLocalStackStatus, 2000);
 const PORT = process.env.PORT || 3031;
 
 server.listen(PORT, () => {
-  addLog(
-    "info",
-    `LocalStack Manager API server running on port ${PORT}`,
-    "api"
+  addLog("info", `LocalCloud Kit API server running on port ${PORT}`, "api");
+  console.log(
+    `LocalCloud Kit API server running on port ${PORT}`,
+    `\nEnvironment: ${NODE_ENV}`,
+    `\nLocalStack endpoint: ${LOCALSTACK_ENDPOINT}`
   );
+
   console.log(`
 ╔══════════════════════════════════════════════════════════════╗
-║                    🚀 LocalStack Manager                    ║
-║                                                              ║
-║  📊 Dashboard: http://localhost:3030                        ║
-║  🔧 API Server: http://localhost:${PORT}                    ║
-║                                                              ║
+║                    🚀 LocalCloud Kit                    ║
 ║  💼 Powered by CloudStack Solutions                         ║
-║  🏢 Enterprise AWS Development Tools                        ║
-║  📦 LocalStack Manager v1.0.0                               ║
+║  📦 LocalCloud Kit v1.0.0                               ║
 ╚══════════════════════════════════════════════════════════════╝
   `);
 });

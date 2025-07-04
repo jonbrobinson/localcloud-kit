@@ -1,10 +1,10 @@
-# LocalStack Manager
+# LocalCloud Kit
 
 > **Enterprise AWS Development Tools** by CloudStack Solutions
 
-A modern, web-based GUI for managing LocalStack resources with real-time monitoring, resource templates, and multi-environment support.
+A modern Next.js web interface for LocalCloud Kit, providing a comprehensive GUI for AWS resource management in LocalStack environments.
 
-![LocalStack Manager](https://img.shields.io/badge/LocalStack-Manager-blue?style=for-the-badge&logo=aws)
+![LocalCloud Kit](https://img.shields.io/badge/LocalCloud-Kit-blue?style=for-the-badge&logo=aws)
 ![CloudStack Solutions](https://img.shields.io/badge/Powered%20by-CloudStack%20Solutions-indigo?style=for-the-badge)
 
 ## 🚀 Features

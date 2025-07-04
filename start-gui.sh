@@ -1,18 +1,15 @@
 #!/bin/bash
 
-# LocalStack Manager Startup Script
+# LocalCloud Kit Startup Script
 # CloudStack Solutions - Enterprise AWS Development Tools
 
 set -e
 
-echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║                    🚀 LocalStack Manager                    ║"
-echo "║                                                              ║"
+echo "╔══════════════════════════════════════════════════════════════════════════════╗"
+echo "║                    🚀 LocalCloud Kit                    ║"
 echo "║  💼 Powered by CloudStack Solutions                         ║"
-echo "║  🏢 Enterprise AWS Development Tools                        ║"
-echo "║  📦 LocalStack Manager v1.0.0                               ║"
-echo "║  🐳 Containerized with Docker                               ║"
-echo "╚══════════════════════════════════════════════════════════════╝"
+echo "║  📦 LocalCloud Kit v1.0.0                               ║"
+echo "╚══════════════════════════════════════════════════════════════════════════════╝"
 echo ""
 
 # Colors for output
@@ -61,7 +58,7 @@ check_docker_compose() {
 
 # Start services with Docker Compose
 start_docker_services() {
-    print_status "Starting LocalStack Manager with Docker Compose..."
+    print_status "Starting LocalCloud Kit with Docker Compose..."
     
     # Build and start services
     docker compose up --build -d
@@ -91,7 +88,7 @@ start_docker_services() {
 
 # Main execution
 main() {
-    print_status "Initializing LocalStack Manager..."
+    print_status "Initializing LocalCloud Kit..."
     
     # Check prerequisites
         check_docker
@@ -102,7 +99,7 @@ main() {
         
     # Display success message
         echo ""
-    print_success "LocalStack Manager is now running!"
+    print_success "LocalCloud Kit is now running!"
         echo ""
         echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                        🌐 Access URLs                        ║"

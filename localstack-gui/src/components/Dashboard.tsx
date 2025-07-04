@@ -189,7 +189,7 @@ export default function Dashboard() {
               CloudStack Solutions
             </h2>
           </div>
-          <p className="text-gray-600">Loading LocalStack Manager...</p>
+          <p className="text-gray-600">Loading LocalCloud Kit...</p>
         </div>
       </div>
     );
@@ -231,7 +231,7 @@ export default function Dashboard() {
                 />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
-                    LocalStack Manager
+                    LocalCloud Kit
                   </h1>
                   <p className="text-sm text-gray-500">
                     by CloudStack Solutions
@@ -391,7 +391,7 @@ export default function Dashboard() {
             </span>
           </div>
           <p className="text-xs text-gray-400">
-            Enterprise AWS Development Tools • LocalStack Manager v1.0.0
+            Enterprise AWS Development Tools • LocalCloud Kit v1.0.0
           </p>
         </div>
       </div>
