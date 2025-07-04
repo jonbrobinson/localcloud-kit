@@ -1,6 +1,6 @@
 # Sample Files
 
-This directory contains sample files for testing the LocalStack Manager file viewer functionality.
+This directory contains sample files for testing the LocalCloud Kit file viewer functionality.
 
 ## Files
 
@@ -18,14 +18,14 @@ These files can be uploaded to S3 buckets to test the file viewer's syntax highl
 
 ### Upload to S3
 
-You can upload these files to your S3 buckets using the AWS CLI or the LocalStack Manager GUI:
+You can upload these files to your S3 buckets using the AWS CLI or the LocalCloud Kit GUI:
 
 ```bash
 # Using AWS CLI
 aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.py s3://your-bucket-name/
 
 # Using the GUI
-# 1. Open the LocalStack Manager GUI
+# 1. Open the LocalCloud Kit GUI
 # 2. Navigate to S3 buckets
 # 3. Upload files from this directory
 ```

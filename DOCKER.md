@@ -1,6 +1,6 @@
-# Docker Containerization Guide
+# Docker Deployment Guide
 
-This guide explains how to run the LocalStack Manager using Docker containers with a reverse proxy setup.
+This guide explains how to run the LocalCloud Kit using Docker containers with a reverse proxy setup.
 
 ## Architecture
 

@@ -11,7 +11,7 @@ Your LocalStack instance is running at:
 
 ## 📋 Prerequisites
 
-- LocalStack Manager running (see [Quick Start](README.md#-quick-start))
+- LocalCloud Kit running (see [Quick Start](README.md#-quick-start))
 - AWS CLI configured (optional, for testing)
 - Your preferred programming language and AWS SDK
 
@@ -676,8 +676,8 @@ cfg.LogLevel = aws.LogDebug
 
 - [LocalStack Documentation](https://docs.localstack.cloud/)
 - [AWS SDK Documentation](https://aws.amazon.com/tools/)
-- [LocalStack Manager README](README.md)
+- [LocalCloud Kit README](README.md)
 
 ---
 
-**Need help?** Check the [LocalStack Manager documentation](README.md) or create an issue on GitHub.
+**Need help?** Check the [LocalCloud Kit documentation](README.md) or create an issue on GitHub.

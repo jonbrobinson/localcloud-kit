@@ -1,13 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
-set -e  # Exit on any error
-export AWS_PAGER=""
+# CloudStack Solutions - Enterprise AWS Development Tools
+# Create a single AWS resource in LocalStack
 
-# LocalStack Single Resource Creation Script
-# Creates individual S3, DynamoDB, Lambda, or API Gateway resources using AWS CLI
+set -e
 
 # Configuration
-PROJECT_NAME=${1:-"localstack-manager"}
+PROJECT_NAME=${1:-"localcloud-kit"}
 RESOURCE_TYPE=${2:-"s3"}
 AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}

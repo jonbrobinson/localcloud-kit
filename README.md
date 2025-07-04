@@ -1,10 +1,10 @@
-# LocalStack Manager
+# LocalCloud Kit
 
 > **Enterprise AWS Development Tools** by CloudStack Solutions
 
 A comprehensive LocalStack automation template with shell-based automation and a modern web GUI for resource management, all containerized with Docker.
 
-[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](https://github.com/jonbrobinson/localstack-manager/releases/tag/v0.1.1)
+[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.1.1)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
@@ -25,8 +25,8 @@ docker compose up --build
 
 This will start:
 
-- **LocalStack Manager Web GUI**: http://localhost:3030
-- **LocalStack Manager API Server**: http://localhost:3030/api
+- **LocalCloud Kit Web GUI**: http://localhost:3030
+- **LocalCloud Kit API Server**: http://localhost:3030/api
 - **LocalStack**: http://localhost:4566
 - **Nginx Reverse Proxy**: http://localhost:3030
 
@@ -52,7 +52,7 @@ make gui-start
 ## 🏗️ Project Structure
 
 ```
-localstack-manager/
+localcloud-kit/
 ├── 📁 localstack-gui/          # Next.js Web GUI
 │   ├── 📁 src/
 │   │   ├── 📁 components/      # React components
@@ -146,10 +146,10 @@ Use the web GUI to create resources individually:
 
 ```bash
 # Using shell scripts (standard approach)
-./scripts/shell/create_resources.sh localstack-manager dev --s3 --dynamodb
+./scripts/shell/create_resources.sh localcloud-kit dev --s3 --dynamodb
 
 # Or use predefined templates
-./scripts/shell/create_resources.sh localstack-manager dev --template basic
+./scripts/shell/create_resources.sh localcloud-kit dev --template basic
 ```
 
 #### Via Web GUI
@@ -218,152 +218,106 @@ The application runs entirely in containers with the following setup:
 
 Available templates for quick resource creation via GUI or CLI:
 
-| Template          | Description                                           | Resources                         | CLI Example             |
-| ----------------- | ----------------------------------------------------- | --------------------------------- | ----------------------- |
-| **Basic Setup**   | S3 bucket and DynamoDB table for basic storage needs  | S3, DynamoDB                      | `--template basic`      |
-| **Serverless**    | Complete serverless stack with Lambda and API Gateway | S3, DynamoDB, Lambda, API Gateway | `--template serverless` |
-| **Storage Only**  | S3 bucket for file storage                            | S3                                | `--template storage`    |
-| **Database Only** | DynamoDB table for data storage                       | DynamoDB                          | `--template database`   |
-| **API Only**      | API Gateway with Lambda function                      | Lambda, API Gateway               | `--template api`        |
+| Template          | Description                                          | Resources                         | CLI Example           |
+| ----------------- | ---------------------------------------------------- | --------------------------------- | --------------------- |
+| **Basic Setup**   | S3 bucket and DynamoDB table for basic storage needs | S3, DynamoDB                      | `--template basic`    |
+| **Web App**       | Full web application stack with API Gateway          | S3, DynamoDB, Lambda, API Gateway | `--template webapp`   |
+| **Data Pipeline** | Data processing pipeline with S3 and DynamoDB        | S3, DynamoDB, Lambda              | `--template pipeline` |
+| **Custom**        | Create resources individually or with custom config  | Any combination                   | `--s3 --dynamodb`     |
 
-### Template Usage
+## 🚀 Quick Commands
 
-**Via Web GUI:**
-
-- Open http://localhost:3030
-- Use individual resource buttons for quick creation
-- Or use the resource creation modal for batch creation with templates
-
-**Via CLI:**
+### Development
 
 ```bash
-# Create resources using templates
-./scripts/shell/create_resources.sh localstack-dev dev --template basic
-./scripts/shell/create_resources.sh localstack-dev dev --template serverless
-./scripts/shell/create_resources.sh localstack-dev dev --template storage
+# Start all services
+docker compose up --build
+
+# View logs
+docker compose logs -f
+
+# Stop all services
+docker compose down
+
+# Restart specific service
+docker compose restart localstack-gui
 ```
 
-## 🚀 Automation
-
-### Shell Scripts (Standard)
-
-- **Speed**: Fastest execution
-- **Dependencies**: Minimal requirements (just AWS CLI)
-- **Universal**: Works on any system with bash
-- **Use Case**: Quick prototyping and development
-- **Accessibility**: No programming knowledge required
-
-## 🔒 Security
-
-### Network Access
-
-- GUI accessible across network for team collaboration
-- API server with CORS protection
-- No sensitive data exposure in logs
-
-### Best Practices
-
-- Use environment-specific configurations
-- Regular resource cleanup
-- Monitor resource usage
-- Secure LocalStack endpoints
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**LocalStack won't start**
+### Production
 
 ```bash
-# Check Docker
-docker --version
-docker compose version
+# Start with production settings
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
-# Check ports
-netstat -an | grep 4566
+# Scale services
+docker compose up -d --scale localstack-api=3
 ```
-
-**GUI not loading**
-
-```bash
-# Check API server
-curl http://localhost:3030/api/health
-
-# Check GUI
-curl http://localhost:3030
-```
-
-**Resources not creating**
-
-```bash
-# Check LocalStack health
-curl http://localhost:4566/_localstack/health
-
-# Check automation script permissions
-ls -la scripts/shell/
-```
-
-### Logs
-
-- **LocalStack**: `docker compose logs localstack`
-- **API Server**: `localstack-api/logs/`
-- **GUI**: Browser developer tools
-- **Automation**: Script output and error logs
 
 ## 📚 Documentation
 
-### Component Documentation
-
-- 📖 [Web GUI Guide](localstack-gui/README.md) - Next.js interface
-- 📖 [API Server Guide](localstack-api/README.md) - Express backend
-- 📖 [Shell Scripts](scripts/shell/README.md) - Automation scripts
-- 📖 [Connection Guide](CONNECT.md) - Connect with AWS SDKs (JavaScript, Python, Go, Java)
-
-### External Resources
-
-- [LocalStack Documentation](https://docs.localstack.cloud/)
-- [AWS Services Guide](https://docs.aws.amazon.com/)
-- [CloudStack Solutions](https://cloudstacksolutions.com/)
+- **[Quick Start Guide](QUICKSTART.md)** - Get up and running in minutes
+- **[Docker Guide](DOCKER.md)** - Container deployment and management
+- **[Connection Guide](CONNECT.md)** - AWS SDK integration examples
+- **[API Documentation](localstack-api/README.md)** - Backend API reference
+- **[GUI Documentation](localstack-gui/README.md)** - Frontend application guide
 
 ## 🤝 Contributing
 
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
 ### Development Setup
 
-1. Fork the repository
-2. Create feature branch
-3. Make changes with tests
-4. Submit pull request
+```bash
+# Clone the repository
+git clone https://github.com/jonbrobinson/localcloud-kit.git
+cd localcloud-kit
 
-### Code Style
+# Start development environment
+docker compose up --build
 
-- **Frontend**: TypeScript, Tailwind CSS, ESLint
-- **Backend**: Node.js, Express, Winston logging
-- **Automation**: Shell scripts with best practices
+# Run tests
+make test
+
+# Format code
+make format
+```
 
 ## 📄 License
 
-**LocalStack Manager** by CloudStack Solutions
-
-- **License**: MIT
-- **Copyright**: © 2024 CloudStack Solutions
-- **Support**: Enterprise support available
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-### Community
+- **Documentation**: [README.md](README.md)
+- **Issues**: [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/jonbrobinson/localcloud-kit/discussions)
+- **Email**: support@cloudstacksolutions.com
 
-- GitHub Issues for bug reports
-- Feature requests welcome
-- Documentation improvements
+## 🔗 Links
 
-### Enterprise
+- [CloudStack Solutions](https://cloudstacksolutions.com/)
+- [LocalStack Documentation](https://docs.localstack.cloud/)
+- [AWS Documentation](https://docs.aws.amazon.com/)
+- [Docker Documentation](https://docs.docker.com/)
 
-- Professional support available
-- Custom development services
-- Training and consulting
+---
+
+## 📞 Contact
+
+**LocalCloud Kit** by CloudStack Solutions
+
+- **Email**: info@cloudstacksolutions.com
+- **Website**: https://cloudstacksolutions.com/
+- **GitHub**: https://github.com/jonbrobinson/localcloud-kit
+- **Documentation**: [README.md](README.md)
+
+### Support & Services
+
+- **Enterprise Support**: Custom deployments and consulting
+- **Training**: AWS and LocalStack training programs
+- **Development**: Custom automation and integration services
+- **Copyright**: © 2024 CloudStack Solutions
 
 ---
 
 **Built with ❤️ by CloudStack Solutions**
-
-_Enterprise AWS Development Tools_

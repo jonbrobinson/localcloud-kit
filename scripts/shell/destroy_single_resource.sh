@@ -1,13 +1,12 @@
 #!/bin/sh
 
-set -e  # Exit on any error
-export AWS_PAGER=""
+# CloudStack Solutions - Enterprise AWS Development Tools
+# Destroy a single AWS resource in LocalStack
 
-# LocalStack Single Resource Destruction Script
-# Destroys individual S3, DynamoDB, Lambda, or API Gateway resources using AWS CLI
+set -e
 
 # Configuration
-PROJECT_NAME=${1:-"localstack-manager"}
+PROJECT_NAME=${1:-"localcloud-kit"}
 RESOURCE_TYPE=${2:-"s3"}
 RESOURCE_NAME=${3:-""}
 AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}

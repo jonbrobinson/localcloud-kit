@@ -87,19 +87,16 @@ clean: ## Clean up all resources and stop services
 	@echo "$(GREEN)Cleanup complete$(NC)"
 
 # GUI Management
-gui-start: ## Start the LocalStack Manager GUI system with Docker
-	@echo "$(BLUE)Starting LocalStack Manager GUI with Docker...$(NC)"
-	docker compose up --build -d gui api nginx
-	@echo "$(GREEN)GUI System started!$(NC)"
-	@echo "$(YELLOW)Web GUI: http://localhost:3030$(NC)"
-	@echo "$(YELLOW)API Server: http://localhost:3030/api$(NC)"
+gui-start: ## Start the LocalCloud Kit GUI system with Docker
+	@echo "$(BLUE)Starting LocalCloud Kit GUI with Docker...$(NC)"
+	@docker compose up -d localstack-gui localstack-api nginx
+	@echo "$(GREEN)LocalCloud Kit GUI is running at http://localhost:3030$(NC)"
 
-gui-stop: ## Stop the LocalStack Manager GUI system
-	@echo "$(YELLOW)Stopping LocalStack Manager GUI...$(NC)"
-	docker compose stop gui api nginx
-	@echo "$(GREEN)GUI System stopped$(NC)"
+gui-stop: ## Stop the LocalCloud Kit GUI system
+	@echo "$(YELLOW)Stopping LocalCloud Kit GUI...$(NC)"
+	@docker compose stop localstack-gui localstack-api nginx
 
-gui-restart: gui-stop gui-start ## Restart the LocalStack Manager GUI system
+gui-restart: gui-stop gui-start ## Restart the LocalCloud Kit GUI system
 
 # Shell Commands (Standard Automation)
 shell-create: check-prerequisites ## Create resources using Shell scripts

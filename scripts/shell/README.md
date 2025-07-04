@@ -346,7 +346,7 @@ docker compose up -d
 
 ### With GUI
 
-The shell scripts integrate seamlessly with the LocalStack Manager GUI:
+The shell scripts integrate seamlessly with the LocalCloud Kit GUI:
 
 - **Web Interface**: Use GUI for visual management
 - **Desktop App**: Native application integration

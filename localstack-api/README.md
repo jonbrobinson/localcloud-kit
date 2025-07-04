@@ -1,8 +1,8 @@
-# LocalStack Manager API Server
+# LocalCloud Kit API Server
 
 > **Backend API Service** by CloudStack Solutions
 
-A robust Express.js API server that manages LocalStack operations, resource automation, and provides real-time monitoring capabilities.
+A robust Express.js API server for LocalCloud Kit, providing RESTful endpoints for AWS resource management in LocalStack environments.
 
 ![Express](https://img.shields.io/badge/Express-API%20Server-green?style=for-the-badge&logo=express)
 ![CloudStack Solutions](https://img.shields.io/badge/Powered%20by-CloudStack%20Solutions-indigo?style=for-the-badge)
