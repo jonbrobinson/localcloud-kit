@@ -191,7 +191,7 @@ npm start
 ### Logs
 
 - **LocalStack Logs**: Docker container logs
-- **API Logs**: `localstack-api/logs/`
+- **API Logs**: `localcloud-api/logs/`
 - **GUI Logs**: Browser developer tools
 
 ## 🤝 Contributing

@@ -209,7 +209,7 @@ make gui-start
 
 - Check the shell scripts documentation: [Shell Scripts](./scripts/shell/README.md)
 - View all available commands: `make help`
-- GUI documentation: [Web GUI](./localstack-gui/README.md)
+- GUI documentation: [Web GUI](./localcloud-gui/README.md)
 
 ## 🎉 You're Ready!
 

@@ -24,9 +24,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.gui
-    container_name: localstack-gui
+    container_name: localcloud-gui
     volumes:
-      - ./localstack-gui:/app
+      - ./localcloud-gui:/app
       - /app/node_modules
       - /app/.next
     depends_on:
@@ -41,7 +41,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
-    container_name: localstack-api
+    container_name: localcloud-api
     environment:
       - PORT=3031
       - AWS_ENDPOINT_URL=http://localstack:4566
@@ -49,7 +49,7 @@ services:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
     volumes:
-      - ./localstack-api:/app
+      - ./localcloud-api:/app
       - /app/node_modules
       - ./logs:/app/logs
       - ./scripts:/app/scripts

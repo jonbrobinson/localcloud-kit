@@ -1,20 +1,23 @@
-# Dockerfile for Next.js GUI (Development)
-FROM node:22-alpine
+# Use the official Node.js runtime as the base image
+FROM node:18-alpine
 
+# Set the working directory
 WORKDIR /app
 
 # Copy package files
-COPY localstack-gui/package*.json ./
+COPY localcloud-gui/package*.json ./
 
-# Install dependencies (including dev dependencies)
-RUN npm install
+# Install dependencies
+RUN npm ci --only=production
 
-# Copy source code
-COPY localstack-gui/ ./
+# Copy the rest of the application
+COPY localcloud-gui/ ./
 
+# Build the application
+RUN npm run build
+
+# Expose the port the app runs on
 EXPOSE 3000
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-CMD ["npm", "run", "dev"] 
+# Start the application
+CMD ["npm", "start"] 

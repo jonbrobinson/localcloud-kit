@@ -53,13 +53,13 @@ make gui-start
 
 ```
 localcloud-kit/
-├── 📁 localstack-gui/          # Next.js Web GUI
+├── 📁 localcloud-gui/          # Next.js Web GUI
 │   ├── 📁 src/
 │   │   ├── 📁 components/      # React components
 │   │   ├── 📁 services/        # API services
 │   │   └── 📁 types/           # TypeScript types
 │   └── 📄 README.md            # Web GUI documentation
-├── 📁 localstack-api/          # Express API Server
+├── 📁 localcloud-api/          # Express API Server
 │   ├── 📄 server.js            # API server
 │   ├── 📁 logs/                # Application logs
 │   └── 📄 README.md            # API documentation
@@ -240,7 +240,7 @@ docker compose logs -f
 docker compose down
 
 # Restart specific service
-docker compose restart localstack-gui
+docker compose restart localcloud-gui
 ```
 
 ### Production
@@ -250,7 +250,7 @@ docker compose restart localstack-gui
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 # Scale services
-docker compose up -d --scale localstack-api=3
+docker compose up -d --scale localcloud-api=3
 ```
 
 ## 📚 Documentation
@@ -258,8 +258,8 @@ docker compose up -d --scale localstack-api=3
 - **[Quick Start Guide](QUICKSTART.md)** - Get up and running in minutes
 - **[Docker Guide](DOCKER.md)** - Container deployment and management
 - **[Connection Guide](CONNECT.md)** - AWS SDK integration examples
-- **[API Documentation](localstack-api/README.md)** - Backend API reference
-- **[GUI Documentation](localstack-gui/README.md)** - Frontend application guide
+- **[API Documentation](localcloud-api/README.md)** - Backend API reference
+- **[GUI Documentation](localcloud-gui/README.md)** - Frontend application guide
 
 ## 🤝 Contributing
 
