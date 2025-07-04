@@ -25,6 +25,8 @@ services:
       context: .
       dockerfile: Dockerfile.gui
     container_name: localcloud-gui
+    environment:
+      - PORT=3030
     volumes:
       - ./localcloud-gui:/app
       - /app/node_modules
@@ -53,8 +55,6 @@ services:
       - /app/node_modules
       - ./logs:/app/logs
       - ./scripts:/app/scripts
-    ports:
-      - "3031:3031"
     depends_on:
       - localstack
     networks:

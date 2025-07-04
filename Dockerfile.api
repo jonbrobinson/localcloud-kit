@@ -1,8 +1,11 @@
 # Use the official Node.js runtime as the base image
-FROM node:18-alpine
+FROM node:22-alpine
 
 # Set the working directory
 WORKDIR /app
+
+# Install AWS CLI v2 and jq
+RUN apk add --no-cache curl jq aws-cli
 
 # Copy package files
 COPY localcloud-api/package*.json ./

@@ -195,9 +195,11 @@ export default function DynamoDBAddItemModal({
         setSchema(response.data);
         // Initialize key values
         const initialKeys: Record<string, string> = {};
-        response.data.Table.KeySchema.forEach((key) => {
-          initialKeys[key.AttributeName] = "";
-        });
+        response.data.Table.KeySchema.forEach(
+          (key: { AttributeName: string }) => {
+            initialKeys[key.AttributeName] = "";
+          }
+        );
         setKeyValues(initialKeys);
       }
     } catch (err: any) {
@@ -241,7 +243,7 @@ export default function DynamoDBAddItemModal({
     const item: Record<string, any> = {};
 
     // Add key values
-    schema.Table.KeySchema.forEach((key) => {
+    schema.Table.KeySchema.forEach((key: { AttributeName: string }) => {
       item[key.AttributeName] = { S: keyValues[key.AttributeName] };
     });
 
@@ -365,4 +367,3 @@ export default function DynamoDBAddItemModal({
     </div>
   );
 }
- 
