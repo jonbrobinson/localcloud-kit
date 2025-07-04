@@ -26,12 +26,14 @@ tmp_add_resource() {
   echo "$1" >> "$TMPFILE"
 }
 
-# Parse --verbose flag
+# Parse --verbose flag and --all flag
 VERBOSE=false
+SHOW_ALL=false
 for arg in "$@"; do
   if [ "$arg" = "--verbose" ]; then
     VERBOSE=true
-    break
+  elif [ "$arg" = "--all" ]; then
+    SHOW_ALL=true
   fi
 done
 if [ "$LOG_OUTPUT" = "1" ]; then
@@ -45,7 +47,11 @@ log() {
 }
 
 list_s3_buckets() {
-  buckets=$($AWS_CMD s3api list-buckets --query "Buckets[?starts_with(Name, '$NAME_PREFIX')].{Name:Name,CreationDate:CreationDate}" --output json)
+  if [ "$SHOW_ALL" = true ]; then
+    buckets=$($AWS_CMD s3api list-buckets --query "Buckets[].{Name:Name,CreationDate:CreationDate}" --output json)
+  else
+    buckets=$($AWS_CMD s3api list-buckets --query "Buckets[?starts_with(Name, '$NAME_PREFIX')].{Name:Name,CreationDate:CreationDate}" --output json)
+  fi
   echo "$buckets" | jq -c '.[]' | while read row; do
     name=$(echo "$row" | jq -r .Name)
     created=$(echo "$row" | jq -r .CreationDate)
@@ -56,7 +62,11 @@ list_s3_buckets() {
 }
 
 list_dynamodb_tables() {
-  tables=$($AWS_CMD dynamodb list-tables --query "TableNames[?starts_with(@, '$NAME_PREFIX')]" --output json)
+  if [ "$SHOW_ALL" = true ]; then
+    tables=$($AWS_CMD dynamodb list-tables --query "TableNames[]" --output json)
+  else
+    tables=$($AWS_CMD dynamodb list-tables --query "TableNames[?starts_with(@, '$NAME_PREFIX')]" --output json)
+  fi
   echo "$tables" | jq -r '.[]' | while read table_name; do
     table_info=$($AWS_CMD dynamodb describe-table --table-name "$table_name" --query 'Table.{Status:TableStatus,ItemCount:ItemCount}' --output json)
     status=$(echo "$table_info" | jq -r .Status | tr '[:upper:]' '[:lower:]')
@@ -67,7 +77,11 @@ list_dynamodb_tables() {
 }
 
 list_lambda_functions() {
-  functions=$($AWS_CMD lambda list-functions --query "Functions[?starts_with(FunctionName, '$NAME_PREFIX')].{Name:FunctionName,Runtime:Runtime,Handler:Handler,CodeSize:CodeSize,LastModified:LastModified}" --output json)
+  if [ "$SHOW_ALL" = true ]; then
+    functions=$($AWS_CMD lambda list-functions --query "Functions[].{Name:FunctionName,Runtime:Runtime,Handler:Handler,CodeSize:CodeSize,LastModified:LastModified}" --output json)
+  else
+    functions=$($AWS_CMD lambda list-functions --query "Functions[?starts_with(FunctionName, '$NAME_PREFIX')].{Name:FunctionName,Runtime:Runtime,Handler:Handler,CodeSize:CodeSize,LastModified:LastModified}" --output json)
+  fi
   echo "$functions" | jq -c '.[]' | while read row; do
     name=$(echo "$row" | jq -r .Name)
     id="lambda-$name"
@@ -77,7 +91,11 @@ list_lambda_functions() {
 }
 
 list_iam_roles() {
-  roles=$($AWS_CMD iam list-roles --query "Roles[?starts_with(RoleName, '$NAME_PREFIX')].{Name:RoleName,Arn:Arn,CreateDate:CreateDate}" --output json)
+  if [ "$SHOW_ALL" = true ]; then
+    roles=$($AWS_CMD iam list-roles --query "Roles[].{Name:RoleName,Arn:Arn,CreateDate:CreateDate}" --output json)
+  else
+    roles=$($AWS_CMD iam list-roles --query "Roles[?starts_with(RoleName, '$NAME_PREFIX')].{Name:RoleName,Arn:Arn,CreateDate:CreateDate}" --output json)
+  fi
   echo "$roles" | jq -c '.[]' | while read row; do
     name=$(echo "$row" | jq -r .Name)
     id="iam-$name"
@@ -87,7 +105,11 @@ list_iam_roles() {
 }
 
 list_api_gateways() {
-  apis=$($AWS_CMD apigateway get-rest-apis --query "items[?starts_with(name, '$NAME_PREFIX')].{Name:name,Id:id,Description:description,CreatedDate:createdDate}" --output json)
+  if [ "$SHOW_ALL" = true ]; then
+    apis=$($AWS_CMD apigateway get-rest-apis --query "items[].{Name:name,Id:id,Description:description,CreatedDate:createdDate}" --output json)
+  else
+    apis=$($AWS_CMD apigateway get-rest-apis --query "items[?starts_with(name, '$NAME_PREFIX')].{Name:name,Id:id,Description:description,CreatedDate:createdDate}" --output json)
+  fi
   echo "$apis" | jq -c '.[]' | while read row; do
     name=$(echo "$row" | jq -r .Name)
     api_id=$(echo "$row" | jq -r .Id)

@@ -247,6 +247,9 @@ async function createSingleResource(projectName, resourceType, config = {}) {
       command += ` --config '${configJson}'`;
     }
 
+    // Add logging for debugging
+    console.log("[DEBUG] Running command:", command);
+
     const { stdout, stderr } = await execAsync(command, {
       cwd: "/app/scripts/shell",
       env: {
@@ -255,6 +258,10 @@ async function createSingleResource(projectName, resourceType, config = {}) {
         AWS_DEFAULT_REGION: projectConfig.awsRegion,
       },
     });
+
+    // Log stdout and stderr
+    console.log("[DEBUG] Script stdout:", stdout);
+    console.log("[DEBUG] Script stderr:", stderr);
 
     if (stderr) {
       addLog(
@@ -369,7 +376,7 @@ async function destroySingleResource(projectName, resourceType, resourceName) {
 
 async function listResources(projectName) {
   try {
-    let command = `./list_resources.sh ${projectName} local`;
+    let command = `./list_resources.sh ${projectName} local --all`;
 
     const { stdout, stderr } = await execAsync(command, {
       cwd: "/app/scripts/shell",
@@ -1089,8 +1096,10 @@ server.listen(PORT, () => {
   addLog("info", `LocalCloud Kit API server running on port ${PORT}`, "api");
   console.log(
     `LocalCloud Kit API server running on port ${PORT}`,
-    `\nEnvironment: ${NODE_ENV}`,
-    `\nLocalStack endpoint: ${LOCALSTACK_ENDPOINT}`
+    `\nEnvironment: ${process.env.NODE_ENV || "local"}`,
+    `\nLocalStack endpoint: ${
+      process.env.LOCALSTACK_ENDPOINT || internalEndpoint
+    }`
   );
 
   console.log(`
