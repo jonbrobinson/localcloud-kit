@@ -419,6 +419,58 @@ async function listResources(projectName) {
   }
 }
 
+async function listAllBuckets(projectName) {
+  try {
+    let command = `./list_resources.sh ${projectName} local --all`;
+
+    const { stdout, stderr } = await execAsync(command, {
+      cwd: "/app/scripts/shell",
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: internalEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `Bucket listing warning: ${stderr}`, "automation");
+    }
+
+    // Parse the output as JSON array and filter for S3 buckets only
+    let allResources = [];
+    try {
+      allResources = JSON.parse(stdout);
+      if (!Array.isArray(allResources)) {
+        addLog(
+          "error",
+          "Resource listing output is not a JSON array",
+          "automation"
+        );
+        return [];
+      }
+    } catch (err) {
+      addLog(
+        "error",
+        `Failed to parse resource listing JSON: ${err.message}`,
+        "automation"
+      );
+      return [];
+    }
+
+    // Filter for S3 buckets only and map to AWS-style property names
+    const buckets = allResources
+      .filter((resource) => resource.type === "s3")
+      .map((bucket) => ({
+        Name: bucket.name,
+        CreationDate: bucket.createdAt,
+      }));
+    return buckets;
+  } catch (error) {
+    addLog("error", `Failed to list buckets: ${error.message}`, "automation");
+    return [];
+  }
+}
+
 async function listBucketContents(projectName, bucketName) {
   try {
     let command = `./list_bucket_contents.sh ${projectName} dev`;
@@ -477,7 +529,7 @@ async function listBucketContents(projectName, bucketName) {
 
 async function listDynamoDBTables(projectName) {
   try {
-    let command = `./list_dynamodb_tables.sh ${projectName}`;
+    let command = `./list_dynamodb_tables.sh ${projectName} --all`;
 
     const { stdout, stderr } = await execAsync(command, {
       cwd: "/app/scripts/shell",
@@ -824,7 +876,7 @@ app.get("/config/templates", (req, res) => {
 // S3 Bucket Management
 app.get("/s3/buckets", async (req, res) => {
   const { projectName } = req.query;
-  const buckets = await listBucketContents(projectName);
+  const buckets = await listAllBuckets(projectName);
   res.json({ success: true, data: buckets });
 });
 
