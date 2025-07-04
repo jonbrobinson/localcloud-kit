@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/bin/sh
 # Usage: ./put_dynamodb_item.sh <project_name> <table_name> <item_json>
 set -e
 

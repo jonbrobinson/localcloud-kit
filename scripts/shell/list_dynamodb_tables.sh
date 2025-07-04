@@ -18,12 +18,14 @@ fi
 NAME_PREFIX="$PROJECT_NAME"
 AWS_CMD="aws --endpoint-url=${AWS_ENDPOINT} --region=${AWS_REGION}"
 
-# Parse --verbose flag
+# Parse --verbose flag and --all flag
 VERBOSE=false
+SHOW_ALL=false
 for arg in "$@"; do
   if [ "$arg" = "--verbose" ]; then
     VERBOSE=true
-    break
+  elif [ "$arg" = "--all" ]; then
+    SHOW_ALL=true
   fi
 done
 if [ "$LOG_OUTPUT" = "1" ]; then
@@ -47,8 +49,12 @@ main() {
   
   log "Listing DynamoDB tables for project: $PROJECT_NAME"
   
-  # List tables and filter by project prefix
-  TABLES_JSON=$($AWS_CMD dynamodb list-tables --query "TableNames[?starts_with(@, '$NAME_PREFIX')]" --output json 2>/dev/null || echo "[]")
+  # List tables with optional prefix filtering
+  if [ "$SHOW_ALL" = true ]; then
+    TABLES_JSON=$($AWS_CMD dynamodb list-tables --query "TableNames[]" --output json 2>/dev/null || echo "[]")
+  else
+    TABLES_JSON=$($AWS_CMD dynamodb list-tables --query "TableNames[?starts_with(@, '$NAME_PREFIX')]" --output json 2>/dev/null || echo "[]")
+  fi
   
   # Return the tables as a JSON array
   echo "$TABLES_JSON"

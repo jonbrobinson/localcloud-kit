@@ -62,6 +62,7 @@ export default function DynamoDBViewer({
   });
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     if (isOpen) {
@@ -81,7 +82,7 @@ export default function DynamoDBViewer({
       setItems([]);
       setTableSchema(null);
       setScanResult(null);
-      setError(null);
+      setError("");
     }
   }, [isOpen]);
 
@@ -245,8 +246,8 @@ export default function DynamoDBViewer({
 
     // Get all unique keys from items
     const headers = new Set<string>();
-    items.forEach((item) => {
-      Object.keys(item).forEach((key) => headers.add(key));
+    items.forEach((item: DynamoDBItem) => {
+      Object.keys(item).forEach((key: string) => headers.add(key));
     });
     const allHeaders = Array.from(headers);
 
@@ -584,4 +585,3 @@ export default function DynamoDBViewer({
     </div>
   );
 }
- 

@@ -4,9 +4,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3031";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { bucketName: string; objectKey: string } }
+  context: { params: Promise<{ bucketName: string; objectKey: string }> }
 ) {
   try {
+    const params = await context.params;
     const { searchParams } = new URL(request.url);
     const projectName = searchParams.get("projectName");
 
@@ -46,9 +47,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { bucketName: string; objectKey: string } }
+  context: { params: Promise<{ bucketName: string; objectKey: string }> }
 ) {
   try {
+    const params = await context.params;
     const { searchParams } = new URL(request.url);
     const projectName = searchParams.get("projectName");
 
