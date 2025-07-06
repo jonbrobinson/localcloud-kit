@@ -188,6 +188,60 @@ Then view the files in the GUI to see syntax highlighting and document formattin
 - **Network Accessible**: Team collaboration
 - **Hot Reloading**: Instant code updates during development
 
+## 🧊 Redis Cache Management
+
+LocalCloud Kit now includes full Redis cache support for local development and testing.
+
+### Features
+
+- **Standalone Redis**: Runs as a container alongside LocalStack and the API
+- **Full CRUD**: Set, get, delete, and flush cache keys
+- **List All Keys**: View all keys and values in the cache
+- **JSON-Aware**: Pretty-prints JSON values in the GUI
+- **GUI Management**: Dedicated `/cache` page for full-screen cache management
+- **Shell Scripts**: Automation scripts for cache operations
+- **API Endpoints**: RESTful endpoints for cache management
+
+### Docker Setup
+
+- Redis runs as a service in `docker-compose.yml` (port 6380 on host, 6379 in container)
+- No password by default (for local use)
+
+### API Endpoints
+
+- `GET /api/cache/status` — Check Redis status
+- `POST /api/cache/set` — Set a key-value pair
+- `GET /api/cache/get?key=...` — Get value by key
+- `DELETE /api/cache/del` — Delete a key
+- `POST /api/cache/flush` — Flush all keys
+- `GET /api/cache/keys` — List all keys and values
+
+### Shell Scripts
+
+Located in `scripts/shell/`:
+
+- `cache_set.sh`, `cache_get.sh`, `cache_del.sh`, `cache_flush.sh`, `list_cache.sh`, `list_cache_keys.sh`
+
+### GUI Features
+
+- **Dashboard**: Redis cache appears as a resource
+- **Full-Page Management**: `/cache` page for all cache operations
+- **Set/Get/Delete**: Action-based forms for each operation
+- **Flush/Refresh**: Utility actions for cache
+- **All Keys View**: See all keys/values, with pretty JSON formatting
+- **Connection Info**: Shows host/port for external tools
+- **Live Feedback**: Results and status are clearly displayed
+
+### Usage Example
+
+1. Start all services: `docker compose up --build`
+2. Open the GUI: http://localhost:3030
+3. Click "Redis Cache" in the dashboard or resource list
+4. Use the full-page interface to set, get, delete, flush, and view all cache keys
+5. Use the connection info to connect with external Redis tools (host: `localhost`, port: `6380`)
+
+---
+
 ## 🔧 Configuration
 
 ### Docker Environment
