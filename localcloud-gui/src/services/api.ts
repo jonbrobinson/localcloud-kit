@@ -211,6 +211,34 @@ export const s3Api = {
   },
 };
 
+// Redis Cache Management
+export const cacheApi = {
+  status: async (): Promise<any> => {
+    const response = await api.get("/cache/status");
+    return response.data;
+  },
+  set: async (key: string, value: string): Promise<any> => {
+    const response = await api.post("/cache/set", { key, value });
+    return response.data;
+  },
+  get: async (key: string): Promise<any> => {
+    const response = await api.get("/cache/get", { params: { key } });
+    return response.data;
+  },
+  del: async (key: string): Promise<any> => {
+    const response = await api.delete("/cache/del", { data: { key } });
+    return response.data;
+  },
+  flush: async (): Promise<any> => {
+    const response = await api.post("/cache/flush");
+    return response.data;
+  },
+  keys: async (): Promise<any> => {
+    const response = await api.get("/cache/keys");
+    return response.data;
+  },
+};
+
 export async function addDynamoDBItem(
   projectName: string,
   tableName: string,

@@ -20,8 +20,10 @@ import BucketViewer from "./BucketViewer";
 import DynamoDBViewer from "./DynamoDBViewer";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
+  const router = useRouter();
   const {
     localstackStatus,
     projectConfig: config,
@@ -36,6 +38,7 @@ export default function Dashboard() {
   const [showLogs, setShowLogs] = useState(false);
   const [showBuckets, setShowBuckets] = useState(false);
   const [showDynamoDB, setShowDynamoDB] = useState(false);
+
   const [selectedDynamoDBTable, setSelectedDynamoDBTable] =
     useState<string>("");
   const [selectedS3Bucket, setSelectedS3Bucket] = useState<string>("");
@@ -267,6 +270,12 @@ export default function Dashboard() {
                 🗄️ DynamoDB Tables
               </button>
               <Link
+                href="/cache"
+                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                🧊 Redis Cache
+              </Link>
+              <Link
                 href="/connect"
                 className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
               >
@@ -345,6 +354,9 @@ export default function Dashboard() {
               onViewDynamoDB={(tableName) => {
                 setSelectedDynamoDBTable(tableName);
                 setShowDynamoDB(true);
+              }}
+              onViewCache={() => {
+                router.push("/cache");
               }}
             />
           </div>

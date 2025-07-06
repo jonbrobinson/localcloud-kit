@@ -78,6 +78,16 @@ services:
       - localstack-network
     restart: unless-stopped
 
+  # Redis Cache (standalone)
+  redis:
+    image: redis:7-alpine
+    container_name: localcloud-redis
+    ports:
+      - "6380:6379"
+    networks:
+      - localstack-network
+    restart: unless-stopped
+
 networks:
   localstack-network:
     driver: bridge
