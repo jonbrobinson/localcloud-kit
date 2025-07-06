@@ -1123,6 +1123,85 @@ app.get("/dynamodb/table/:tableName/schema", async (req, res) => {
   }
 });
 
+// Redis Cache Management
+const pathToShell = (script) => path.join("/app/scripts/shell", script);
+
+app.get("/cache/status", async (req, res) => {
+  try {
+    const { stdout } = await execAsync(`sh ${pathToShell("list_cache.sh")}`);
+    res.json(JSON.parse(stdout));
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/cache/set", async (req, res) => {
+  const { key, value } = req.body;
+  if (!key || value === undefined) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Key and value required" });
+  }
+  try {
+    const { stdout } = await execAsync(
+      `sh ${pathToShell("cache_set.sh")} '${key}' '${value}'`
+    );
+    res.json(JSON.parse(stdout));
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/cache/get", async (req, res) => {
+  const { key } = req.query;
+  if (!key) {
+    return res.status(400).json({ success: false, error: "Key required" });
+  }
+  try {
+    const { stdout } = await execAsync(
+      `sh ${pathToShell("cache_get.sh")} '${key}'`
+    );
+    res.json(JSON.parse(stdout));
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete("/cache/del", async (req, res) => {
+  const { key } = req.body;
+  if (!key) {
+    return res.status(400).json({ success: false, error: "Key required" });
+  }
+  try {
+    const { stdout } = await execAsync(
+      `sh ${pathToShell("cache_del.sh")} '${key}'`
+    );
+    res.json(JSON.parse(stdout));
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/cache/flush", async (req, res) => {
+  try {
+    const { stdout } = await execAsync(`sh ${pathToShell("cache_flush.sh")}`);
+    res.json(JSON.parse(stdout));
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get("/cache/keys", async (req, res) => {
+  try {
+    const { stdout } = await execAsync(
+      `sh ${pathToShell("list_cache_keys.sh")}`
+    );
+    res.json(JSON.parse(stdout));
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Socket.IO connection handling
 io.on("connection", (socket) => {
   addLog("info", "Client connected", "gui");

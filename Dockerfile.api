@@ -4,8 +4,8 @@ FROM node:22-alpine
 # Set the working directory
 WORKDIR /app
 
-# Install AWS CLI v2 and jq
-RUN apk add --no-cache curl jq aws-cli
+# Install AWS CLI v2, jq, and redis-cli
+RUN apk add --no-cache curl jq aws-cli redis
 
 # Copy package files
 COPY localcloud-api/package*.json ./

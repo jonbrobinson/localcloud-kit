@@ -8,7 +8,7 @@ export interface LocalStackStatus {
 export interface Resource {
   id: string;
   name: string;
-  type: "s3" | "dynamodb" | "lambda" | "apigateway" | "iam";
+  type: "s3" | "dynamodb" | "lambda" | "apigateway" | "iam" | "cache";
   status: "creating" | "active" | "deleting" | "error" | "unknown";
   environment: string;
   project: string;

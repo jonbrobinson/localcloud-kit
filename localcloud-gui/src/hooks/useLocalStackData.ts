@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { LocalStackStatus, Resource, ProjectConfig } from "@/types";
-import { localstackApi, resourceApi, configApi } from "@/services/api";
+import {
+  localstackApi,
+  resourceApi,
+  configApi,
+  cacheApi,
+} from "@/services/api";
 
 interface LocalStackData {
   localstackStatus: LocalStackStatus;
@@ -35,6 +40,27 @@ export function useLocalStackData() {
 
       // Use the current project config to fetch resources
       const resources = await resourceApi.getStatus(projectConfig.projectName);
+
+      // Add cache status as a resource
+      try {
+        const cacheStatus = await cacheApi.status();
+        const cacheResource: Resource = {
+          id: "cache-redis",
+          name: "Redis Cache",
+          type: "cache",
+          status: cacheStatus.status === "running" ? "active" : "error",
+          environment: "local",
+          project: projectConfig.projectName,
+          createdAt: new Date().toISOString(),
+          details: {
+            info: cacheStatus.info,
+            status: cacheStatus.status,
+          },
+        };
+        resources.push(cacheResource);
+      } catch (error) {
+        console.warn("Failed to fetch cache status:", error);
+      }
 
       setData({
         localstackStatus,

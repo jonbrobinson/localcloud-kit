@@ -18,6 +18,7 @@ interface ResourceListProps {
   loading?: boolean;
   onViewS3?: (bucketName: string) => void;
   onViewDynamoDB?: (tableName: string) => void;
+  onViewCache?: () => void;
 }
 
 export default function ResourceList({
@@ -27,6 +28,7 @@ export default function ResourceList({
   loading = false,
   onViewS3,
   onViewDynamoDB,
+  onViewCache,
 }: ResourceListProps) {
   const [selectedResources, setSelectedResources] = useState<string[]>([]);
   const [showDetails, setShowDetails] = useState<string | null>(null);
@@ -73,6 +75,8 @@ export default function ResourceList({
         return "🌐";
       case "iam":
         return "🔐";
+      case "cache":
+        return "🧊";
       default:
         return "📦";
     }
@@ -181,7 +185,7 @@ export default function ResourceList({
                   <span className="ml-1 capitalize">{resource.status}</span>
                 </span>
 
-                {/* View Button for S3 and DynamoDB */}
+                {/* View Button for S3, DynamoDB, and Cache */}
                 {resource.status === "active" && (
                   <>
                     {resource.type === "s3" && onViewS3 && (
@@ -202,6 +206,16 @@ export default function ResourceList({
                       >
                         <EyeIcon className="h-3 w-3 mr-1" />
                         View
+                      </button>
+                    )}
+                    {resource.type === "cache" && onViewCache && (
+                      <button
+                        onClick={onViewCache}
+                        className="flex items-center px-2 py-1 text-xs font-medium text-cyan-600 bg-cyan-50 rounded-md hover:bg-cyan-100 transition-colors"
+                        title="Open Cache Management"
+                      >
+                        <EyeIcon className="h-3 w-3 mr-1" />
+                        Manage
                       </button>
                     )}
                   </>
@@ -270,4 +284,3 @@ export default function ResourceList({
     </div>
   );
 }
- 
