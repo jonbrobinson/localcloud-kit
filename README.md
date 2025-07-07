@@ -2,7 +2,7 @@
 
 > **Enterprise AWS Development Tools** by CloudStack Solutions
 
-A comprehensive LocalStack automation template with shell-based automation and a modern web GUI for resource management, all containerized with Docker.
+Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, EventBridge, and more.
 
 [![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.1.1)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
