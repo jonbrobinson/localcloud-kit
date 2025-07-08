@@ -48,12 +48,12 @@ check_docker() {
 
 # Check if Docker Compose is installed
 check_docker_compose() {
-    if ! command -v docker-compose &> /dev/null; then
+    if ! docker compose version &> /dev/null; then
         print_error "Docker Compose is not installed. Please install Docker Compose first."
         exit 1
     fi
     
-    print_success "Docker Compose $(docker-compose --version) detected"
+    print_success "Docker Compose detected"
 }
 
 # Start services with Docker Compose
@@ -91,23 +91,23 @@ main() {
     print_status "Initializing LocalCloud Kit..."
     
     # Check prerequisites
-        check_docker
-        check_docker_compose
+    check_docker
+    check_docker_compose
     
     # Start services
-        start_docker_services
+    start_docker_services
         
     # Display success message
-        echo ""
+    echo ""
     print_success "LocalCloud Kit is now running!"
-        echo ""
-        echo "╔══════════════════════════════════════════════════════════════╗"
+    echo ""
+    echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                        🌐 Access URLs                        ║"
     echo "╠══════════════════════════════════════════════════════════════╣"
     echo "║  🖥️  Web GUI:     http://localhost:3030                     ║"
     echo "║  🔌 API Server:  http://localhost:3030/api                  ║"
     echo "║  🐳 LocalStack:  http://localhost:4566                      ║"
-        echo "╚══════════════════════════════════════════════════════════════╝"
+    echo "╚══════════════════════════════════════════════════════════════╝"
     echo ""
     print_status "Use 'docker compose logs -f' to view logs"
     print_status "Containers are running in the background"
