@@ -16,10 +16,30 @@ Build and test cloud apps locally—no AWS account needed. Free, fast, and with 
 
 ## 🚀 Quick Start
 
-### All-in-One Docker Setup (Recommended)
+### One Command Setup (Recommended)
 
 ```bash
-# Start everything with one command
+# Start everything with one simple command
+./start-gui.sh
+```
+
+This single command will:
+
+- ✅ Install all dependencies automatically (handled by Docker)
+- ✅ Start all Docker services
+- ✅ Wait for services to be ready
+- ✅ Display access URLs
+
+**Access URLs:**
+
+- **Web GUI**: http://localhost:3030
+- **API Server**: http://localhost:3030/api
+- **LocalStack**: http://localhost:4566
+
+### Alternative Docker Setup
+
+```bash
+# Start everything with Docker Compose directly
 docker compose up --build
 ```
 
@@ -48,6 +68,66 @@ make gui-start
 # Start with the original script (for development)
 ./start-gui.sh
 ```
+
+## 🔧 Troubleshooting
+
+### Getting "502 Bad Gateway" or "Failed to fetch" errors?
+
+If you're seeing connection errors when accessing the GUI, it's likely because the backend services aren't running. Here's how to fix it:
+
+#### 1. Check if Docker services are running
+
+```bash
+# Check Docker container status
+docker compose ps
+
+# If no containers are running, start them:
+docker compose up -d
+```
+
+#### 2. Verify all services are healthy
+
+```bash
+# Check if the API is responding
+curl http://localhost:3030/api/health
+
+# Check if LocalStack is running
+curl http://localhost:4566/_localstack/health
+```
+
+#### 3. Common Issues and Solutions
+
+**Issue**: "Failed to fetch Geist" font error
+
+- **Solution**: This has been fixed in the latest version. Pull the latest changes: `git pull origin main`
+
+**Issue**: "502 Bad Gateway" when accessing GUI
+
+- **Solution**: The API server isn't running. Start all services: `docker compose up -d`
+
+**Issue**: GUI loads but can't connect to LocalStack
+
+- **Solution**: Wait a moment for LocalStack to fully start, or restart: `docker compose restart localstack`
+
+**Issue**: Port 3030 is already in use
+
+- **Solution**: Stop other services using the port, or change the port in `docker-compose.yml`
+
+#### 4. Development Mode
+
+If you want to run the GUI locally (outside Docker) for development:
+
+```bash
+# Start the backend services first
+docker compose up -d localstack api nginx
+
+# Then run the GUI locally
+cd localcloud-gui
+npm install
+npm run dev
+```
+
+The GUI will be available at http://localhost:3000 and will connect to the API at http://localhost:3030/api.
 
 ## 🏗️ Project Structure
 

@@ -10,8 +10,8 @@ RUN apk add --no-cache curl jq aws-cli redis
 # Copy package files
 COPY localcloud-api/package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including dev dependencies for development)
+RUN npm ci
 
 # Copy the rest of the application
 COPY localcloud-api/ ./
@@ -22,5 +22,5 @@ RUN mkdir -p logs
 # Expose the port the app runs on
 EXPOSE 3031
 
-# Start the application
-CMD ["npm", "start"] 
+# Start the application in development mode
+CMD ["npm", "run", "dev"] 
