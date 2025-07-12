@@ -1,0 +1,31 @@
+Sample Text File
+================
+
+This is a sample text file for LocalCloud Kit demonstration.
+
+File Information:
+- Created: 2024
+- Type: Plain text
+- Purpose: Sample data for S3 bucket testing
+
+Content Examples:
+1. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+2. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+3. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+
+Technical Notes:
+- This file can be used to test S3 object operations
+- Supports various text encodings (UTF-8, ASCII, etc.)
+- Useful for demonstrating file upload/download functionality
+
+Configuration:
+- Bucket: localstack-dev-bucket
+- Region: us-east-1
+- Endpoint: http://localhost:4566
+
+Sample Commands:
+aws s3 cp sample.txt s3://localstack-dev-bucket/
+aws s3 ls s3://localstack-dev-bucket/
+aws s3 cp s3://localstack-dev-bucket/sample.txt downloaded_sample.txt
+
+End of sample file. 

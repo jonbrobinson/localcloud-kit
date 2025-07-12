@@ -899,7 +899,7 @@ app.get("/s3/bucket/:bucketName/object/:objectKey", async (req, res) => {
       });
     }
 
-    const command = `/usr/bin/sh /app/scripts/shell/download_s3_object.sh '${projectName}' '${bucketName}' '${objectKey}'`;
+    const command = `/bin/sh /app/scripts/shell/download_s3_object.sh '${projectName}' '${bucketName}' '${objectKey}'`;
     const { stdout, stderr } = await execAsync(command, {
       env: {
         ...process.env,
@@ -966,7 +966,7 @@ app.delete("/s3/bucket/:bucketName/object/:objectKey", async (req, res) => {
       });
     }
 
-    const command = `/usr/bin/sh /app/scripts/shell/delete_s3_object.sh '${projectName}' '${bucketName}' '${objectKey}'`;
+    const command = `/bin/sh /app/scripts/shell/delete_s3_object.sh '${projectName}' '${bucketName}' '${objectKey}'`;
     const { stdout, stderr } = await execAsync(command, {
       env: {
         ...process.env,
@@ -1067,7 +1067,7 @@ app.post("/dynamodb/table/:tableName/item", async (req, res) => {
     }
     // Stringify item for shell script
     const itemJson = JSON.stringify(item).replace(/'/g, "'''");
-    const command = `/usr/bin/sh /app/scripts/shell/put_dynamodb_item.sh '${projectName}' '${tableName}' '${itemJson}'`;
+    const command = `/bin/sh /app/scripts/shell/put_dynamodb_item.sh '${projectName}' '${tableName}' '${itemJson}'`;
     const { stdout, stderr } = await execAsync(command, {
       env: {
         ...process.env,
@@ -1128,7 +1128,9 @@ const pathToShell = (script) => path.join("/app/scripts/shell", script);
 
 app.get("/cache/status", async (req, res) => {
   try {
-    const { stdout } = await execAsync(`sh ${pathToShell("list_cache.sh")}`);
+    const { stdout } = await execAsync(
+      `/bin/sh ${pathToShell("list_cache.sh")}`
+    );
     res.json(JSON.parse(stdout));
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -1144,7 +1146,7 @@ app.post("/cache/set", async (req, res) => {
   }
   try {
     const { stdout } = await execAsync(
-      `sh ${pathToShell("cache_set.sh")} '${key}' '${value}'`
+      `/bin/sh ${pathToShell("cache_set.sh")} '${key}' '${value}'`
     );
     res.json(JSON.parse(stdout));
   } catch (error) {
@@ -1159,7 +1161,7 @@ app.get("/cache/get", async (req, res) => {
   }
   try {
     const { stdout } = await execAsync(
-      `sh ${pathToShell("cache_get.sh")} '${key}'`
+      `/bin/sh ${pathToShell("cache_get.sh")} '${key}'`
     );
     res.json(JSON.parse(stdout));
   } catch (error) {
@@ -1174,7 +1176,7 @@ app.delete("/cache/del", async (req, res) => {
   }
   try {
     const { stdout } = await execAsync(
-      `sh ${pathToShell("cache_del.sh")} '${key}'`
+      `/bin/sh ${pathToShell("cache_del.sh")} '${key}'`
     );
     res.json(JSON.parse(stdout));
   } catch (error) {
@@ -1184,7 +1186,7 @@ app.delete("/cache/del", async (req, res) => {
 
 app.post("/cache/flush", async (req, res) => {
   try {
-    const { stdout } = await execAsync(`sh ${pathToShell("cache_flush.sh")}`);
+    const { stdout } = await execAsync(`/bin/sh ${pathToShell("cache_flush.sh")}`);
     res.json(JSON.parse(stdout));
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -1194,7 +1196,7 @@ app.post("/cache/flush", async (req, res) => {
 app.get("/cache/keys", async (req, res) => {
   try {
     const { stdout } = await execAsync(
-      `sh ${pathToShell("list_cache_keys.sh")}`
+      `/bin/sh ${pathToShell("list_cache_keys.sh")}`
     );
     res.json(JSON.parse(stdout));
   } catch (error) {
