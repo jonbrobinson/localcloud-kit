@@ -36,6 +36,20 @@ This single command will:
 - **API Server**: http://localhost:3030/api
 - **LocalStack**: http://localhost:4566
 
+## 📸 Screenshots
+
+### Main Dashboard
+
+The main dashboard provides an overview of all LocalCloud Kit services and resources.
+
+![Main Dashboard](docs/screenshots/01-main-dashboard.png)
+
+### S3 Bucket Management
+
+Manage S3 buckets, upload files, and view bucket contents with syntax highlighting.
+
+![S3 Bucket Management](docs/screenshots/02-s3-bucket-management.png)
+
 ### Alternative Docker Setup
 
 ```bash
