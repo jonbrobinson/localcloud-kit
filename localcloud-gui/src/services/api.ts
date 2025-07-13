@@ -185,6 +185,37 @@ export const s3Api = {
     }
   },
 
+  // Upload an object to a bucket
+  uploadObject: async (
+    projectName: string,
+    bucketName: string,
+    objectKey: string,
+    content: string
+  ): Promise<ApiResponse<any>> => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/s3/bucket/${encodeURIComponent(
+          bucketName
+        )}/upload?projectName=${encodeURIComponent(projectName)}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            objectKey,
+            content,
+          }),
+        }
+      );
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to upload object:", error);
+      return { success: false, error: "Failed to upload object" };
+    }
+  },
+
   // Delete an object from a bucket
   deleteObject: async (
     projectName: string,

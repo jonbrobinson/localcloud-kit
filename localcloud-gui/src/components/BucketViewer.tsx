@@ -8,9 +8,11 @@ import {
   ArrowLeftIcon,
   EyeIcon,
   TrashIcon,
+  PlusIcon,
 } from "@heroicons/react/24/outline";
 import { s3Api } from "@/services/api";
 import FileViewerModal from "./FileViewerModal";
+import UploadFileModal from "./UploadFileModal";
 import { highlightThemes, HighlightTheme } from "./highlightThemes";
 
 interface BucketViewerProps {
@@ -41,6 +43,7 @@ export default function BucketViewer({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fileViewerOpen, setFileViewerOpen] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<{
     bucketName: string;
     objectKey: string;
@@ -194,6 +197,15 @@ export default function BucketViewer({
             </h2>
           </div>
           <div className="flex items-center space-x-4">
+            {selectedBucket && (
+              <button
+                onClick={() => setUploadModalOpen(true)}
+                className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Upload File
+              </button>
+            )}
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600"
@@ -366,6 +378,19 @@ export default function BucketViewer({
           bucketName={selectedFile.bucketName}
           objectKey={selectedFile.objectKey}
           theme={selectedTheme}
+        />
+      )}
+
+      {/* Upload File Modal */}
+      {selectedBucket && (
+        <UploadFileModal
+          isOpen={uploadModalOpen}
+          onClose={() => setUploadModalOpen(false)}
+          projectName={projectName}
+          bucketName={selectedBucket}
+          onUploadSuccess={() => {
+            loadBucketContents(selectedBucket);
+          }}
         />
       )}
     </div>
