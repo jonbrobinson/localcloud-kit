@@ -8,6 +8,7 @@ const cron = require("node-cron");
 const http = require("http");
 const socketIo = require("socket.io");
 const path = require("path");
+const fs = require("fs");
 
 const execAsync = promisify(exec);
 
@@ -931,6 +932,22 @@ app.get("/s3/bucket/:bucketName/object/:objectKey", async (req, res) => {
       }
     }
 
+    // Determine if the file is binary or text
+    const contentType = metadata.ContentType || "";
+    const isBinary =
+      contentType.startsWith("image/") ||
+      contentType === "application/pdf" ||
+      contentType.startsWith("application/zip") ||
+      contentType.startsWith("application/octet-stream");
+
+    let fileContent;
+    if (isBinary) {
+      // The shell script now outputs binary files as base64, so use stdout directly
+      fileContent = stdout;
+    } else {
+      fileContent = stdout;
+    }
+
     addLog(
       "success",
       `Object downloaded: ${objectKey} from bucket ${bucketName}`,
@@ -940,7 +957,7 @@ app.get("/s3/bucket/:bucketName/object/:objectKey", async (req, res) => {
     res.json({
       success: true,
       data: {
-        content: stdout,
+        content: fileContent,
         metadata: metadata,
       },
     });
@@ -950,6 +967,68 @@ app.get("/s3/bucket/:bucketName/object/:objectKey", async (req, res) => {
       `Failed to download object: ${error.message}`,
       "automation"
     );
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post("/s3/bucket/:bucketName/upload", async (req, res) => {
+  try {
+    const { projectName } = req.query;
+    const { bucketName } = req.params;
+    const { objectKey, content } = req.body;
+
+    if (!projectName || !bucketName || !objectKey || content === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: "projectName, bucketName, objectKey, and content are required",
+      });
+    }
+
+    // Create a temporary file with the content
+    const tempFile = `/tmp/${objectKey.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+
+    // Check if content is base64 encoded (for binary files)
+    const isBase64 =
+      /^[A-Za-z0-9+/]*={0,2}$/.test(content) && content.length > 0;
+
+    if (isBase64) {
+      // Decode base64 content for binary files
+      const buffer = Buffer.from(content, "base64");
+      fs.writeFileSync(tempFile, buffer);
+    } else {
+      // Write as text for text files
+      fs.writeFileSync(tempFile, content);
+    }
+
+    const command = `/bin/sh /app/scripts/shell/upload_s3_object.sh '${projectName}' '${bucketName}' '${objectKey}' '${tempFile}'`;
+    const { stdout, stderr } = await execAsync(command, {
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: internalEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    // Clean up temp file
+    try {
+      fs.unlinkSync(tempFile);
+    } catch (cleanupError) {
+      console.warn("Failed to cleanup temp file:", cleanupError);
+    }
+
+    if (stderr) {
+      addLog("warn", `S3 upload warning: ${stderr}`, "automation");
+    }
+
+    addLog(
+      "success",
+      `Object uploaded: ${objectKey} to bucket ${bucketName}`,
+      "automation"
+    );
+
+    res.json({ success: true, message: stdout });
+  } catch (error) {
+    addLog("error", `Failed to upload object: ${error.message}`, "automation");
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1186,7 +1265,9 @@ app.delete("/cache/del", async (req, res) => {
 
 app.post("/cache/flush", async (req, res) => {
   try {
-    const { stdout } = await execAsync(`/bin/sh ${pathToShell("cache_flush.sh")}`);
+    const { stdout } = await execAsync(
+      `/bin/sh ${pathToShell("cache_flush.sh")}`
+    );
     res.json(JSON.parse(stdout));
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

@@ -6,6 +6,22 @@ import hljs from "highlight.js";
 import { highlightThemes, HighlightTheme } from "./highlightThemes";
 import { marked } from "marked";
 import Papa from "papaparse";
+
+// Helper function to encode Unicode strings to base64
+function encodeUnicodeToBase64(str: string): string {
+  try {
+    // First try the standard btoa for ASCII content
+    return btoa(str);
+  } catch (error) {
+    // If btoa fails due to Unicode characters, use a more robust approach
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(str);
+    const binaryString = Array.from(bytes, (byte) =>
+      String.fromCharCode(byte)
+    ).join("");
+    return btoa(binaryString);
+  }
+}
 // Register highlight.js languages
 import javascript from "highlight.js/lib/languages/javascript";
 import typescript from "highlight.js/lib/languages/typescript";
@@ -177,9 +193,27 @@ export default function FileViewerModal({
   const handleDownload = () => {
     if (!fileContent) return;
 
-    const blob = new Blob([fileContent.content], {
-      type: fileContent.metadata.ContentType || "application/octet-stream",
-    });
+    // Check if content is base64 encoded (for binary files)
+    const isBase64 = /^[A-Za-z0-9+/]*={0,2}$/.test(fileContent.content) && fileContent.content.length > 0;
+    
+    let blob;
+    if (isBase64) {
+      // Convert base64 to binary for download
+      const binaryString = atob(fileContent.content);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      blob = new Blob([bytes], {
+        type: fileContent.metadata.ContentType || "application/octet-stream",
+      });
+    } else {
+      // For text files, use content as-is
+      blob = new Blob([fileContent.content], {
+        type: fileContent.metadata.ContentType || "application/octet-stream",
+      });
+    }
+    
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -429,18 +463,14 @@ export default function FileViewerModal({
                 )}
                 {viewerType === "image" && (
                   <img
-                    src={`data:${
-                      fileContent.metadata.ContentType
-                    };base64,${btoa(fileContent.content)}`}
+                    src={`data:${fileContent.metadata.ContentType};base64,${fileContent.content}`}
                     alt={objectKey}
                     className="max-w-full max-h-[60vh] mx-auto rounded shadow"
                   />
                 )}
                 {viewerType === "pdf" && (
                   <iframe
-                    src={`data:application/pdf;base64,${btoa(
-                      fileContent.content
-                    )}`}
+                    src={`data:application/pdf;base64,${fileContent.content}`}
                     title={objectKey}
                     className="w-full h-[60vh] border rounded"
                   />

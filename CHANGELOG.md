@@ -26,6 +26,9 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - JSON file content display showing metadata instead of actual content
 - Shell script compatibility with POSIX standards
 - File viewer modal styling and layout improvements
+- **Fixed binary file download corruption issue**: Updated S3 download script to output binary files as base64 instead of raw binary data to prevent corruption when captured by Node.js
+- **Fixed image and PDF display**: Binary files now properly display in the file viewer without corruption
+- **Fixed file download functionality**: Download now correctly handles both text and binary files
 
 ## [0.1.0] - 2024-01-XX
 
