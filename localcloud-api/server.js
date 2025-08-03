@@ -1173,6 +1173,50 @@ app.post("/dynamodb/table/:tableName/item", async (req, res) => {
   }
 });
 
+app.delete("/dynamodb/table/:tableName/item", async (req, res) => {
+  try {
+    const { projectName } = req.body;
+    const { tableName } = req.params;
+    const { partitionKey, partitionValue, sortKey, sortValue } = req.body;
+
+    if (!projectName || !tableName || !partitionKey || !partitionValue) {
+      return res.status(400).json({
+        success: false,
+        error: "projectName, tableName, partitionKey, and partitionValue are required",
+      });
+    }
+
+    let command = `/bin/sh /app/scripts/shell/delete_dynamodb_item.sh '${projectName}' '${tableName}' '${partitionKey}' '${partitionValue}'`;
+    
+    if (sortKey && sortValue) {
+      command += ` '${sortKey}' '${sortValue}'`;
+    }
+
+    const { stdout, stderr } = await execAsync(command, {
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: internalEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `DynamoDB delete-item warning: ${stderr}`, "automation");
+    }
+
+    addLog(
+      "success",
+      `Item deleted from DynamoDB table ${tableName}`,
+      "automation"
+    );
+
+    res.json({ success: true, message: stdout });
+  } catch (error) {
+    addLog("error", `Failed to delete item from DynamoDB: ${error.message}`, "automation");
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.get("/dynamodb/table/:tableName/schema", async (req, res) => {
   try {
     const { projectName } = req.query;

@@ -297,4 +297,27 @@ export async function getDynamoDBTableSchema(
   return res.json();
 }
 
+export async function deleteDynamoDBItem(
+  projectName: string,
+  tableName: string,
+  partitionKey: string,
+  partitionValue: string,
+  sortKey?: string,
+  sortValue?: string
+) {
+  const res = await fetch(`/api/dynamodb/table/${tableName}/item`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      projectName, 
+      partitionKey, 
+      partitionValue, 
+      sortKey, 
+      sortValue 
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to delete item");
+  return res.json();
+}
+
 export default api;

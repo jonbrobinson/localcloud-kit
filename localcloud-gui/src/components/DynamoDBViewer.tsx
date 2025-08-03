@@ -1,8 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { XMarkIcon, MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
-import { addDynamoDBItem, getDynamoDBTableSchema } from "@/services/api";
+import {
+  XMarkIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
+import {
+  addDynamoDBItem,
+  getDynamoDBTableSchema,
+  deleteDynamoDBItem,
+} from "@/services/api";
 import DynamoDBAddItemModal from "./DynamoDBAddItemModal";
 
 interface DynamoDBViewerProps {
@@ -66,6 +75,9 @@ export default function DynamoDBViewer({
   const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
   const [selectedJsonData, setSelectedJsonData] = useState<any>(null);
   const [selectedJsonTitle, setSelectedJsonTitle] = useState<string>("");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<DynamoDBItem | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -296,6 +308,52 @@ export default function DynamoDBViewer({
     setSelectedJsonData(data);
     setSelectedJsonTitle(title);
     setJsonViewerOpen(true);
+  };
+
+  const handleDeleteClick = (item: DynamoDBItem) => {
+    setItemToDelete(item);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete || !selectedTable || !tableSchema) return;
+
+    setDeleteLoading(true);
+    setError("");
+
+    try {
+      // Get the key schema to identify partition and sort keys
+      const keySchema = tableSchema.Table.KeySchema;
+      const partitionKey = keySchema.find(
+        (key) => key.KeyType === "HASH"
+      )?.AttributeName;
+      const sortKey = keySchema.find(
+        (key) => key.KeyType === "RANGE"
+      )?.AttributeName;
+
+      if (!partitionKey || !itemToDelete[partitionKey]) {
+        throw new Error("Partition key not found in item");
+      }
+
+      await deleteDynamoDBItem(
+        projectName,
+        selectedTable,
+        partitionKey,
+        String(itemToDelete[partitionKey]),
+        sortKey,
+        sortKey && itemToDelete[sortKey]
+          ? String(itemToDelete[sortKey])
+          : undefined
+      );
+
+      setDeleteModalOpen(false);
+      setItemToDelete(null);
+      await loadTableContents(); // Refresh the table
+    } catch (err: any) {
+      setError(err.message || "Failed to delete item");
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   if (!isOpen) return <></>;
@@ -557,6 +615,9 @@ export default function DynamoDBViewer({
                               </div>
                             </th>
                           ))}
+                          <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 w-20">
+                            Actions
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -609,6 +670,15 @@ export default function DynamoDBViewer({
                                 </div>
                               </td>
                             ))}
+                            <td className="px-6 py-4 text-center">
+                              <button
+                                onClick={() => handleDeleteClick(item)}
+                                className="text-red-600 hover:text-red-800 transition-colors"
+                                title="Delete item"
+                              >
+                                <TrashIcon className="h-4 w-4" />
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -629,6 +699,61 @@ export default function DynamoDBViewer({
         projectName={projectName}
         loading={addLoading}
       />
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Delete Item</h2>
+                <p className="text-sm text-gray-600">
+                  Are you sure you want to delete this item?
+                </p>
+              </div>
+              <button
+                onClick={() => setDeleteModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+                aria-label="Close"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="text-sm text-gray-700 mb-4">
+                <p>This action cannot be undone. The item will be permanently deleted from the table.</p>
+              </div>
+              
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setDeleteModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  disabled={deleteLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  disabled={deleteLoading}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deleteLoading ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* JSON Viewer Modal */}
       {jsonViewerOpen && (
