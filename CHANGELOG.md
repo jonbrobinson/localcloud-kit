@@ -30,7 +30,31 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **Fixed image and PDF display**: Binary files now properly display in the file viewer without corruption
 - **Fixed file download functionality**: Download now correctly handles both text and binary files
 
-## [0.1.0] - 2024-01-XX
+## [0.2.0] - 2025-08-02
+
+### Added
+
+- **Delete item functionality** for DynamoDB tables with confirmation modal
+- **JSON viewer modal** with syntax highlighting for better data visualization
+- **Enhanced table scrolling** with proper sticky headers and overflow handling
+- **Improved refresh functionality** that reloads both table list and current table contents
+- **Plus icon** for expandable JSON objects instead of text
+- **Better null value handling** - displays empty cells instead of "null" text
+- **Z-index fixes** to prevent table header interference with modals
+
+### Changed
+
+- **Table layout improvements** for better responsiveness and user experience
+- **JSON formatting** for more readable object display in table cells
+- **Modal positioning** to ensure proper layering and visibility
+
+### Fixed
+
+- **Refresh button** now properly refreshes table contents, not just the table list
+- **Table scrolling** issues when items exceed viewport height
+- **Modal display** problems with z-index conflicts
+
+## [0.1.0] - 2025-07-01
 
 ### Added
 
