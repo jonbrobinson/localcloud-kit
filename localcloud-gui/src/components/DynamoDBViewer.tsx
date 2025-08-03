@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { XMarkIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon, MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { addDynamoDBItem, getDynamoDBTableSchema } from "@/services/api";
 import DynamoDBAddItemModal from "./DynamoDBAddItemModal";
 
@@ -63,6 +63,9 @@ export default function DynamoDBViewer({
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
+  const [selectedJsonData, setSelectedJsonData] = useState<any>(null);
+  const [selectedJsonTitle, setSelectedJsonTitle] = useState<string>("");
 
   useEffect(() => {
     if (isOpen) {
@@ -109,6 +112,13 @@ export default function DynamoDBViewer({
       console.error("Failed to load tables:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshData = async () => {
+    await loadTables();
+    if (selectedTable) {
+      await loadTableContents();
     }
   };
 
@@ -235,7 +245,7 @@ export default function DynamoDBViewer({
   };
 
   const formatValue = (value: any): string => {
-    if (value === null || value === undefined) return "null";
+    if (value === null || value === undefined) return "";
     if (typeof value === "object") return JSON.stringify(value);
     return String(value);
   };
@@ -282,7 +292,13 @@ export default function DynamoDBViewer({
     return key ? (key.KeyType === "HASH" ? "Partition Key" : "Sort Key") : "";
   };
 
-  if (!isOpen) return null;
+  const handleJsonClick = (data: any, title: string) => {
+    setSelectedJsonData(data);
+    setSelectedJsonTitle(title);
+    setJsonViewerOpen(true);
+  };
+
+  if (!isOpen) return <></>;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
@@ -307,9 +323,9 @@ export default function DynamoDBViewer({
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex flex-col p-6 space-y-4">
+        <div className="flex-1 flex flex-col p-6 space-y-4 overflow-hidden">
           {/* Table Selection */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 flex-shrink-0">
             <label className="text-sm font-medium text-gray-700">
               Select Table:
             </label>
@@ -327,7 +343,7 @@ export default function DynamoDBViewer({
               ))}
             </select>
             <button
-              onClick={loadTables}
+              onClick={refreshData}
               disabled={loading}
               className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
             >
@@ -338,7 +354,7 @@ export default function DynamoDBViewer({
           {selectedTable && (
             <>
               {/* Query Controls */}
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 rounded-lg p-4 flex-shrink-0">
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="flex items-center space-x-2">
                     <input
@@ -491,7 +507,7 @@ export default function DynamoDBViewer({
 
               {/* Results Info */}
               {scanResult && (
-                <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center justify-between text-sm text-gray-600 flex-shrink-0">
                   <span>
                     Showing {items.length} items (scanned:{" "}
                     {scanResult.scannedCount})
@@ -500,16 +516,27 @@ export default function DynamoDBViewer({
                 </div>
               )}
 
+              {/* Add Item Button */}
+              <div className="flex justify-between items-center flex-shrink-0">
+                <h3 className="text-lg font-semibold">Items</h3>
+                <button
+                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  onClick={() => setAddModalOpen(true)}
+                >
+                  Add Item
+                </button>
+              </div>
+
               {/* Items Table */}
-              <div className="flex-1 overflow-auto">
+              <div className="flex-1 overflow-hidden">
                 {items.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     {loading ? "Loading items..." : "No items found"}
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <div className="h-full overflow-auto border border-gray-200 rounded-lg">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50 sticky top-0">
+                      <thead className="bg-gray-50 sticky top-0 z-1">
                         <tr>
                           {getTableHeaders().map((header) => (
                             <th
@@ -538,17 +565,47 @@ export default function DynamoDBViewer({
                             {getTableHeaders().map((header) => (
                               <td
                                 key={header}
-                                className={`px-6 py-4 whitespace-nowrap text-sm ${
+                                className={`px-6 py-4 text-sm ${
                                   isKeyColumn(header)
                                     ? "bg-blue-50 text-blue-900 border-r border-blue-200 font-medium"
                                     : "text-gray-900"
                                 }`}
                               >
                                 <div
-                                  className="max-w-xs truncate"
-                                  title={formatValue(item[header])}
+                                  className={`${
+                                    typeof item[header] === "object" &&
+                                    item[header] !== null
+                                      ? "max-w-md overflow-auto"
+                                      : "max-w-xs truncate"
+                                  }`}
+                                  title={
+                                    typeof item[header] === "object" &&
+                                    item[header] !== null
+                                      ? "Click to view full JSON"
+                                      : formatValue(item[header])
+                                  }
                                 >
-                                  {formatValue(item[header])}
+                                  {typeof item[header] === "object" &&
+                                  item[header] !== null ? (
+                                    <button
+                                      onClick={() =>
+                                        handleJsonClick(
+                                          item[header],
+                                          `${header} - ${selectedTable}`
+                                        )
+                                      }
+                                      className="w-full text-left text-xs bg-blue-50 hover:bg-blue-100 p-2 rounded border border-blue-200 font-mono text-gray-800 transition-colors cursor-pointer"
+                                    >
+                                      <div className="truncate">
+                                        {formatValue(item[header])}
+                                      </div>
+                                      <div className="flex justify-center mt-1">
+                                        <PlusIcon className="h-4 w-4 text-blue-600" />
+                                      </div>
+                                    </button>
+                                  ) : (
+                                    formatValue(item[header])
+                                  )}
                                 </div>
                               </td>
                             ))}
@@ -561,16 +618,6 @@ export default function DynamoDBViewer({
               </div>
             </>
           )}
-
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-lg font-semibold">Items</h3>
-            <button
-              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-              onClick={() => setAddModalOpen(true)}
-            >
-              Add Item
-            </button>
-          </div>
         </div>
       </div>
 
@@ -582,6 +629,35 @@ export default function DynamoDBViewer({
         projectName={projectName}
         loading={addLoading}
       />
+
+      {/* JSON Viewer Modal */}
+      {jsonViewerOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-3/4 flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">JSON Viewer</h2>
+                <p className="text-sm text-gray-600">{selectedJsonTitle}</p>
+              </div>
+              <button
+                onClick={() => setJsonViewerOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+                aria-label="Close"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* JSON Content */}
+            <div className="flex-1 p-6 overflow-auto">
+              <pre className="text-sm font-mono text-gray-800 bg-gray-50 p-4 rounded border overflow-auto h-full whitespace-pre-wrap">
+                {JSON.stringify(selectedJsonData, null, 2)}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
