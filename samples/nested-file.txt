@@ -1,0 +1,13 @@
+This is a test file to verify that the LocalCloud Kit file viewer
+can properly handle and display files that are stored in S3 with
+nested directory paths.
+
+File path: nested/directory/test-file.txt
+Purpose: Testing path handling in S3 bucket structure
+Date: 2025-08-12
+
+Features to test:
+- File loading from nested paths
+- Path display in the UI
+- File operations with path structures
+- Directory navigation if implemented 
