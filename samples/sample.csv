@@ -1,4 +1,11 @@
-name,age,email,active
-Alice,30,alice@example.com,true
-Bob,25,bob@example.com,false
-Charlie,35,charlie@example.com,true 
+id,name,email,department,salary,hire_date,is_active
+1,John Smith,john.smith@company.com,Engineering,75000,2023-01-15,true
+2,Sarah Johnson,sarah.johnson@company.com,Marketing,65000,2023-02-20,true
+3,Michael Brown,michael.brown@company.com,Sales,70000,2023-03-10,true
+4,Emily Davis,emily.davis@company.com,Engineering,80000,2023-01-05,true
+5,David Wilson,david.wilson@company.com,HR,60000,2023-04-12,false
+6,Lisa Anderson,lisa.anderson@company.com,Marketing,68000,2023-02-28,true
+7,Robert Taylor,robert.taylor@company.com,Sales,72000,2023-03-25,true
+8,Jennifer Martinez,jennifer.martinez@company.com,Engineering,85000,2023-01-20,true
+9,Christopher Lee,christopher.lee@company.com,Finance,90000,2023-05-01,true
+10,Amanda Garcia,amanda.garcia@company.com,Marketing,67000,2023-02-15,true 
