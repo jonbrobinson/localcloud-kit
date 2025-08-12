@@ -50,6 +50,8 @@ export default function BucketViewer({
   } | null>(null);
   const [deletingFile, setDeletingFile] = useState<string | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<HighlightTheme>("github");
+  const [currentPath, setCurrentPath] = useState<string>("");
+  const [pathHistory, setPathHistory] = useState<string[]>([]);
 
   const loadBuckets = useCallback(async () => {
     setLoading(true);
@@ -69,14 +71,32 @@ export default function BucketViewer({
   }, [projectName]);
 
   const loadBucketContents = useCallback(
-    async (bucketName: string) => {
+    async (bucketName: string, path: string = "") => {
       setLoading(true);
       setError(null);
       try {
         const response = await s3Api.getBucketContents(projectName, bucketName);
         if (response.success) {
-          setBucketContents(response.data || []);
+          let contents = response.data || [];
+
+          // Filter contents based on current path
+          if (path) {
+            contents = contents.filter((item) => {
+              const key = item.Key || "";
+              // Show items that start with the current path
+              if (key.startsWith(path)) {
+                // Remove the prefix for display
+                const relativeKey = key.slice(path.length);
+                // Only show items in the current directory level (not nested deeper)
+                return !relativeKey.includes("/") || relativeKey.endsWith("/");
+              }
+              return false;
+            });
+          }
+
+          setBucketContents(contents);
           setSelectedBucket(bucketName);
+          setCurrentPath(path);
         } else {
           setError(response.error || "Failed to load bucket contents");
         }
@@ -106,6 +126,8 @@ export default function BucketViewer({
       setSelectedBucket(null);
       setBucketContents([]);
       setError(null);
+      setCurrentPath("");
+      setPathHistory([]);
     }
   }, [isOpen]);
 
@@ -132,7 +154,39 @@ export default function BucketViewer({
   };
 
   const isFolder = (key: string) => {
+    // S3 doesn't have real folders, but we can detect "virtual folders"
+    // A key ending with "/" is a folder marker
+    // A key without "/" is a file
     return key.endsWith("/");
+  };
+
+  const getDisplayName = (key: string) => {
+    // For nested paths, show just the filename or folder name
+    if (key.endsWith("/")) {
+      // It's a folder, get the folder name
+      const parts = key.split("/").filter(Boolean);
+      return parts.length > 0 ? parts[parts.length - 1] + "/" : key;
+    } else {
+      // It's a file, get the filename
+      const parts = key.split("/");
+      return parts[parts.length - 1];
+    }
+  };
+
+  const getParentPath = (key: string) => {
+    // Get the parent path for navigation
+    if (key.endsWith("/")) {
+      // Remove the trailing slash and get parent
+      const trimmed = key.slice(0, -1);
+      const parts = trimmed.split("/");
+      parts.pop(); // Remove the last part
+      return parts.length > 0 ? parts.join("/") + "/" : "";
+    } else {
+      // Get the directory path
+      const parts = key.split("/");
+      parts.pop(); // Remove the filename
+      return parts.length > 0 ? parts.join("/") + "/" : "";
+    }
   };
 
   const handleViewFile = (objectKey: string) => {
@@ -173,6 +227,35 @@ export default function BucketViewer({
     setSelectedFile(null);
   };
 
+  const handleFolderClick = (folderKey: string) => {
+    if (!selectedBucket) return;
+
+    // Add current path to history
+    if (currentPath) {
+      setPathHistory((prev) => [...prev, currentPath]);
+    }
+
+    // Navigate to the folder
+    loadBucketContents(selectedBucket, folderKey);
+  };
+
+  const handleBackClick = () => {
+    if (!selectedBucket || pathHistory.length === 0) return;
+
+    const previousPath = pathHistory[pathHistory.length - 1];
+    setPathHistory((prev) => prev.slice(0, -1));
+    loadBucketContents(selectedBucket, previousPath);
+  };
+
+  const handleRootClick = () => {
+    if (!selectedBucket) return;
+
+    // Reset to root of bucket
+    setCurrentPath("");
+    setPathHistory([]);
+    loadBucketContents(selectedBucket, "");
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -186,6 +269,8 @@ export default function BucketViewer({
                 onClick={() => {
                   setSelectedBucket(null);
                   setBucketContents([]);
+                  setCurrentPath("");
+                  setPathHistory([]);
                 }}
                 className="p-2 text-gray-400 hover:text-gray-600"
               >
@@ -195,8 +280,51 @@ export default function BucketViewer({
             <h2 className="text-2xl font-bold text-gray-900">
               {selectedBucket ? `Bucket: ${selectedBucket}` : "S3 Buckets"}
             </h2>
+            {selectedBucket && currentPath && (
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <span>/</span>
+                <button
+                  onClick={handleRootClick}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  root
+                </button>
+                {pathHistory.map((path, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <span>/</span>
+                    <button
+                      onClick={() => {
+                        const newHistory = pathHistory.slice(0, index + 1);
+                        setPathHistory(newHistory);
+                        loadBucketContents(selectedBucket, path);
+                      }}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      {getDisplayName(path)}
+                    </button>
+                  </div>
+                ))}
+                {currentPath && (
+                  <>
+                    <span>/</span>
+                    <span className="text-gray-900">
+                      {getDisplayName(currentPath)}
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex items-center space-x-4">
+            {selectedBucket && currentPath && pathHistory.length > 0 && (
+              <button
+                onClick={handleBackClick}
+                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                Back
+              </button>
+            )}
             {selectedBucket && (
               <button
                 onClick={() => setUploadModalOpen(true)}
@@ -278,9 +406,27 @@ export default function BucketViewer({
                                 ) : (
                                   <DocumentIcon className="h-5 w-5 text-gray-400 mr-2" />
                                 )}
-                                <span className="text-sm text-gray-900">
-                                  {item.Key}
-                                </span>
+                                <div className="flex flex-col">
+                                  {isFolder(item.Key || "") ? (
+                                    <button
+                                      onClick={() =>
+                                        handleFolderClick(item.Key || "")
+                                      }
+                                      className="text-left text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
+                                    >
+                                      {getDisplayName(item.Key || "")}
+                                    </button>
+                                  ) : (
+                                    <span className="text-sm text-gray-900 font-medium">
+                                      {getDisplayName(item.Key || "")}
+                                    </span>
+                                  )}
+                                  {item.Key && item.Key.includes("/") && (
+                                    <span className="text-xs text-gray-500">
+                                      {item.Key}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
