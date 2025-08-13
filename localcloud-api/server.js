@@ -89,6 +89,11 @@ function addLog(level, message, source = "api") {
 // LocalStack Management Functions
 async function checkLocalStackStatus() {
   try {
+    addLog(
+      "info",
+      `Checking LocalStack health at ${internalEndpoint}`,
+      "localstack"
+    );
     const response = await axios.get(`${internalEndpoint}/_localstack/health`, {
       timeout: 5000,
     });
@@ -888,10 +893,11 @@ app.get("/s3/bucket/:bucketName/contents", async (req, res) => {
   res.json({ success: true, data: contents });
 });
 
-app.get("/s3/bucket/:bucketName/object/:objectKey", async (req, res) => {
+app.get("/s3/bucket/:bucketName/object/*", async (req, res) => {
   try {
     const { projectName } = req.query;
-    const { bucketName, objectKey } = req.params;
+    const { bucketName } = req.params;
+    const objectKey = req.params[0]; // Get the wildcard parameter
 
     if (!projectName || !bucketName || !objectKey) {
       return res.status(400).json({
@@ -1033,10 +1039,11 @@ app.post("/s3/bucket/:bucketName/upload", async (req, res) => {
   }
 });
 
-app.delete("/s3/bucket/:bucketName/object/:objectKey", async (req, res) => {
+app.delete("/s3/bucket/:bucketName/object/*", async (req, res) => {
   try {
     const { projectName } = req.query;
-    const { bucketName, objectKey } = req.params;
+    const { bucketName } = req.params;
+    const objectKey = req.params[0]; // Get the wildcard parameter
 
     if (!projectName || !bucketName || !objectKey) {
       return res.status(400).json({
@@ -1182,12 +1189,13 @@ app.delete("/dynamodb/table/:tableName/item", async (req, res) => {
     if (!projectName || !tableName || !partitionKey || !partitionValue) {
       return res.status(400).json({
         success: false,
-        error: "projectName, tableName, partitionKey, and partitionValue are required",
+        error:
+          "projectName, tableName, partitionKey, and partitionValue are required",
       });
     }
 
     let command = `/bin/sh /app/scripts/shell/delete_dynamodb_item.sh '${projectName}' '${tableName}' '${partitionKey}' '${partitionValue}'`;
-    
+
     if (sortKey && sortValue) {
       command += ` '${sortKey}' '${sortValue}'`;
     }
@@ -1212,7 +1220,11 @@ app.delete("/dynamodb/table/:tableName/item", async (req, res) => {
 
     res.json({ success: true, message: stdout });
   } catch (error) {
-    addLog("error", `Failed to delete item from DynamoDB: ${error.message}`, "automation");
+    addLog(
+      "error",
+      `Failed to delete item from DynamoDB: ${error.message}`,
+      "automation"
+    );
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1340,9 +1352,7 @@ io.on("connection", (socket) => {
 
 // Scheduled tasks
 cron.schedule("*/30 * * * * *", () => {
-  if (localstackStatus.running) {
-    checkLocalStackStatus();
-  }
+  checkLocalStackStatus();
 });
 
 // Initial status check

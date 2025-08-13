@@ -13,6 +13,18 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - Updated container names in docker-compose.yml and Makefile
 - Updated package.json names for both GUI and API components
 
+### Fixed
+
+- **Fixed LocalStack health check showing as unhealthy**:
+  - Resolved cron job logic that prevented health checks from running when LocalStack was initially unhealthy
+  - Added proper port mapping (3031:3031) for API container to make it accessible from host machine
+  - Enhanced health check logging for better debugging
+  - Health check now runs every 30 seconds regardless of current status
+- **Fixed S3 file viewing with nested folder paths**:
+  - Updated Express.js routes to use wildcard patterns (`/*`) for object keys to handle nested folder structures
+  - Fixed Next.js API configuration to properly route to backend API server
+  - File viewer now correctly displays files in subfolders (e.g., `documents/sample.docx`, `code/sample.py`)
+
 ### Added
 
 - Enhanced file viewer with syntax highlighting support for multiple file types
@@ -20,6 +32,12 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - Dynamic theme selection with persistent theme storage
 - Comprehensive sample files for testing various file types
 - Rebranded project from "LocalStack Manager" to "LocalCloud Kit"
+- **Created sample-files S3 bucket** with comprehensive test files including:
+  - Text files (sample.txt, nested-file.txt)
+  - Code files (sample.js, sample.py, sample.ts, Sample.java)
+  - Data files (sample.csv, sample.json)
+  - Document files (sample.docx)
+  - Organized folder structure (code/, documents/) for testing navigation
 
 ### Fixed
 
