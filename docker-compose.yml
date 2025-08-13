@@ -44,6 +44,8 @@ services:
       context: .
       dockerfile: Dockerfile.api
     container_name: localcloud-api
+    ports:
+      - "3031:3031"
     environment:
       - PORT=3031
       - AWS_ENDPOINT_URL=http://localstack:4566
