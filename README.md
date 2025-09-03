@@ -1,8 +1,8 @@
 # LocalCloud Kit
 
-> **Enterprise AWS Development Tools** by CloudStack Solutions
+> **Local AWS Development Environment**
 
-Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, Secrets Manager, EventBridge, and more.
+Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, and Secrets Manager.
 
 [![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.4.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -12,7 +12,7 @@ Build and test cloud apps locally—no AWS account needed. Free, fast, and with 
 [![React](https://img.shields.io/badge/React-18.x-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![ESLint](https://img.shields.io/badge/ESLint-Configured-yellow?style=for-the-badge&logo=eslint)](https://eslint.org/)
-[![CloudStack Solutions](https://img.shields.io/badge/Powered%20by-CloudStack%20Solutions-indigo?style=for-the-badge)](https://cloudstack.solutions/)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/jonbrobinson/localcloud-kit)
 
 ## 🚀 Quick Start
 
@@ -201,8 +201,8 @@ localcloud-kit/
 ### GUI Management
 
 - **Web Interface**: Modern Next.js dashboard with hot reloading
-- **Individual Resource Buttons**: Quick creation of S3, DynamoDB, Secrets Manager, Lambda, and API Gateway
-- **Batch Resource Creation**: Create multiple resources at once with templates or individual selection
+- **Individual Resource Buttons**: Quick creation of S3, DynamoDB, and Secrets Manager
+- **Batch Resource Creation**: Create multiple resources at once with individual selection
 - **Real-time Monitoring**: Live status and resource tracking
 - **Log Viewer**: Real-time log monitoring with filtering
 
@@ -246,29 +246,23 @@ Use the web GUI to create resources individually:
 - **S3 Bucket**: Click the 🪣 S3 button
 - **DynamoDB Table**: Click the 🗄️ DynamoDB button
 - **Secrets Manager**: Click the 🔑 Secrets button
-- **Lambda Function**: Click the ⚡ Lambda button
-- **API Gateway**: Click the 🌐 API Gateway button
 
 #### Batch Resource Creation
 
 ```bash
 # Using shell scripts (standard approach)
 ./scripts/shell/create_resources.sh localcloud-kit dev --s3 --dynamodb
-
-# Or use predefined templates
-./scripts/shell/create_resources.sh localcloud-kit dev --template basic
 ```
 
 #### Via Web GUI
 
 - Open http://localhost:3030
 - Use individual resource buttons for quick creation
-- Or use the resource creation modal for batch creation with templates
+- Or use the resource creation modal for batch creation
 
 ### 3. Manage via GUI
 
 - Open http://localhost:3030
-- Select resource template
 - Create/destroy resources with one click
 
 ### 4. Test File Viewer
@@ -453,16 +447,7 @@ The application runs entirely in containers with the following setup:
 - **Environment**: dev/uat/prod for isolation
 - **AWS Region**: Target region for resources
 
-## 📊 Resource Templates
 
-Available templates for quick resource creation via GUI or CLI:
-
-| Template          | Description                                          | Resources                         | CLI Example           |
-| ----------------- | ---------------------------------------------------- | --------------------------------- | --------------------- |
-| **Basic Setup**   | S3 bucket and DynamoDB table for basic storage needs | S3, DynamoDB                      | `--template basic`    |
-| **Web App**       | Full web application stack with API Gateway          | S3, DynamoDB, Lambda, API Gateway | `--template webapp`   |
-| **Data Pipeline** | Data processing pipeline with S3 and DynamoDB        | S3, DynamoDB, Lambda              | `--template pipeline` |
-| **Custom**        | Create resources individually or with custom config  | Any combination                   | `--s3 --dynamodb`     |
 
 ## 🚀 Quick Commands
 
@@ -530,11 +515,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Documentation**: [README.md](README.md)
 - **Issues**: [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/jonbrobinson/localcloud-kit/discussions)
-- **Email**: support@cloudstacksolutions.com
+- **Repository**: [GitHub Repository](https://github.com/jonbrobinson/localcloud-kit)
 
 ## 🔗 Links
 
-- [CloudStack Solutions](https://cloudstacksolutions.com/)
+- [GitHub Repository](https://github.com/jonbrobinson/localcloud-kit)
 - [LocalStack Documentation](https://docs.localstack.cloud/)
 - [AWS Documentation](https://docs.aws.amazon.com/)
 - [Docker Documentation](https://docs.docker.com/)
@@ -543,23 +528,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-**LocalCloud Kit** by CloudStack Solutions
+**LocalCloud Kit** - Open Source Project
 
-- **Email**: info@cloudstacksolutions.com
-- **Website**: https://cloudstacksolutions.com/
 - **GitHub**: https://github.com/jonbrobinson/localcloud-kit
+- **Issues**: [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/jonbrobinson/localcloud-kit/discussions)
 - **Documentation**: [README.md](README.md)
 
-### Support & Services
+### Getting Help
 
-- **Enterprise Support**: Custom deployments and consulting
-- **Training**: AWS and LocalStack training programs
-- **Development**: Custom automation and integration services
-- **Copyright**: © 2024 CloudStack Solutions
+- **Report Issues**: Use GitHub Issues for bug reports and feature requests
+- **Ask Questions**: Use GitHub Discussions for questions and community support
+- **Contribute**: Pull requests and contributions are welcome
+- **Documentation**: Check the README and inline documentation
 
 ---
 
-**Built with ❤️ by CloudStack Solutions**
+**Built with ❤️ for the developer community**
 
 ## 🛠️ Troubleshooting
 
