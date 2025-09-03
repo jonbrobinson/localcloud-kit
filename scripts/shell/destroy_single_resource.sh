@@ -98,6 +98,27 @@ destroy_api_gateway() {
   echo "{\"success\": true, \"message\": \"API Gateway $API_ID destroyed successfully\"}"
 }
 
+destroy_secrets_manager_secret() {
+  if [ -n "$RESOURCE_NAME" ]; then
+    # If resource name is provided, use it as the secret name
+    SECRET_NAME="$RESOURCE_NAME"
+  else
+    # Find the secret by name pattern
+    SECRET_NAME=$($AWS_CMD secretsmanager list-secrets --query "SecretList[?starts_with(Name, '$NAME_PREFIX')].Name" --output text 2>/dev/null | head -1)
+    if [ -z "$SECRET_NAME" ]; then
+      log "No Secrets Manager secret found for project: $PROJECT_NAME"
+      echo "{\"success\": false, \"message\": \"No Secrets Manager secret found for project $PROJECT_NAME\"}"
+      return
+    fi
+  fi
+  
+  log "Destroying Secrets Manager secret: $SECRET_NAME"
+  $AWS_CMD secretsmanager delete-secret --secret-id "$SECRET_NAME" --force-delete-without-recovery 2>/dev/null || true
+  log "Deleted Secrets Manager secret: $SECRET_NAME"
+  
+  echo "{\"success\": true, \"message\": \"Secrets Manager secret $SECRET_NAME destroyed successfully\"}"
+}
+
 main() {
   command -v aws >/dev/null 2>&1 || { echo "AWS CLI is not installed. Please install it first." >&2; exit 1; }
   
@@ -121,9 +142,12 @@ main() {
     apigateway)
       destroy_api_gateway
       ;;
+    secretsmanager)
+      destroy_secrets_manager_secret
+      ;;
     *)
       echo "Unknown resource type: $RESOURCE_TYPE" >&2
-      echo "Supported types: s3, dynamodb, lambda, apigateway" >&2
+      echo "Supported types: s3, dynamodb, lambda, apigateway, secretsmanager" >&2
       exit 1
       ;;
   esac

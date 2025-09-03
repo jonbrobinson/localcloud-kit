@@ -17,6 +17,7 @@ const defaultResources = {
   dynamodb: true,
   lambda: false,
   apigateway: false,
+  secretsmanager: false,
 };
 
 export default function CreateResourceModal({
@@ -100,6 +101,8 @@ export default function CreateResourceModal({
                       ? "Lambda Function"
                       : resource === "apigateway"
                       ? "API Gateway"
+                      : resource === "secretsmanager"
+                      ? "Secrets Manager"
                       : resource}
                   </span>
                 </label>

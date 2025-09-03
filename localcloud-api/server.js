@@ -201,6 +201,29 @@ async function createResources(request) {
       }
     }
 
+    // Create Secrets Manager secret if requested
+    if (resources.secretsmanager) {
+      try {
+        const result = await createSingleResource(
+          projectName,
+          "secretsmanager"
+        );
+        createdResources.push(result);
+        addLog(
+          "success",
+          `Secrets Manager secret created: ${result.name}`,
+          "automation"
+        );
+      } catch (error) {
+        errors.push(`Secrets Manager: ${error.message}`);
+        addLog(
+          "error",
+          `Failed to create Secrets Manager secret: ${error.message}`,
+          "automation"
+        );
+      }
+    }
+
     if (errors.length > 0) {
       addLog(
         "warn",
@@ -250,6 +273,12 @@ async function createSingleResource(projectName, resourceType, config = {}) {
     // For S3 with configuration, pass the config as JSON
     if (resourceType === "s3" && config.s3Config) {
       const configJson = JSON.stringify(config.s3Config);
+      command += ` --config '${configJson}'`;
+    }
+
+    // For Secrets Manager with configuration, pass the config as JSON
+    if (resourceType === "secretsmanager" && config.secretsmanagerConfig) {
+      const configJson = JSON.stringify(config.secretsmanagerConfig);
       command += ` --config '${configJson}'`;
     }
 
@@ -1353,6 +1382,298 @@ io.on("connection", (socket) => {
 // Scheduled tasks
 cron.schedule("*/30 * * * * *", () => {
   checkLocalStackStatus();
+});
+
+// Secrets Manager API endpoints
+app.get("/secrets", async (req, res) => {
+  try {
+    const { maxResults = "100", nextToken = "" } = req.query;
+
+    const command = `/bin/sh /app/scripts/shell/list_secrets.sh ${maxResults} ${nextToken}`;
+
+    const { stdout, stderr } = await execAsync(command, {
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: internalEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `Secrets list warning: ${stderr}`, "automation");
+    }
+
+    const secrets = JSON.parse(stdout);
+    res.json({ success: true, data: secrets });
+  } catch (error) {
+    addLog("error", `Failed to list secrets: ${error.message}`, "automation");
+    res.status(500).json({
+      success: false,
+      error: "Failed to list secrets",
+      message: error.message,
+    });
+  }
+});
+
+app.post("/secrets", async (req, res) => {
+  try {
+    const { secretName, secretValue, description, tags, kmsKeyId } = req.body;
+
+    if (!secretName || !secretValue) {
+      return res.status(400).json({
+        success: false,
+        error: "Secret name and value are required",
+      });
+    }
+
+    // Build command arguments
+    let command = `/bin/sh /app/scripts/shell/create_secret.sh "${secretName}" "${secretValue}"`;
+
+    if (description) {
+      command += ` "${description}"`;
+    } else {
+      command += ` ""`;
+    }
+
+    if (tags && Object.keys(tags).length > 0) {
+      const tagString = Object.entries(tags)
+        .map(([key, value]) => `Key=${key},Value=${value}`)
+        .join(" ");
+      command += ` "${tagString}"`;
+    } else {
+      command += ` ""`;
+    }
+
+    if (kmsKeyId) {
+      command += ` "${kmsKeyId}"`;
+    } else {
+      command += ` ""`;
+    }
+
+    const { stdout, stderr } = await execAsync(command, {
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: internalEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `Secret creation warning: ${stderr}`, "automation");
+    }
+
+    addLog(
+      "success",
+      `Secret ${secretName} created successfully`,
+      "automation"
+    );
+
+    res.json({
+      success: true,
+      data: {
+        secretName,
+        message: stdout.trim(),
+      },
+    });
+  } catch (error) {
+    addLog("error", `Failed to create secret: ${error.message}`, "automation");
+    res.status(500).json({
+      success: false,
+      error: "Failed to create secret",
+      message: error.message,
+    });
+  }
+});
+
+app.get("/secrets/:secretName", async (req, res) => {
+  try {
+    const { secretName } = req.params;
+    const {
+      versionId = "",
+      versionStage = "AWSCURRENT",
+      includeValue = "false",
+    } = req.query;
+
+    if (!secretName) {
+      return res.status(400).json({
+        success: false,
+        error: "Secret name is required",
+      });
+    }
+
+    // Build command arguments
+    let command = `/bin/sh /app/scripts/shell/get_secret.sh "${secretName}"`;
+
+    if (versionId) {
+      command += ` "${versionId}"`;
+    } else {
+      command += ` ""`;
+    }
+
+    command += ` "${versionStage}"`;
+
+    const { stdout, stderr } = await execAsync(command, {
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: internalEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `Get secret warning: ${stderr}`, "automation");
+    }
+
+    const secretData = JSON.parse(stdout);
+
+    // If includeValue is false, mask the secret value
+    if (includeValue !== "true" && secretData.SecretString) {
+      secretData.SecretString = "***MASKED***";
+    }
+
+    res.json({
+      success: true,
+      data: secretData,
+    });
+  } catch (error) {
+    addLog("error", `Failed to get secret: ${error.message}`, "automation");
+    res.status(500).json({
+      success: false,
+      error: "Failed to get secret",
+      message: error.message,
+    });
+  }
+});
+
+app.put("/secrets/:secretName", async (req, res) => {
+  try {
+    const { secretName } = req.params;
+    const { secretValue, description, tags, kmsKeyId } = req.body;
+
+    if (!secretName) {
+      return res.status(400).json({
+        success: false,
+        error: "Secret name is required",
+      });
+    }
+
+    if (!secretValue) {
+      return res.status(400).json({
+        success: false,
+        error: "Secret value is required",
+      });
+    }
+
+    // For updating, we'll use the AWS CLI directly since we need to handle updates
+    let command = `aws --endpoint-url=${internalEndpoint} --region=${projectConfig.awsRegion} secretsmanager update-secret --secret-id "${secretName}" --secret-string "${secretValue}"`;
+
+    if (description) {
+      command += ` --description "${description}"`;
+    }
+
+    if (kmsKeyId) {
+      command += ` --kms-key-id "${kmsKeyId}"`;
+    }
+
+    const { stdout, stderr } = await execAsync(command, {
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: internalEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `Update secret warning: ${stderr}`, "automation");
+    }
+
+    // If tags are provided, update them separately
+    if (tags && Object.keys(tags).length > 0) {
+      const tagString = Object.entries(tags)
+        .map(([key, value]) => `Key=${key},Value=${value}`)
+        .join(" ");
+
+      const tagCommand = `aws --endpoint-url=${internalEndpoint} --region=${projectConfig.awsRegion} secretsmanager tag-resource --secret-id "${secretName}" --tags ${tagString}`;
+
+      await execAsync(tagCommand, {
+        env: {
+          ...process.env,
+          AWS_ENDPOINT_URL: internalEndpoint,
+          AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        },
+      });
+    }
+
+    addLog(
+      "success",
+      `Secret ${secretName} updated successfully`,
+      "automation"
+    );
+
+    res.json({
+      success: true,
+      data: {
+        secretName,
+        message: "Secret updated successfully",
+      },
+    });
+  } catch (error) {
+    addLog("error", `Failed to update secret: ${error.message}`, "automation");
+    res.status(500).json({
+      success: false,
+      error: "Failed to update secret",
+      message: error.message,
+    });
+  }
+});
+
+app.delete("/secrets/:secretName", async (req, res) => {
+  try {
+    const { secretName } = req.params;
+    const { forceDelete = "false" } = req.query;
+
+    if (!secretName) {
+      return res.status(400).json({
+        success: false,
+        error: "Secret name is required",
+      });
+    }
+
+    const command = `/bin/sh /app/scripts/shell/delete_secret.sh "${secretName}" ${forceDelete}`;
+
+    const { stdout, stderr } = await execAsync(command, {
+      env: {
+        ...process.env,
+        AWS_ENDPOINT_URL: internalEndpoint,
+        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+      },
+    });
+
+    if (stderr) {
+      addLog("warn", `Delete secret warning: ${stderr}`, "automation");
+    }
+
+    addLog(
+      "success",
+      `Secret ${secretName} deleted successfully`,
+      "automation"
+    );
+
+    res.json({
+      success: true,
+      data: {
+        secretName,
+        message: stdout.trim(),
+      },
+    });
+  } catch (error) {
+    addLog("error", `Failed to delete secret: ${error.message}`, "automation");
+    res.status(500).json({
+      success: false,
+      error: "Failed to delete secret",
+      message: error.message,
+    });
+  }
 });
 
 // Initial status check

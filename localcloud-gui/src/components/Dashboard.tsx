@@ -18,6 +18,7 @@ import S3ConfigModal from "./S3ConfigModal";
 import LogViewer from "./LogViewer";
 import BucketViewer from "./BucketViewer";
 import DynamoDBViewer from "./DynamoDBViewer";
+import SecretsManagerViewer from "./SecretsManagerViewer";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -38,6 +39,7 @@ export default function Dashboard() {
   const [showLogs, setShowLogs] = useState(false);
   const [showBuckets, setShowBuckets] = useState(false);
   const [showDynamoDB, setShowDynamoDB] = useState(false);
+  const [showSecretsManager, setShowSecretsManager] = useState(false);
 
   const [selectedDynamoDBTable, setSelectedDynamoDBTable] =
     useState<string>("");
@@ -59,6 +61,11 @@ export default function Dashboard() {
 
     if (resourceType === "s3") {
       setShowS3Config(true);
+      return;
+    }
+
+    if (resourceType === "secretsmanager") {
+      setShowSecretsManager(true);
       return;
     }
 
@@ -339,6 +346,14 @@ export default function Dashboard() {
                   >
                     🗄️ DynamoDB
                   </button>
+                  <button
+                    onClick={() => handleCreateSingleResource("secretsmanager")}
+                    disabled={createLoading}
+                    className="flex items-center px-3 py-2 text-sm font-medium text-white bg-yellow-600 rounded-md hover:bg-yellow-700 disabled:opacity-50 transition-colors"
+                    title="Create Secrets Manager Secret"
+                  >
+                    🔑 Secrets
+                  </button>
                 </div>
               </div>
             </div>
@@ -357,6 +372,9 @@ export default function Dashboard() {
               }}
               onViewCache={() => {
                 router.push("/cache");
+              }}
+              onViewSecretsManager={() => {
+                setShowSecretsManager(true);
               }}
             />
           </div>
@@ -455,6 +473,16 @@ export default function Dashboard() {
           }}
           projectName={config.projectName}
           selectedTableName={selectedDynamoDBTable}
+        />
+      )}
+
+      {showSecretsManager && (
+        <SecretsManagerViewer
+          isOpen={showSecretsManager}
+          onClose={() => {
+            setShowSecretsManager(false);
+          }}
+          projectName={config.projectName}
         />
       )}
     </div>

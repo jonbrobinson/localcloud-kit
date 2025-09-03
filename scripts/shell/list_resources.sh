@@ -119,6 +119,21 @@ list_api_gateways() {
   done
 }
 
+list_secrets_manager_secrets() {
+  if [ "$SHOW_ALL" = true ]; then
+    secrets=$($AWS_CMD secretsmanager list-secrets --query "SecretList[].{Name:Name,Description:Description,LastChangedDate:LastChangedDate}" --output json)
+  else
+    secrets=$($AWS_CMD secretsmanager list-secrets --query "SecretList[?starts_with(Name, '$NAME_PREFIX')].{Name:Name,Description:Description,LastChangedDate:LastChangedDate}" --output json)
+  fi
+  echo "$secrets" | jq -c '.[]' | while read row; do
+    name=$(echo "$row" | jq -r .Name)
+    description=$(echo "$row" | jq -r .Description // "")
+    id="secretsmanager-$name"
+    obj=$(jq -nc --arg id "$id" --arg name "$name" --arg type secretsmanager --arg status active --arg project "$PROJECT_NAME" --arg createdAt "$NOW" --arg description "$description" '{id:$id,name:$name,type:$type,status:$status,project:$project,createdAt:$createdAt,details:{description:$description}}')
+    tmp_add_resource "$obj"
+  done
+}
+
 main() {
   command -v aws >/dev/null 2>&1 || { echo "AWS CLI is not installed. Please install it first." >&2; exit 1; }
   command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Please install it first." >&2; exit 1; }
@@ -132,6 +147,7 @@ main() {
   list_lambda_functions
   list_iam_roles
   list_api_gateways
+  list_secrets_manager_secrets
   # Output JSON array
   if [ -s "$TMPFILE" ]; then
     printf '[%s]\n' "$(paste -sd, "$TMPFILE")"

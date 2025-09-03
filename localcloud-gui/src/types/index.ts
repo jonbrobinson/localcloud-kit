@@ -8,7 +8,14 @@ export interface LocalStackStatus {
 export interface Resource {
   id: string;
   name: string;
-  type: "s3" | "dynamodb" | "lambda" | "apigateway" | "iam" | "cache";
+  type:
+    | "s3"
+    | "dynamodb"
+    | "lambda"
+    | "apigateway"
+    | "iam"
+    | "cache"
+    | "secretsmanager";
   status: "creating" | "active" | "deleting" | "error" | "unknown";
   environment: string;
   project: string;
@@ -55,6 +62,14 @@ export interface DynamoDBTableConfig {
   gsis: DynamoDBGSI[];
 }
 
+export interface SecretsManagerConfig {
+  secretName: string;
+  secretValue: string;
+  description?: string;
+  tags?: Record<string, string>;
+  kmsKeyId?: string;
+}
+
 export interface ResourceTemplate {
   id: string;
   name: string;
@@ -64,6 +79,7 @@ export interface ResourceTemplate {
     dynamodb: boolean;
     lambda: boolean;
     apigateway: boolean;
+    secretsmanager: boolean;
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: Record<string, any>;
@@ -83,17 +99,20 @@ export interface CreateResourceRequest {
     dynamodb: boolean;
     lambda: boolean;
     apigateway: boolean;
+    secretsmanager: boolean;
   };
   template?: string;
   dynamodbConfig?: DynamoDBTableConfig;
   s3Config?: S3BucketConfig;
+  secretsmanagerConfig?: SecretsManagerConfig;
 }
 
 export interface CreateSingleResourceRequest {
   projectName: string;
-  resourceType: "s3" | "dynamodb" | "lambda" | "apigateway";
+  resourceType: "s3" | "dynamodb" | "lambda" | "apigateway" | "secretsmanager";
   dynamodbConfig?: DynamoDBTableConfig;
   s3Config?: S3BucketConfig;
+  secretsmanagerConfig?: SecretsManagerConfig;
 }
 
 export interface DestroyResourceRequest {

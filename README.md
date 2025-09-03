@@ -507,4 +507,85 @@ If you still see permission errors, you can also run this inside the running con
 docker exec localcloud-api chmod +x /app/scripts/shell/*.sh
 ```
 
+### Docker Build Failures - "No Space Left on Device"
+
+If you encounter build failures with errors like:
+
+```
+failed to copy files: userspace copy failed: write /app/node_modules/...: no space left on device
+```
+
+This indicates that Docker has run out of disk space. This commonly happens when:
+
+- **Multiple Docker builds** accumulate over time
+- **Large node_modules** directories from previous builds
+- **Unused Docker images, containers, and volumes** taking up space
+- **Build cache** growing too large
+
+#### Quick Fix - Clean Up Docker
+
+```bash
+# Check Docker disk usage
+docker system df
+
+# Clean up everything (WARNING: This removes ALL unused Docker data)
+docker system prune -a --volumes -f
+
+# Alternative: Clean up specific components
+docker image prune -a -f    # Remove unused images
+docker container prune -f   # Remove stopped containers
+docker volume prune -f      # Remove unused volumes
+docker builder prune -a -f  # Remove build cache
+```
+
+#### Prevention - Regular Maintenance
+
+Add these commands to your regular maintenance routine:
+
+```bash
+# Weekly cleanup (keeps recent images)
+docker system prune -f
+
+# Monthly deep cleanup (removes everything unused)
+docker system prune -a --volumes -f
+
+# Check space usage
+docker system df
+```
+
+#### What Causes This Issue
+
+This issue is particularly common with this repository because:
+
+1. **Large Dependencies**: Next.js and Node.js applications have large `node_modules` directories
+2. **Multiple Builds**: Each `docker compose up --build` creates new layers
+3. **Development Workflow**: Frequent rebuilds during development accumulate layers
+4. **LocalStack Images**: The LocalStack Docker image is quite large (~1GB+)
+5. **Build Cache**: Docker build cache can grow significantly over time
+
+#### Monitoring Disk Usage
+
+```bash
+# Check current Docker disk usage
+docker system df
+
+# Expected output format:
+# TYPE            TOTAL     ACTIVE     SIZE      RECLAIMABLE
+# Images          10        3          2.1GB     1.5GB (71%)
+# Containers      5         1          0.1GB     0.1GB (100%)
+# Local Volumes   3         1          0.5GB     0.3GB (60%)
+# Build Cache     0         0          0B        0B
+```
+
+If **RECLAIMABLE** space is high (>50%), consider running cleanup commands.
+
+#### Alternative Solutions
+
+If you frequently run into space issues:
+
+1. **Use .dockerignore**: Ensure your `.dockerignore` file excludes unnecessary files
+2. **Multi-stage builds**: Optimize Dockerfiles to reduce image size
+3. **Regular cleanup**: Set up automated cleanup scripts
+4. **Separate development**: Use different Docker contexts for different projects
+
 ---
