@@ -311,6 +311,96 @@ create_api_gateway() {
 EOF
 }
 
+create_secrets_manager_secret() {
+  if [ -n "$RESOURCE_CONFIG" ]; then
+    # Parse the JSON configuration
+    echo "DEBUG: RESOURCE_CONFIG = $RESOURCE_CONFIG" >&2
+    SECRET_NAME=$(echo "$RESOURCE_CONFIG" | jq -r '.secretName // empty')
+    SECRET_VALUE=$(echo "$RESOURCE_CONFIG" | jq -r '.secretValue // "default-secret-value"')
+    DESCRIPTION=$(echo "$RESOURCE_CONFIG" | jq -r '.description // empty')
+    TAGS=$(echo "$RESOURCE_CONFIG" | jq -r '.tags // {}')
+    KMS_KEY_ID=$(echo "$RESOURCE_CONFIG" | jq -r '.kmsKeyId // empty')
+    
+    # Use provided secret name or default
+    if [ -z "$SECRET_NAME" ]; then
+      SECRET_NAME="${NAME_PREFIX}-secret"
+    fi
+    
+    log "Creating Secrets Manager secret with configuration: $SECRET_NAME"
+    
+    # Build the create-secret command
+    CREATE_CMD="$AWS_CMD secretsmanager create-secret --name \"$SECRET_NAME\" --secret-string \"$SECRET_VALUE\""
+    
+    # Add description if provided
+    if [ -n "$DESCRIPTION" ] && [ "$DESCRIPTION" != "null" ]; then
+      CREATE_CMD="$CREATE_CMD --description \"$DESCRIPTION\""
+    fi
+    
+    # Add KMS key if provided
+    if [ -n "$KMS_KEY_ID" ] && [ "$KMS_KEY_ID" != "null" ]; then
+      CREATE_CMD="$CREATE_CMD --kms-key-id \"$KMS_KEY_ID\""
+    fi
+    
+    # Add tags if provided
+    if [ "$TAGS" != "{}" ] && [ "$TAGS" != "null" ]; then
+      TAG_ARGS=""
+      echo "$TAGS" | jq -r 'to_entries[] | "Key=\(.key),Value=\(.value)"' | while read tag; do
+        if [ -n "$TAG_ARGS" ]; then
+          TAG_ARGS="$TAG_ARGS $tag"
+        else
+          TAG_ARGS="$tag"
+        fi
+      done
+      if [ -n "$TAG_ARGS" ]; then
+        CREATE_CMD="$CREATE_CMD --tags $TAG_ARGS"
+      fi
+    fi
+    
+    # Execute the command
+    eval $CREATE_CMD 2>/dev/null || true
+    log "Created Secrets Manager secret: $SECRET_NAME"
+    
+    # Build details JSON
+    DETAILS_JSON=$(cat <<EOF
+{
+  "secretName": "$SECRET_NAME",
+  "description": "$DESCRIPTION",
+  "hasKmsKey": $([ -n "$KMS_KEY_ID" ] && [ "$KMS_KEY_ID" != "null" ] && echo "true" || echo "false"),
+  "tags": $TAGS
+}
+EOF
+)
+    
+  else
+    # Default simple secret creation
+    SECRET_NAME="${NAME_PREFIX}-secret"
+    SECRET_VALUE="default-secret-value"
+    $AWS_CMD secretsmanager create-secret --name "$SECRET_NAME" --secret-string "$SECRET_VALUE" 2>/dev/null || true
+    log "Created Secrets Manager secret: $SECRET_NAME"
+    
+    DETAILS_JSON=$(cat <<EOF
+{
+  "secretName": "$SECRET_NAME",
+  "description": "Default secret created by LocalCloud Kit"
+}
+EOF
+)
+  fi
+  
+  # Return resource info as JSON
+  cat <<EOF
+{
+  "id": "secretsmanager-$SECRET_NAME",
+  "name": "$SECRET_NAME",
+  "type": "secretsmanager",
+  "status": "active",
+  "project": "$PROJECT_NAME",
+  "createdAt": "$NOW",
+  "details": $DETAILS_JSON
+}
+EOF
+}
+
 main() {
   command -v aws >/dev/null 2>&1 || { echo "AWS CLI is not installed. Please install it first." >&2; exit 1; }
   command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Please install it first." >&2; exit 1; }
@@ -335,9 +425,12 @@ main() {
     apigateway)
       create_api_gateway
       ;;
+    secretsmanager)
+      create_secrets_manager_secret
+      ;;
     *)
       echo "Unknown resource type: $RESOURCE_TYPE" >&2
-      echo "Supported types: s3, dynamodb, lambda, apigateway" >&2
+      echo "Supported types: s3, dynamodb, lambda, apigateway, secretsmanager" >&2
       exit 1
       ;;
   esac

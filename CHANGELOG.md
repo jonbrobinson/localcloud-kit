@@ -27,6 +27,16 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+- **AWS Secrets Manager Integration**:
+  - Added full Secrets Manager support to LocalStack services
+  - Created comprehensive UI for managing secrets with create, read, update, delete operations
+  - Implemented secure secret value handling with mask/reveal functionality
+  - Added support for secret metadata including descriptions, tags, and KMS key encryption
+  - Created REST API endpoints for secrets management (`/api/secrets`, `/api/secrets/[secretName]`)
+  - Added shell scripts for secrets operations (create, delete, list, get)
+  - Integrated Secrets Manager as a standalone resource type in the dashboard
+  - Added Secrets Manager option to resource creation modal
+  - Implemented proper error handling and user feedback for all secrets operations
 - Enhanced file viewer with syntax highlighting support for multiple file types
 - Added support for Word documents (.doc, .docx) with formatted text display
 - Dynamic theme selection with persistent theme storage

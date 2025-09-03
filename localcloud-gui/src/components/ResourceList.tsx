@@ -19,6 +19,7 @@ interface ResourceListProps {
   onViewS3?: (bucketName: string) => void;
   onViewDynamoDB?: (tableName: string) => void;
   onViewCache?: () => void;
+  onViewSecretsManager?: () => void;
 }
 
 export default function ResourceList({
@@ -29,6 +30,7 @@ export default function ResourceList({
   onViewS3,
   onViewDynamoDB,
   onViewCache,
+  onViewSecretsManager,
 }: ResourceListProps) {
   const [selectedResources, setSelectedResources] = useState<string[]>([]);
   const [showDetails, setShowDetails] = useState<string | null>(null);
@@ -77,6 +79,8 @@ export default function ResourceList({
         return "🔐";
       case "cache":
         return "🧊";
+      case "secretsmanager":
+        return "🔑";
       default:
         return "📦";
     }
@@ -218,6 +222,17 @@ export default function ResourceList({
                         Manage
                       </button>
                     )}
+                    {resource.type === "secretsmanager" &&
+                      onViewSecretsManager && (
+                        <button
+                          onClick={onViewSecretsManager}
+                          className="flex items-center px-2 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors"
+                          title="Open Secrets Manager"
+                        >
+                          <EyeIcon className="h-3 w-3 mr-1" />
+                          Manage
+                        </button>
+                      )}
                   </>
                 )}
 
