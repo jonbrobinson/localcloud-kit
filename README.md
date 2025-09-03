@@ -2,9 +2,9 @@
 
 > **Enterprise AWS Development Tools** by CloudStack Solutions
 
-Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, EventBridge, and more.
+Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, Secrets Manager, EventBridge, and more.
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.3.0)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.4.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
@@ -159,6 +159,10 @@ localcloud-kit/
 │   └── 📄 README.md            # API documentation
 ├── 📁 scripts/                 # Automation scripts
 │   └── 📁 shell/               # Shell-based automation
+│       ├── 📄 create_secret.sh # Secrets Manager creation
+│       ├── 📄 delete_secret.sh # Secrets Manager deletion
+│       ├── 📄 get_secret.sh    # Secrets Manager retrieval
+│       └── 📄 list_secrets.sh  # Secrets Manager listing
 ├── 📁 samples/                 # Sample files for testing
 │   ├── 📄 sample.py            # Python example
 │   ├── 📄 sample.js            # JavaScript example
@@ -178,6 +182,14 @@ localcloud-kit/
 
 ## 🎯 Features
 
+### What's New in v0.4.0
+
+- **🔑 AWS Secrets Manager Integration**: Complete secrets management with secure value handling
+- **📊 Dynamic Resource Display**: Smart resource list that shows/hides based on actual usage
+- **🎨 Enhanced UI**: Better input styling and improved user experience
+- **🔧 Improved Architecture**: Clean API routing and better error handling
+- **📝 Comprehensive Documentation**: Updated guides and examples
+
 ### Core Automation
 
 - **Individual Resource Creation**: Create resources one at a time or in batches
@@ -189,7 +201,7 @@ localcloud-kit/
 ### GUI Management
 
 - **Web Interface**: Modern Next.js dashboard with hot reloading
-- **Individual Resource Buttons**: Quick creation of S3, DynamoDB, Lambda, and API Gateway
+- **Individual Resource Buttons**: Quick creation of S3, DynamoDB, Secrets Manager, Lambda, and API Gateway
 - **Batch Resource Creation**: Create multiple resources at once with templates or individual selection
 - **Real-time Monitoring**: Live status and resource tracking
 - **Log Viewer**: Real-time log monitoring with filtering
@@ -233,6 +245,7 @@ Use the web GUI to create resources individually:
 
 - **S3 Bucket**: Click the 🪣 S3 button
 - **DynamoDB Table**: Click the 🗄️ DynamoDB button
+- **Secrets Manager**: Click the 🔑 Secrets button
 - **Lambda Function**: Click the ⚡ Lambda button
 - **API Gateway**: Click the 🌐 API Gateway button
 
@@ -333,6 +346,84 @@ Located in `scripts/shell/`:
 3. Click "Redis Cache" in the dashboard or resource list
 4. Use the full-page interface to set, get, delete, flush, and view all cache keys
 5. Use the connection info to connect with external Redis tools (host: `localhost`, port: `6380`)
+
+## 🔑 AWS Secrets Manager Integration
+
+LocalCloud Kit now includes comprehensive AWS Secrets Manager support for secure secret management in local development and testing.
+
+### Features
+
+- **Complete CRUD Operations**: Create, read, update, and delete secrets
+- **Secure Value Handling**: Mask/reveal secret values with toggle functionality
+- **Rich Metadata Support**: Descriptions, tags, and KMS key encryption
+- **Dynamic Resource Display**: Shows secrets count in resources list
+- **Conditional Visibility**: Secrets resource only appears when secrets exist
+- **GUI Management**: Dedicated Secrets Manager interface with full-screen management
+- **Shell Scripts**: Automation scripts for all secrets operations
+- **API Endpoints**: RESTful endpoints for programmatic access
+- **Error Handling**: Comprehensive error handling and user feedback
+
+### Docker Setup
+
+- Secrets Manager runs as part of LocalStack services (enabled in `docker-compose.yml`)
+- No additional configuration required - works out of the box
+
+### API Endpoints
+
+- `GET /api/secrets` — List all secrets
+- `POST /api/secrets` — Create a new secret
+- `GET /api/secrets/[secretName]` — Get secret details and value
+- `PUT /api/secrets/[secretName]` — Update secret value and metadata
+- `DELETE /api/secrets/[secretName]` — Delete a secret
+
+### Shell Scripts
+
+Located in `scripts/shell/`:
+
+- `create_secret.sh` — Create a new secret with optional metadata
+- `delete_secret.sh` — Delete a secret (with force delete option)
+- `list_secrets.sh` — List all secrets with filtering
+- `get_secret.sh` — Retrieve secret details and value
+
+### GUI Features
+
+- **Dashboard Integration**: Secrets Manager appears as a resource with dynamic count
+- **Full-Screen Management**: Complete secrets management interface
+- **Create/Edit Forms**: Rich forms with validation for secret creation and editing
+- **Mask/Reveal Toggle**: Secure viewing of secret values
+- **Tag Management**: Add, edit, and remove tags from secrets
+- **KMS Encryption**: Support for KMS key encryption
+- **Bulk Operations**: Delete multiple secrets with confirmation
+- **Real-time Updates**: Live updates when secrets are modified
+
+### Usage Example
+
+1. Start all services: `docker compose up --build`
+2. Open the GUI: http://localhost:3030
+3. Click the "🔑 Secrets" button in the Resources section
+4. Use the full-screen interface to:
+   - Create new secrets with name, value, description, and tags
+   - View existing secrets (values are masked by default)
+   - Reveal/hide secret values with the eye icon
+   - Edit secret values and metadata
+   - Delete secrets with confirmation
+   - Manage tags and KMS encryption
+
+### Shell Script Examples
+
+```bash
+# Create a secret
+./scripts/shell/create_secret.sh "my-secret" "secret-value" "My secret description" "Environment=dev,Team=backend" ""
+
+# List all secrets
+./scripts/shell/list_secrets.sh
+
+# Get a specific secret
+./scripts/shell/get_secret.sh "my-secret"
+
+# Delete a secret
+./scripts/shell/delete_secret.sh "my-secret" false
+```
 
 ---
 
