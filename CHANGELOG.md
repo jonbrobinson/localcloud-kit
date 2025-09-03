@@ -4,6 +4,15 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Enhanced Secrets Manager Integration**:
+  - Added dynamic secrets count display in resources list
+  - Implemented conditional display - secrets resource only appears when secrets exist
+  - Added proper input styling for better readability in secret forms
+  - Improved API architecture by routing secrets through Express API server
+  - Added comprehensive error handling and user feedback
+
 ### Changed
 
 - Renamed directories for better branding consistency:
