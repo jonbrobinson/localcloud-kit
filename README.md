@@ -4,7 +4,7 @@
 
 Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, and Secrets Manager.
 
-[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.4.0)
+[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.5.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
@@ -182,14 +182,20 @@ localcloud-kit/
 
 ## 🎯 Features
 
-### What's New in v0.4.0
+### What's New in v0.5.0
+
+- **🔄 Docker Environment Reset Commands**: New Makefile commands for easy Docker environment management
+- **🐛 DynamoDB GSI Creation Fix**: Fixed 500 error when creating tables with multiple Global Secondary Indexes
+- **📚 Enhanced Documentation**: Comprehensive Docker management guides and troubleshooting
+- **🛡️ Safety Features**: Confirmation prompts for destructive Docker operations
+
+### Previous Features (v0.4.0)
 
 - **🔑 AWS Secrets Manager Integration**: Complete secrets management with secure value handling
 - **📊 Dynamic Resource Display**: Smart resource list that shows/hides based on actual usage
 - **🎨 Enhanced UI**: Better input styling and improved user experience
 - **🔧 Improved Architecture**: Clean API routing and better error handling
 - **📝 Comprehensive Documentation**: Updated guides and examples
-- **🔄 Docker Environment Reset Commands**: New Makefile commands for easy Docker environment management
 
 ### Core Automation
 
