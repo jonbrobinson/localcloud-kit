@@ -189,6 +189,7 @@ localcloud-kit/
 - **🎨 Enhanced UI**: Better input styling and improved user experience
 - **🔧 Improved Architecture**: Clean API routing and better error handling
 - **📝 Comprehensive Documentation**: Updated guides and examples
+- **🔄 Docker Environment Reset Commands**: New Makefile commands for easy Docker environment management
 
 ### Core Automation
 
@@ -447,8 +448,6 @@ The application runs entirely in containers with the following setup:
 - **Environment**: dev/uat/prod for isolation
 - **AWS Region**: Target region for resources
 
-
-
 ## 🚀 Quick Commands
 
 ### Development
@@ -466,6 +465,33 @@ docker compose down
 # Restart specific service
 docker compose restart localcloud-gui
 ```
+
+### Docker Environment Management
+
+LocalCloud Kit includes powerful commands for managing your Docker environment:
+
+```bash
+# Reset Docker environment (stop services + clean volumes)
+make reset
+
+# Full environment reset (clean resources + stop services + clean all Docker resources)
+make reset-env
+
+# Clean Docker volumes only (removes all persistent data)
+make clean-volumes
+
+# Clean all Docker resources (containers, images, volumes)
+make clean-all
+```
+
+#### When to Use Each Command
+
+- **`make reset`** - Most common reset. Stops services and cleans volumes, keeping images for faster restarts
+- **`make reset-env`** - Complete reset when you want to start completely fresh
+- **`make clean-volumes`** - When you want to clear all data but keep services running
+- **`make clean-all`** - Nuclear option - removes everything Docker-related
+
+> **⚠️ Safety Note**: All destructive commands include confirmation prompts to prevent accidental data loss.
 
 ### Production
 
@@ -600,6 +626,24 @@ This indicates that Docker has run out of disk space. This commonly happens when
 
 #### Quick Fix - Clean Up Docker
 
+**Using LocalCloud Kit Commands (Recommended):**
+
+```bash
+# Reset Docker environment (stops services + cleans volumes)
+make reset
+
+# Full environment reset (clean resources + stop services + clean all Docker resources)
+make reset-env
+
+# Clean Docker volumes only (removes all persistent data)
+make clean-volumes
+
+# Clean all Docker resources (containers, images, volumes)
+make clean-all
+```
+
+**Using Docker Commands Directly:**
+
 ```bash
 # Check Docker disk usage
 docker system df
@@ -617,6 +661,21 @@ docker builder prune -a -f  # Remove build cache
 #### Prevention - Regular Maintenance
 
 Add these commands to your regular maintenance routine:
+
+**Using LocalCloud Kit Commands:**
+
+```bash
+# Weekly reset (stops services + cleans volumes)
+make reset
+
+# Monthly deep cleanup (removes everything unused)
+make reset-env
+
+# Check space usage
+docker system df
+```
+
+**Using Docker Commands Directly:**
 
 ```bash
 # Weekly cleanup (keeps recent images)

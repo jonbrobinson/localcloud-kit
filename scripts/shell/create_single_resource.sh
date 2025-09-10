@@ -155,12 +155,42 @@ create_dynamodb_table() {
     
     log "Creating DynamoDB table with configuration: $TABLE_NAME"
     
-    # Build attribute definitions
-    ATTRIBUTE_DEFS="AttributeName=$PARTITION_KEY,AttributeType=S"
-    KEY_SCHEMA="AttributeName=$PARTITION_KEY,KeyType=HASH"
-    
+    # Build attribute definitions - collect all unique attributes first
+    ATTRIBUTE_NAMES="$PARTITION_KEY"
     if [ -n "$SORT_KEY" ] && [ "$SORT_KEY" != "null" ]; then
-      ATTRIBUTE_DEFS="$ATTRIBUTE_DEFS AttributeName=$SORT_KEY,AttributeType=S"
+      ATTRIBUTE_NAMES="$ATTRIBUTE_NAMES $SORT_KEY"
+    fi
+    
+    # Add GSI attributes to the list
+    if [ "$GSIS" != "[]" ] && [ "$GSIS" != "null" ]; then
+      GSI_COUNT=$(echo "$GSIS" | jq length)
+      for i in $(seq 0 $((GSI_COUNT - 1))); do
+        GSI=$(echo "$GSIS" | jq ".[$i]")
+        GSI_PK=$(echo "$GSI" | jq -r '.partitionKey')
+        GSI_SK=$(echo "$GSI" | jq -r '.sortKey // empty')
+        
+        # Add GSI attributes if not already present
+        if [[ ! " $ATTRIBUTE_NAMES " =~ " $GSI_PK " ]]; then
+          ATTRIBUTE_NAMES="$ATTRIBUTE_NAMES $GSI_PK"
+        fi
+        if [ -n "$GSI_SK" ] && [ "$GSI_SK" != "null" ] && [[ ! " $ATTRIBUTE_NAMES " =~ " $GSI_SK " ]]; then
+          ATTRIBUTE_NAMES="$ATTRIBUTE_NAMES $GSI_SK"
+        fi
+      done
+    fi
+    
+    # Build attribute definitions from unique names
+    ATTRIBUTE_DEFS=""
+    for attr in $ATTRIBUTE_NAMES; do
+      if [ -n "$ATTRIBUTE_DEFS" ]; then
+        ATTRIBUTE_DEFS="$ATTRIBUTE_DEFS "
+      fi
+      ATTRIBUTE_DEFS="$ATTRIBUTE_DEFS AttributeName=$attr,AttributeType=S"
+    done
+    
+    # Build key schema
+    KEY_SCHEMA="AttributeName=$PARTITION_KEY,KeyType=HASH"
+    if [ -n "$SORT_KEY" ] && [ "$SORT_KEY" != "null" ]; then
       KEY_SCHEMA="$KEY_SCHEMA AttributeName=$SORT_KEY,KeyType=RANGE"
     fi
     
@@ -168,6 +198,9 @@ create_dynamodb_table() {
     GSI_ARGS=""
     if [ "$GSIS" != "[]" ] && [ "$GSIS" != "null" ]; then
       GSI_COUNT=$(echo "$GSIS" | jq length)
+      
+      # Build GSI JSON array
+      GSI_JSON="["
       for i in $(seq 0 $((GSI_COUNT - 1))); do
         GSI=$(echo "$GSIS" | jq ".[$i]")
         GSI_NAME=$(echo "$GSI" | jq -r '.indexName')
@@ -175,27 +208,26 @@ create_dynamodb_table() {
         GSI_SK=$(echo "$GSI" | jq -r '.sortKey // empty')
         GSI_PROJECTION=$(echo "$GSI" | jq -r '.projectionType // "ALL"')
         
-        # Add GSI attributes to attribute definitions
-        ATTRIBUTE_DEFS="$ATTRIBUTE_DEFS AttributeName=$GSI_PK,AttributeType=S"
+        # Build GSI key schema JSON
+        GSI_KEY_SCHEMA_JSON="[{\"AttributeName\":\"$GSI_PK\",\"KeyType\":\"HASH\"}"
         if [ -n "$GSI_SK" ] && [ "$GSI_SK" != "null" ]; then
-          ATTRIBUTE_DEFS="$ATTRIBUTE_DEFS AttributeName=$GSI_SK,AttributeType=S"
+          GSI_KEY_SCHEMA_JSON="$GSI_KEY_SCHEMA_JSON,{\"AttributeName\":\"$GSI_SK\",\"KeyType\":\"RANGE\"}"
         fi
+        GSI_KEY_SCHEMA_JSON="$GSI_KEY_SCHEMA_JSON]"
         
-        # Build GSI key schema
-        GSI_KEY_SCHEMA="AttributeName=$GSI_PK,KeyType=HASH"
-        if [ -n "$GSI_SK" ] && [ "$GSI_SK" != "null" ]; then
-          GSI_KEY_SCHEMA="$GSI_KEY_SCHEMA AttributeName=$GSI_SK,KeyType=RANGE"
+        # Build projection JSON
+        GSI_PROJECTION_JSON="{\"ProjectionType\":\"$GSI_PROJECTION\"}"
+        
+        # Add to GSI JSON array
+        if [ "$i" -gt 0 ]; then
+          GSI_JSON="$GSI_JSON,"
         fi
-        
-        # Build projection
-        GSI_PROJECTION_SPEC="ProjectionType=$GSI_PROJECTION"
-        
-        # Add to GSI args
-        if [ -n "$GSI_ARGS" ]; then
-          GSI_ARGS="$GSI_ARGS "
-        fi
-        GSI_ARGS="${GSI_ARGS}--global-secondary-indexes IndexName=$GSI_NAME,KeySchema=[$GSI_KEY_SCHEMA],Projection=[$GSI_PROJECTION_SPEC]"
+        GSI_JSON="$GSI_JSON{\"IndexName\":\"$GSI_NAME\",\"KeySchema\":$GSI_KEY_SCHEMA_JSON,\"Projection\":$GSI_PROJECTION_JSON}"
       done
+      GSI_JSON="$GSI_JSON]"
+      
+      # Set the GSI args with proper JSON format
+      GSI_ARGS="--global-secondary-indexes $GSI_JSON"
     fi
     
     # Build billing mode args
@@ -203,6 +235,12 @@ create_dynamodb_table() {
     if [ "$BILLING_MODE" = "PROVISIONED" ]; then
       BILLING_ARGS="$BILLING_ARGS --provisioned-throughput ReadCapacityUnits=$READ_CAPACITY,WriteCapacityUnits=$WRITE_CAPACITY"
     fi
+    
+    # Debug output
+    echo "DEBUG: ATTRIBUTE_DEFS = $ATTRIBUTE_DEFS" >&2
+    echo "DEBUG: KEY_SCHEMA = $KEY_SCHEMA" >&2
+    echo "DEBUG: BILLING_ARGS = $BILLING_ARGS" >&2
+    echo "DEBUG: GSI_ARGS = $GSI_ARGS" >&2
     
     # Try to create the table and capture output
     CREATE_OUTPUT=$($AWS_CMD dynamodb create-table \

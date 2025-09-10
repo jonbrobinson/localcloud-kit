@@ -18,13 +18,14 @@ NC := \033[0m # No Color
 .PHONY: shell-create shell-destroy shell-list
 .PHONY: gui-start gui-stop gui-restart
 .PHONY: setup check-prerequisites docker-build docker-logs
+.PHONY: reset clean-volumes clean-all reset-env
 
 # Default target
 help: ## Show this help message
 	@echo "$(GREEN)LocalStack Template - Available Commands$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Docker Management:$(NC)"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "(start|stop|restart|status|logs|clean|docker)"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "(start|stop|restart|status|logs|clean|docker|reset)"
 	@echo ""
 	@echo "$(YELLOW)GUI Management:$(NC)"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "gui"
@@ -40,6 +41,8 @@ help: ## Show this help message
 	@echo "  make gui-start                # Start GUI system with Docker"
 	@echo "  make shell-create ENV=dev     # Create resources with Shell scripts"
 	@echo "  make clean                    # Clean up all resources"
+	@echo "  make reset                    # Reset Docker environment (stop + clean volumes)"
+	@echo "  make reset-env                # Full environment reset (stop + clean all + volumes)"
 
 # Docker Management
 start: ## Start all services with Docker Compose
@@ -85,6 +88,28 @@ clean: ## Clean up all resources and stop services
 	@make shell-destroy ENV=prod || true
 	@make stop
 	@echo "$(GREEN)Cleanup complete$(NC)"
+
+clean-volumes: ## Clean up Docker volumes (removes all data)
+	@echo "$(YELLOW)Cleaning up Docker volumes...$(NC)"
+	@echo "$(RED)WARNING: This will remove all Docker volumes and data!$(NC)"
+	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@docker compose down -v
+	@docker volume prune -f
+	@echo "$(GREEN)Docker volumes cleaned$(NC)"
+
+clean-all: ## Clean up everything including images and containers
+	@echo "$(YELLOW)Cleaning up all Docker resources...$(NC)"
+	@echo "$(RED)WARNING: This will remove all containers, images, and volumes!$(NC)"
+	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@docker compose down -v --rmi all
+	@docker system prune -af --volumes
+	@echo "$(GREEN)All Docker resources cleaned$(NC)"
+
+reset: stop clean-volumes ## Reset Docker environment (stop services and clean volumes)
+	@echo "$(GREEN)Docker environment reset complete$(NC)"
+
+reset-env: clean clean-all ## Full environment reset (clean resources, stop services, and clean all Docker resources)
+	@echo "$(GREEN)Full environment reset complete$(NC)"
 
 # GUI Management
 gui-start: ## Start the LocalCloud Kit GUI system with Docker
