@@ -4,6 +4,18 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Docker Environment Reset Commands**: Added new Makefile commands for cleaning up Docker environments:
+  - `make reset`: Reset Docker environment (stop services and clean volumes)
+  - `make reset-env`: Full environment reset (clean resources, stop services, and clean all Docker resources)
+  - `make clean-volumes`: Clean up Docker volumes with confirmation prompt
+  - `make clean-all`: Clean up all Docker resources including images and containers with confirmation prompt
+
+### Fixed
+
+- **DynamoDB Table Creation with Multiple GSIs**: Fixed 500 error when creating DynamoDB tables with multiple Global Secondary Indexes. The shell script was incorrectly constructing the AWS CLI arguments for multiple GSIs, causing the table creation to fail. Now properly formats the `--global-secondary-indexes` argument as an array of index definitions.
+
 ## [0.4.0] - 2025-09-03
 
 ### Added
