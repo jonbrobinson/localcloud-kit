@@ -16,6 +16,10 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 - **DynamoDB Table Creation with Multiple GSIs**: Fixed 500 error when creating DynamoDB tables with multiple Global Secondary Indexes. The shell script was incorrectly constructing the AWS CLI arguments for multiple GSIs, causing the table creation to fail. Now properly formats the `--global-secondary-indexes` argument as an array of index definitions.
 
+## [0.5.1] - 2025-09-18
+
+### Fixed
+
 - **DynamoDB GSI Creation and Query Issues**: Fixed critical issues with Global Secondary Index (GSI) creation and querying in LocalStack:
   - **GSI Provisioning**: Added proper `ProvisionedThroughput` settings for GSIs when using `PROVISIONED` billing mode
   - **GSI Status Checking**: Implemented waiting mechanism to ensure GSIs become `ACTIVE` before completing table creation (prevents "Index not found" errors)
