@@ -218,11 +218,17 @@ create_dynamodb_table() {
         # Build projection JSON
         GSI_PROJECTION_JSON="{\"ProjectionType\":\"$GSI_PROJECTION\"}"
         
+        # Add provisioned throughput for GSI if billing mode is PROVISIONED
+        GSI_PROVISIONED_THROUGHPUT=""
+        if [ "$BILLING_MODE" = "PROVISIONED" ]; then
+          GSI_PROVISIONED_THROUGHPUT=",\"ProvisionedThroughput\":{\"ReadCapacityUnits\":$READ_CAPACITY,\"WriteCapacityUnits\":$WRITE_CAPACITY}"
+        fi
+        
         # Add to GSI JSON array
         if [ "$i" -gt 0 ]; then
           GSI_JSON="$GSI_JSON,"
         fi
-        GSI_JSON="$GSI_JSON{\"IndexName\":\"$GSI_NAME\",\"KeySchema\":$GSI_KEY_SCHEMA_JSON,\"Projection\":$GSI_PROJECTION_JSON}"
+        GSI_JSON="$GSI_JSON{\"IndexName\":\"$GSI_NAME\",\"KeySchema\":$GSI_KEY_SCHEMA_JSON,\"Projection\":$GSI_PROJECTION_JSON$GSI_PROVISIONED_THROUGHPUT}"
       done
       GSI_JSON="$GSI_JSON]"
       
@@ -256,6 +262,38 @@ create_dynamodb_table() {
     echo "DEBUG: CREATE_OUTPUT = $CREATE_OUTPUT" >&2
     
     log "Created DynamoDB table: $TABLE_NAME with configuration"
+    
+    # Wait for table and GSIs to become active (important for LocalStack)
+    if [ "$GSIS" != "[]" ] && [ "$GSIS" != "null" ]; then
+      log "Waiting for table and GSIs to become active..."
+      RETRY_COUNT=0
+      MAX_RETRIES=30
+      
+      while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+        TABLE_STATUS=$($AWS_CMD dynamodb describe-table --table-name "$TABLE_NAME" --output json 2>/dev/null | jq -r '.Table.TableStatus // "CREATING"')
+        
+        if [ "$TABLE_STATUS" = "ACTIVE" ]; then
+          # Check GSI status - count non-active GSIs
+          NON_ACTIVE_GSI_COUNT=$($AWS_CMD dynamodb describe-table --table-name "$TABLE_NAME" --output json 2>/dev/null | jq -r '.Table.GlobalSecondaryIndexes[]?.IndexStatus // "CREATING"' | grep -v "ACTIVE" | wc -l)
+          
+          if [ "$NON_ACTIVE_GSI_COUNT" -eq 0 ]; then
+            log "Table and all GSIs are now active"
+            break
+          else
+            log "Table active, but $NON_ACTIVE_GSI_COUNT GSIs still creating... (retry $RETRY_COUNT/$MAX_RETRIES)"
+          fi
+        else
+          log "Table status: $TABLE_STATUS (retry $RETRY_COUNT/$MAX_RETRIES)"
+        fi
+        
+        sleep 2
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+      done
+      
+      if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+        echo "WARNING: Table creation timed out waiting for active status" >&2
+      fi
+    fi
     
     # Build details JSON
     DETAILS_JSON=$(cat <<EOF

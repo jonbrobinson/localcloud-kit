@@ -13,6 +13,7 @@ PARTITION_VALUE=${4:-""}
 SORT_KEY=${5:-""}
 SORT_VALUE=${6:-""}
 LIMIT=${7:-"100"}
+INDEX_NAME=${8:-""}  # Optional GSI name
 AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
@@ -60,7 +61,11 @@ main() {
     exit 1
   fi
   
-  log "Querying DynamoDB table: $TABLE_NAME (PK: $PARTITION_KEY = $PARTITION_VALUE, limit: $LIMIT)"
+  if [ -n "$INDEX_NAME" ]; then
+    log "Querying DynamoDB GSI: $INDEX_NAME on table $TABLE_NAME (PK: $PARTITION_KEY = $PARTITION_VALUE, limit: $LIMIT)"
+  else
+    log "Querying DynamoDB table: $TABLE_NAME (PK: $PARTITION_KEY = $PARTITION_VALUE, limit: $LIMIT)"
+  fi
   
   # Build the key condition expression
   KEY_CONDITION_EXPRESSION="$PARTITION_KEY = :pk"
@@ -73,13 +78,17 @@ main() {
     log "Adding sort key condition: $SORT_KEY = $SORT_VALUE"
   fi
   
-  # Query the table
-  QUERY_RESULT=$($AWS_CMD dynamodb query \
-    --table-name "$TABLE_NAME" \
-    --key-condition-expression "$KEY_CONDITION_EXPRESSION" \
-    --expression-attribute-values "$EXPRESSION_ATTRIBUTE_VALUES" \
-    --limit "$LIMIT" \
-    --output json 2>/dev/null || echo '{"Items":[],"Count":0,"ScannedCount":0}')
+  # Build query command with optional index name
+  QUERY_CMD="$AWS_CMD dynamodb query --table-name \"$TABLE_NAME\" --key-condition-expression \"$KEY_CONDITION_EXPRESSION\" --expression-attribute-values '$EXPRESSION_ATTRIBUTE_VALUES' --limit $LIMIT"
+  
+  if [ -n "$INDEX_NAME" ]; then
+    QUERY_CMD="$QUERY_CMD --index-name \"$INDEX_NAME\""
+  fi
+  
+  QUERY_CMD="$QUERY_CMD --output json"
+  
+  # Query the table or index
+  QUERY_RESULT=$(eval "$QUERY_CMD" 2>/dev/null || echo '{"Items":[],"Count":0,"ScannedCount":0}')
   
   # Return the query result as JSON
   echo "$QUERY_RESULT"

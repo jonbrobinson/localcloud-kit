@@ -658,12 +658,13 @@ async function queryDynamoDBTable(
   partitionValue,
   sortKey,
   sortValue,
-  limit = 100
+  limit = 100,
+  indexName = ""
 ) {
   try {
     let command = `./query_dynamodb_table.sh ${projectName} ${tableName} "${partitionKey}" "${partitionValue}" "${
       sortKey || ""
-    }" "${sortValue || ""}" ${limit}`;
+    }" "${sortValue || ""}" ${limit} "${indexName || ""}"`;
 
     const { stdout, stderr } = await execAsync(command, {
       cwd: "/app/scripts/shell",
@@ -1148,6 +1149,7 @@ app.get("/dynamodb/table/:tableName/query", async (req, res) => {
       sortKey,
       sortValue,
       limit = "100",
+      indexName,
     } = req.query;
     const { tableName } = req.params;
 
@@ -1158,7 +1160,8 @@ app.get("/dynamodb/table/:tableName/query", async (req, res) => {
       partitionValue,
       sortKey,
       sortValue,
-      parseInt(limit)
+      parseInt(limit),
+      indexName
     );
     res.json({ success: true, data: result });
   } catch (error) {
