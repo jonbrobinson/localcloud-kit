@@ -4,7 +4,7 @@
 
 Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, and Secrets Manager.
 
-[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.5.0)
+[![Version](https://img.shields.io/badge/version-0.5.1-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.5.1)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
@@ -182,7 +182,16 @@ localcloud-kit/
 
 ## 🎯 Features
 
-### What's New in v0.5.0
+### What's New in v0.5.1
+
+- **🐛 DynamoDB GSI Creation and Query Fixes**: Fixed critical issues with Global Secondary Index (GSI) creation and querying in LocalStack
+  - **GSI Provisioning**: Added proper `ProvisionedThroughput` settings for GSIs when using `PROVISIONED` billing mode
+  - **GSI Status Checking**: Implemented waiting mechanism to ensure GSIs become `ACTIVE` before completing table creation (prevents "Index not found" errors)
+  - **GSI Query Support**: Enhanced query scripts and API to support querying specific GSIs using `indexName` parameter
+  - **API Integration**: Updated API server to pass GSI names to query operations, enabling frontend GSI queries
+  - **Test Script**: Created comprehensive test script (`test_gsi_creation.sh`) for validating GSI functionality
+
+### Previous Features (v0.5.0)
 
 - **🔄 Docker Environment Reset Commands**: New Makefile commands for easy Docker environment management
 - **🐛 DynamoDB GSI Creation Fix**: Fixed 500 error when creating tables with multiple Global Secondary Indexes
