@@ -9,6 +9,7 @@ import {
   EyeIcon,
   TrashIcon,
   PlusIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { s3Api } from "@/services/api";
 import FileViewerModal from "./FileViewerModal";
@@ -262,85 +263,104 @@ export default function BucketViewer({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-3/4 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-4">
-            {selectedBucket && (
-              <button
-                onClick={() => {
-                  setSelectedBucket(null);
-                  setBucketContents([]);
-                  setCurrentPath("");
-                  setPathHistory([]);
-                }}
-                className="p-2 text-gray-400 hover:text-gray-600"
-              >
-                <ArrowLeftIcon className="h-5 w-5" />
-              </button>
-            )}
-            <h2 className="text-2xl font-bold text-gray-900">
-              {selectedBucket ? `Bucket: ${selectedBucket}` : "S3 Buckets"}
-            </h2>
-            {selectedBucket && currentPath && (
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <span>/</span>
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4 min-w-0 flex-1">
+              {selectedBucket && (
                 <button
-                  onClick={handleRootClick}
-                  className="text-blue-600 hover:text-blue-800"
+                  onClick={() => {
+                    setSelectedBucket(null);
+                    setBucketContents([]);
+                    setCurrentPath("");
+                    setPathHistory([]);
+                  }}
+                  className="p-2 text-gray-400 hover:text-gray-600 flex-shrink-0"
                 >
-                  root
+                  <ArrowLeftIcon className="h-5 w-5" />
                 </button>
-                {pathHistory.map((path, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <span>/</span>
+              )}
+              <div className="min-w-0 flex-1">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {selectedBucket ? `Bucket: ${selectedBucket}` : "S3 Buckets"}
+                </h2>
+                {selectedBucket && currentPath && (
+                  <div className="flex items-center space-x-2 text-sm text-gray-600 mt-2 flex-wrap">
+                    <span className="text-gray-400">Path:</span>
                     <button
-                      onClick={() => {
-                        const newHistory = pathHistory.slice(0, index + 1);
-                        setPathHistory(newHistory);
-                        loadBucketContents(selectedBucket, path);
-                      }}
+                      onClick={handleRootClick}
                       className="text-blue-600 hover:text-blue-800"
                     >
-                      {getDisplayName(path)}
+                      root
                     </button>
+                    {pathHistory.map((path, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <span>/</span>
+                        <button
+                          onClick={() => {
+                            const newHistory = pathHistory.slice(0, index + 1);
+                            setPathHistory(newHistory);
+                            loadBucketContents(selectedBucket, path);
+                          }}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          {getDisplayName(path)}
+                        </button>
+                      </div>
+                    ))}
+                    {currentPath && (
+                      <>
+                        <span>/</span>
+                        <span className="text-gray-900 font-medium">
+                          {getDisplayName(currentPath)}
+                        </span>
+                      </>
+                    )}
                   </div>
-                ))}
-                {currentPath && (
-                  <>
-                    <span>/</span>
-                    <span className="text-gray-900">
-                      {getDisplayName(currentPath)}
-                    </span>
-                  </>
                 )}
               </div>
-            )}
-          </div>
-          <div className="flex items-center space-x-4">
-            {selectedBucket && currentPath && pathHistory.length > 0 && (
+            </div>
+            <div className="flex items-center space-x-4 flex-shrink-0 ml-4">
+              {selectedBucket && currentPath && pathHistory.length > 0 && (
+                <button
+                  onClick={handleBackClick}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                >
+                  <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                  Back
+                </button>
+              )}
+              {selectedBucket && (
+                <button
+                  onClick={() =>
+                    loadBucketContents(selectedBucket, currentPath)
+                  }
+                  disabled={loading}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Refresh bucket contents"
+                >
+                  <ArrowPathIcon
+                    className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+                  />
+                  Refresh
+                </button>
+              )}
+              {selectedBucket && (
+                <button
+                  onClick={() => setUploadModalOpen(true)}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Upload File
+                </button>
+              )}
               <button
-                onClick={handleBackClick}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600"
+                aria-label="Close"
               >
-                <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                Back
+                <XMarkIcon className="h-6 w-6" />
               </button>
-            )}
-            {selectedBucket && (
-              <button
-                onClick={() => setUploadModalOpen(true)}
-                className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <PlusIcon className="h-4 w-4 mr-2" />
-                Upload File
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-              aria-label="Close"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
+            </div>
           </div>
         </div>
 
@@ -379,19 +399,19 @@ export default function BucketViewer({
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">
                             Name
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                             Size
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-44">
                             Last Modified
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                             Storage Class
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                             Actions
                           </th>
                         </tr>
@@ -399,30 +419,37 @@ export default function BucketViewer({
                       <tbody className="bg-white divide-y divide-gray-200">
                         {bucketContents.map((item, index) => (
                           <tr key={index} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-6 py-4">
                               <div className="flex items-center">
                                 {isFolder(item.Key || "") ? (
-                                  <FolderIcon className="h-5 w-5 text-blue-500 mr-2" />
+                                  <FolderIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" />
                                 ) : (
-                                  <DocumentIcon className="h-5 w-5 text-gray-400 mr-2" />
+                                  <DocumentIcon className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0" />
                                 )}
-                                <div className="flex flex-col">
+                                <div className="flex flex-col min-w-0 flex-1">
                                   {isFolder(item.Key || "") ? (
                                     <button
                                       onClick={() =>
                                         handleFolderClick(item.Key || "")
                                       }
-                                      className="text-left text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
+                                      className="text-left text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer truncate"
+                                      title={getDisplayName(item.Key || "")}
                                     >
                                       {getDisplayName(item.Key || "")}
                                     </button>
                                   ) : (
-                                    <span className="text-sm text-gray-900 font-medium">
+                                    <span
+                                      className="text-sm text-gray-900 font-medium truncate"
+                                      title={getDisplayName(item.Key || "")}
+                                    >
                                       {getDisplayName(item.Key || "")}
                                     </span>
                                   )}
                                   {item.Key && item.Key.includes("/") && (
-                                    <span className="text-xs text-gray-500">
+                                    <span
+                                      className="text-xs text-gray-500 truncate max-w-xs"
+                                      title={item.Key}
+                                    >
                                       {item.Key}
                                     </span>
                                   )}
