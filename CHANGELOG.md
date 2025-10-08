@@ -6,6 +6,13 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+- **S3 Bucket Viewer Enhancements**: Improved S3 bucket viewer UI with better handling of long paths and filenames:
+  - Added refresh button to reload bucket contents while preserving current folder path
+  - Reorganized header layout with path breadcrumbs displayed below bucket name to prevent overflow
+  - Added ellipsis truncation for long filenames with hover tooltips showing full names
+  - Improved table column widths for better readability
+  - Added spinning animation to refresh icon during loading state
+
 - **Docker Environment Reset Commands**: Added new Makefile commands for cleaning up Docker environments:
   - `make reset`: Reset Docker environment (stop services and clean volumes)
   - `make reset-env`: Full environment reset (clean resources, stop services, and clean all Docker resources)
