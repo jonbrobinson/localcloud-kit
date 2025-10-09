@@ -62,33 +62,8 @@ export function useLocalStackData() {
         console.warn("Failed to fetch cache status:", error);
       }
 
-      // Add individual secrets as resources
-      try {
-        const secretsResponse = await fetch("/api/secrets");
-        const secretsResult = await secretsResponse.json();
-        
-        if (secretsResult.success && secretsResult.data.SecretList) {
-          secretsResult.data.SecretList.forEach((secret: any) => {
-            const secretResource: Resource = {
-              id: `secretsmanager-${secret.Name}`,
-              name: secret.Name,
-              type: "secretsmanager",
-              status: "active",
-              environment: "local",
-              project: projectConfig.projectName,
-              createdAt: secret.CreatedDate,
-              details: {
-                arn: secret.ARN,
-                description: secret.Description || "",
-                lastChangedDate: secret.LastChangedDate,
-              },
-            };
-            resources.push(secretResource);
-          });
-        }
-      } catch (error) {
-        console.warn("Failed to fetch secrets status:", error);
-      }
+      // Secrets are now included in the resourceApi.getStatus() call via list_resources.sh
+      // No need to fetch them separately to avoid duplicates
 
       setData({
         localstackStatus,
