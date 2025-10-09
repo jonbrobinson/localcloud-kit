@@ -70,25 +70,26 @@ export default function UploadFileModal({
       reader.onload = (e) => {
         const result = e.target?.result as string;
         // For binary files (like images), we need to handle the data URL properly
-        if (result.startsWith('data:')) {
+        if (result.startsWith("data:")) {
           // Extract the base64 content from the data URL
-          const base64Content = result.split(',')[1];
+          const base64Content = result.split(",")[1];
           setContent(base64Content);
         } else {
           setContent(result);
         }
       };
-      
+
       // Check if it's a text file or binary file
-      const isTextFile = file.type.startsWith('text/') || 
-                        file.type === 'application/json' || 
-                        file.type === 'application/xml' ||
-                        file.name.endsWith('.txt') ||
-                        file.name.endsWith('.json') ||
-                        file.name.endsWith('.xml') ||
-                        file.name.endsWith('.csv') ||
-                        file.name.endsWith('.md');
-      
+      const isTextFile =
+        file.type.startsWith("text/") ||
+        file.type === "application/json" ||
+        file.type === "application/xml" ||
+        file.name.endsWith(".txt") ||
+        file.name.endsWith(".json") ||
+        file.name.endsWith(".xml") ||
+        file.name.endsWith(".csv") ||
+        file.name.endsWith(".md");
+
       if (isTextFile) {
         reader.readAsText(file);
       } else {
@@ -130,7 +131,7 @@ export default function UploadFileModal({
             <input
               type="file"
               onChange={handleFileUpload}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
           </div>
 
@@ -144,7 +145,7 @@ export default function UploadFileModal({
               value={objectKey}
               onChange={(e) => setObjectKey(e.target.value)}
               placeholder="Enter file name (e.g., myfile.txt)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
             />
           </div>
 
@@ -158,7 +159,7 @@ export default function UploadFileModal({
               onChange={(e) => setContent(e.target.value)}
               placeholder="Enter file content..."
               rows={10}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>

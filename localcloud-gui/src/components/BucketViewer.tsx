@@ -10,6 +10,8 @@ import {
   TrashIcon,
   PlusIcon,
   ArrowPathIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { s3Api } from "@/services/api";
 import FileViewerModal from "./FileViewerModal";
@@ -53,6 +55,10 @@ export default function BucketViewer({
   const [selectedTheme, setSelectedTheme] = useState<HighlightTheme>("github");
   const [currentPath, setCurrentPath] = useState<string>("");
   const [pathHistory, setPathHistory] = useState<string[]>([]);
+  const [sortConfig, setSortConfig] = useState<{
+    key: "name" | "size" | "modified" | "storage";
+    direction: "asc" | "desc";
+  } | null>(null);
 
   const loadBuckets = useCallback(async () => {
     setLoading(true);
@@ -257,6 +263,57 @@ export default function BucketViewer({
     loadBucketContents(selectedBucket, "");
   };
 
+  const handleSort = (key: "name" | "size" | "modified" | "storage") => {
+    let direction: "asc" | "desc" = "asc";
+    if (
+      sortConfig &&
+      sortConfig.key === key &&
+      sortConfig.direction === "asc"
+    ) {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortedContents = () => {
+    if (!sortConfig) return bucketContents;
+
+    const sorted = [...bucketContents].sort((a, b) => {
+      // Always keep folders at the top
+      const aIsFolder = isFolder(a.Key || "");
+      const bIsFolder = isFolder(b.Key || "");
+      if (aIsFolder && !bIsFolder) return -1;
+      if (!aIsFolder && bIsFolder) return 1;
+
+      // Sort by the selected key
+      let comparison = 0;
+      switch (sortConfig.key) {
+        case "name":
+          comparison = getDisplayName(a.Key || "").localeCompare(
+            getDisplayName(b.Key || "")
+          );
+          break;
+        case "size":
+          comparison = (a.Size || 0) - (b.Size || 0);
+          break;
+        case "modified":
+          comparison =
+            new Date(a.LastModified || 0).getTime() -
+            new Date(b.LastModified || 0).getTime();
+          break;
+        case "storage":
+          comparison = (a.StorageClass || "STANDARD").localeCompare(
+            b.StorageClass || "STANDARD"
+          );
+          break;
+      }
+
+      return sortConfig.direction === "asc" ? comparison : -comparison;
+    });
+
+    return sorted;
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -399,17 +456,61 @@ export default function BucketViewer({
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">
-                            Name
+                          <th
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort("name")}
+                          >
+                            <div className="flex items-center space-x-1">
+                              <span>Name</span>
+                              {sortConfig?.key === "name" &&
+                                (sortConfig.direction === "asc" ? (
+                                  <ChevronUpIcon className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDownIcon className="h-4 w-4" />
+                                ))}
+                            </div>
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                            Size
+                          <th
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort("size")}
+                          >
+                            <div className="flex items-center space-x-1">
+                              <span>Size</span>
+                              {sortConfig?.key === "size" &&
+                                (sortConfig.direction === "asc" ? (
+                                  <ChevronUpIcon className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDownIcon className="h-4 w-4" />
+                                ))}
+                            </div>
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-44">
-                            Last Modified
+                          <th
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-44 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort("modified")}
+                          >
+                            <div className="flex items-center space-x-1">
+                              <span>Last Modified</span>
+                              {sortConfig?.key === "modified" &&
+                                (sortConfig.direction === "asc" ? (
+                                  <ChevronUpIcon className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDownIcon className="h-4 w-4" />
+                                ))}
+                            </div>
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                            Storage Class
+                          <th
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort("storage")}
+                          >
+                            <div className="flex items-center space-x-1">
+                              <span>Storage Class</span>
+                              {sortConfig?.key === "storage" &&
+                                (sortConfig.direction === "asc" ? (
+                                  <ChevronUpIcon className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDownIcon className="h-4 w-4" />
+                                ))}
+                            </div>
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
                             Actions
@@ -417,7 +518,7 @@ export default function BucketViewer({
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {bucketContents.map((item, index) => (
+                        {getSortedContents().map((item, index) => (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="px-6 py-4">
                               <div className="flex items-center">
