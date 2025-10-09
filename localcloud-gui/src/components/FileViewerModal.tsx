@@ -111,6 +111,40 @@ function getViewerType(
   return "binary";
 }
 
+// Custom Tooltip Component
+function Tooltip({
+  children,
+  content,
+  className = "",
+}: {
+  children: React.ReactNode;
+  content: string;
+  className?: string;
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  return (
+    <div className="relative inline-block">
+      <div
+        className={className}
+        onMouseEnter={() => setIsVisible(true)}
+        onMouseLeave={() => setIsVisible(false)}
+      >
+        {children}
+      </div>
+      {isVisible && (
+        <div
+          className="absolute z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg left-0 bottom-full mb-2 max-w-xs w-max"
+          style={{ maxWidth: "300px", wordBreak: "break-all" }}
+        >
+          <div className="break-all whitespace-normal">{content}</div>
+          <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function FileViewerModal({
   isOpen,
   onClose,
@@ -194,8 +228,10 @@ export default function FileViewerModal({
     if (!fileContent) return;
 
     // Check if content is base64 encoded (for binary files)
-    const isBase64 = /^[A-Za-z0-9+/]*={0,2}$/.test(fileContent.content) && fileContent.content.length > 0;
-    
+    const isBase64 =
+      /^[A-Za-z0-9+/]*={0,2}$/.test(fileContent.content) &&
+      fileContent.content.length > 0;
+
     let blob;
     if (isBase64) {
       // Convert base64 to binary for download
@@ -213,7 +249,7 @@ export default function FileViewerModal({
         type: fileContent.metadata.ContentType || "application/octet-stream",
       });
     }
-    
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -311,24 +347,45 @@ export default function FileViewerModal({
       <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-5/6 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-900 truncate">
-              {objectKey}
-            </h2>
-            <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
-              <span>Bucket: {bucketName}</span>
+          <div className="flex-1 min-w-0">
+            <div className="mb-2">
+              <Tooltip content={objectKey} className="cursor-help">
+                <h2 className="text-xl font-bold text-gray-900 truncate">
+                  {objectKey.split("/").pop() || objectKey}
+                </h2>
+              </Tooltip>
+            </div>
+            {objectKey.includes("/") && (
+              <div className="mb-2">
+                <Tooltip
+                  content={`Full path: ${objectKey}`}
+                  className="cursor-help"
+                >
+                  <div className="text-sm text-gray-600">
+                    <div className="truncate">
+                      Path:{" "}
+                      {objectKey.length > 75
+                        ? `${objectKey.substring(0, 75)}...`
+                        : objectKey}
+                    </div>
+                  </div>
+                </Tooltip>
+              </div>
+            )}
+            <div className="mt-1 text-sm text-gray-500">
+              <div>Bucket: {bucketName}</div>
               {fileContent?.metadata.ContentLength && (
-                <span>
+                <div>
                   Size: {formatFileSize(fileContent.metadata.ContentLength)}
-                </span>
+                </div>
               )}
               {fileContent?.metadata.LastModified && (
-                <span>
+                <div>
                   Modified: {formatDate(fileContent.metadata.LastModified)}
-                </span>
+                </div>
               )}
               {fileContent?.metadata.ContentType && (
-                <span>Type: {fileContent.metadata.ContentType}</span>
+                <div>Type: {fileContent.metadata.ContentType}</div>
               )}
             </div>
           </div>
