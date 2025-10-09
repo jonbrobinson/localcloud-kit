@@ -278,62 +278,37 @@ export default function ResourceList({
                   </div>
                   
                   {/* Special handling for secrets manager */}
-                  {resource.type === "secretsmanager" && resource.details?.secrets && (
+                  {resource.type === "secretsmanager" && resource.details && (
                     <>
-                      <div className="md:col-span-2">
-                        <dt className="font-medium text-gray-500 mb-2">Secrets</dt>
-                        <div className="space-y-3">
-                          {resource.details.secrets.map((secret: any, index: number) => (
-                            <div key={index} className="bg-gray-50 p-3 rounded-lg border">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center space-x-2 mb-2">
-                                    <h4 className="font-medium text-gray-900 truncate">
-                                      {secret.Name}
-                                    </h4>
-                                    {secret.Tags && secret.Tags.length > 0 && (
-                                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                        {secret.Tags.length} tags
-                                      </span>
-                                    )}
-                                  </div>
-                                  
-                                  {secret.Description && (
-                                    <p className="text-sm text-gray-600 mb-2">
-                                      {secret.Description}
-                                    </p>
-                                  )}
-                                  
-                                  <div className="space-y-1">
-                                    <div>
-                                      <span className="text-xs font-medium text-gray-500">ARN:</span>
-                                      <div className="flex items-center space-x-2 mt-1">
-                                        <code className="text-xs bg-white px-2 py-1 rounded border text-gray-900 break-all flex-1 min-w-0">
-                                          {secret.ARN}
-                                        </code>
-                                        <button
-                                          onClick={() => copyArnToClipboard(secret.ARN)}
-                                          className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                                          title="Copy ARN"
-                                        >
-                                          <ClipboardDocumentIcon className="h-4 w-4" />
-                                        </button>
-                                      </div>
-                                      {copiedArn === secret.ARN && (
-                                        <p className="text-xs text-green-600 mt-1">✓ Copied to clipboard</p>
-                                      )}
-                                    </div>
-                                    
-                                    <div className="text-xs text-gray-500">
-                                      <div>Created: {new Date(secret.CreatedDate).toLocaleString()}</div>
-                                      <div>Last changed: {new Date(secret.LastChangedDate).toLocaleString()}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                      <div>
+                        <dt className="font-medium text-gray-500">ARN</dt>
+                        <dd className="text-gray-900 font-mono text-sm break-all">
+                          <div className="flex items-center space-x-2">
+                            <code className="flex-1 min-w-0">{resource.details.arn}</code>
+                            <button
+                              onClick={() => copyArnToClipboard(resource.details.arn)}
+                              className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                              title="Copy ARN"
+                            >
+                              <ClipboardDocumentIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                          {copiedArn === resource.details.arn && (
+                            <p className="text-xs text-green-600 mt-1">✓ Copied to clipboard</p>
+                          )}
+                        </dd>
+                      </div>
+                      {resource.details.description && (
+                        <div>
+                          <dt className="font-medium text-gray-500">Description</dt>
+                          <dd className="text-gray-900">{resource.details.description}</dd>
                         </div>
+                      )}
+                      <div>
+                        <dt className="font-medium text-gray-500">Last Changed</dt>
+                        <dd className="text-gray-900">
+                          {new Date(resource.details.lastChangedDate).toLocaleString()}
+                        </dd>
                       </div>
                     </>
                   )}

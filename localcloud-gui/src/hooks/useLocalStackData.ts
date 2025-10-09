@@ -62,29 +62,29 @@ export function useLocalStackData() {
         console.warn("Failed to fetch cache status:", error);
       }
 
-      // Add secrets manager status as a resource
+      // Add individual secrets as resources
       try {
         const secretsResponse = await fetch("/api/secrets");
         const secretsResult = await secretsResponse.json();
-        const secretsCount = secretsResult.success
-          ? secretsResult.data.SecretList?.length || 0
-          : 0;
-
-        if (secretsCount > 0) {
-          const secretsResource: Resource = {
-            id: "secrets-manager",
-            name: `Secrets Manager (${secretsCount} secrets)`,
-            type: "secretsmanager",
-            status: "active",
-            environment: "local",
-            project: projectConfig.projectName,
-            createdAt: new Date().toISOString(),
-            details: {
-              count: secretsCount,
-              secrets: secretsResult.data.SecretList || [],
-            },
-          };
-          resources.push(secretsResource);
+        
+        if (secretsResult.success && secretsResult.data.SecretList) {
+          secretsResult.data.SecretList.forEach((secret: any) => {
+            const secretResource: Resource = {
+              id: `secretsmanager-${secret.Name}`,
+              name: secret.Name,
+              type: "secretsmanager",
+              status: "active",
+              environment: "local",
+              project: projectConfig.projectName,
+              createdAt: secret.CreatedDate,
+              details: {
+                arn: secret.ARN,
+                description: secret.Description || "",
+                lastChangedDate: secret.LastChangedDate,
+              },
+            };
+            resources.push(secretResource);
+          });
         }
       } catch (error) {
         console.warn("Failed to fetch secrets status:", error);
