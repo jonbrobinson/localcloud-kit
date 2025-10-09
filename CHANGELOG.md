@@ -4,24 +4,28 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.2] - 2025-10-09
+
 ### Added
 
-- **S3 Bucket Viewer Enhancements**: Improved S3 bucket viewer UI with better handling of long paths and filenames:
-  - Added refresh button to reload bucket contents while preserving current folder path
-  - Reorganized header layout with path breadcrumbs displayed below bucket name to prevent overflow
-  - Added ellipsis truncation for long filenames with hover tooltips showing full names
-  - Improved table column widths for better readability
-  - Added spinning animation to refresh icon during loading state
-
-- **Docker Environment Reset Commands**: Added new Makefile commands for cleaning up Docker environments:
-  - `make reset`: Reset Docker environment (stop services and clean volumes)
-  - `make reset-env`: Full environment reset (clean resources, stop services, and clean all Docker resources)
-  - `make clean-volumes`: Clean up Docker volumes with confirmation prompt
-  - `make clean-all`: Clean up all Docker resources including images and containers with confirmation prompt
+- **Individual Secret Resources**: Secrets now display as individual line items instead of aggregated view for better clarity and management
+- **Secret ARN Display & Copy**: Full ARN shown with one-click copy functionality for easy integration
+- **Enhanced Secret Details**: Display description, creation date, and last changed date for each secret
+- **Secret Delete Functionality**: Support for both individual and bulk secret deletion through standard resource management interface
 
 ### Fixed
 
-- **DynamoDB Table Creation with Multiple GSIs**: Fixed 500 error when creating DynamoDB tables with multiple Global Secondary Indexes. The shell script was incorrectly constructing the AWS CLI arguments for multiple GSIs, causing the table creation to fail. Now properly formats the `--global-secondary-indexes` argument as an array of index definitions.
+- **Secrets Display UX**: Resolved confusing aggregated "Secrets Manager (X secrets)" view that expanded to show individual secrets
+- **Secret Deletion Issues**: Fixed missing delete functionality for secrets - now works with both checkboxes and bulk operations
+- **React Duplicate Key Errors**: Eliminated "Encountered two children with the same key" errors caused by duplicate secret loading
+- **jq Syntax Error in Scripts**: Fixed shell interpretation error in `list_resources.sh` that prevented resource listing after secret creation
+- **Resource Creation Blocking**: Resolved issue where creating secrets would prevent creation of other resources
+
+### Changed
+
+- **Secrets Management**: Secrets now follow the same UI patterns as other resources (S3, DynamoDB, etc.)
+- **Resource Loading**: Streamlined secret loading to use single source of truth (list_resources.sh script)
+- **UI Consistency**: Improved overall resource management experience with consistent patterns across all resource types
 
 ## [0.5.1] - 2025-09-18
 
