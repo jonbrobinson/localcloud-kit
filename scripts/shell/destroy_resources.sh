@@ -81,6 +81,11 @@ if [ -n "$SPECIFIC_RESOURCES" ]; then
                 $AWS_CMD apigateway delete-rest-api --rest-api-id $resource_name 2>/dev/null || true
                 log "Deleted API Gateway: $resource_name"
                 ;;
+            "secretsmanager")
+                log "Destroying Secrets Manager secret: $resource_name"
+                $AWS_CMD secretsmanager delete-secret --secret-id $resource_name --force-delete-without-recovery 2>/dev/null || true
+                log "Deleted Secrets Manager secret: $resource_name"
+                ;;
             *)
                 log "Unknown resource type: $resource_type for resource: $resource_id"
                 ;;
@@ -116,6 +121,13 @@ else
     for API_ID in $APIS; do
         $AWS_CMD apigateway delete-rest-api --rest-api-id $API_ID 2>/dev/null || true
         log "Deleted API Gateway: $API_ID"
+    done
+
+    # Destroy Secrets Manager Secrets
+    SECRETS=$($AWS_CMD secretsmanager list-secrets --query "SecretList[?starts_with(Name, '$NAME_PREFIX')].Name" --output text 2>/dev/null || true)
+    for SECRET in $SECRETS; do
+        $AWS_CMD secretsmanager delete-secret --secret-id $SECRET --force-delete-without-recovery 2>/dev/null || true
+        log "Deleted Secrets Manager secret: $SECRET"
     done
 fi
 

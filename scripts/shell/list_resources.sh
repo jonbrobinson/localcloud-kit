@@ -121,15 +121,18 @@ list_api_gateways() {
 
 list_secrets_manager_secrets() {
   if [ "$SHOW_ALL" = true ]; then
-    secrets=$($AWS_CMD secretsmanager list-secrets --query "SecretList[].{Name:Name,Description:Description,LastChangedDate:LastChangedDate}" --output json)
+    secrets=$($AWS_CMD secretsmanager list-secrets --query "SecretList[].{Name:Name,Description:Description,LastChangedDate:LastChangedDate,ARN:ARN,CreatedDate:CreatedDate}" --output json)
   else
-    secrets=$($AWS_CMD secretsmanager list-secrets --query "SecretList[?starts_with(Name, '$NAME_PREFIX')].{Name:Name,Description:Description,LastChangedDate:LastChangedDate}" --output json)
+    secrets=$($AWS_CMD secretsmanager list-secrets --query "SecretList[?starts_with(Name, '$NAME_PREFIX')].{Name:Name,Description:Description,LastChangedDate:LastChangedDate,ARN:ARN,CreatedDate:CreatedDate}" --output json)
   fi
   echo "$secrets" | jq -c '.[]' | while read row; do
     name=$(echo "$row" | jq -r .Name)
-    description=$(echo "$row" | jq -r .Description // "")
+    description=$(echo "$row" | jq -r '.Description // ""')
+    arn=$(echo "$row" | jq -r .ARN)
+    createdDate=$(echo "$row" | jq -r .CreatedDate)
+    lastChangedDate=$(echo "$row" | jq -r .LastChangedDate)
     id="secretsmanager-$name"
-    obj=$(jq -nc --arg id "$id" --arg name "$name" --arg type secretsmanager --arg status active --arg project "$PROJECT_NAME" --arg createdAt "$NOW" --arg description "$description" '{id:$id,name:$name,type:$type,status:$status,project:$project,createdAt:$createdAt,details:{description:$description}}')
+    obj=$(jq -nc --arg id "$id" --arg name "$name" --arg type secretsmanager --arg status active --arg project "$PROJECT_NAME" --arg createdAt "$createdDate" --arg arn "$arn" --arg description "$description" --arg lastChangedDate "$lastChangedDate" '{id:$id,name:$name,type:$type,status:$status,project:$project,createdAt:$createdAt,details:{arn:$arn,description:$description,lastChangedDate:$lastChangedDate}}')
     tmp_add_resource "$obj"
   done
 }
