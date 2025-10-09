@@ -254,7 +254,7 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-600">
                   Enterprise AWS Development
                 </p>
-                <p className="text-xs text-gray-400">v0.5.1</p>
+                <p className="text-xs text-gray-400">v0.5.2</p>
               </div>
               <button
                 onClick={() => setShowLogs(true)}
@@ -421,7 +421,7 @@ export default function Dashboard() {
             </span>
           </div>
           <p className="text-xs text-gray-400">
-            Enterprise AWS Development Tools • LocalCloud Kit v0.5.1
+            Enterprise AWS Development Tools • LocalCloud Kit v0.5.2
           </p>
         </div>
       </div>
