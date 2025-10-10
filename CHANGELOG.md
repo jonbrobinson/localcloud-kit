@@ -4,6 +4,10 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Connection Page Navigation**: Added "Back to Dashboard" link with arrow icon to Connection Guide page for consistent navigation across all pages
+
 ### Fixed
 
 - **TypeScript Build Error**: Fixed `resource.details` possibly undefined error in ResourceList component by adding proper null checking for ARN copy functionality
