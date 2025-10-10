@@ -4,7 +4,7 @@
 
 Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, and Secrets Manager.
 
-[![Version](https://img.shields.io/badge/version-0.5.2-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.5.2)
+[![Version](https://img.shields.io/badge/version-0.5.3-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.5.3)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
@@ -182,7 +182,22 @@ localcloud-kit/
 
 ## 🎯 Features
 
-### What's New in v0.5.1
+### What's New in v0.5.3
+
+- **🎨 Connection Page Navigation**: Added "Back to Dashboard" link with arrow icon to Connection Guide page for consistent navigation across all management pages
+- **🐛 TypeScript Build Error Fix**: Fixed `resource.details` possibly undefined error in ResourceList component by adding proper null checking for ARN copy functionality
+- **🔧 Next.js Build Warning Fix**: Removed deprecated `devIndicators.buildActivity` option from Next.js configuration to eliminate build warnings and enable successful Docker builds
+
+### Previous Features (v0.5.2)
+
+- **🔑 Individual Secret Resources**: Secrets now display as individual line items instead of aggregated view for better clarity and management
+- **📋 Secret ARN Display & Copy**: Full ARN shown with one-click copy functionality for easy integration
+- **📝 Enhanced Secret Details**: Display description, creation date, and last changed date for each secret
+- **🗑️ Secret Delete Functionality**: Support for both individual and bulk secret deletion through standard resource management interface
+- **🐛 Secrets Display UX Fix**: Resolved confusing aggregated view and React duplicate key errors
+- **🔧 Resource Creation Fix**: Resolved issues where creating secrets would prevent creation of other resources
+
+### Previous Features (v0.5.1)
 
 - **🐛 DynamoDB GSI Creation and Query Fixes**: Fixed critical issues with Global Secondary Index (GSI) creation and querying in LocalStack
   - **GSI Provisioning**: Added proper `ProvisionedThroughput` settings for GSIs when using `PROVISIONED` billing mode
