@@ -755,7 +755,7 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString(),
     service: "LocalCloud Kit API",
     vendor: "CloudStack Solutions",
-    version: "1.0.0",
+    version: "0.5.3",
   });
 });
 
