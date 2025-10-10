@@ -7,11 +7,6 @@ const nextConfig: NextConfig = {
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:3030/api",
   },
 
-  // Disable build activity indicator for cleaner development experience
-  devIndicators: {
-    buildActivity: false,
-  },
-
   // Improve performance
   compress: true,
 
