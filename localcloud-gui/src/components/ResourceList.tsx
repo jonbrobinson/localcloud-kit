@@ -276,7 +276,7 @@ export default function ResourceList({
                       {new Date(resource.createdAt).toLocaleString()}
                     </dd>
                   </div>
-                  
+
                   {/* Special handling for secrets manager */}
                   {resource.type === "secretsmanager" && resource.details && (
                     <>
@@ -284,9 +284,14 @@ export default function ResourceList({
                         <dt className="font-medium text-gray-500">ARN</dt>
                         <dd className="text-gray-900 font-mono text-sm break-all">
                           <div className="flex items-center space-x-2">
-                            <code className="flex-1 min-w-0">{resource.details.arn}</code>
+                            <code className="flex-1 min-w-0">
+                              {resource.details.arn}
+                            </code>
                             <button
-                              onClick={() => copyArnToClipboard(resource.details.arn)}
+                              onClick={() =>
+                                resource.details?.arn &&
+                                copyArnToClipboard(resource.details.arn)
+                              }
                               className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                               title="Copy ARN"
                             >
@@ -294,27 +299,38 @@ export default function ResourceList({
                             </button>
                           </div>
                           {copiedArn === resource.details.arn && (
-                            <p className="text-xs text-green-600 mt-1">✓ Copied to clipboard</p>
+                            <p className="text-xs text-green-600 mt-1">
+                              ✓ Copied to clipboard
+                            </p>
                           )}
                         </dd>
                       </div>
                       {resource.details.description && (
                         <div>
-                          <dt className="font-medium text-gray-500">Description</dt>
-                          <dd className="text-gray-900">{resource.details.description}</dd>
+                          <dt className="font-medium text-gray-500">
+                            Description
+                          </dt>
+                          <dd className="text-gray-900">
+                            {resource.details.description}
+                          </dd>
                         </div>
                       )}
                       <div>
-                        <dt className="font-medium text-gray-500">Last Changed</dt>
+                        <dt className="font-medium text-gray-500">
+                          Last Changed
+                        </dt>
                         <dd className="text-gray-900">
-                          {new Date(resource.details.lastChangedDate).toLocaleString()}
+                          {new Date(
+                            resource.details.lastChangedDate
+                          ).toLocaleString()}
                         </dd>
                       </div>
                     </>
                   )}
-                  
+
                   {/* Regular details for other resource types */}
-                  {resource.type !== "secretsmanager" && resource.details &&
+                  {resource.type !== "secretsmanager" &&
+                    resource.details &&
                     Object.entries(resource.details).map(([key, value]) => (
                       <div key={key}>
                         <dt className="font-medium text-gray-500 capitalize">

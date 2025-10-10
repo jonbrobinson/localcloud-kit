@@ -4,6 +4,11 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **TypeScript Build Error**: Fixed `resource.details` possibly undefined error in ResourceList component by adding proper null checking for ARN copy functionality
+- **Next.js Build Warning**: Removed deprecated `devIndicators.buildActivity` option from Next.js configuration to eliminate build warnings
+
 ## [0.5.2] - 2025-10-09
 
 ### Added
