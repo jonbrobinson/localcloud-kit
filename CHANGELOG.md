@@ -4,6 +4,22 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.9] - 2025-10-12
+
+### Changed
+
+- **LocalStack Version Strategy**: Updated default version from pinned `4.0` to `latest`
+  - Changed `docker-compose.yml` to use `${LOCALSTACK_VERSION:-latest}` for automatic updates
+  - Updated `Makefile` default to `LOCALSTACK_VERSION ?= latest`
+  - Updated `env.example` to use `LOCALSTACK_VERSION=latest`
+  - Adopts "rolling release" approach for LocalStack - always use newest version by default
+  - Users can still pin to specific versions via environment variables when needed
+  - Updated README with comprehensive version strategy documentation and rationale
+- **LocalStack Compatibility Documentation**: Updated tested version information
+  - Last tested with LocalStack 4.9 (October 12, 2025)
+  - Clarified that LocalCloud Kit is maintained to stay compatible with LocalStack updates
+  - Breaking changes will be documented in README when they occur
+
 ## [0.5.8] - 2025-10-12
 
 ### Added
