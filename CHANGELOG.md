@@ -4,6 +4,23 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.7] - 2025-10-12
+
+### Changed
+
+- **Branding Consistency**: Replaced all "Enterprise AWS Development Tools" references with "Local AWS Development Environment"
+  - Updated 12 files across the codebase (shell scripts, documentation, metadata)
+  - Changed page metadata in `localcloud-gui/src/app/layout.tsx` for better SEO
+  - Updated all README files and documentation footers
+  - Better reflects the local, isolated nature of the tool
+
+### Fixed
+
+- **Dynamic Version Display**: GUI now imports version from `package.json` instead of hardcoding
+  - Single source of truth for version number
+  - Eliminates need for manual version updates in Dashboard component
+  - Fixed outdated hardcoded v0.5.3 reference in Dashboard header
+
 ## [0.5.6] - 2025-10-12
 
 ### Added
