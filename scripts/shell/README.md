@@ -408,4 +408,4 @@ npm test
 
 **Built with ❤️ by CloudStack Solutions**
 
-_Enterprise AWS Development Tools_
+_Local AWS Development Environment_

@@ -233,4 +233,4 @@ You now have a fully automated LocalStack setup with:
 
 **Built with ❤️ by CloudStack Solutions**
 
-_Enterprise AWS Development Tools_
+_Local AWS Development Environment_

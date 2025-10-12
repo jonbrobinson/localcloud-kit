@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "LocalCloud Kit",
-  description: "Enterprise AWS Development Tools",
+  description: "Local AWS Development Environment",
 };
 
 export default function RootLayout({

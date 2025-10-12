@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# CloudStack Solutions - Enterprise AWS Development Tools
+# CloudStack Solutions - Local AWS Development Environment
 # List DynamoDB tables in LocalStack
 
 set -e

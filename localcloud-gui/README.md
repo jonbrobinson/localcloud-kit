@@ -1,6 +1,6 @@
 # LocalCloud Kit
 
-> **Enterprise AWS Development Tools** by CloudStack Solutions
+> **Local AWS Development Environment** by CloudStack Solutions
 
 A modern Next.js web interface for LocalCloud Kit, providing a comprehensive GUI for AWS resource management in LocalStack environments.
 
@@ -81,7 +81,7 @@ npm start
 - **Company**: CloudStack Solutions
 - **Product**: LocalStack Manager
 - **Version**: 1.0.0
-- **Tagline**: Enterprise AWS Development Tools
+- **Tagline**: Local AWS Development Environment
 
 ### Design Elements
 
@@ -236,7 +236,7 @@ npm start
 
 **Built with ❤️ by CloudStack Solutions**
 
-_Enterprise AWS Development Tools_
+_Local AWS Development Environment_
 
 ### Resource Automation
 
