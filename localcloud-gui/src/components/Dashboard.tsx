@@ -253,9 +253,9 @@ export default function Dashboard() {
             <div className="flex items-center space-x-4">
               <div className="hidden md:block text-right">
                 <p className="text-sm text-gray-600">
-                  Enterprise AWS Development
+                  Local AWS Development Environment
                 </p>
-                <p className="text-xs text-gray-400">v0.5.3</p>
+                <p className="text-xs text-gray-400">v{packageJson.version}</p>
               </div>
               <button
                 onClick={() => setShowLogs(true)}
@@ -422,7 +422,8 @@ export default function Dashboard() {
             </span>
           </div>
           <p className="text-xs text-gray-400">
-            Local AWS Development Environment • LocalCloud Kit v{packageJson.version}
+            Local AWS Development Environment • LocalCloud Kit v
+            {packageJson.version}
           </p>
         </div>
       </div>
