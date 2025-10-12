@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # LocalCloud Kit Startup Script
-# CloudStack Solutions - Enterprise AWS Development Tools
+# CloudStack Solutions - Local AWS Development Environment
 
 set -e
 

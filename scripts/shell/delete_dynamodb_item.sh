@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# CloudStack Solutions - Enterprise AWS Development Tools
+# CloudStack Solutions - Local AWS Development Environment
 # Delete a DynamoDB item from a table
 
 set -e
