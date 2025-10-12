@@ -22,6 +22,7 @@ import SecretsManagerViewer from "./SecretsManagerViewer";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import packageJson from "../../package.json";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -421,7 +422,7 @@ export default function Dashboard() {
             </span>
           </div>
           <p className="text-xs text-gray-400">
-            Local AWS Development Environment • LocalCloud Kit v0.5.6
+            Local AWS Development Environment • LocalCloud Kit v{packageJson.version}
           </p>
         </div>
       </div>
