@@ -22,6 +22,7 @@ export default function UploadFileModal({
 }: UploadFileModalProps) {
   const [objectKey, setObjectKey] = useState("");
   const [content, setContent] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = async () => {
@@ -30,34 +31,62 @@ export default function UploadFileModal({
       return;
     }
 
-    if (!content.trim()) {
-      toast.error("Please enter file content");
-      return;
-    }
+    // Use multipart upload if a file is selected, otherwise use text content
+    if (selectedFile) {
+      setUploading(true);
+      try {
+        const response = await s3Api.uploadObjectMultipart(
+          projectName,
+          bucketName,
+          objectKey,
+          selectedFile
+        );
 
-    setUploading(true);
-    try {
-      const response = await s3Api.uploadObject(
-        projectName,
-        bucketName,
-        objectKey,
-        content
-      );
-
-      if (response.success) {
-        toast.success("File uploaded successfully");
-        setObjectKey("");
-        setContent("");
-        onUploadSuccess();
-        onClose();
-      } else {
-        toast.error(response.error || "Failed to upload file");
+        if (response.success) {
+          const sizeMB = (selectedFile.size / (1024 * 1024)).toFixed(2);
+          toast.success(`File uploaded successfully (${sizeMB} MB)`);
+          setObjectKey("");
+          setContent("");
+          setSelectedFile(null);
+          onUploadSuccess();
+          onClose();
+        } else {
+          toast.error(response.error || "Failed to upload file");
+        }
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast.error("Failed to upload file");
+      } finally {
+        setUploading(false);
       }
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Failed to upload file");
-    } finally {
-      setUploading(false);
+    } else if (content.trim()) {
+      // Fallback to text upload for manual content entry
+      setUploading(true);
+      try {
+        const response = await s3Api.uploadObject(
+          projectName,
+          bucketName,
+          objectKey,
+          content
+        );
+
+        if (response.success) {
+          toast.success("File uploaded successfully");
+          setObjectKey("");
+          setContent("");
+          onUploadSuccess();
+          onClose();
+        } else {
+          toast.error(response.error || "Failed to upload file");
+        }
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast.error("Failed to upload file");
+      } finally {
+        setUploading(false);
+      }
+    } else {
+      toast.error("Please select a file or enter content");
     }
   };
 
@@ -65,21 +94,9 @@ export default function UploadFileModal({
     const file = event.target.files?.[0];
     if (file) {
       setObjectKey(file.name);
+      setSelectedFile(file);
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        // For binary files (like images), we need to handle the data URL properly
-        if (result.startsWith("data:")) {
-          // Extract the base64 content from the data URL
-          const base64Content = result.split(",")[1];
-          setContent(base64Content);
-        } else {
-          setContent(result);
-        }
-      };
-
-      // Check if it's a text file or binary file
+      // For text files, show preview in the textarea
       const isTextFile =
         file.type.startsWith("text/") ||
         file.type === "application/json" ||
@@ -90,11 +107,17 @@ export default function UploadFileModal({
         file.name.endsWith(".csv") ||
         file.name.endsWith(".md");
 
-      if (isTextFile) {
+      if (isTextFile && file.size < 1024 * 1024) {
+        // Only preview files < 1MB
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          setContent(result);
+        };
         reader.readAsText(file);
       } else {
-        // For binary files (images, etc.), read as data URL
-        reader.readAsDataURL(file);
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        setContent(`[Binary file selected: ${file.name} (${sizeMB} MB)]`);
       }
     }
   };
@@ -174,7 +197,11 @@ export default function UploadFileModal({
           </button>
           <button
             onClick={handleUpload}
-            disabled={uploading || !objectKey.trim() || !content.trim()}
+            disabled={
+              uploading ||
+              !objectKey.trim() ||
+              (!selectedFile && !content.trim())
+            }
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {uploading ? "Uploading..." : "Upload File"}

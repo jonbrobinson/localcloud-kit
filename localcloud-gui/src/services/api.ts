@@ -185,7 +185,7 @@ export const s3Api = {
     }
   },
 
-  // Upload an object to a bucket
+  // Upload an object to a bucket (legacy JSON method)
   uploadObject: async (
     projectName: string,
     bucketName: string,
@@ -206,6 +206,36 @@ export const s3Api = {
             objectKey,
             content,
           }),
+        }
+      );
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to upload object:", error);
+      return { success: false, error: "Failed to upload object" };
+    }
+  },
+
+  // Upload an object to a bucket using multipart (recommended for all files)
+  uploadObjectMultipart: async (
+    projectName: string,
+    bucketName: string,
+    objectKey: string,
+    file: File
+  ): Promise<ApiResponse<any>> => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("objectKey", objectKey);
+
+      const response = await fetch(
+        `${API_BASE_URL}/s3/bucket/${encodeURIComponent(
+          bucketName
+        )}/upload-multipart?projectName=${encodeURIComponent(projectName)}`,
+        {
+          method: "POST",
+          body: formData,
+          // Don't set Content-Type header - browser will set it with boundary
         }
       );
       const data = await response.json();
@@ -308,12 +338,12 @@ export async function deleteDynamoDBItem(
   const res = await fetch(`/api/dynamodb/table/${tableName}/item`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ 
-      projectName, 
-      partitionKey, 
-      partitionValue, 
-      sortKey, 
-      sortValue 
+    body: JSON.stringify({
+      projectName,
+      partitionKey,
+      partitionValue,
+      sortKey,
+      sortValue,
     }),
   });
   if (!res.ok) throw new Error("Failed to delete item");
