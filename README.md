@@ -171,8 +171,8 @@ localcloud-kit/
 
 LocalCloud Kit is tested and verified to work with:
 
-- **LocalStack Version**: 4.0.x
-- **Last Tested**: 4.0.2 (October 2024)
+- **LocalStack Version**: 4.9.x
+- **Last Tested**: 4.9 (October 12, 2025)
 - **Default Pinned Version**: 4.0
 
 ### Using Different LocalStack Versions
