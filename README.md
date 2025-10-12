@@ -4,7 +4,7 @@
 
 Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, and Secrets Manager.
 
-[![Version](https://img.shields.io/badge/version-0.5.4-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.5.4)
+[![Version](https://img.shields.io/badge/version-0.5.5-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.5.5)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
@@ -50,99 +50,6 @@ Manage S3 buckets, upload files, and view bucket contents with syntax highlighti
 
 ![S3 Bucket Management](docs/screenshots/02-s3-bucket-management.png)
 
-### Alternative Docker Setup
-
-```bash
-# Start everything with Docker Compose directly
-docker compose up --build
-```
-
-This will start:
-
-- **LocalCloud Kit Web GUI**: http://localhost:3030
-- **LocalCloud Kit API Server**: http://localhost:3030/api
-- **LocalStack**: http://localhost:4566
-- **Nginx Reverse Proxy**: http://localhost:3030
-
-### Alternative Startup Methods
-
-#### Using Makefile
-
-```bash
-# Start all services
-make start
-
-# Start with GUI
-make gui-start
-```
-
-#### Using Start Script
-
-```bash
-# Start with the original script (for development)
-./start-gui.sh
-```
-
-## 🔧 Troubleshooting
-
-### Getting "502 Bad Gateway" or "Failed to fetch" errors?
-
-If you're seeing connection errors when accessing the GUI, it's likely because the backend services aren't running. Here's how to fix it:
-
-#### 1. Check if Docker services are running
-
-```bash
-# Check Docker container status
-docker compose ps
-
-# If no containers are running, start them:
-docker compose up -d
-```
-
-#### 2. Verify all services are healthy
-
-```bash
-# Check if the API is responding
-curl http://localhost:3030/api/health
-
-# Check if LocalStack is running
-curl http://localhost:4566/_localstack/health
-```
-
-#### 3. Common Issues and Solutions
-
-**Issue**: "Failed to fetch Geist" font error
-
-- **Solution**: This has been fixed in the latest version. Pull the latest changes: `git pull origin main`
-
-**Issue**: "502 Bad Gateway" when accessing GUI
-
-- **Solution**: The API server isn't running. Start all services: `docker compose up -d`
-
-**Issue**: GUI loads but can't connect to LocalStack
-
-- **Solution**: Wait a moment for LocalStack to fully start, or restart: `docker compose restart localstack`
-
-**Issue**: Port 3030 is already in use
-
-- **Solution**: Stop other services using the port, or change the port in `docker-compose.yml`
-
-#### 4. Development Mode
-
-If you want to run the GUI locally (outside Docker) for development:
-
-```bash
-# Start the backend services first
-docker compose up -d localstack api nginx
-
-# Then run the GUI locally
-cd localcloud-gui
-npm install
-npm run dev
-```
-
-The GUI will be available at http://localhost:3000 and will connect to the API at http://localhost:3030/api.
-
 ## 🏗️ Project Structure
 
 ```
@@ -182,89 +89,78 @@ localcloud-kit/
 
 ## 🎯 Features
 
-### What's New in v0.5.4
+**Latest Release:** v0.5 series introduces AWS Secrets Manager integration, enhanced DynamoDB with GSI support, multipart file uploads, and Docker environment management. [View detailed changelog →](CHANGELOG.md)
 
-- **📤 Multipart File Upload**: Implemented proper multipart file uploads using multer for handling files of any size
-  - New `/s3/bucket/:bucketName/upload-multipart` endpoint for efficient file uploads
-  - Supports files up to 100MB (configurable)
-  - Better memory management and performance for large files
-  - Legacy JSON upload endpoint maintained for backward compatibility
-- **🚀 Upload Functionality**: File uploads now use FormData and multipart encoding instead of base64 JSON
-- **📊 File Size Limit**: Increased JSON body limit from 100KB to 50MB for legacy uploads
-- **👁️ Upload Preview**: Binary files now show size preview instead of attempting to display content
-- **💬 Toast Notifications**: Upload success messages now include file size information
-- **🐛 Large File Upload Errors**: Fixed "array null" and JSON parsing errors when uploading files larger than 100KB
-- **🧠 Memory Issues**: Resolved memory problems caused by loading entire files into JavaScript strings
-- **⚡ Upload Performance**: Dramatically improved upload speed and reliability for large files
+### AWS Service Emulation
 
-### Previous Features (v0.5.3)
+#### S3 Storage
 
-- **🎨 Connection Page Navigation**: Added "Back to Dashboard" link with arrow icon to Connection Guide page for consistent navigation across all management pages
-- **🐛 TypeScript Build Error Fix**: Fixed `resource.details` possibly undefined error in ResourceList component by adding proper null checking for ARN copy functionality
-- **🔧 Next.js Build Warning Fix**: Removed deprecated `devIndicators.buildActivity` option from Next.js configuration to eliminate build warnings and enable successful Docker builds
+- **Bucket Management**: Create, list, and delete S3 buckets with one-click operations
+- **File Operations**: Upload, download, and delete objects with full GUI support
+- **Multipart Uploads**: Handle large files up to 100MB with efficient memory management
+- **File Viewer**: View files with syntax highlighting for 100+ languages
+- **Document Support**: Preview Word documents, PDFs, images, and more
+- **Nested Folders**: Full support for folder structures and nested paths
 
-### Previous Features (v0.5.2)
+#### DynamoDB
 
-- **🔑 Individual Secret Resources**: Secrets now display as individual line items instead of aggregated view for better clarity and management
-- **📋 Secret ARN Display & Copy**: Full ARN shown with one-click copy functionality for easy integration
-- **📝 Enhanced Secret Details**: Display description, creation date, and last changed date for each secret
-- **🗑️ Secret Delete Functionality**: Support for both individual and bulk secret deletion through standard resource management interface
-- **🐛 Secrets Display UX Fix**: Resolved confusing aggregated view and React duplicate key errors
-- **🔧 Resource Creation Fix**: Resolved issues where creating secrets would prevent creation of other resources
+- **Table Management**: Create and configure tables with custom schemas
+- **Full CRUD Operations**: Add, view, update, and delete items
+- **Global Secondary Indexes**: Complete GSI support with proper provisioning
+- **Query & Scan**: Advanced querying with GSI support
+- **Schema Validation**: Interactive forms for adding items with type checking
 
-### Previous Features (v0.5.1)
+#### Secrets Manager
 
-- **🐛 DynamoDB GSI Creation and Query Fixes**: Fixed critical issues with Global Secondary Index (GSI) creation and querying in LocalStack
-  - **GSI Provisioning**: Added proper `ProvisionedThroughput` settings for GSIs when using `PROVISIONED` billing mode
-  - **GSI Status Checking**: Implemented waiting mechanism to ensure GSIs become `ACTIVE` before completing table creation (prevents "Index not found" errors)
-  - **GSI Query Support**: Enhanced query scripts and API to support querying specific GSIs using `indexName` parameter
-  - **API Integration**: Updated API server to pass GSI names to query operations, enabling frontend GSI queries
-  - **Test Script**: Created comprehensive test script (`test_gsi_creation.sh`) for validating GSI functionality
+- **Secure Storage**: Store and manage secrets with encryption support
+- **Mask/Reveal**: Toggle visibility of secret values for security
+- **Rich Metadata**: Descriptions, tags, and KMS key encryption
+- **ARN Management**: Copy ARNs for easy integration with applications
+- **Bulk Operations**: Create, update, and delete multiple secrets
 
-### Previous Features (v0.5.0)
+#### Redis Cache
 
-- **🔄 Docker Environment Reset Commands**: New Makefile commands for easy Docker environment management
-- **🐛 DynamoDB GSI Creation Fix**: Fixed 500 error when creating tables with multiple Global Secondary Indexes
-- **📚 Enhanced Documentation**: Comprehensive Docker management guides and troubleshooting
-- **🛡️ Safety Features**: Confirmation prompts for destructive Docker operations
+- **Key-Value Storage**: Full Redis cache operations (set, get, delete, flush)
+- **Cache Management**: View all keys and values with JSON formatting
+- **Connection Info**: Easy integration with external Redis tools
+- **GUI Interface**: Full-screen cache management interface
 
-### Previous Features (v0.4.0)
+### Development Tools
 
-- **🔑 AWS Secrets Manager Integration**: Complete secrets management with secure value handling
-- **📊 Dynamic Resource Display**: Smart resource list that shows/hides based on actual usage
-- **🎨 Enhanced UI**: Better input styling and improved user experience
-- **🔧 Improved Architecture**: Clean API routing and better error handling
-- **📝 Comprehensive Documentation**: Updated guides and examples
+#### Web Interface
 
-### Core Automation
+- **Modern Dashboard**: Next.js-powered GUI with real-time updates
+- **Resource Creation**: Individual or batch resource creation with templates
+- **Live Monitoring**: Real-time status tracking and health checks
+- **Log Viewer**: Stream logs with filtering and search capabilities
+- **Hot Reloading**: Instant updates during development
 
-- **Individual Resource Creation**: Create resources one at a time or in batches
-- **Shell Script Automation**: Fast, reliable command-line automation
-- **Environment Management**: dev, uat, prod environments
-- **Resource Templates**: Predefined common AWS setups
+#### Shell Automation
+
+- **CLI Scripts**: Comprehensive shell scripts for all operations
+- **Resource Templates**: Predefined configurations for common setups
+- **Environment Management**: Support for dev, uat, and prod environments
 - **Naming Conventions**: Consistent resource naming across environments
+- **POSIX Compatible**: Works on macOS, Linux, and WSL
 
-### GUI Management
+#### Docker Environment
 
-- **Web Interface**: Modern Next.js dashboard with hot reloading
-- **Individual Resource Buttons**: Quick creation of S3, DynamoDB, and Secrets Manager
-- **Batch Resource Creation**: Create multiple resources at once with individual selection
-- **Real-time Monitoring**: Live status and resource tracking
-- **Log Viewer**: Real-time log monitoring with filtering
-
-### Containerization
-
-- **Docker Compose**: Single command startup
-- **Hot Reloading**: Development-friendly with live code updates
-- **Reverse Proxy**: Clean URL routing with Nginx
+- **Single Command Setup**: Start everything with `./start-gui.sh`
+- **Docker Compose**: Fully containerized with hot reload support
+- **Nginx Reverse Proxy**: Clean URL routing for all services
+- **Environment Reset**: Easy cleanup and fresh start commands
 - **Network Isolation**: Secure container networking
+- **Volume Management**: Persistent data with easy cleanup options
 
-### Enterprise Features
+### Developer Experience
 
-- **Network Accessible**: Team collaboration ready
-- **Professional Branding**: CloudStack Solutions design
-- **Advanced Mode**: Detailed resource management
-- **Universal Access**: Shell scripts work on any system
+- **Isolated Environment**: Complete isolation from AWS cloud - no account needed
+- **Zero Cost**: Free local development without AWS charges
+- **Fast Iteration**: No network latency - instant feedback on changes
+- **Full Visibility**: Inspect and debug all data without restrictions
+- **Cross-Platform**: Works on macOS, Linux, and Windows (WSL)
+- **Comprehensive Documentation**: Detailed guides and SDK examples
+- **Sample Files**: Pre-configured examples for testing features
 
 ## 🛠️ Prerequisites
 
@@ -273,287 +169,163 @@ localcloud-kit/
 
 ## 📖 Usage
 
-### 1. Start All Services
+### Start Services
 
 ```bash
-# Using Docker Compose (recommended)
+# Recommended: Use the startup script
+./start-gui.sh
+
+# Alternative: Docker Compose directly
 docker compose up --build
 
-# Or using Makefile
+# Alternative: Using Makefile
 make start
+
+# Development mode (GUI outside Docker)
+docker compose up -d localstack api nginx
+cd localcloud-gui && npm install && npm run dev
 ```
 
-### 2. Create Resources
+### Create Resources
 
-#### Individual Resource Creation (Recommended)
+#### Via Web GUI (Recommended)
 
-Use the web GUI to create resources individually:
+1. Open http://localhost:3030
+2. Click individual resource buttons:
+   - 🪣 **S3 Bucket** - Create storage buckets
+   - 🗄️ **DynamoDB Table** - Create NoSQL tables
+   - 🔑 **Secrets Manager** - Store secrets
+3. Or use the batch creation modal for multiple resources
 
-- **S3 Bucket**: Click the 🪣 S3 button
-- **DynamoDB Table**: Click the 🗄️ DynamoDB button
-- **Secrets Manager**: Click the 🔑 Secrets button
-
-#### Batch Resource Creation
+#### Via Shell Scripts
 
 ```bash
-# Using shell scripts (standard approach)
+# Batch resource creation
 ./scripts/shell/create_resources.sh localcloud-kit dev --s3 --dynamodb
+
+# Individual resource creation
+./scripts/shell/create_single_resource.sh s3 my-bucket
 ```
 
-#### Via Web GUI
-
-- Open http://localhost:3030
-- Use individual resource buttons for quick creation
-- Or use the resource creation modal for batch creation
-
-### 3. Manage via GUI
-
-- Open http://localhost:3030
-- Create/destroy resources with one click
-
-### 4. Test File Viewer
-
-Upload sample files from the `samples/` directory to test the file viewer functionality:
+#### Via AWS CLI
 
 ```bash
-# Upload sample files to test syntax highlighting
-aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.py s3://your-bucket-name/
-aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.js s3://your-bucket-name/
-aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.json s3://your-bucket-name/
-aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.docx s3://your-bucket-name/
+# S3 bucket
+aws --endpoint-url=http://localhost:4566 s3 mb s3://my-bucket
+
+# DynamoDB table
+aws --endpoint-url=http://localhost:4566 dynamodb create-table \
+  --table-name my-table \
+  --attribute-definitions AttributeName=id,AttributeType=S \
+  --key-schema AttributeName=id,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST
+
+# Secrets Manager
+aws --endpoint-url=http://localhost:4566 secretsmanager create-secret \
+  --name my-secret \
+  --secret-string "my-secret-value"
 ```
 
-Then view the files in the GUI to see syntax highlighting and document formatting in action.
+### Manage Resources
 
-## 🎨 GUI Features
+All resources can be managed through:
 
-### Web Interface (Next.js)
+- **Web GUI**: http://localhost:3030
+- **Shell Scripts**: Located in `scripts/shell/`
+- **AWS CLI**: Using `--endpoint-url=http://localhost:4566`
+- **AWS SDKs**: Configure with LocalStack endpoint
 
-- **Real-time Dashboard**: Live LocalStack status
-- **Resource Management**: Create/destroy with templates
-- **Log Viewer**: Real-time logs with filtering
-- **Network Accessible**: Team collaboration
-- **Hot Reloading**: Instant code updates during development
+### Test File Viewer
 
-## 🧊 Redis Cache Management
-
-LocalCloud Kit now includes full Redis cache support for local development and testing.
-
-### Features
-
-- **Standalone Redis**: Runs as a container alongside LocalStack and the API
-- **Full CRUD**: Set, get, delete, and flush cache keys
-- **List All Keys**: View all keys and values in the cache
-- **JSON-Aware**: Pretty-prints JSON values in the GUI
-- **GUI Management**: Dedicated `/cache` page for full-screen cache management
-- **Shell Scripts**: Automation scripts for cache operations
-- **API Endpoints**: RESTful endpoints for cache management
-
-### Docker Setup
-
-- Redis runs as a service in `docker-compose.yml` (port 6380 on host, 6379 in container)
-- No password by default (for local use)
-
-### API Endpoints
-
-- `GET /api/cache/status` — Check Redis status
-- `POST /api/cache/set` — Set a key-value pair
-- `GET /api/cache/get?key=...` — Get value by key
-- `DELETE /api/cache/del` — Delete a key
-- `POST /api/cache/flush` — Flush all keys
-- `GET /api/cache/keys` — List all keys and values
-
-### Shell Scripts
-
-Located in `scripts/shell/`:
-
-- `cache_set.sh`, `cache_get.sh`, `cache_del.sh`, `cache_flush.sh`, `list_cache.sh`, `list_cache_keys.sh`
-
-### GUI Features
-
-- **Dashboard**: Redis cache appears as a resource
-- **Full-Page Management**: `/cache` page for all cache operations
-- **Set/Get/Delete**: Action-based forms for each operation
-- **Flush/Refresh**: Utility actions for cache
-- **All Keys View**: See all keys/values, with pretty JSON formatting
-- **Connection Info**: Shows host/port for external tools
-- **Live Feedback**: Results and status are clearly displayed
-
-### Usage Example
-
-1. Start all services: `docker compose up --build`
-2. Open the GUI: http://localhost:3030
-3. Click "Redis Cache" in the dashboard or resource list
-4. Use the full-page interface to set, get, delete, flush, and view all cache keys
-5. Use the connection info to connect with external Redis tools (host: `localhost`, port: `6380`)
-
-## 🔑 AWS Secrets Manager Integration
-
-LocalCloud Kit now includes comprehensive AWS Secrets Manager support for secure secret management in local development and testing.
-
-### Features
-
-- **Complete CRUD Operations**: Create, read, update, and delete secrets
-- **Secure Value Handling**: Mask/reveal secret values with toggle functionality
-- **Rich Metadata Support**: Descriptions, tags, and KMS key encryption
-- **Dynamic Resource Display**: Shows secrets count in resources list
-- **Conditional Visibility**: Secrets resource only appears when secrets exist
-- **GUI Management**: Dedicated Secrets Manager interface with full-screen management
-- **Shell Scripts**: Automation scripts for all secrets operations
-- **API Endpoints**: RESTful endpoints for programmatic access
-- **Error Handling**: Comprehensive error handling and user feedback
-
-### Docker Setup
-
-- Secrets Manager runs as part of LocalStack services (enabled in `docker-compose.yml`)
-- No additional configuration required - works out of the box
-
-### API Endpoints
-
-- `GET /api/secrets` — List all secrets
-- `POST /api/secrets` — Create a new secret
-- `GET /api/secrets/[secretName]` — Get secret details and value
-- `PUT /api/secrets/[secretName]` — Update secret value and metadata
-- `DELETE /api/secrets/[secretName]` — Delete a secret
-
-### Shell Scripts
-
-Located in `scripts/shell/`:
-
-- `create_secret.sh` — Create a new secret with optional metadata
-- `delete_secret.sh` — Delete a secret (with force delete option)
-- `list_secrets.sh` — List all secrets with filtering
-- `get_secret.sh` — Retrieve secret details and value
-
-### GUI Features
-
-- **Dashboard Integration**: Secrets Manager appears as a resource with dynamic count
-- **Full-Screen Management**: Complete secrets management interface
-- **Create/Edit Forms**: Rich forms with validation for secret creation and editing
-- **Mask/Reveal Toggle**: Secure viewing of secret values
-- **Tag Management**: Add, edit, and remove tags from secrets
-- **KMS Encryption**: Support for KMS key encryption
-- **Bulk Operations**: Delete multiple secrets with confirmation
-- **Real-time Updates**: Live updates when secrets are modified
-
-### Usage Example
-
-1. Start all services: `docker compose up --build`
-2. Open the GUI: http://localhost:3030
-3. Click the "🔑 Secrets" button in the Resources section
-4. Use the full-screen interface to:
-   - Create new secrets with name, value, description, and tags
-   - View existing secrets (values are masked by default)
-   - Reveal/hide secret values with the eye icon
-   - Edit secret values and metadata
-   - Delete secrets with confirmation
-   - Manage tags and KMS encryption
-
-### Shell Script Examples
+Upload sample files to test syntax highlighting:
 
 ```bash
-# Create a secret
-./scripts/shell/create_secret.sh "my-secret" "secret-value" "My secret description" "Environment=dev,Team=backend" ""
-
-# List all secrets
-./scripts/shell/list_secrets.sh
-
-# Get a specific secret
-./scripts/shell/get_secret.sh "my-secret"
-
-# Delete a secret
-./scripts/shell/delete_secret.sh "my-secret" false
+aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.py s3://your-bucket/
+aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.js s3://your-bucket/
+aws --endpoint-url=http://localhost:4566 s3 cp samples/sample.json s3://your-bucket/
 ```
+
+Then view files in the GUI with full syntax highlighting support.
 
 ---
 
 ## 🔧 Configuration
 
-### Docker Environment
+### Service URLs
 
-The application runs entirely in containers with the following setup:
+| Service     | URL                       | Description                |
+| ----------- | ------------------------- | -------------------------- |
+| Web GUI     | http://localhost:3030     | Main application interface |
+| API Server  | http://localhost:3030/api | REST API endpoints         |
+| LocalStack  | http://localhost:4566     | AWS services emulation     |
+| Redis Cache | localhost:6380            | Redis cache (no password)  |
 
-- **GUI**: Next.js app with hot reloading
-- **API**: Express.js server with hot reloading
-- **LocalStack**: AWS services emulation
-- **Nginx**: Reverse proxy for clean routing
+> **Note**: Within Docker network, services use internal hostnames (e.g., `localstack:4566`, `redis:6379`)
 
-### URL Structure
+### Environment Configuration
 
-- **Main Application**: http://localhost:3030
-- **API Endpoints**: http://localhost:3030/api/\*
-- **Health Check**: http://localhost:3030/health
-- **LocalStack Health**: http://localhost:3030/localstack/health
+- **Project Name**: Used for resource naming conventions
+- **Environment**: Supports dev/uat/prod isolation
+- **AWS Region**: Default is `us-east-1`
+- **Hot Reload**: Enabled for both GUI and API during development
 
-> **Note**: The URLs above are for accessing the application from your host machine. Within the container network, services communicate using internal hostnames (e.g., `localstack:4566` for the API server to reach LocalStack).
+### Customization
 
-### Project Configuration
+Edit `docker-compose.yml` to customize:
 
-- **Project Name**: Used for resource naming
-- **Environment**: dev/uat/prod for isolation
-- **AWS Region**: Target region for resources
+- Port mappings
+- Environment variables
+- Resource limits
+- Volume mounts
 
-## 🚀 Quick Commands
-
-### Development
+## 🚀 Common Commands
 
 ```bash
-# Start all services
-docker compose up --build
+# Start services
+docker compose up --build          # Build and start all services
+./start-gui.sh                     # Recommended startup script
+make start                         # Using Makefile
 
 # View logs
-docker compose logs -f
+docker compose logs -f             # Follow all logs
+docker compose logs -f api         # Follow specific service
 
-# Stop all services
-docker compose down
+# Stop services
+docker compose down                # Stop and remove containers
+docker compose stop                # Stop without removing
 
-# Restart specific service
-docker compose restart localcloud-gui
+# Restart services
+docker compose restart             # Restart all
+docker compose restart api         # Restart specific service
+
+# Environment management
+make reset                         # Stop services + clean volumes
+make reset-env                     # Full reset (clean everything)
+make clean-volumes                 # Clean data only
+make clean-all                     # Nuclear option (remove all Docker resources)
+
+# Production
+docker compose up -d --scale api=3 # Scale services
 ```
 
-### Docker Environment Management
-
-LocalCloud Kit includes powerful commands for managing your Docker environment:
-
-```bash
-# Reset Docker environment (stop services + clean volumes)
-make reset
-
-# Full environment reset (clean resources + stop services + clean all Docker resources)
-make reset-env
-
-# Clean Docker volumes only (removes all persistent data)
-make clean-volumes
-
-# Clean all Docker resources (containers, images, volumes)
-make clean-all
-```
-
-#### When to Use Each Command
-
-- **`make reset`** - Most common reset. Stops services and cleans volumes, keeping images for faster restarts
-- **`make reset-env`** - Complete reset when you want to start completely fresh
-- **`make clean-volumes`** - When you want to clear all data but keep services running
-- **`make clean-all`** - Nuclear option - removes everything Docker-related
-
-> **⚠️ Safety Note**: All destructive commands include confirmation prompts to prevent accidental data loss.
-
-### Production
-
-```bash
-# Start with production settings
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-
-# Scale services
-docker compose up -d --scale localcloud-api=3
-```
+> **⚠️ Note**: Destructive commands include confirmation prompts to prevent accidental data loss.
 
 ## 📚 Documentation
+
+### Getting Started
 
 - **[Quick Start Guide](QUICKSTART.md)** - Get up and running in minutes
 - **[Docker Guide](DOCKER.md)** - Container deployment and management
 - **[Connection Guide](CONNECT.md)** - AWS SDK integration examples
-- **[API Documentation](localcloud-api/README.md)** - Backend API reference
+
+### Service Documentation
+
+- **[Redis Cache Management](docs/REDIS.md)** - Complete Redis cache guide with API endpoints and examples
+- **[Secrets Manager Integration](docs/SECRETS.md)** - Full Secrets Manager documentation with SDK examples
+
+### Component Documentation
+
+- **[API Documentation](localcloud-api/README.md)** - Backend API server reference
 - **[GUI Documentation](localcloud-gui/README.md)** - Frontend application guide
 
 ## 🤝 Contributing
@@ -619,7 +391,39 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🛠️ Troubleshooting
 
-### Shell Script Permission Denied (e.g., 'Permission denied' on create_single_resource.sh)
+### Connection Errors - "502 Bad Gateway" or "Failed to fetch"
+
+If you're seeing connection errors when accessing the GUI:
+
+**Check if services are running:**
+
+```bash
+docker compose ps                    # Check container status
+docker compose up -d                 # Start if not running
+```
+
+**Verify services are healthy:**
+
+```bash
+curl http://localhost:3030/api/health           # Check API
+curl http://localhost:4566/_localstack/health   # Check LocalStack
+```
+
+**Common solutions:**
+
+- **502 Bad Gateway**: API server isn't running → `docker compose up -d`
+- **Can't connect to LocalStack**: Wait for startup or restart → `docker compose restart localstack`
+- **Port 3030 in use**: Stop conflicting service or change port in `docker-compose.yml`
+
+**Development mode (GUI outside Docker):**
+
+```bash
+docker compose up -d localstack api nginx
+cd localcloud-gui && npm install && npm run dev
+# GUI available at http://localhost:3000
+```
+
+### Shell Script Permission Denied
 
 If you see errors like:
 

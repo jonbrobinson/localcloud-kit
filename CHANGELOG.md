@@ -4,6 +4,29 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.5] - 2025-10-12
+
+### Added
+
+- **Comprehensive Service Documentation**: Created dedicated documentation files for Redis Cache and Secrets Manager
+  - Added `docs/REDIS.md` with complete Redis cache management guide including API endpoints, shell scripts, and SDK examples
+  - Added `docs/SECRETS.md` with full Secrets Manager documentation including AWS SDK integration examples
+
+### Changed
+
+- **README Restructure**: Reorganized README for better scannability and maintainability (reduced from 760 to 576 lines)
+  - Replaced version-specific patch notes with timeless feature descriptions organized by category
+  - Moved detailed Redis and Secrets Manager documentation to separate files with links
+  - Consolidated duplicate sections (troubleshooting, startup methods, configuration)
+  - Simplified Usage section with clear examples for GUI, shell scripts, and AWS CLI
+  - Updated Features section to focus on capabilities rather than version history
+  - Renamed "Enterprise Ready" to "Developer Experience" to better reflect local development focus
+- **Documentation Organization**: Improved documentation structure with clear Getting Started, Service, and Component sections
+
+### Fixed
+
+- **Misleading Enterprise Claims**: Removed incorrect references to team collaboration and production use - LocalCloud Kit is designed for isolated local development only
+
 ## [0.5.4] - 2025-10-12
 
 ### Added

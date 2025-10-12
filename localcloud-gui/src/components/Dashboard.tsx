@@ -421,7 +421,7 @@ export default function Dashboard() {
             </span>
           </div>
           <p className="text-xs text-gray-400">
-            Enterprise AWS Development Tools • LocalCloud Kit v0.5.4
+            Enterprise AWS Development Tools • LocalCloud Kit v0.5.5
           </p>
         </div>
       </div>
