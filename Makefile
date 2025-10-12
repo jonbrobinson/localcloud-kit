@@ -6,6 +6,7 @@ PROJECT_NAME ?= localstack-template
 ENVIRONMENT ?= dev
 AWS_ENDPOINT ?= http://localhost:4566
 AWS_REGION ?= us-east-1
+LOCALSTACK_VERSION ?= 4.0
 
 # Colors for output
 GREEN := \033[0;32m
@@ -47,7 +48,8 @@ help: ## Show this help message
 # Docker Management
 start: ## Start all services with Docker Compose
 	@echo "$(GREEN)Starting LocalStack Template with Docker...$(NC)"
-	docker compose up --build -d
+	@echo "$(YELLOW)Using LocalStack version: $(LOCALSTACK_VERSION)$(NC)"
+	LOCALSTACK_VERSION=$(LOCALSTACK_VERSION) docker compose up --build -d
 	@echo "$(GREEN)Waiting for services to be ready...$(NC)"
 	@until curl -s http://localhost:3030/health > /dev/null; do sleep 2; done
 	@echo "$(GREEN)All services are ready!$(NC)"

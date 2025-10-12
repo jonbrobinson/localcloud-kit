@@ -167,6 +167,44 @@ localcloud-kit/
 - **Docker & Docker Compose**: For containerized services
 - **AWS CLI**: For shell automation (optional, for local development)
 
+## 📌 LocalStack Version Compatibility
+
+LocalCloud Kit is tested and verified to work with:
+
+- **LocalStack Version**: 4.0.x
+- **Last Tested**: 4.0.2 (October 2024)
+- **Default Pinned Version**: 4.0
+
+### Using Different LocalStack Versions
+
+The default configuration pins LocalStack to version 4.0 for stability. You can override this in several ways:
+
+```bash
+# Method 1: Using environment variable
+LOCALSTACK_VERSION=4.1 docker compose up
+
+# Method 2: Using Makefile
+make start LOCALSTACK_VERSION=4.1
+
+# Method 3: Create/edit .env file
+echo "LOCALSTACK_VERSION=4.1" > .env
+docker compose up
+
+# Method 4: Edit env.example
+cp env.example .env
+# Edit LOCALSTACK_VERSION in .env
+docker compose up
+```
+
+### Version Pinning Details
+
+The `docker-compose.yml` uses `${LOCALSTACK_VERSION:-4.0}` which means:
+- Uses version 4.0 by default (pinned for stability)
+- Respects `LOCALSTACK_VERSION` environment variable if set
+- Ensures consistent behavior across environments
+
+> ⚠️ **Note**: LocalStack may introduce breaking changes in major versions. If you encounter issues with newer versions, try pinning to the tested version (4.0) above. Report compatibility issues in [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues).
+
 ## 📖 Usage
 
 ### Start Services
