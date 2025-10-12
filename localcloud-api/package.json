@@ -1,6 +1,6 @@
 {
   "name": "localcloud-api",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "LocalCloud Kit API Server",
   "main": "server.js",
   "engines": {
