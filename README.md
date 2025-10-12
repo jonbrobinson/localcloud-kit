@@ -340,13 +340,21 @@ git clone https://github.com/jonbrobinson/localcloud-kit.git
 cd localcloud-kit
 
 # Start development environment
-docker compose up --build
+make start                  # Start all services with Docker
+# or
+docker compose up --build   # Alternative: Docker Compose directly
 
-# Run tests
-make test
+# View available commands
+make help                   # Show all available Makefile commands
 
-# Format code
-make format
+# Common development commands
+make logs                   # View all service logs
+make status                 # Check service health
+make restart                # Restart all services
+
+# GUI-only development (for frontend work)
+make gui-start              # Start only GUI, API, and nginx
+cd localcloud-gui && npm run dev  # Or run GUI locally outside Docker
 ```
 
 ## 📄 License
