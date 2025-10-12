@@ -6,7 +6,7 @@ PROJECT_NAME ?= localstack-template
 ENVIRONMENT ?= dev
 AWS_ENDPOINT ?= http://localhost:4566
 AWS_REGION ?= us-east-1
-LOCALSTACK_VERSION ?= 4.0
+LOCALSTACK_VERSION ?= latest
 
 # Colors for output
 GREEN := \033[0;32m

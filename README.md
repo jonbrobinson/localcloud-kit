@@ -169,25 +169,25 @@ localcloud-kit/
 
 ## 📌 LocalStack Version Compatibility
 
-LocalCloud Kit is tested and verified to work with:
+LocalCloud Kit uses the latest LocalStack version by default:
 
-- **LocalStack Version**: 4.9.x
+- **Default Version**: `latest` (automatically pulls newest LocalStack release)
 - **Last Tested**: 4.9 (October 12, 2025)
-- **Default Pinned Version**: 4.0
+- **Compatibility**: Maintained and updated as LocalStack evolves
 
-### Using Different LocalStack Versions
+### Using Specific LocalStack Versions
 
-The default configuration pins LocalStack to version 4.0 for stability. You can override this in several ways:
+The default configuration uses `latest`, but you can pin to a specific version if needed:
 
 ```bash
 # Method 1: Using environment variable
-LOCALSTACK_VERSION=4.1 docker compose up
+LOCALSTACK_VERSION=4.0 docker compose up
 
 # Method 2: Using Makefile
-make start LOCALSTACK_VERSION=4.1
+make start LOCALSTACK_VERSION=4.0
 
 # Method 3: Create/edit .env file
-echo "LOCALSTACK_VERSION=4.1" > .env
+echo "LOCALSTACK_VERSION=4.0" > .env
 docker compose up
 
 # Method 4: Edit env.example
@@ -196,15 +196,23 @@ cp env.example .env
 docker compose up
 ```
 
-### Version Pinning Details
+### Version Strategy
 
-The `docker-compose.yml` uses `${LOCALSTACK_VERSION:-4.0}` which means:
+The `docker-compose.yml` uses `${LOCALSTACK_VERSION:-latest}` which means:
 
-- Uses version 4.0 by default (pinned for stability)
-- Respects `LOCALSTACK_VERSION` environment variable if set
-- Ensures consistent behavior across environments
+- Uses `latest` by default (automatically pulls newest LocalStack release)
+- Ensures you always have the latest features and bug fixes
+- Respects `LOCALSTACK_VERSION` environment variable for version pinning
+- Flexibility to pin to specific versions when reproducibility is needed
 
-> ⚠️ **Note**: LocalStack may introduce breaking changes in major versions. If you encounter issues with newer versions, try pinning to the tested version (4.0) above. Report compatibility issues in [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues).
+**Why `latest`?**
+
+- LocalCloud Kit is maintained to stay compatible with LocalStack updates
+- Breaking changes are documented in the README when they occur
+- Gives users the latest features and improvements automatically
+- Can still pin to specific versions via environment variables if needed
+
+> ⚠️ **Note**: If you encounter compatibility issues with a new LocalStack version, pin to a known working version (e.g., `4.9`) using the methods above, and report the issue in [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues).
 
 ## 📖 Usage
 
