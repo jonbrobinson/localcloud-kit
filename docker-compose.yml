@@ -1,7 +1,7 @@
 services:
   # LocalStack - AWS Services Emulation
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:${LOCALSTACK_VERSION:-4.0}
     container_name: localstack
     ports:
       - "4566:4566"
