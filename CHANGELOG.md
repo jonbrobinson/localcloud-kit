@@ -4,6 +4,26 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.8] - 2025-10-12
+
+### Added
+
+- **LocalStack Version Pinning**: Implemented version pinning with flexible override support
+  - Pin LocalStack to version 4.0 by default in `docker-compose.yml`
+  - Added `LOCALSTACK_VERSION` environment variable with default fallback (`${LOCALSTACK_VERSION:-4.0}`)
+  - Support for version override via Makefile: `make start LOCALSTACK_VERSION=4.1`
+  - Added `LOCALSTACK_VERSION` to `env.example` for easy configuration
+  - Comprehensive LocalStack Version Compatibility section in README
+  - Documented 4 methods to override LocalStack version (env var, Makefile, .env file, env.example)
+  - Protection against breaking changes in future LocalStack updates
+  - Ensures stability while maintaining flexibility for testing
+
+### Changed
+
+- **Makefile Enhancement**: Added version display when starting services
+  - Shows "Using LocalStack version: X.X" on startup
+  - Better visibility of which LocalStack version is being used
+
 ## [0.5.7] - 2025-10-12
 
 ### Changed
