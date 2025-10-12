@@ -4,6 +4,29 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.4] - 2025-10-12
+
+### Added
+
+- **Multipart File Upload**: Implemented proper multipart file uploads using multer for handling files of any size
+  - New `/s3/bucket/:bucketName/upload-multipart` endpoint for efficient file uploads
+  - Supports files up to 100MB (configurable)
+  - Better memory management and performance for large files
+  - Legacy JSON upload endpoint maintained for backward compatibility
+
+### Changed
+
+- **Upload Functionality**: File uploads now use FormData and multipart encoding instead of base64 JSON
+- **File Size Limit**: Increased JSON body limit from 100KB to 50MB for legacy uploads
+- **Upload Preview**: Binary files now show size preview instead of attempting to display content
+- **Toast Notifications**: Upload success messages now include file size information
+
+### Fixed
+
+- **Large File Upload Errors**: Fixed "array null" and JSON parsing errors when uploading files larger than 100KB
+- **Memory Issues**: Resolved memory problems caused by loading entire files into JavaScript strings
+- **Upload Performance**: Dramatically improved upload speed and reliability for large files
+
 ## [0.5.3] - 2025-10-10
 
 ### Added

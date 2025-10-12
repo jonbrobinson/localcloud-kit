@@ -9,6 +9,7 @@ const http = require("http");
 const socketIo = require("socket.io");
 const path = require("path");
 const fs = require("fs");
+const multer = require("multer");
 
 const execAsync = promisify(exec);
 
@@ -61,9 +62,23 @@ let projectConfig = {
   awsRegion: "us-east-1",
 };
 
+// Configure multer for file uploads
+const upload = multer({
+  dest: "/tmp/uploads/",
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB limit
+  },
+});
+
+// Ensure upload directory exists
+if (!fs.existsSync("/tmp/uploads")) {
+  fs.mkdirSync("/tmp/uploads", { recursive: true });
+}
+
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" })); // Increase limit for legacy JSON uploads
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Helper function to add log entry
 function addLog(level, message, source = "api") {
@@ -1007,6 +1022,86 @@ app.get("/s3/bucket/:bucketName/object/*", async (req, res) => {
   }
 });
 
+// Multipart file upload endpoint (recommended)
+app.post(
+  "/s3/bucket/:bucketName/upload-multipart",
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const { projectName } = req.query;
+      const { bucketName } = req.params;
+      const { objectKey } = req.body;
+      const file = req.file;
+
+      if (!projectName || !bucketName || !objectKey || !file) {
+        return res.status(400).json({
+          success: false,
+          error: "projectName, bucketName, objectKey, and file are required",
+        });
+      }
+
+      addLog(
+        "info",
+        `Uploading file: ${objectKey} (${(file.size / 1024).toFixed(
+          2
+        )} KB) to bucket ${bucketName}`,
+        "automation"
+      );
+
+      const command = `/bin/sh /app/scripts/shell/upload_s3_object.sh '${projectName}' '${bucketName}' '${objectKey}' '${file.path}'`;
+      const { stdout, stderr } = await execAsync(command, {
+        env: {
+          ...process.env,
+          AWS_ENDPOINT_URL: internalEndpoint,
+          AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        },
+      });
+
+      // Clean up temp file
+      try {
+        fs.unlinkSync(file.path);
+      } catch (cleanupError) {
+        console.warn("Failed to cleanup temp file:", cleanupError);
+      }
+
+      if (stderr) {
+        addLog("warn", `S3 upload warning: ${stderr}`, "automation");
+      }
+
+      addLog(
+        "success",
+        `Object uploaded: ${objectKey} (${(file.size / 1024).toFixed(
+          2
+        )} KB) to bucket ${bucketName}`,
+        "automation"
+      );
+
+      res.json({
+        success: true,
+        message: `File uploaded successfully`,
+        size: file.size,
+        filename: objectKey,
+      });
+    } catch (error) {
+      // Clean up file on error
+      if (req.file && req.file.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (cleanupError) {
+          console.warn("Failed to cleanup temp file on error:", cleanupError);
+        }
+      }
+      addLog(
+        "error",
+        `Failed to upload object: ${error.message}`,
+        "automation"
+      );
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+);
+
+// Legacy JSON-based upload endpoint (kept for backward compatibility)
 app.post("/s3/bucket/:bucketName/upload", async (req, res) => {
   try {
     const { projectName } = req.query;

@@ -4,7 +4,7 @@
 
 Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, and Secrets Manager.
 
-[![Version](https://img.shields.io/badge/version-0.5.3-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.5.3)
+[![Version](https://img.shields.io/badge/version-0.5.4-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.5.4)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
@@ -182,7 +182,22 @@ localcloud-kit/
 
 ## 🎯 Features
 
-### What's New in v0.5.3
+### What's New in v0.5.4
+
+- **📤 Multipart File Upload**: Implemented proper multipart file uploads using multer for handling files of any size
+  - New `/s3/bucket/:bucketName/upload-multipart` endpoint for efficient file uploads
+  - Supports files up to 100MB (configurable)
+  - Better memory management and performance for large files
+  - Legacy JSON upload endpoint maintained for backward compatibility
+- **🚀 Upload Functionality**: File uploads now use FormData and multipart encoding instead of base64 JSON
+- **📊 File Size Limit**: Increased JSON body limit from 100KB to 50MB for legacy uploads
+- **👁️ Upload Preview**: Binary files now show size preview instead of attempting to display content
+- **💬 Toast Notifications**: Upload success messages now include file size information
+- **🐛 Large File Upload Errors**: Fixed "array null" and JSON parsing errors when uploading files larger than 100KB
+- **🧠 Memory Issues**: Resolved memory problems caused by loading entire files into JavaScript strings
+- **⚡ Upload Performance**: Dramatically improved upload speed and reliability for large files
+
+### Previous Features (v0.5.3)
 
 - **🎨 Connection Page Navigation**: Added "Back to Dashboard" link with arrow icon to Connection Guide page for consistent navigation across all management pages
 - **🐛 TypeScript Build Error Fix**: Fixed `resource.details` possibly undefined error in ResourceList component by adding proper null checking for ARN copy functionality
