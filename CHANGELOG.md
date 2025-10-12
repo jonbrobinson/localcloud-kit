@@ -4,6 +4,25 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.6] - 2025-10-12
+
+### Added
+
+- **Contributing Guide**: Created comprehensive CONTRIBUTING.md with guidelines for contributors
+  - Angular commit message format with examples and common scopes
+  - Focus on bug fixes, UI improvements, and AWS service integrations
+  - Code review requirements and PR process
+  - ESLint and Prettier formatting standards
+  - Manual testing guidelines
+
+### Fixed
+
+- **Development Setup Documentation**: Corrected Development Setup section with actual Makefile commands
+  - Replaced non-existent `make test` and `make format` with real commands
+  - Added `make start`, `make help`, `make logs`, `make status`, `make restart`
+  - Included GUI-only development workflow
+- **README Cleanup**: Removed obsolete Shell Script Permission Denied troubleshooting section (36 lines)
+
 ## [0.5.5] - 2025-10-12
 
 ### Added
