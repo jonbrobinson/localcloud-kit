@@ -49,6 +49,7 @@ help: ## Show this help message
 start: ## Start all services with Docker Compose
 	@echo "$(GREEN)Starting LocalStack Template with Docker...$(NC)"
 	@echo "$(YELLOW)Using LocalStack version: $(LOCALSTACK_VERSION)$(NC)"
+	@mkdir -p volume/cache volume/lib volume/logs volume/tmp
 	LOCALSTACK_VERSION=$(LOCALSTACK_VERSION) docker compose up --build -d
 	@echo "$(GREEN)Waiting for services to be ready...$(NC)"
 	@until curl -s http://localhost:3030/health > /dev/null; do sleep 2; done
