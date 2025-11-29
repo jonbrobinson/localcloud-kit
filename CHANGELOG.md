@@ -4,6 +4,14 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **Volume Directory Management**: Removed runtime-generated volume files from git tracking
+  - Removed `volume/cache/machine.json` and SSL certificate files from git history
+  - Updated `make start` command to automatically create volume directory structure
+  - Volume files are now properly ignored by git (already in `.gitignore`)
+  - Ensures unique, generated files (certificates, machine IDs) are not shared between developers
+
 ## [0.5.9] - 2025-10-12
 
 ### Changed
