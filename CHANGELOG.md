@@ -4,6 +4,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.10] - 2025-11-29
+
 ### Changed
 
 - **Volume Directory Management**: Removed runtime-generated volume files from git tracking
