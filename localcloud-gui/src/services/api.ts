@@ -1,15 +1,15 @@
-import axios from "axios";
 import {
-  LocalStackStatus,
-  Resource,
-  ProjectConfig,
+  ApiResponse,
   CreateResourceRequest,
   DestroyResourceRequest,
+  LocalStackStatus,
   LogEntry,
-  ApiResponse,
+  ProjectConfig,
+  Resource,
 } from "@/types";
+import axios from "axios";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3031";
+const API_BASE_URL = "/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,

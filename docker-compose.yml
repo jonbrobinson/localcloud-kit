@@ -1,4 +1,21 @@
 services:
+  # Traefik Entry Point
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ./traefik/certs:/certs:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - localstack-network
+    restart: unless-stopped
+
   # LocalStack - AWS Services Emulation
   localstack:
     image: localstack/localstack:${LOCALSTACK_VERSION:-latest}
@@ -68,8 +85,6 @@ services:
   nginx:
     image: nginx:alpine
     container_name: localstack-nginx
-    ports:
-      - "3030:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
@@ -79,6 +94,12 @@ services:
     networks:
       - localstack-network
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.localcloud.rule=Host(`localcloudkit.localhost`)"
+      - "traefik.http.routers.localcloud.entrypoints=websecure"
+      - "traefik.http.routers.localcloud.tls=true"
+      - "traefik.http.services.localcloud.loadbalancer.server.port=80"
 
   # Redis Cache (standalone)
   redis:

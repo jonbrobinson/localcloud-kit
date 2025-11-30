@@ -44,18 +44,18 @@ This guide explains how to run the LocalCloud Kit using Docker containers with a
    ```
 
 3. **Access the application:**
-   - **GUI**: http://localhost:3030
-   - **API**: http://localhost:3030/api
+   - **GUI**: http://localcloudkit.localhost
+   - **API**: http://localcloudkit.localhost/api
    - **LocalStack**: http://localhost:4566
 
 ## URL Structure
 
 ### Development (via Nginx Proxy)
 
-- **Main Application**: `http://localhost:3030`
-- **API Endpoints**: `http://localhost:3030/api/*`
-- **Health Check**: `http://localhost:3030/health`
-- **LocalStack Health**: `http://localhost:3030/localstack/health`
+- **Main Application**: `http://localcloudkit.localhost`
+- **API Endpoints**: `http://localcloudkit.localhost/api/*`
+- **Health Check**: `http://localcloudkit.localhost/health`
+- **LocalStack Health**: `http://localcloudkit.localhost/localstack/health`
 
 > **Note**: The URLs above are for accessing the application from your host machine. Within the container network, services communicate using internal hostnames (e.g., `localstack:4566` for the API server to reach LocalStack).
 
@@ -148,13 +148,13 @@ docker compose up
 
 ```bash
 # Check all services
-curl http://localhost:3030/health
+curl https://localcloudkit.localhost/health
 
 # Check LocalStack
-curl http://localhost:3030/localstack/health
+curl http://localcloudkit.localhost/localstack/health
 
 # Check API
-curl http://localhost:3030/api/health
+curl http://localcloudkit.localhost/api/health
 ```
 
 ### Logs

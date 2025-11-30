@@ -16,11 +16,34 @@ Build and test cloud apps locally—no AWS account needed. Free, fast, and with 
 
 ## 🚀 Quick Start
 
-### One Command Setup (Recommended)
+### Prerequisites
+
+**Only one thing required:**
+
+- ✅ **Docker & Docker Compose** - [Install Docker](https://docs.docker.com/get-docker/)
+
+Everything else is handled automatically!
+
+### Getting Started (2 Steps)
+
+#### Step 1: Generate Certificates (First Time Only)
 
 ```bash
-# Start everything with one simple command
-./start-gui.sh
+./scripts/setup-mkcert.sh
+```
+
+**What this does:**
+
+- Automatically downloads and installs `mkcert` if not found (works on macOS, Linux, Windows)
+- Installs the mkcert CA to your system trust store (requires sudo password)
+- Generates trusted certificates that work in both Chrome and Safari without warnings
+
+**No manual installation needed** - the script handles everything automatically!
+
+#### Step 2: Start the Application
+
+```bash
+make start
 ```
 
 This single command will:
@@ -32,9 +55,14 @@ This single command will:
 
 **Access URLs:**
 
-- **Web GUI**: http://localhost:3030
-- **API Server**: http://localhost:3030/api
-- **LocalStack**: http://localhost:4566
+- **Web GUI**: https://localcloudkit.localhost
+- **API Server**: https://localcloudkit.localhost/api
+- **LocalStack**: http://localhost:4566 (direct access for AWS CLI)
+- **Express API (direct)**: http://localhost:3031 (direct access, bypasses Traefik)
+
+> **Note**: The domain `localcloudkit.localhost` auto-resolves to `127.0.0.1` - no `/etc/hosts` entry needed!
+
+**📖 For detailed getting started instructions, see [GETTING_STARTED.md](GETTING_STARTED.md)**
 
 ## 📸 Screenshots
 
@@ -237,7 +265,7 @@ cd localcloud-gui && npm install && npm run dev
 
 #### Via Web GUI (Recommended)
 
-1. Open http://localhost:3030
+1. Open http://localcloudkit.localhost
 2. Click individual resource buttons:
    - 🪣 **S3 Bucket** - Create storage buckets
    - 🗄️ **DynamoDB Table** - Create NoSQL tables
@@ -277,7 +305,7 @@ aws --endpoint-url=http://localhost:4566 secretsmanager create-secret \
 
 All resources can be managed through:
 
-- **Web GUI**: http://localhost:3030
+- **Web GUI**: https://localcloudkit.localhost
 - **Shell Scripts**: Located in `scripts/shell/`
 - **AWS CLI**: Using `--endpoint-url=http://localhost:4566`
 - **AWS SDKs**: Configure with LocalStack endpoint
@@ -300,12 +328,12 @@ Then view files in the GUI with full syntax highlighting support.
 
 ### Service URLs
 
-| Service     | URL                       | Description                |
-| ----------- | ------------------------- | -------------------------- |
-| Web GUI     | http://localhost:3030     | Main application interface |
-| API Server  | http://localhost:3030/api | REST API endpoints         |
-| LocalStack  | http://localhost:4566     | AWS services emulation     |
-| Redis Cache | localhost:6380            | Redis cache (no password)  |
+| Service     | URL                                | Description                |
+| ----------- | ---------------------------------- | -------------------------- |
+| Web GUI     | http://localcloudkit.localhost     | Main application interface |
+| API Server  | http://localcloudkit.localhost/api | REST API endpoints         |
+| LocalStack  | http://localhost:4566              | AWS services emulation     |
+| Redis Cache | localhost:6380                     | Redis cache (no password)  |
 
 > **Note**: Within Docker network, services use internal hostnames (e.g., `localstack:4566`, `redis:6379`)
 
@@ -460,7 +488,7 @@ docker compose up -d                 # Start if not running
 **Verify services are healthy:**
 
 ```bash
-curl http://localhost:3030/api/health           # Check API
+curl http://localcloudkit.localhost/api/health           # Check API
 curl http://localhost:4566/_localstack/health   # Check LocalStack
 ```
 
