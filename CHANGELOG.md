@@ -4,6 +4,38 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Traefik Routing with HTTPS**: Implemented Traefik as edge router with HTTPS support
+  - Added Traefik service with automatic HTTPS for `localcloudkit.localhost`
+  - Configured HTTP to HTTPS redirect
+  - Added WebSocket support for Socket.IO through Traefik
+  - Updated all services to use new domain routing structure
+- **Automatic mkcert Setup**: Cross-platform certificate generation script
+  - Automatically downloads and installs mkcert if not found (macOS, Linux, Windows)
+  - No Homebrew or manual installation required
+  - Supports Intel and Apple Silicon architectures
+  - Generates trusted certificates for Safari and Chrome compatibility
+- **Documentation Enhancements**:
+  - Added `GETTING_STARTED.md` - Complete getting started guide
+  - Added `docs/LOCAL_WORKFLOW.md` - Detailed local development workflow
+  - Added `docs/MKCERT_SETUP.md` - mkcert setup documentation
+  - Added `SETUP.md` - Quick setup guide
+- **Utility Scripts**:
+  - Added `scripts/setup-mkcert.sh` - Automatic mkcert installation and certificate generation
+  - Added `scripts/cleanup-hosts.sh` - Cleanup script for `/etc/hosts` entries
+
+### Changed
+
+- **Domain Routing**: Updated from `localhost:3030` to `localcloudkit.localhost` with HTTPS
+  - All services now accessible via `https://localcloudkit.localhost`
+  - API endpoints use relative paths (`/api/*`) for Traefik routing
+  - Updated CORS configuration for new domain
+  - Updated Socket.IO path to `/ws/socket.io`
+- **Docker Compose**: Added Traefik service and updated Nginx labels
+- **Makefile**: Updated health checks and URLs to use new domain
+- **Documentation**: Updated README, QUICKSTART, and DOCKER docs with new setup workflow
+
 ## [0.5.10] - 2025-11-29
 
 ### Changed
