@@ -4,6 +4,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.6.0] - 2025-11-30
+
 ### Added
 
 - **Traefik Routing with HTTPS**: Implemented Traefik as edge router with HTTPS support
@@ -11,30 +13,56 @@ All notable changes to LocalCloud Kit will be documented in this file.
   - Configured HTTP to HTTPS redirect
   - Added WebSocket support for Socket.IO through Traefik
   - Updated all services to use new domain routing structure
+- **Master Setup Script**: One-command setup for complete installation
+  - Added `scripts/setup.sh` - Master script that runs all setup steps
+  - Automatically installs mkcert, CA certificate, generates certificates, and sets up /etc/hosts
+  - Individual scripts available for one-off operations
 - **Automatic mkcert Setup**: Cross-platform certificate generation script
   - Automatically downloads and installs mkcert if not found (macOS, Linux, Windows)
   - No Homebrew or manual installation required
   - Supports Intel and Apple Silicon architectures
-  - Generates trusted certificates for Safari and Chrome compatibility
+  - Generates trusted certificates with clean subject (CN=localcloudkit.local)
+  - Wildcard certificate support (*.localcloudkit.local) for subdomain access
+  - Handles root-owned CA files with automatic permission fixes
+- **Certificate Management Scripts**:
+  - Added `scripts/setup-mkcert.sh` - Automatic mkcert installation and certificate generation
+  - Added `scripts/install-ca.sh` - Dedicated CA certificate installation
+  - Added `scripts/setup-hosts.sh` - Automatic /etc/hosts entry management
+  - Added `scripts/verify-setup.sh` - Setup verification and troubleshooting
+  - Added `scripts/cleanup-hosts.sh` - Cleanup script for `/etc/hosts` entries
 - **Documentation Enhancements**:
   - Added `GETTING_STARTED.md` - Complete getting started guide
   - Added `docs/LOCAL_WORKFLOW.md` - Detailed local development workflow
   - Added `docs/MKCERT_SETUP.md` - mkcert setup documentation
+  - Added `docs/CERTIFICATE_TROUBLESHOOTING.md` - Certificate troubleshooting guide
   - Added `SETUP.md` - Quick setup guide
-- **Utility Scripts**:
-  - Added `scripts/setup-mkcert.sh` - Automatic mkcert installation and certificate generation
-  - Added `scripts/cleanup-hosts.sh` - Cleanup script for `/etc/hosts` entries
 
 ### Changed
 
-- **Domain Routing**: Updated from `localhost:3030` to `localcloudkit.local` with HTTPS
+- **BREAKING: Domain Routing**: Updated from `localhost:3030` to `localcloudkit.local` with HTTPS
   - All services now accessible via `https://localcloudkit.local`
   - API endpoints use relative paths (`/api/*`) for Traefik routing
   - Updated CORS configuration for new domain
   - Updated Socket.IO path to `/ws/socket.io`
+  - Requires `/etc/hosts` entry or mDNS/Bonjour for domain resolution
 - **Docker Compose**: Added Traefik service and updated Nginx labels
 - **Makefile**: Updated health checks and URLs to use new domain
 - **Documentation**: Updated README, QUICKSTART, and DOCKER docs with new setup workflow
+- **Certificate Generation**: Improved with custom subject and wildcard support
+  - Certificates now have clean subject (CN=localcloudkit.local only)
+  - Wildcard support for subdomain access
+  - Better error handling and debugging output
+
+### Fixed
+
+- **Certificate Generation**: Fixed issues with root-owned CA files
+  - Automatic detection and handling of root-owned CA files
+  - Uses sudo for certificate signing when CA files are not readable
+  - Improved error messages and troubleshooting guidance
+- **Error Handling**: Enhanced error messages throughout setup scripts
+  - Removed silent error suppression to show actual errors
+  - Added step-by-step progress messages
+  - Better debugging information for troubleshooting
 
 ## [0.5.10] - 2025-11-29
 
