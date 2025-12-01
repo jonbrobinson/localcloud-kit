@@ -111,4 +111,12 @@ Thumbs.db
 
 # LocalStack specific
 volume/
-*.zip 
+*.zip
+
+# mkcert certificates (generated locally, should not be committed)
+traefik/certs/*.pem
+traefik/certs/*.key
+!traefik/certs/.gitkeep
+
+# mkcert binary (downloaded automatically by setup script)
+scripts/bin/ 

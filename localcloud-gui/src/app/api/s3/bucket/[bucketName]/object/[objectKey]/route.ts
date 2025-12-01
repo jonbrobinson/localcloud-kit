@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3031";
+// Use internal Docker network URL for server-side API routes
+const API_BASE_URL = process.env.API_INTERNAL_URL || "http://api:3031";
 
 export async function GET(
   request: NextRequest,

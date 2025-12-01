@@ -16,11 +16,43 @@ Build and test cloud apps locally—no AWS account needed. Free, fast, and with 
 
 ## 🚀 Quick Start
 
-### One Command Setup (Recommended)
+### Prerequisites
+
+**Only one thing required:**
+
+- ✅ **Docker & Docker Compose** - [Install Docker](https://docs.docker.com/get-docker/)
+
+Everything else is handled automatically!
+
+### Getting Started (2 Steps)
+
+#### Step 1: Complete Setup (First Time Only)
+
+**Recommended: One-Command Setup**
 
 ```bash
-# Start everything with one simple command
-./start-gui.sh
+./scripts/setup.sh
+```
+
+**What this does:**
+
+- Automatically downloads and installs `mkcert` if not found (works on macOS, Linux, Windows)
+- Installs the mkcert CA to your system trust store (requires sudo password)
+- Generates trusted certificates that work in both Chrome and Safari without warnings
+- Adds `localcloudkit.local` to `/etc/hosts` (requires sudo password)
+
+**No manual installation needed** - the script handles everything automatically!
+
+**Individual scripts available for one-off operations:**
+
+- `./scripts/setup-mkcert.sh` - Generate certificates only
+- `./scripts/install-ca.sh` - Install CA only
+- `./scripts/setup-hosts.sh` - Setup /etc/hosts only
+
+#### Step 2: Start the Application
+
+```bash
+make start
 ```
 
 This single command will:
@@ -32,9 +64,14 @@ This single command will:
 
 **Access URLs:**
 
-- **Web GUI**: http://localhost:3030
-- **API Server**: http://localhost:3030/api
-- **LocalStack**: http://localhost:4566
+- **Web GUI**: https://localcloudkit.local
+- **API Server**: https://localcloudkit.local/api
+- **LocalStack**: http://localhost:4566 (direct access for AWS CLI)
+- **Express API (direct)**: http://localhost:3031 (direct access, bypasses Traefik)
+
+> **Note**: The `.local` domain uses mDNS/Bonjour. If it doesn't resolve, add to `/etc/hosts`: `127.0.0.1 localcloudkit.local`
+
+**📖 For detailed getting started instructions, see [GETTING_STARTED.md](GETTING_STARTED.md)**
 
 ## 📸 Screenshots
 
@@ -237,7 +274,7 @@ cd localcloud-gui && npm install && npm run dev
 
 #### Via Web GUI (Recommended)
 
-1. Open http://localhost:3030
+1. Open https://localcloudkit.local
 2. Click individual resource buttons:
    - 🪣 **S3 Bucket** - Create storage buckets
    - 🗄️ **DynamoDB Table** - Create NoSQL tables
@@ -277,7 +314,7 @@ aws --endpoint-url=http://localhost:4566 secretsmanager create-secret \
 
 All resources can be managed through:
 
-- **Web GUI**: http://localhost:3030
+- **Web GUI**: https://localcloudkit.local
 - **Shell Scripts**: Located in `scripts/shell/`
 - **AWS CLI**: Using `--endpoint-url=http://localhost:4566`
 - **AWS SDKs**: Configure with LocalStack endpoint
@@ -300,12 +337,12 @@ Then view files in the GUI with full syntax highlighting support.
 
 ### Service URLs
 
-| Service     | URL                       | Description                |
-| ----------- | ------------------------- | -------------------------- |
-| Web GUI     | http://localhost:3030     | Main application interface |
-| API Server  | http://localhost:3030/api | REST API endpoints         |
-| LocalStack  | http://localhost:4566     | AWS services emulation     |
-| Redis Cache | localhost:6380            | Redis cache (no password)  |
+| Service     | URL                             | Description                |
+| ----------- | ------------------------------- | -------------------------- |
+| Web GUI     | https://localcloudkit.local     | Main application interface |
+| API Server  | https://localcloudkit.local/api | REST API endpoints         |
+| LocalStack  | http://localhost:4566           | AWS services emulation     |
+| Redis Cache | localhost:6380                  | Redis cache (no password)  |
 
 > **Note**: Within Docker network, services use internal hostnames (e.g., `localstack:4566`, `redis:6379`)
 
@@ -361,9 +398,17 @@ docker compose up -d --scale api=3 # Scale services
 
 ### Getting Started
 
+- **[Getting Started Guide](GETTING_STARTED.md)** - Complete setup and first-time installation
 - **[Quick Start Guide](QUICKSTART.md)** - Get up and running in minutes
+- **[Setup Guide](SETUP.md)** - Detailed setup instructions
 - **[Docker Guide](DOCKER.md)** - Container deployment and management
 - **[Connection Guide](CONNECT.md)** - AWS SDK integration examples
+
+### Certificate & Security
+
+- **[mkcert Setup Guide](docs/MKCERT_SETUP.md)** - Certificate generation and installation
+- **[Certificate Troubleshooting](docs/CERTIFICATE_TROUBLESHOOTING.md)** - Fix certificate issues
+- **[Local Development Workflow](docs/LOCAL_WORKFLOW.md)** - Daily development workflow
 
 ### Service Documentation
 
@@ -374,6 +419,8 @@ docker compose up -d --scale api=3 # Scale services
 
 - **[API Documentation](localcloud-api/README.md)** - Backend API server reference
 - **[GUI Documentation](localcloud-gui/README.md)** - Frontend application guide
+- **[Shell Scripts](scripts/shell/README.md)** - Automation scripts documentation
+- **[Samples](samples/README.md)** - Sample files for testing
 
 ## 🤝 Contributing
 
@@ -460,7 +507,7 @@ docker compose up -d                 # Start if not running
 **Verify services are healthy:**
 
 ```bash
-curl http://localhost:3030/api/health           # Check API
+curl -k https://localcloudkit.local/api/health           # Check API
 curl http://localhost:4566/_localstack/health   # Check LocalStack
 ```
 
@@ -468,7 +515,8 @@ curl http://localhost:4566/_localstack/health   # Check LocalStack
 
 - **502 Bad Gateway**: API server isn't running → `docker compose up -d`
 - **Can't connect to LocalStack**: Wait for startup or restart → `docker compose restart localstack`
-- **Port 3030 in use**: Stop conflicting service or change port in `docker-compose.yml`
+- **Certificate errors**: Run `./scripts/setup.sh` to generate certificates
+- **Domain not resolving**: Add to `/etc/hosts` or run `sudo ./scripts/setup-hosts.sh`
 
 **Development mode (GUI outside Docker):**
 

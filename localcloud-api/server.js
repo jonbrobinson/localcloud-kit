@@ -17,9 +17,11 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3030",
+    origin: process.env.SOCKET_IO_ORIGIN || "https://localcloudkit.local",
     methods: ["GET", "POST"],
+    credentials: true,
   },
+  path: "/ws/socket.io",
 });
 
 // Configure logging
@@ -76,7 +78,12 @@ if (!fs.existsSync("/tmp/uploads")) {
 }
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "https://localcloudkit.local",
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: "50mb" })); // Increase limit for legacy JSON uploads
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
