@@ -236,9 +236,21 @@ if [ "$CA_INSTALLED" = false ]; then
 fi
 echo ""
 
-# Create cert directory
-mkdir -p "$CERT_DIR"
+# Create cert directory and check permissions
 echo -e "${BLUE}Certificate directory: $CERT_DIR${NC}"
+if ! mkdir -p "$CERT_DIR" 2>/dev/null; then
+    echo -e "${RED}✗ Failed to create certificate directory: $CERT_DIR${NC}"
+    exit 1
+fi
+
+# Check if directory is writable
+if [ ! -w "$CERT_DIR" ]; then
+    echo -e "${RED}✗ Certificate directory is not writable: $CERT_DIR${NC}"
+    echo -e "${YELLOW}Please check permissions or run with appropriate privileges${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Certificate directory is ready${NC}"
 echo ""
 
 # Generate certificate with custom subject (CN=localcloudkit.local only)
@@ -247,15 +259,32 @@ echo -e "${YELLOW}Generating certificate for $DOMAIN with custom subject...${NC}
 # Check if openssl is available
 if ! command -v openssl &> /dev/null; then
     echo -e "${RED}✗ openssl not found. Please install openssl${NC}"
+    echo -e "${YELLOW}On macOS: openssl is usually pre-installed${NC}"
+    echo -e "${YELLOW}On Linux: sudo apt install openssl${NC}"
     exit 1
 fi
 
 # Get mkcert CA root directory
 CA_ROOT=$($MKCERT_CMD -CAROOT 2>/dev/null)
-if [ -z "$CA_ROOT" ] || [ ! -f "$CA_ROOT/rootCA.pem" ] || [ ! -f "$CA_ROOT/rootCA-key.pem" ]; then
-    echo -e "${RED}✗ mkcert CA not found. Please run: ${BLUE}$MKCERT_CMD -install${NC}"
+if [ -z "$CA_ROOT" ]; then
+    echo -e "${RED}✗ mkcert CA root not found${NC}"
+    echo -e "${YELLOW}Please run: ${BLUE}$MKCERT_CMD -install${NC}"
     exit 1
 fi
+
+if [ ! -f "$CA_ROOT/rootCA.pem" ]; then
+    echo -e "${RED}✗ mkcert CA certificate not found at: $CA_ROOT/rootCA.pem${NC}"
+    echo -e "${YELLOW}Please run: ${BLUE}$MKCERT_CMD -install${NC}"
+    exit 1
+fi
+
+if [ ! -f "$CA_ROOT/rootCA-key.pem" ]; then
+    echo -e "${RED}✗ mkcert CA key not found at: $CA_ROOT/rootCA-key.pem${NC}"
+    echo -e "${YELLOW}Please run: ${BLUE}$MKCERT_CMD -install${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ mkcert CA found at: $CA_ROOT${NC}"
 
 # Create temporary config file for extensions
 # Include both base domain and wildcard for subdomain support
@@ -265,23 +294,27 @@ cat > "$TMP_EXT_FILE" <<EOF
 subjectAltName = DNS:$DOMAIN, DNS:*.$DOMAIN
 EOF
 
-# Generate private key
-if ! openssl genrsa -out "$CERT_DIR/$DOMAIN-key.pem" 2048 2>/dev/null; then
+# Generate private key (show errors for debugging)
+echo -e "${BLUE}Generating private key...${NC}"
+if ! openssl genrsa -out "$CERT_DIR/$DOMAIN-key.pem" 2048 2>&1; then
     rm -f "$TMP_EXT_FILE"
     echo -e "${RED}✗ Failed to generate private key${NC}"
+    echo -e "${YELLOW}Check directory permissions: $CERT_DIR${NC}"
     exit 1
 fi
 
 # Create certificate signing request with custom subject (CN only, no user info)
+echo -e "${BLUE}Creating certificate signing request...${NC}"
 if ! openssl req -new -key "$CERT_DIR/$DOMAIN-key.pem" \
     -out "$CERT_DIR/$DOMAIN.csr" \
-    -subj "/CN=$DOMAIN" 2>/dev/null; then
+    -subj "/CN=$DOMAIN" 2>&1; then
     rm -f "$TMP_EXT_FILE" "$CERT_DIR/$DOMAIN-key.pem"
     echo -e "${RED}✗ Failed to create certificate signing request${NC}"
     exit 1
 fi
 
 # Sign certificate with mkcert CA (valid for 825 days, matching mkcert default)
+echo -e "${BLUE}Signing certificate with mkcert CA...${NC}"
 if ! openssl x509 -req -in "$CERT_DIR/$DOMAIN.csr" \
     -CA "$CA_ROOT/rootCA.pem" \
     -CAkey "$CA_ROOT/rootCA-key.pem" \
@@ -289,9 +322,17 @@ if ! openssl x509 -req -in "$CERT_DIR/$DOMAIN.csr" \
     -out "$CERT_DIR/$DOMAIN.pem" \
     -days 825 \
     -extensions v3_req \
-    -extfile "$TMP_EXT_FILE" 2>/dev/null; then
+    -extfile "$TMP_EXT_FILE" 2>&1; then
     rm -f "$TMP_EXT_FILE" "$CERT_DIR/$DOMAIN.csr" "$CERT_DIR/$DOMAIN-key.pem"
     echo -e "${RED}✗ Failed to sign certificate${NC}"
+    echo ""
+    echo -e "${YELLOW}Troubleshooting:${NC}"
+    echo "  1. Verify mkcert CA is installed: ${BLUE}$MKCERT_CMD -install${NC}"
+    echo "  2. Check CA files exist:"
+    echo "     - ${BLUE}$CA_ROOT/rootCA.pem${NC}"
+    echo "     - ${BLUE}$CA_ROOT/rootCA-key.pem${NC}"
+    echo "  3. Check directory permissions: ${BLUE}$CERT_DIR${NC}"
+    echo "  4. Verify openssl version: ${BLUE}openssl version${NC}"
     exit 1
 fi
 
