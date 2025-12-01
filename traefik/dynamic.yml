@@ -1,0 +1,7 @@
+# Dynamic Traefik configuration
+# This file is watched for changes and reloaded automatically
+
+tls:
+  certificates:
+    - certFile: "/certs/localcloudkit.local.pem"
+      keyFile: "/certs/localcloudkit.local-key.pem"

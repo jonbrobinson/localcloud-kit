@@ -5,12 +5,32 @@ Get up and running with LocalStack automation in 5 minutes!
 ## 🚀 Prerequisites
 
 1. **Docker and Docker Compose** (already installed)
-2. **AWS CLI**: For shell script automation
-3. **Node.js 18+**: For GUI system (optional)
+2. **mkcert**: For trusted local certificates (Safari compatibility)
+3. **AWS CLI**: For shell script automation (optional)
+4. **Node.js 18+**: For GUI system (optional - handled by Docker)
 
 ## 📦 Installation
 
-### Install AWS CLI
+### Install mkcert (Required for HTTPS)
+
+```bash
+# macOS
+brew install mkcert
+
+# Verify installation
+mkcert --version
+```
+
+### Generate Certificates (One-time)
+
+```bash
+# Run the setup script
+./scripts/setup-mkcert.sh
+```
+
+This generates trusted certificates for `localcloudkit.local` that work in both Chrome and Safari.
+
+### Install AWS CLI (Optional)
 
 ```bash
 # macOS
@@ -46,8 +66,8 @@ export PROJECT_NAME="my-awesome-project"
 
 This starts:
 
-- LocalCloud Kit Web GUI (http://localhost:3030)
-- LocalCloud Kit API Server (http://localhost:3030/api)
+- LocalCloud Kit Web GUI (https://localcloudkit.local)
+- LocalCloud Kit API Server (https://localcloudkit.local/api)
 - LocalStack (http://localhost:4566)
 
 > **Note**: The URLs above are for accessing the application from your host machine. Within the container network, services communicate using internal hostnames (e.g., `localstack:4566` for the API server to reach LocalStack).
@@ -137,7 +157,7 @@ make start  # Resources are still there!
 # Start GUI system
 ./start-gui.sh
 
-# Open browser to http://localhost:3030
+# Open browser to http://localcloudkit.local
 # Use the web interface to manage resources
 # Press Ctrl+C to stop GUI
 ```
@@ -191,8 +211,8 @@ make help      # All available commands
 
 ```bash
 # Check if GUI is running
-curl http://localhost:3030/api/health
-curl http://localhost:3030
+curl http://localcloudkit.local/api/health
+curl http://localcloudkit.local
 
 # Start GUI if needed
 make gui-start
@@ -224,7 +244,7 @@ You now have a fully automated LocalStack setup with:
 
 ## 🚀 Next Steps
 
-1. **Explore the GUI**: Open http://localhost:3030
+1. **Explore the GUI**: Open http://localcloudkit.local
 2. **Try different templates**: Use the template options
 3. **Set up your project**: Configure your project name
 4. **Automate your workflow**: Integrate with your development process

@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
-  XMarkIcon,
+  addDynamoDBItem,
+  deleteDynamoDBItem,
+  getDynamoDBTableSchema,
+} from "@/services/api";
+import {
   MagnifyingGlassIcon,
   PlusIcon,
   TrashIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
-import {
-  addDynamoDBItem,
-  getDynamoDBTableSchema,
-  deleteDynamoDBItem,
-} from "@/services/api";
+import { useEffect, useState } from "react";
 import DynamoDBAddItemModal from "./DynamoDBAddItemModal";
 
 interface DynamoDBViewerProps {
@@ -112,9 +112,9 @@ export default function DynamoDBViewer({
     setLoading(true);
     try {
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3031"
-        }/dynamodb/tables?projectName=${encodeURIComponent(projectName)}`
+        `${"/api"}/dynamodb/tables?projectName=${encodeURIComponent(
+          projectName
+        )}`
       );
       const data = await response.json();
       if (data.success) {
@@ -174,9 +174,7 @@ export default function DynamoDBViewer({
     setLoading(true);
     try {
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3031"
-        }/dynamodb/table/${encodeURIComponent(
+        `${"/api"}/dynamodb/table/${encodeURIComponent(
           selectedTable
         )}/scan?projectName=${encodeURIComponent(projectName)}&limit=${
           queryParams.limit
@@ -219,9 +217,7 @@ export default function DynamoDBViewer({
       }
 
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3031"
-        }/dynamodb/table/${encodeURIComponent(
+        `${"/api"}/dynamodb/table/${encodeURIComponent(
           selectedTable
         )}/query?${params.toString()}`
       );
@@ -724,9 +720,12 @@ export default function DynamoDBViewer({
             {/* Content */}
             <div className="p-6">
               <div className="text-sm text-gray-700 mb-4">
-                <p>This action cannot be undone. The item will be permanently deleted from the table.</p>
+                <p>
+                  This action cannot be undone. The item will be permanently
+                  deleted from the table.
+                </p>
               </div>
-              
+
               {error && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
                   {error}
