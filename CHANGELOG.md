@@ -4,6 +4,25 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.6.1] - 2025-11-30
+
+### Changed
+
+- **Documentation Consolidation**: Streamlined documentation structure
+  - Moved `DOCKER.md` to `docs/DOCKER.md` with updated Traefik architecture documentation
+  - Consolidated `SETUP.md` and `QUICKSTART.md` into `GETTING_STARTED.md` for single source of truth
+  - Updated all documentation references to reflect new structure
+  - Removed redundant documentation files
+- **Package Version Alignment**: Updated package.json versions to match release tags
+  - Updated `localcloud-gui/package.json` to version 0.6.1
+  - Updated `localcloud-api/package.json` to version 0.6.1
+
+### Removed
+
+- **Obsolete Files**: Removed unused and redundant files
+  - Removed `letsencrypt/acme.json` (no longer used with mkcert setup)
+  - Removed `TRAEFIK_PLAN.md` (implementation complete)
+
 ## [0.6.0] - 2025-11-30
 
 ### Added
