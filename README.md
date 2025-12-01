@@ -274,7 +274,7 @@ cd localcloud-gui && npm install && npm run dev
 
 #### Via Web GUI (Recommended)
 
-1. Open http://localcloudkit.local
+1. Open https://localcloudkit.local
 2. Click individual resource buttons:
    - 🪣 **S3 Bucket** - Create storage buckets
    - 🗄️ **DynamoDB Table** - Create NoSQL tables
@@ -337,12 +337,12 @@ Then view files in the GUI with full syntax highlighting support.
 
 ### Service URLs
 
-| Service     | URL                            | Description                |
-| ----------- | ------------------------------ | -------------------------- |
-| Web GUI     | http://localcloudkit.local     | Main application interface |
-| API Server  | http://localcloudkit.local/api | REST API endpoints         |
-| LocalStack  | http://localhost:4566          | AWS services emulation     |
-| Redis Cache | localhost:6380                 | Redis cache (no password)  |
+| Service     | URL                             | Description                |
+| ----------- | ------------------------------- | -------------------------- |
+| Web GUI     | https://localcloudkit.local     | Main application interface |
+| API Server  | https://localcloudkit.local/api | REST API endpoints         |
+| LocalStack  | http://localhost:4566           | AWS services emulation     |
+| Redis Cache | localhost:6380                  | Redis cache (no password)  |
 
 > **Note**: Within Docker network, services use internal hostnames (e.g., `localstack:4566`, `redis:6379`)
 
@@ -398,9 +398,17 @@ docker compose up -d --scale api=3 # Scale services
 
 ### Getting Started
 
+- **[Getting Started Guide](GETTING_STARTED.md)** - Complete setup and first-time installation
 - **[Quick Start Guide](QUICKSTART.md)** - Get up and running in minutes
+- **[Setup Guide](SETUP.md)** - Detailed setup instructions
 - **[Docker Guide](DOCKER.md)** - Container deployment and management
 - **[Connection Guide](CONNECT.md)** - AWS SDK integration examples
+
+### Certificate & Security
+
+- **[mkcert Setup Guide](docs/MKCERT_SETUP.md)** - Certificate generation and installation
+- **[Certificate Troubleshooting](docs/CERTIFICATE_TROUBLESHOOTING.md)** - Fix certificate issues
+- **[Local Development Workflow](docs/LOCAL_WORKFLOW.md)** - Daily development workflow
 
 ### Service Documentation
 
@@ -411,6 +419,8 @@ docker compose up -d --scale api=3 # Scale services
 
 - **[API Documentation](localcloud-api/README.md)** - Backend API server reference
 - **[GUI Documentation](localcloud-gui/README.md)** - Frontend application guide
+- **[Shell Scripts](scripts/shell/README.md)** - Automation scripts documentation
+- **[Samples](samples/README.md)** - Sample files for testing
 
 ## 🤝 Contributing
 
@@ -497,7 +507,7 @@ docker compose up -d                 # Start if not running
 **Verify services are healthy:**
 
 ```bash
-curl http://localcloudkit.local/api/health           # Check API
+curl -k https://localcloudkit.local/api/health           # Check API
 curl http://localhost:4566/_localstack/health   # Check LocalStack
 ```
 
@@ -505,7 +515,8 @@ curl http://localhost:4566/_localstack/health   # Check LocalStack
 
 - **502 Bad Gateway**: API server isn't running → `docker compose up -d`
 - **Can't connect to LocalStack**: Wait for startup or restart → `docker compose restart localstack`
-- **Port 3030 in use**: Stop conflicting service or change port in `docker-compose.yml`
+- **Certificate errors**: Run `./scripts/setup.sh` to generate certificates
+- **Domain not resolving**: Add to `/etc/hosts` or run `sudo ./scripts/setup-hosts.sh`
 
 **Development mode (GUI outside Docker):**
 
