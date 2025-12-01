@@ -188,11 +188,69 @@ make reset-env
 make start
 ```
 
+## 🎨 Customization & Advanced Usage
+
+### Resource Templates
+
+Create resources using predefined templates:
+
+```bash
+# Basic template (S3 + DynamoDB)
+./scripts/shell/create_resources.sh localstack-dev dev --template basic
+
+# Serverless template (Lambda + API Gateway + DynamoDB)
+./scripts/shell/create_resources.sh localstack-dev dev --template serverless
+
+# Storage template (S3 + CloudFront)
+./scripts/shell/create_resources.sh localstack-dev dev --template storage
+
+# Database template (RDS + ElastiCache)
+./scripts/shell/create_resources.sh localstack-dev dev --template database
+
+# API template (API Gateway + Lambda)
+./scripts/shell/create_resources.sh localstack-dev dev --template api
+```
+
+### Change Project Name
+
+```bash
+export PROJECT_NAME="my-new-project"
+make shell-create ENV=dev
+```
+
+### Different Environments
+
+```bash
+make shell-create ENV=dev
+make shell-create ENV=uat
+make shell-create ENV=prod
+```
+
+### Install AWS CLI (Optional)
+
+```bash
+# macOS
+brew install awscli
+
+# Ubuntu/Debian
+sudo apt-get install awscli
+
+# Configure for LocalStack
+aws configure set aws_access_key_id test
+aws configure set aws_secret_access_key test
+aws configure set region us-east-1
+aws configure set output json
+```
+
+> **Note**: AWS CLI is optional - you can use the web GUI or shell scripts instead.
+
 ## 📚 Next Steps
 
 - **Detailed Workflow**: See `docs/LOCAL_WORKFLOW.md`
 - **Certificate Setup**: See `docs/MKCERT_SETUP.md`
-- **Docker Guide**: See `DOCKER.md`
+- **Docker Guide**: See `docs/DOCKER.md`
+- **Connection Guide**: See `CONNECT.md` for AWS SDK integration
+- **Shell Scripts**: See `scripts/shell/README.md` for automation
 - **API Documentation**: See `localcloud-api/README.md`
 - **GUI Documentation**: See `localcloud-gui/README.md`
 

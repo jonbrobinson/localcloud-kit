@@ -398,10 +398,8 @@ docker compose up -d --scale api=3 # Scale services
 
 ### Getting Started
 
-- **[Getting Started Guide](GETTING_STARTED.md)** - Complete setup and first-time installation
-- **[Quick Start Guide](QUICKSTART.md)** - Get up and running in minutes
-- **[Setup Guide](SETUP.md)** - Detailed setup instructions
-- **[Docker Guide](DOCKER.md)** - Container deployment and management
+- **[Getting Started Guide](GETTING_STARTED.md)** - Complete setup and first-time installation (includes quick start, customization, and workflows)
+- **[Docker Guide](docs/DOCKER.md)** - Container deployment and management
 - **[Connection Guide](CONNECT.md)** - AWS SDK integration examples
 
 ### Certificate & Security
