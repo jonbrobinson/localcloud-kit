@@ -28,7 +28,7 @@ mkcert --version
 ./scripts/setup-mkcert.sh
 ```
 
-This generates trusted certificates for `localcloudkit.localhost` that work in both Chrome and Safari.
+This generates trusted certificates for `localcloudkit.local` that work in both Chrome and Safari.
 
 ### Install AWS CLI (Optional)
 
@@ -66,8 +66,8 @@ export PROJECT_NAME="my-awesome-project"
 
 This starts:
 
-- LocalCloud Kit Web GUI (https://localcloudkit.localhost)
-- LocalCloud Kit API Server (https://localcloudkit.localhost/api)
+- LocalCloud Kit Web GUI (https://localcloudkit.local)
+- LocalCloud Kit API Server (https://localcloudkit.local/api)
 - LocalStack (http://localhost:4566)
 
 > **Note**: The URLs above are for accessing the application from your host machine. Within the container network, services communicate using internal hostnames (e.g., `localstack:4566` for the API server to reach LocalStack).
@@ -157,7 +157,7 @@ make start  # Resources are still there!
 # Start GUI system
 ./start-gui.sh
 
-# Open browser to http://localcloudkit.localhost
+# Open browser to http://localcloudkit.local
 # Use the web interface to manage resources
 # Press Ctrl+C to stop GUI
 ```
@@ -211,8 +211,8 @@ make help      # All available commands
 
 ```bash
 # Check if GUI is running
-curl http://localcloudkit.localhost/api/health
-curl http://localcloudkit.localhost
+curl http://localcloudkit.local/api/health
+curl http://localcloudkit.local
 
 # Start GUI if needed
 make gui-start
@@ -244,7 +244,7 @@ You now have a fully automated LocalStack setup with:
 
 ## 🚀 Next Steps
 
-1. **Explore the GUI**: Open http://localcloudkit.localhost
+1. **Explore the GUI**: Open http://localcloudkit.local
 2. **Try different templates**: Use the template options
 3. **Set up your project**: Configure your project name
 4. **Automate your workflow**: Integrate with your development process

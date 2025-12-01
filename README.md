@@ -26,10 +26,12 @@ Everything else is handled automatically!
 
 ### Getting Started (2 Steps)
 
-#### Step 1: Generate Certificates (First Time Only)
+#### Step 1: Complete Setup (First Time Only)
+
+**Recommended: One-Command Setup**
 
 ```bash
-./scripts/setup-mkcert.sh
+./scripts/setup.sh
 ```
 
 **What this does:**
@@ -37,8 +39,15 @@ Everything else is handled automatically!
 - Automatically downloads and installs `mkcert` if not found (works on macOS, Linux, Windows)
 - Installs the mkcert CA to your system trust store (requires sudo password)
 - Generates trusted certificates that work in both Chrome and Safari without warnings
+- Adds `localcloudkit.local` to `/etc/hosts` (requires sudo password)
 
 **No manual installation needed** - the script handles everything automatically!
+
+**Individual scripts available for one-off operations:**
+
+- `./scripts/setup-mkcert.sh` - Generate certificates only
+- `./scripts/install-ca.sh` - Install CA only
+- `./scripts/setup-hosts.sh` - Setup /etc/hosts only
 
 #### Step 2: Start the Application
 
@@ -55,12 +64,12 @@ This single command will:
 
 **Access URLs:**
 
-- **Web GUI**: https://localcloudkit.localhost
-- **API Server**: https://localcloudkit.localhost/api
+- **Web GUI**: https://localcloudkit.local
+- **API Server**: https://localcloudkit.local/api
 - **LocalStack**: http://localhost:4566 (direct access for AWS CLI)
 - **Express API (direct)**: http://localhost:3031 (direct access, bypasses Traefik)
 
-> **Note**: The domain `localcloudkit.localhost` auto-resolves to `127.0.0.1` - no `/etc/hosts` entry needed!
+> **Note**: The `.local` domain uses mDNS/Bonjour. If it doesn't resolve, add to `/etc/hosts`: `127.0.0.1 localcloudkit.local`
 
 **📖 For detailed getting started instructions, see [GETTING_STARTED.md](GETTING_STARTED.md)**
 
@@ -265,7 +274,7 @@ cd localcloud-gui && npm install && npm run dev
 
 #### Via Web GUI (Recommended)
 
-1. Open http://localcloudkit.localhost
+1. Open http://localcloudkit.local
 2. Click individual resource buttons:
    - 🪣 **S3 Bucket** - Create storage buckets
    - 🗄️ **DynamoDB Table** - Create NoSQL tables
@@ -305,7 +314,7 @@ aws --endpoint-url=http://localhost:4566 secretsmanager create-secret \
 
 All resources can be managed through:
 
-- **Web GUI**: https://localcloudkit.localhost
+- **Web GUI**: https://localcloudkit.local
 - **Shell Scripts**: Located in `scripts/shell/`
 - **AWS CLI**: Using `--endpoint-url=http://localhost:4566`
 - **AWS SDKs**: Configure with LocalStack endpoint
@@ -328,12 +337,12 @@ Then view files in the GUI with full syntax highlighting support.
 
 ### Service URLs
 
-| Service     | URL                                | Description                |
-| ----------- | ---------------------------------- | -------------------------- |
-| Web GUI     | http://localcloudkit.localhost     | Main application interface |
-| API Server  | http://localcloudkit.localhost/api | REST API endpoints         |
-| LocalStack  | http://localhost:4566              | AWS services emulation     |
-| Redis Cache | localhost:6380                     | Redis cache (no password)  |
+| Service     | URL                            | Description                |
+| ----------- | ------------------------------ | -------------------------- |
+| Web GUI     | http://localcloudkit.local     | Main application interface |
+| API Server  | http://localcloudkit.local/api | REST API endpoints         |
+| LocalStack  | http://localhost:4566          | AWS services emulation     |
+| Redis Cache | localhost:6380                 | Redis cache (no password)  |
 
 > **Note**: Within Docker network, services use internal hostnames (e.g., `localstack:4566`, `redis:6379`)
 
@@ -488,7 +497,7 @@ docker compose up -d                 # Start if not running
 **Verify services are healthy:**
 
 ```bash
-curl http://localcloudkit.localhost/api/health           # Check API
+curl http://localcloudkit.local/api/health           # Check API
 curl http://localhost:4566/_localstack/health   # Check LocalStack
 ```
 

@@ -40,11 +40,13 @@ choco install mkcert
 ### Step 1: Install mkcert (One-time)
 
 **macOS:**
+
 ```bash
 brew install mkcert
 ```
 
 **Verify installation:**
+
 ```bash
 mkcert --version
 ```
@@ -58,12 +60,14 @@ Run the setup script:
 ```
 
 This script will:
+
 1. Check if mkcert is installed (guides you if not)
 2. Install mkcert CA to your system trust store (first time only)
-3. Generate certificates for `localcloudkit.localhost`
+3. Generate certificates for `localcloudkit.local`
 4. Place certificates in `traefik/certs/`
 
 **Expected output:**
+
 ```
 === LocalCloud Kit mkcert Certificate Setup ===
 
@@ -72,12 +76,12 @@ This script will:
 
 Certificate directory: ./traefik/certs
 
-Generating certificate for localcloudkit.localhost ...
+Generating certificate for localcloudkit.local ...
 ✓ Certificates generated successfully!
 
 Generated files:
--rw-------  1 user  staff  2.1K Nov 30 10:00 traefik/certs/localcloudkit.localhost-key.pem
--rw-r--r--  1 user  staff  1.5K Nov 30 10:00 traefik/certs/localcloudkit.localhost.pem
+-rw-------  1 user  staff  2.1K Nov 30 10:00 traefik/certs/localcloudkit.local-key.pem
+-rw-r--r--  1 user  staff  1.5K Nov 30 10:00 traefik/certs/localcloudkit.local.pem
 
 === Next Steps ===
 
@@ -85,7 +89,7 @@ Generated files:
    docker compose down && docker compose up -d
 
 2. Open in your browser:
-   https://localcloudkit.localhost
+   https://localcloudkit.local
 
 Both Chrome and Safari will trust these certificates automatically!
 ```
@@ -106,9 +110,10 @@ docker compose up -d
 ### Step 4: Access the Application
 
 Open in your browser:
-- **Chrome**: `https://localcloudkit.localhost`
-- **Safari**: `https://localcloudkit.localhost`
-- **Firefox**: `https://localcloudkit.localhost`
+
+- **Chrome**: `https://localcloudkit.local`
+- **Safari**: `https://localcloudkit.local`
+- **Firefox**: `https://localcloudkit.local`
 
 **No certificate warnings!** ✅
 
@@ -148,8 +153,8 @@ make reset
 
 ### Access Points
 
-- **Main GUI**: `https://localcloudkit.localhost`
-- **API**: `https://localcloudkit.localhost/api`
+- **Main GUI**: `https://localcloudkit.local`
+- **API**: `https://localcloudkit.local/api`
 - **LocalStack (direct)**: `http://localhost:4566`
 - **Express API (direct)**: `http://localhost:3031`
 
@@ -160,11 +165,13 @@ make reset
 If you see certificate warnings:
 
 1. **Check certificates exist:**
+
    ```bash
    ls -la traefik/certs/
    ```
 
 2. **Regenerate certificates:**
+
    ```bash
    ./scripts/setup-mkcert.sh
    docker compose restart traefik
@@ -179,24 +186,27 @@ If you see certificate warnings:
 
 1. **Clear browser cache** and try again
 2. **Check certificate is loaded in Traefik:**
+
    ```bash
    docker compose logs traefik | grep -i certificate
    ```
 
 3. **Verify domain matches:**
-   - Certificate is for: `localcloudkit.localhost`
-   - You're accessing: `https://localcloudkit.localhost` (not `http://`)
+   - Certificate is for: `localcloudkit.local`
+   - You're accessing: `https://localcloudkit.local` (not `http://`)
 
 ### mkcert Not Found
 
 If the script says mkcert is not installed:
 
 **macOS:**
+
 ```bash
 brew install mkcert
 ```
 
 **Then run setup again:**
+
 ```bash
 ./scripts/setup-mkcert.sh
 ```
@@ -204,10 +214,12 @@ brew install mkcert
 ## Certificate Files
 
 Generated certificates are stored in:
-- `traefik/certs/localcloudkit.localhost.pem` (certificate)
-- `traefik/certs/localcloudkit.localhost-key.pem` (private key)
+
+- `traefik/certs/localcloudkit.local.pem` (certificate)
+- `traefik/certs/localcloudkit.local-key.pem` (private key)
 
 These files are:
+
 - ✅ Git-ignored (not committed to repository)
 - ✅ Generated locally per developer
 - ✅ Automatically trusted by browsers
@@ -222,4 +234,3 @@ docker compose restart traefik
 ```
 
 No need to reinstall mkcert or the CA - just regenerate the domain certificate.
-

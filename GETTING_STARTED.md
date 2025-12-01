@@ -12,19 +12,39 @@ That's it! Everything else (mkcert, Node.js, dependencies) is handled automatica
 
 ## 🚀 Quick Start (2 Steps)
 
-### Step 1: Generate Certificates (First Time Only)
+### Step 1: Complete Setup (First Time Only)
+
+**Option A: One-Command Setup (Recommended)**
 
 ```bash
-./scripts/setup-mkcert.sh
+./scripts/setup.sh
 ```
 
 **What happens:**
+
 - Automatically downloads and installs `mkcert` if needed (works on macOS, Linux, Windows)
 - Installs the mkcert CA to your system (prompts for sudo password)
-- Generates trusted certificates for `localcloudkit.localhost`
+- Generates trusted certificates for `localcloudkit.local`
+- Adds `localcloudkit.local` to `/etc/hosts` (prompts for sudo password)
 - No Homebrew, manual installation, or prerequisites needed!
 
+**Option B: Individual Scripts (For One-Off Operations)**
+
+If you prefer to run steps individually:
+
+```bash
+# Generate certificates only
+./scripts/setup-mkcert.sh
+
+# Install CA certificate only
+sudo ./scripts/install-ca.sh
+
+# Setup /etc/hosts entry only
+sudo ./scripts/setup-hosts.sh
+```
+
 **Expected output:**
+
 ```
 === LocalCloud Kit mkcert Certificate Setup ===
 
@@ -43,24 +63,26 @@ make start
 ```
 
 **What happens:**
+
 - Builds Docker images (if needed)
 - Starts all services (Traefik, Nginx, GUI, API, LocalStack, Redis)
 - Waits for services to be ready
 - Displays access URLs
 
 **Expected output:**
+
 ```
 Starting LocalStack Template with Docker...
 Waiting for services to be ready...
 All services are ready! Access them via Traefik:
-GUI: https://localcloudkit.localhost
-API: https://localcloudkit.localhost/api
+GUI: https://localcloudkit.local
+API: https://localcloudkit.local/api
 LocalStack: http://localhost:4566
 ```
 
 ### Step 3: Open in Your Browser
 
-Open **https://localcloudkit.localhost** in your browser.
+Open **https://localcloudkit.local** in your browser.
 
 You should see the LocalCloud Kit dashboard! 🎉
 
@@ -71,60 +93,65 @@ You should see the LocalCloud Kit dashboard! 🎉
 make status
 
 # Test health endpoint
-curl -k https://localcloudkit.localhost/health
+curl -k https://localcloudkit.local/health
 
 # Test API endpoint
-curl -k https://localcloudkit.localhost/api/health
+curl -k https://localcloudkit.local/api/health
 ```
 
 ## 📍 Access URLs
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Web GUI** | `https://localcloudkit.localhost` | Main application dashboard |
-| **API** | `https://localcloudkit.localhost/api` | REST API endpoints |
-| **LocalStack** | `http://localhost:4566` | Direct AWS services access |
-| **Express API** | `http://localhost:3031` | API server (direct) |
+| Service         | URL                               | Description                |
+| --------------- | --------------------------------- | -------------------------- |
+| **Web GUI**     | `https://localcloudkit.local`     | Main application dashboard |
+| **API**         | `https://localcloudkit.local/api` | REST API endpoints         |
+| **LocalStack**  | `http://localhost:4566`           | Direct AWS services access |
+| **Express API** | `http://localhost:3031`           | API server (direct)        |
 
-> **Note**: The `.localhost` domain auto-resolves to `127.0.0.1` - no `/etc/hosts` configuration needed!
+> **Note**: The `.local` domain uses mDNS/Bonjour. If it doesn't resolve, add to `/etc/hosts`: `127.0.0.1 localcloudkit.local`
 
 ## 🔄 Daily Workflow
 
 ### Start Development
+
 ```bash
 make start
 ```
 
 ### Stop Development
+
 ```bash
 make stop
 ```
 
 ### Restart Services
+
 ```bash
 make restart
 ```
 
 ### View Logs
+
 ```bash
 make logs
 ```
 
 ## 🛠️ Common Commands
 
-| Task | Command |
-|------|---------|
-| Start services | `make start` |
-| Stop services | `make stop` |
-| Restart services | `make restart` |
-| View logs | `make logs` |
-| Check status | `make status` |
+| Task                  | Command                     |
+| --------------------- | --------------------------- |
+| Start services        | `make start`                |
+| Stop services         | `make stop`                 |
+| Restart services      | `make restart`              |
+| View logs             | `make logs`                 |
+| Check status          | `make status`               |
 | Generate certificates | `./scripts/setup-mkcert.sh` |
-| Full reset | `make reset-env` |
+| Full reset            | `make reset-env`            |
 
 ## 🐛 Troubleshooting
 
 ### Certificate Issues
+
 ```bash
 # Regenerate certificates
 ./scripts/setup-mkcert.sh
@@ -132,6 +159,7 @@ docker compose restart traefik
 ```
 
 ### Port Conflicts
+
 ```bash
 # Check what's using the ports
 make status
@@ -139,6 +167,7 @@ docker compose ps
 ```
 
 ### Services Won't Start
+
 ```bash
 # Check logs
 make logs
@@ -150,6 +179,7 @@ docker compose logs -f api
 ```
 
 ### Clean Slate
+
 ```bash
 # Stop and remove everything
 make reset-env
@@ -185,4 +215,3 @@ make start
 ---
 
 **That's it!** You're ready to start developing with LocalCloud Kit. 🚀
-

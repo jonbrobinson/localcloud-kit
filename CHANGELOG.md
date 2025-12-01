@@ -7,7 +7,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 ### Added
 
 - **Traefik Routing with HTTPS**: Implemented Traefik as edge router with HTTPS support
-  - Added Traefik service with automatic HTTPS for `localcloudkit.localhost`
+  - Added Traefik service with automatic HTTPS for `localcloudkit.local`
   - Configured HTTP to HTTPS redirect
   - Added WebSocket support for Socket.IO through Traefik
   - Updated all services to use new domain routing structure
@@ -27,8 +27,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Changed
 
-- **Domain Routing**: Updated from `localhost:3030` to `localcloudkit.localhost` with HTTPS
-  - All services now accessible via `https://localcloudkit.localhost`
+- **Domain Routing**: Updated from `localhost:3030` to `localcloudkit.local` with HTTPS
+  - All services now accessible via `https://localcloudkit.local`
   - API endpoints use relative paths (`/api/*`) for Traefik routing
   - Updated CORS configuration for new domain
   - Updated Socket.IO path to `/ws/socket.io`

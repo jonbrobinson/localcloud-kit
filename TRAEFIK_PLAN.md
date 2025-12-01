@@ -24,7 +24,7 @@ Browser → http://localhost:3030
 ### New Routing (via Traefik + Nginx) - KEEPING CURRENT STANDARD
 
 ```
-Browser → https://localcloudkit.localhost
+Browser → https://localcloudkit.local
 ├── /api/* → Express API (port 3031) ✅ KEEP AS IS
 ├── /localstack/health → LocalStack (port 4566) - Optional health check
 └── /* → Next.js GUI (port 3030)
@@ -42,7 +42,7 @@ LocalStack Access:
 
 **What's Available:**
 
-- `https://localcloudkit.localhost` - Main entry point (Traefik)
+- `https://localcloudkit.local` - Main entry point (Traefik)
 - `http://localhost:3031` - Direct Express API access (bypass Traefik)
 - `http://localhost:4566` - Direct LocalStack access (for AWS CLI)
 - `http://localhost:8080` - Traefik dashboard
@@ -63,7 +63,7 @@ LocalStack Access:
 
 **What's Available:**
 
-- `https://localcloudkit.localhost` - Only entry point
+- `https://localcloudkit.local` - Only entry point
 - `http://localhost:8080` - Traefik dashboard
 
 **Pros:**
@@ -74,7 +74,7 @@ LocalStack Access:
 
 **Cons:**
 
-- ❌ AWS CLI must use `--endpoint-url=https://localcloudkit.localhost/api`
+- ❌ AWS CLI must use `--endpoint-url=https://localcloudkit.local/api`
 - ❌ More complex for direct API testing
 - ❌ May break existing scripts that use `localhost:4566`
 
@@ -108,13 +108,13 @@ const io = socketIo(server, {
 
 **CORS (Cross-Origin Resource Sharing)** is a browser security feature. When:
 
-- Frontend: `https://localcloudkit.localhost`
+- Frontend: `https://localcloudkit.local`
 - API: `http://localhost:3031` (or via Traefik)
 
 The browser blocks Socket.IO connections because:
 
 1. Different protocol (HTTPS vs HTTP)
-2. Different origin (localcloudkit.localhost vs localhost)
+2. Different origin (localcloudkit.local vs localhost)
 3. CORS policy mismatch
 
 ### Impact if Not Fixed
@@ -131,7 +131,7 @@ The browser blocks Socket.IO connections because:
 ```javascript
 const io = socketIo(server, {
   cors: {
-    origin: process.env.SOCKET_IO_ORIGIN || "https://localcloudkit.localhost",
+    origin: process.env.SOCKET_IO_ORIGIN || "https://localcloudkit.local",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -152,7 +152,7 @@ const io = socketIo(server, {
 
 ```javascript
 const allowedOrigins = [
-  "https://localcloudkit.localhost",
+  "https://localcloudkit.local",
   "http://localhost:3030", // Fallback
   process.env.SOCKET_IO_ORIGIN,
 ].filter(Boolean);
@@ -179,8 +179,8 @@ const io = socketIo(server, {
 
 Route Socket.IO through the same domain:
 
-- Frontend: `https://localcloudkit.localhost`
-- Socket.IO: `wss://localcloudkit.localhost/backend/socket.io`
+- Frontend: `https://localcloudkit.local`
+- Socket.IO: `wss://localcloudkit.local/backend/socket.io`
 
 **Pros:**
 
@@ -275,7 +275,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 1. **AWS CLI Complexity**
 
-   - Must use: `--endpoint-url=https://localcloudkit.localhost/api`
+   - Must use: `--endpoint-url=https://localcloudkit.local/api`
    - Longer URLs
    - Requires HTTPS (may need cert trust)
 
@@ -334,8 +334,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 ### Phase 5: Testing
 
-1. ✅ Test HTTPS access at `https://localcloudkit.localhost`
-2. ✅ Test Socket.IO connection at `wss://localcloudkit.localhost/ws/socket.io`
+1. ✅ Test HTTPS access at `https://localcloudkit.local`
+2. ✅ Test Socket.IO connection at `wss://localcloudkit.local/ws/socket.io`
 3. ✅ Test Express API via `/api/*`
 4. ✅ Test LocalStack health at `/localstack/health`
 5. ✅ Test AWS CLI compatibility (direct port 4566)
@@ -358,7 +358,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 **Decision: Proxy through Traefik at `/ws/socket.io`**
 
 - Proxy Socket.IO through Traefik at `/ws/socket.io`
-- Use environment variable for CORS origin: `https://localcloudkit.localhost`
+- Use environment variable for CORS origin: `https://localcloudkit.local`
 - Same domain = no CORS issues
 
 ### Routing Decision

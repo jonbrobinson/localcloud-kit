@@ -13,7 +13,7 @@
 - **Automatically downloads and installs mkcert** if not found (works on macOS, Linux, Windows)
 - **No Homebrew or manual installation needed!**
 - Installs mkcert CA (first time only, requires sudo password)
-- Generates certificates for `localcloudkit.localhost`
+- Generates certificates for `localcloudkit.local`
 - Creates `traefik/certs/` with trusted certificates
 
 ### Step 2: Start Services
@@ -22,7 +22,7 @@
 make start
 ```
 
-**That's it!** Open `https://localcloudkit.localhost` in your browser.
+**That's it!** Open `https://localcloudkit.local` in your browser.
 
 ## 📋 Daily Workflow
 
@@ -34,8 +34,8 @@ make start
 
 ### Access Application
 
-- **GUI**: `https://localcloudkit.localhost`
-- **API**: `https://localcloudkit.localhost/api`
+- **GUI**: `https://localcloudkit.local`
+- **API**: `https://localcloudkit.local/api`
 
 ### Stop Development
 
@@ -66,10 +66,10 @@ After setup, verify everything works:
 
 ```bash
 # Health check
-curl -k https://localcloudkit.localhost/health
+curl -k https://localcloudkit.local/health
 
 # API check
-curl -k https://localcloudkit.localhost/api/health
+curl -k https://localcloudkit.local/api/health
 ```
 
 Both should return successful responses!
