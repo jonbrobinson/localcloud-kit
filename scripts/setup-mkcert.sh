@@ -1,22 +1,30 @@
 #!/usr/bin/env bash
 
 # mkcert Setup Script for LocalCloud Kit
-# Generates trusted local certificates for localcloudkit.localhost
+# Generates trusted local certificates for localcloudkit.local
 # Automatically installs mkcert if not found
 
 set -e
 
-DOMAIN="localcloudkit.localhost"
+DOMAIN="localcloudkit.local"
 CERT_DIR="./traefik/certs"
 MKCERT_BIN_DIR="./scripts/bin"
 MKCERT_BIN="$MKCERT_BIN_DIR/mkcert"
 
-# Colors for output
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Colors for output (only if terminal supports it)
+if [ -t 1 ] && [ "$TERM" != "dumb" ]; then
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    RED='\033[0;31m'
+    BLUE='\033[0;34m'
+    NC='\033[0m' # No Color
+else
+    GREEN=''
+    YELLOW=''
+    RED=''
+    BLUE=''
+    NC=''
+fi
 
 echo -e "${BLUE}=== LocalCloud Kit mkcert Certificate Setup ===${NC}"
 echo ""
@@ -161,28 +169,70 @@ echo -e "${GREEN}✓ mkcert is available${NC}"
 $MKCERT_CMD --version
 echo ""
 
-# Check if mkcert CA is installed
-if ! $MKCERT_CMD -CAROOT &> /dev/null; then
-    echo -e "${YELLOW}Installing mkcert trust store (first-time only)...${NC}"
-    echo -e "${YELLOW}This requires sudo privileges to install the CA certificate${NC}"
-    
-    # Check if we can run with sudo
-    if [ "$EUID" -eq 0 ]; then
-        $MKCERT_CMD -install
-        echo -e "${GREEN}✓ mkcert CA installed${NC}"
-    else
-        echo -e "${YELLOW}Attempting to install CA (may prompt for password)...${NC}"
-        if sudo $MKCERT_CMD -install 2>/dev/null; then
-            echo -e "${GREEN}✓ mkcert CA installed${NC}"
+# Check if mkcert CA is installed in system trust store
+CA_ROOT=$($MKCERT_CMD -CAROOT 2>/dev/null)
+CA_INSTALLED=false
+
+if [ -n "$CA_ROOT" ] && [ -f "$CA_ROOT/rootCA.pem" ]; then
+    # On macOS, check if CA is in Keychain
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # Try to find the CA in Keychain
+        if security find-certificate -c "mkcert" -a &>/dev/null || \
+           security find-certificate -c "mkcert development CA" -a &>/dev/null; then
+            CA_INSTALLED=true
+            echo -e "${GREEN}✓ mkcert CA is installed in system trust store${NC}"
         else
-            echo -e "${RED}✗ Failed to install CA. You may need to run:${NC}"
-            echo "  ${BLUE}sudo $MKCERT_CMD -install${NC}"
+            echo -e "${YELLOW}mkcert CA files exist but not in system trust store${NC}"
+            echo -e "${YELLOW}Installing mkcert CA to system trust store...${NC}"
             echo ""
-            echo -e "${YELLOW}Continuing without CA installation (certificates may show warnings)${NC}"
+            echo -e "${BLUE}This requires your password to install the CA certificate${NC}"
+            echo ""
+            # Don't suppress errors - let user see what's happening
+            if sudo $MKCERT_CMD -install; then
+                CA_INSTALLED=true
+                echo -e "${GREEN}✓ mkcert CA installed successfully${NC}"
+            else
+                echo -e "${YELLOW}⚠ CA installation failed or was cancelled${NC}"
+                echo -e "${YELLOW}   This is OK - the master setup script will install it in the next step${NC}"
+                CA_INSTALLED=false
+            fi
+        fi
+    else
+        # On Linux, just check if -install was run
+        if $MKCERT_CMD -install -noprompt &>/dev/null 2>&1; then
+            CA_INSTALLED=true
+            echo -e "${GREEN}✓ mkcert CA is installed${NC}"
+        else
+            echo -e "${YELLOW}Installing mkcert CA to system trust store...${NC}"
+            if sudo $MKCERT_CMD -install; then
+                CA_INSTALLED=true
+                echo -e "${GREEN}✓ mkcert CA installed successfully${NC}"
+            else
+                echo -e "${YELLOW}⚠ CA installation failed or was cancelled${NC}"
+                echo -e "${YELLOW}   This is OK - the master setup script will install it in the next step${NC}"
+                CA_INSTALLED=false
+            fi
         fi
     fi
 else
-    echo -e "${GREEN}✓ mkcert CA already installed${NC}"
+    echo -e "${YELLOW}Installing mkcert trust store (first-time only)...${NC}"
+    echo -e "${YELLOW}This requires sudo privileges to install the CA certificate${NC}"
+    echo ""
+    if sudo $MKCERT_CMD -install; then
+        CA_INSTALLED=true
+        echo -e "${GREEN}✓ mkcert CA installed${NC}"
+    else
+        echo -e "${YELLOW}⚠ CA installation failed or was cancelled${NC}"
+        echo -e "${YELLOW}   This is OK - the master setup script will install it in the next step${NC}"
+        CA_INSTALLED=false
+    fi
+fi
+
+if [ "$CA_INSTALLED" = false ]; then
+    echo ""
+    echo -e "${YELLOW}⚠️  WARNING: mkcert CA is not installed in system trust store${NC}"
+    echo -e "${YELLOW}   Your browser will show the certificate as 'Not Secure'${NC}"
+    echo ""
 fi
 echo ""
 
@@ -191,11 +241,62 @@ mkdir -p "$CERT_DIR"
 echo -e "${BLUE}Certificate directory: $CERT_DIR${NC}"
 echo ""
 
-# Generate certificate
-echo -e "${YELLOW}Generating certificate for $DOMAIN ...${NC}"
-$MKCERT_CMD -cert-file "$CERT_DIR/$DOMAIN.pem" \
-           -key-file  "$CERT_DIR/$DOMAIN-key.pem" \
-           "$DOMAIN"
+# Generate certificate with custom subject (CN=localcloudkit.local only)
+echo -e "${YELLOW}Generating certificate for $DOMAIN with custom subject...${NC}"
+
+# Check if openssl is available
+if ! command -v openssl &> /dev/null; then
+    echo -e "${RED}✗ openssl not found. Please install openssl${NC}"
+    exit 1
+fi
+
+# Get mkcert CA root directory
+CA_ROOT=$($MKCERT_CMD -CAROOT 2>/dev/null)
+if [ -z "$CA_ROOT" ] || [ ! -f "$CA_ROOT/rootCA.pem" ] || [ ! -f "$CA_ROOT/rootCA-key.pem" ]; then
+    echo -e "${RED}✗ mkcert CA not found. Please run: ${BLUE}$MKCERT_CMD -install${NC}"
+    exit 1
+fi
+
+# Create temporary config file for extensions
+# Include both base domain and wildcard for subdomain support
+TMP_EXT_FILE=$(mktemp)
+cat > "$TMP_EXT_FILE" <<EOF
+[v3_req]
+subjectAltName = DNS:$DOMAIN, DNS:*.$DOMAIN
+EOF
+
+# Generate private key
+if ! openssl genrsa -out "$CERT_DIR/$DOMAIN-key.pem" 2048 2>/dev/null; then
+    rm -f "$TMP_EXT_FILE"
+    echo -e "${RED}✗ Failed to generate private key${NC}"
+    exit 1
+fi
+
+# Create certificate signing request with custom subject (CN only, no user info)
+if ! openssl req -new -key "$CERT_DIR/$DOMAIN-key.pem" \
+    -out "$CERT_DIR/$DOMAIN.csr" \
+    -subj "/CN=$DOMAIN" 2>/dev/null; then
+    rm -f "$TMP_EXT_FILE" "$CERT_DIR/$DOMAIN-key.pem"
+    echo -e "${RED}✗ Failed to create certificate signing request${NC}"
+    exit 1
+fi
+
+# Sign certificate with mkcert CA (valid for 825 days, matching mkcert default)
+if ! openssl x509 -req -in "$CERT_DIR/$DOMAIN.csr" \
+    -CA "$CA_ROOT/rootCA.pem" \
+    -CAkey "$CA_ROOT/rootCA-key.pem" \
+    -CAcreateserial \
+    -out "$CERT_DIR/$DOMAIN.pem" \
+    -days 825 \
+    -extensions v3_req \
+    -extfile "$TMP_EXT_FILE" 2>/dev/null; then
+    rm -f "$TMP_EXT_FILE" "$CERT_DIR/$DOMAIN.csr" "$CERT_DIR/$DOMAIN-key.pem"
+    echo -e "${RED}✗ Failed to sign certificate${NC}"
+    exit 1
+fi
+
+# Clean up temporary files
+rm -f "$CERT_DIR/$DOMAIN.csr" "$TMP_EXT_FILE"
 
 echo ""
 echo -e "${GREEN}✓ Certificates generated successfully!${NC}"
@@ -206,12 +307,31 @@ ls -lh "$CERT_DIR/$DOMAIN"*
 echo ""
 echo -e "${GREEN}=== Next Steps ===${NC}"
 echo ""
+
+if [ "$CA_INSTALLED" = false ]; then
+    echo -e "${YELLOW}⚠️  IMPORTANT: Install the CA certificate first!${NC}"
+    echo ""
+    echo "Run this command to install the CA:"
+    echo "  ${BLUE}./scripts/install-ca.sh${NC}"
+    echo ""
+    echo "Or manually:"
+    echo "  ${BLUE}sudo $MKCERT_CMD -install${NC}"
+    echo ""
+    echo "After installing, completely quit and restart your browser."
+    echo ""
+fi
+
 echo "1. Restart Docker services:"
 echo "   ${BLUE}docker compose down && docker compose up -d${NC}"
 echo ""
 echo "2. Open in your browser:"
 echo "   ${BLUE}https://$DOMAIN${NC}"
 echo ""
-echo -e "${GREEN}Both Chrome and Safari will trust these certificates automatically!${NC}"
+
+if [ "$CA_INSTALLED" = true ]; then
+    echo -e "${GREEN}Both Chrome and Safari will trust these certificates automatically!${NC}"
+else
+    echo -e "${YELLOW}⚠️  Remember to install the CA certificate first (see above)${NC}"
+fi
 echo ""
 
