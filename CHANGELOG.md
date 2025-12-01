@@ -4,6 +4,16 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.6.2] - 2025-11-30
+
+### Fixed
+
+- **Docker Architecture Documentation**: Corrected Redis cache architecture representation
+  - Updated architecture diagram to show Redis as standalone service (not connected through LocalStack)
+  - Clarified that Redis is independent of LocalStack and accessible by any service on the network
+  - Updated Redis service description to reflect standalone nature
+  - Fixed service discovery documentation to accurately represent Redis connectivity
+
 ## [0.6.1] - 2025-11-30
 
 ### Changed

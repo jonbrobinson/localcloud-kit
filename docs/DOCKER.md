@@ -44,26 +44,20 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
     │ • Resource List │              │   Management    │
     │ • Modals        │              │ • Resource Ops  │
     │ • Hot Reload    │              │ • Socket.IO     │
-    └─────────────────┘              └────────┬────────┘
-                                              │
-                                              ▼
-                                    ┌─────────────────┐
-                                    │   LocalStack    │
-                                    │   (Port 4566)   │
-                                    │                 │
-                                    │ • S3 Buckets    │
-                                    │ • DynamoDB      │
-                                    │ • Lambda        │
-                                    │ • Secrets Mgr   │
-                                    └─────────────────┘
-                                              │
-                                              ▼
-                                    ┌─────────────────┐
-                                    │   Redis Cache   │
-                                    │   (Port 6379)   │
-                                    │                 │
-                                    │ • Caching       │
-                                    └─────────────────┘
+    └─────────────────┘              └───────┬─────────┘
+                                             │
+                          ┌──────────────────┼──────────────────┐
+                          │                  │                  │
+                          ▼                  ▼                  ▼
+                ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+                │   LocalStack    │ │   Redis Cache   │ │   Shell Scripts │
+                │   (Port 4566)   │ │   (Port 6379)   │ │                 │
+                │                 │ │                 │ │ • Cache ops     │
+                │ • S3 Buckets    │ │ • Standalone    │ │ • Resource mgmt │
+                │ • DynamoDB      │ │   cache service │ │                 │
+                │ • Lambda        │ │ • Independent   │ └─────────────────┘
+                │ • Secrets Mgr   │ │   of LocalStack │
+                └─────────────────┘ └─────────────────┘
 ```
 
 ## Quick Start
@@ -204,9 +198,12 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 
 - **Image**: `redis:7-alpine`
 - **Port**: `6380:6379` (exposed for direct access)
+- **Role**: Standalone cache service (independent of LocalStack)
 - **Features**: 
-  - Caching layer
+  - Independent caching layer accessible by any service on the network
+  - API provides endpoints for cache management via shell scripts
   - No password required (local development)
+  - Can be accessed directly via `redis:6379` from any container on the network
 
 ## Volume Mounts
 
