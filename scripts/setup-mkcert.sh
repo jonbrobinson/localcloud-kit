@@ -284,6 +284,30 @@ if [ ! -f "$CA_ROOT/rootCA-key.pem" ]; then
     exit 1
 fi
 
+# Check if CA files are readable (they may be owned by root)
+if [ ! -r "$CA_ROOT/rootCA.pem" ] || [ ! -r "$CA_ROOT/rootCA-key.pem" ]; then
+    echo -e "${YELLOW}⚠ CA files are not readable (may be owned by root)${NC}"
+    echo -e "${BLUE}Attempting to fix permissions or use sudo...${NC}"
+    
+    # Try to fix permissions if we have access
+    if [ -w "$CA_ROOT" ] 2>/dev/null; then
+        echo -e "${BLUE}Fixing CA file permissions...${NC}"
+        chmod 644 "$CA_ROOT/rootCA.pem" 2>/dev/null || true
+        chmod 600 "$CA_ROOT/rootCA-key.pem" 2>/dev/null || true
+    fi
+    
+    # Check again after permission fix attempt
+    if [ ! -r "$CA_ROOT/rootCA.pem" ] || [ ! -r "$CA_ROOT/rootCA-key.pem" ]; then
+        echo -e "${YELLOW}CA files still not readable. Will use sudo for certificate signing.${NC}"
+        USE_SUDO_FOR_SIGNING=true
+    else
+        USE_SUDO_FOR_SIGNING=false
+        echo -e "${GREEN}✓ CA file permissions fixed${NC}"
+    fi
+else
+    USE_SUDO_FOR_SIGNING=false
+fi
+
 echo -e "${GREEN}✓ mkcert CA found at: $CA_ROOT${NC}"
 
 # Create temporary config file for extensions
@@ -315,25 +339,55 @@ fi
 
 # Sign certificate with mkcert CA (valid for 825 days, matching mkcert default)
 echo -e "${BLUE}Signing certificate with mkcert CA...${NC}"
-if ! openssl x509 -req -in "$CERT_DIR/$DOMAIN.csr" \
-    -CA "$CA_ROOT/rootCA.pem" \
-    -CAkey "$CA_ROOT/rootCA-key.pem" \
-    -CAcreateserial \
-    -out "$CERT_DIR/$DOMAIN.pem" \
-    -days 825 \
-    -extensions v3_req \
-    -extfile "$TMP_EXT_FILE" 2>&1; then
-    rm -f "$TMP_EXT_FILE" "$CERT_DIR/$DOMAIN.csr" "$CERT_DIR/$DOMAIN-key.pem"
-    echo -e "${RED}✗ Failed to sign certificate${NC}"
-    echo ""
-    echo -e "${YELLOW}Troubleshooting:${NC}"
-    echo "  1. Verify mkcert CA is installed: ${BLUE}$MKCERT_CMD -install${NC}"
-    echo "  2. Check CA files exist:"
-    echo "     - ${BLUE}$CA_ROOT/rootCA.pem${NC}"
-    echo "     - ${BLUE}$CA_ROOT/rootCA-key.pem${NC}"
-    echo "  3. Check directory permissions: ${BLUE}$CERT_DIR${NC}"
-    echo "  4. Verify openssl version: ${BLUE}openssl version${NC}"
-    exit 1
+
+# Use sudo if CA files are not readable
+if [ "$USE_SUDO_FOR_SIGNING" = true ]; then
+    echo -e "${YELLOW}Using sudo to access root-owned CA files...${NC}"
+    echo -e "${YELLOW}You may be prompted for your password${NC}"
+    
+    # Use sudo to sign the certificate
+    if ! sudo openssl x509 -req -in "$CERT_DIR/$DOMAIN.csr" \
+        -CA "$CA_ROOT/rootCA.pem" \
+        -CAkey "$CA_ROOT/rootCA-key.pem" \
+        -CAcreateserial \
+        -out "$CERT_DIR/$DOMAIN.pem" \
+        -days 825 \
+        -extensions v3_req \
+        -extfile "$TMP_EXT_FILE" 2>&1; then
+        rm -f "$TMP_EXT_FILE" "$CERT_DIR/$DOMAIN.csr" "$CERT_DIR/$DOMAIN-key.pem"
+        echo -e "${RED}✗ Failed to sign certificate${NC}"
+        echo ""
+        echo -e "${YELLOW}Troubleshooting:${NC}"
+        echo "  1. CA files are owned by root. Try fixing permissions:"
+        echo "     ${BLUE}sudo chmod 644 $CA_ROOT/rootCA.pem${NC}"
+        echo "     ${BLUE}sudo chmod 600 $CA_ROOT/rootCA-key.pem${NC}"
+        echo "  2. Or ensure you have sudo access for certificate signing"
+        echo "  3. Verify mkcert CA is installed: ${BLUE}$MKCERT_CMD -install${NC}"
+        echo "  4. Check directory permissions: ${BLUE}$CERT_DIR${NC}"
+        exit 1
+    fi
+else
+    if ! openssl x509 -req -in "$CERT_DIR/$DOMAIN.csr" \
+        -CA "$CA_ROOT/rootCA.pem" \
+        -CAkey "$CA_ROOT/rootCA-key.pem" \
+        -CAcreateserial \
+        -out "$CERT_DIR/$DOMAIN.pem" \
+        -days 825 \
+        -extensions v3_req \
+        -extfile "$TMP_EXT_FILE" 2>&1; then
+        rm -f "$TMP_EXT_FILE" "$CERT_DIR/$DOMAIN.csr" "$CERT_DIR/$DOMAIN-key.pem"
+        echo -e "${RED}✗ Failed to sign certificate${NC}"
+        echo ""
+        echo -e "${YELLOW}Troubleshooting:${NC}"
+        echo "  1. Verify mkcert CA is installed: ${BLUE}$MKCERT_CMD -install${NC}"
+        echo "  2. Check CA files exist and are readable:"
+        echo "     - ${BLUE}$CA_ROOT/rootCA.pem${NC}"
+        echo "     - ${BLUE}$CA_ROOT/rootCA-key.pem${NC}"
+        echo "  3. If files are root-owned, the script will use sudo automatically"
+        echo "  4. Check directory permissions: ${BLUE}$CERT_DIR${NC}"
+        echo "  5. Verify openssl version: ${BLUE}openssl version${NC}"
+        exit 1
+    fi
 fi
 
 # Clean up temporary files
