@@ -17,7 +17,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: process.env.SOCKET_IO_ORIGIN || "https://localcloudkit.localhost",
+    origin: process.env.SOCKET_IO_ORIGIN || "https://localcloudkit.local",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -80,7 +80,7 @@ if (!fs.existsSync("/tmp/uploads")) {
 // Middleware
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "https://localcloudkit.localhost",
+    origin: process.env.CORS_ORIGIN || "https://localcloudkit.local",
     credentials: true,
   })
 );

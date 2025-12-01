@@ -3,6 +3,5 @@
 
 tls:
   certificates:
-    - certFile: "/certs/localcloudkit.localhost.pem"
-      keyFile: "/certs/localcloudkit.localhost-key.pem"
-
+    - certFile: "/certs/localcloudkit.local.pem"
+      keyFile: "/certs/localcloudkit.local-key.pem"

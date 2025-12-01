@@ -96,7 +96,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.localcloud.rule=Host(`localcloudkit.localhost`)"
+      - "traefik.http.routers.localcloud.rule=Host(`localcloudkit.local`)"
       - "traefik.http.routers.localcloud.entrypoints=websecure"
       - "traefik.http.routers.localcloud.tls=true"
       - "traefik.http.services.localcloud.loadbalancer.server.port=80"
