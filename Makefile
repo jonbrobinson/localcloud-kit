@@ -52,10 +52,10 @@ start: ## Start all services with Docker Compose
 	@mkdir -p volume/cache volume/lib volume/logs volume/tmp
 	LOCALSTACK_VERSION=$(LOCALSTACK_VERSION) docker compose up --build -d
 	@echo "$(GREEN)Waiting for services to be ready...$(NC)"
-	@until curl -s -k https://localcloudkit.localhost/health > /dev/null 2>&1 || curl -s http://localhost/health > /dev/null 2>&1; do sleep 2; done
+	@until curl -s -k https://localcloudkit.local/health > /dev/null 2>&1 || curl -s http://localhost/health > /dev/null 2>&1; do sleep 2; done
 	@echo "$(GREEN)All services are ready!$(NC)"
-	@echo "$(YELLOW)GUI: https://localcloudkit.localhost$(NC)"
-	@echo "$(YELLOW)API: https://localcloudkit.localhost/api$(NC)"
+	@echo "$(YELLOW)GUI: https://localcloudkit.local$(NC)"
+	@echo "$(YELLOW)API: https://localcloudkit.local/api$(NC)"
 	@echo "$(YELLOW)LocalStack: http://localhost:4566$(NC)"
 	@echo "$(YELLOW)Express API (direct): http://localhost:3031$(NC)"
 
@@ -70,7 +70,7 @@ status: ## Check Docker services status
 	@docker compose ps
 	@echo ""
 	@echo "$(YELLOW)Health Checks:$(NC)"
-	@curl -s -k https://localcloudkit.localhost/health || curl -s http://localhost/health || echo "$(RED)GUI/API not responding$(NC)"
+	@curl -s -k https://localcloudkit.local/health || curl -s http://localhost/health || echo "$(RED)GUI/API not responding$(NC)"
 	@curl -s http://localhost:4566/_localstack/health || echo "$(RED)LocalStack not responding$(NC)"
 
 logs: ## View Docker services logs
@@ -119,7 +119,7 @@ reset-env: clean clean-all ## Full environment reset (clean resources, stop serv
 gui-start: ## Start the LocalCloud Kit GUI system with Docker
 	@echo "$(BLUE)Starting LocalCloud Kit GUI with Docker...$(NC)"
 	@docker compose up -d localcloud-gui localcloud-api nginx
-	@echo "$(GREEN)LocalCloud Kit GUI is running at https://localcloudkit.localhost$(NC)"
+	@echo "$(GREEN)LocalCloud Kit GUI is running at https://localcloudkit.local$(NC)"
 
 gui-stop: ## Stop the LocalCloud Kit GUI system
 	@echo "$(YELLOW)Stopping LocalCloud Kit GUI...$(NC)"
