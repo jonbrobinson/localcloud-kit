@@ -126,7 +126,7 @@ localcloud-kit/
 
 ## 🎯 Features
 
-**Latest Release:** v0.5 series introduces AWS Secrets Manager integration, enhanced DynamoDB with GSI support, multipart file uploads, and Docker environment management. [View detailed changelog →](CHANGELOG.md)
+**Latest Release:** v0.6.0 introduces Traefik routing with HTTPS, automatic certificate setup, and improved development workflow. [View detailed changelog →](CHANGELOG.md)
 
 ### AWS Service Emulation
 
