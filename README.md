@@ -4,7 +4,7 @@
 
 Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, and Secrets Manager.
 
-[![Version](https://img.shields.io/badge/version-0.6.1-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.6.1)
+[![Version](https://img.shields.io/badge/version-0.6.2-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.6.2)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
@@ -126,7 +126,7 @@ localcloud-kit/
 
 ## 🎯 Features
 
-**Latest Release:** v0.6.1 includes documentation consolidation and improved structure. v0.6.0 introduced Traefik routing with HTTPS, automatic certificate setup, and improved development workflow. [View detailed changelog →](CHANGELOG.md)
+**Latest Release:** v0.6.2 fixes Docker architecture documentation. v0.6.1 included documentation consolidation and improved structure. v0.6.0 introduced Traefik routing with HTTPS, automatic certificate setup, and improved development workflow. [View detailed changelog →](CHANGELOG.md)
 
 ### AWS Service Emulation
 
