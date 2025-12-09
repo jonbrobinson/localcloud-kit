@@ -1,28 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useLocalStackData } from "@/hooks/useLocalStackData";
+import { resourceApi } from "@/services/api";
+import { DynamoDBTableConfig, S3BucketConfig } from "@/types";
 import {
-  DocumentTextIcon,
   ArrowPathIcon,
+  DocumentTextIcon,
   FolderIcon,
 } from "@heroicons/react/24/outline";
+import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { DynamoDBTableConfig, S3BucketConfig } from "@/types";
-import { resourceApi } from "@/services/api";
-import { useLocalStackData } from "@/hooks/useLocalStackData";
-import StatusCard from "./StatusCard";
 import ResourceList from "./ResourceList";
+import StatusCard from "./StatusCard";
 
-import DynamoDBConfigModal from "./DynamoDBConfigModal";
-import S3ConfigModal from "./S3ConfigModal";
-import LogViewer from "./LogViewer";
-import BucketViewer from "./BucketViewer";
-import DynamoDBViewer from "./DynamoDBViewer";
-import SecretsManagerViewer from "./SecretsManagerViewer";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import packageJson from "../../package.json";
+import BucketViewer from "./BucketViewer";
+import DynamoDBConfigModal from "./DynamoDBConfigModal";
+import DynamoDBViewer from "./DynamoDBViewer";
+import LogViewer from "./LogViewer";
+import S3ConfigModal from "./S3ConfigModal";
+import SecretsManagerViewer from "./SecretsManagerViewer";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -253,7 +253,7 @@ export default function Dashboard() {
             <div className="flex items-center space-x-4">
               <div className="hidden md:block text-right">
                 <p className="text-sm text-gray-600">
-                  Local AWS Development Environment
+                  Local Cloud Development Environment
                 </p>
                 <p className="text-xs text-gray-400">v{packageJson.version}</p>
               </div>
@@ -422,7 +422,7 @@ export default function Dashboard() {
             </span>
           </div>
           <p className="text-xs text-gray-400">
-            Local AWS Development Environment • LocalCloud Kit v
+            Local Cloud Development Environment • LocalCloud Kit v
             {packageJson.version}
           </p>
         </div>
