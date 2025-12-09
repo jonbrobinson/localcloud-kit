@@ -4,7 +4,7 @@
 
 Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, and Secrets Manager.
 
-[![Version](https://img.shields.io/badge/version-0.7.0-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.7.0)
+[![Version](https://img.shields.io/badge/version-0.7.1-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.7.1)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
@@ -46,8 +46,10 @@ Everything else is handled automatically!
 **Individual scripts available for one-off operations:**
 
 - `./scripts/setup-mkcert.sh` - Generate certificates only
-- `./scripts/install-ca.sh` - Install CA only
-- `./scripts/setup-hosts.sh` - Setup /etc/hosts only
+- `./scripts/install-ca.sh` - Install CA certificate only
+- `./scripts/setup-hosts.sh` - Add domain to /etc/hosts only
+- `./scripts/cleanup-hosts.sh` - Remove LocalCloud Kit domains from /etc/hosts (with confirmation)
+- `./scripts/verify-setup.sh` - Verify setup and certificate configuration
 
 #### Step 2: Start the Application
 
@@ -120,13 +122,12 @@ localcloud-kit/
 ├── 📄 Dockerfile.gui           # GUI container build
 ├── 📄 Dockerfile.api           # API container build
 ├── 📄 nginx.conf               # Reverse proxy configuration
-├── 📄 start-gui.sh             # All-in-one startup script
 └── 📄 README.md                # This file
 ```
 
 ## 🎯 Features
 
-**Latest Release:** v0.6.2 fixes Docker architecture documentation. v0.6.1 included documentation consolidation and improved structure. v0.6.0 introduced Traefik routing with HTTPS, automatic certificate setup, and improved development workflow. [View detailed changelog →](CHANGELOG.md)
+**Latest Release:** v0.7.1 includes enhanced interactive cleanup script, updated branding to "Local Cloud Development Environment", and removed obsolete start-gui.sh script. v0.7.0 introduced domain and port changes (app-local.localcloudkit.com:3030) to free up standard ports 80/443. [View detailed changelog →](CHANGELOG.md)
 
 ### AWS Service Emulation
 
@@ -182,7 +183,7 @@ localcloud-kit/
 
 #### Docker Environment
 
-- **Single Command Setup**: Start everything with `./start-gui.sh`
+- **Single Command Setup**: Start everything with `make start` (cross-platform)
 - **Docker Compose**: Fully containerized with hot reload support
 - **Nginx Reverse Proxy**: Clean URL routing for all services
 - **Environment Reset**: Easy cleanup and fresh start commands
@@ -256,8 +257,8 @@ The `docker-compose.yml` uses `${LOCALSTACK_VERSION:-latest}` which means:
 ### Start Services
 
 ```bash
-# Recommended: Use the startup script
-./start-gui.sh
+# Recommended: Use Make (cross-platform)
+make start
 
 # Alternative: Docker Compose directly
 docker compose up --build
@@ -341,8 +342,8 @@ Then view files in the GUI with full syntax highlighting support.
 | ----------- | -------------------------------------------- | -------------------------- |
 | Web GUI     | https://app-local.localcloudkit.com:3030     | Main application interface |
 | API Server  | https://app-local.localcloudkit.com:3030/api | REST API endpoints         |
-| LocalStack  | http://localhost:4566           | AWS services emulation     |
-| Redis Cache | localhost:6380                  | Redis cache (no password)  |
+| LocalStack  | http://localhost:4566                        | AWS services emulation     |
+| Redis Cache | localhost:6380                               | Redis cache (no password)  |
 
 > **Note**: Within Docker network, services use internal hostnames (e.g., `localstack:4566`, `redis:6379`)
 
@@ -366,9 +367,8 @@ Edit `docker-compose.yml` to customize:
 
 ```bash
 # Start services
-docker compose up --build          # Build and start all services
-./start-gui.sh                     # Recommended startup script
-make start                         # Using Makefile
+make start                         # Recommended: Cross-platform Make command
+docker compose up --build          # Alternative: Docker Compose directly
 
 # View logs
 docker compose logs -f             # Follow all logs
@@ -401,6 +401,65 @@ docker compose up -d --scale api=3 # Scale services
 - **[Getting Started Guide](GETTING_STARTED.md)** - Complete setup and first-time installation (includes quick start, customization, and workflows)
 - **[Docker Guide](docs/DOCKER.md)** - Container deployment and management
 - **[Connection Guide](CONNECT.md)** - AWS SDK integration examples
+
+### Setup & Configuration Scripts
+
+LocalCloud Kit includes several setup and maintenance scripts:
+
+**Setup Scripts:**
+
+- `./scripts/setup.sh` - **Master setup script** - Runs all setup steps automatically
+  - Installs mkcert (if needed)
+  - Installs mkcert CA certificate
+  - Generates SSL certificates
+  - Adds domain to /etc/hosts
+- `./scripts/setup-mkcert.sh` - Generate SSL certificates only
+- `./scripts/install-ca.sh` - Install mkcert CA certificate to system trust store
+- `./scripts/setup-hosts.sh` - Add `app-local.localcloudkit.com` to /etc/hosts
+- `./scripts/verify-setup.sh` - Verify setup configuration
+  - Checks certificate files exist and are valid
+  - Verifies certificate subject matches domain
+  - Checks /etc/hosts entry exists
+  - Verifies mkcert CA is installed
+  - Provides troubleshooting guidance
+
+**Cleanup Scripts:**
+
+- `./scripts/cleanup-hosts.sh` - **Interactive cleanup** of LocalCloud Kit domain entries
+  - Detects all LocalCloud Kit domains in /etc/hosts (including previous versions)
+  - Shows found entries before removal
+  - **Interactive confirmation** - choose which domains to remove or keep
+  - Creates backup before making changes
+  - Supports cleaning up old domains like `localcloudkit.local`
+  - Safe to run - requires confirmation for each domain
+
+**Example cleanup usage:**
+
+```bash
+# Clean up old domain entries (interactive)
+sudo ./scripts/cleanup-hosts.sh
+
+# The script will:
+# 1. Scan /etc/hosts for all LocalCloud Kit domains
+#    - Detects: localcloudkit.local (old domain)
+#    - Detects: app-local.localcloudkit.com (current domain)
+# 2. Show all found entries before making changes
+# 3. Ask for each domain individually: "Remove entries for [domain]? (y/N)"
+#    - You can choose to keep or remove each domain
+# 4. Show summary of what will be removed (red) and kept (green)
+# 5. Final confirmation before making any changes
+# 6. Create backup automatically
+# 7. Remove only selected domains
+# 8. Verify removal was successful
+```
+
+**Cleanup script features:**
+
+- ✅ **Safe**: Creates backup before any changes
+- ✅ **Interactive**: Choose which domains to remove or keep
+- ✅ **Selective**: Remove old domains while keeping current one
+- ✅ **Verification**: Confirms successful removal
+- ✅ **Cancellable**: Can cancel at any confirmation prompt
 
 ### Certificate & Security
 
@@ -515,6 +574,7 @@ curl http://localhost:4566/_localstack/health   # Check LocalStack
 - **Can't connect to LocalStack**: Wait for startup or restart → `docker compose restart localstack`
 - **Certificate errors**: Run `./scripts/setup.sh` to generate certificates
 - **Domain not resolving**: Add to `/etc/hosts` or run `sudo ./scripts/setup-hosts.sh`
+- **Clean up old domain entries**: Run `sudo ./scripts/cleanup-hosts.sh` to remove previous LocalCloud Kit domains (interactive, with confirmation)
 
 **Development mode (GUI outside Docker):**
 

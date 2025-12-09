@@ -103,8 +103,8 @@ make start
 # Option 2: Using Docker Compose directly
 docker compose up -d
 
-# Option 3: Using the start script
-./start-gui.sh
+# Option 3: Using Make (cross-platform)
+make start
 ```
 
 ### Step 4: Access the Application

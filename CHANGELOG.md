@@ -4,11 +4,42 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.7.1] - 2025-12-09
+
+### Added
+
+- **Enhanced Cleanup Script**: Interactive cleanup of LocalCloud Kit domain entries
+  - Detects all LocalCloud Kit domains in /etc/hosts (including previous versions)
+  - Interactive confirmation for each domain (choose to remove or keep)
+  - Shows summary of domains to be removed/kept before making changes
+  - Supports cleaning up old domains like `localcloudkit.local`
+  - Creates backup automatically before any changes
+  - Safe and cancellable at any confirmation prompt
+
+### Changed
+
+- **Branding Update**: Updated tagline from "Local AWS Development Environment" to "Local Cloud Development Environment"
+  - Better reflects that the platform includes AWS services and Redis cache
+  - Removed AWS-specific wording while maintaining cloud service focus
+  - Updated in GUI metadata, dashboard header, and footer
+- **Documentation**: Enhanced README with comprehensive cleanup script documentation
+  - Added detailed setup and configuration scripts section
+  - Documented cleanup script features and usage examples
+  - Updated all script descriptions to match actual functionality
+
+### Removed
+
+- **Obsolete Script**: Removed `start-gui.sh` in favor of cross-platform Make commands
+  - `make start` provides better cross-platform support (macOS, Linux, Windows)
+  - Make commands have correct URLs and health checks
+  - All references updated to use `make start` instead
+
 ## [0.7.0] - 2025-12-09
 
 ### Changed
 
 - **BREAKING: Domain and Port Configuration**: Updated local development domain and port to avoid blocking standard HTTP/HTTPS ports
+
   - Changed domain from `localcloudkit.local` to `app-local.localcloudkit.com`
   - Changed HTTPS port from `443` to `3030` (frees up standard ports 80/443 for other applications)
   - Removed HTTP redirect on port 80 (port 80 is now completely free)
@@ -20,8 +51,9 @@ All notable changes to LocalCloud Kit will be documented in this file.
   - Updated CORS and Socket.IO origins in API server
   - Updated all documentation references (README, GETTING_STARTED, docs/)
   - New access URL: `https://app-local.localcloudkit.com:3030`
-  
+
   **Migration Notes:**
+
   - Existing users must regenerate certificates: `./scripts/setup-mkcert.sh`
   - Update `/etc/hosts`: `sudo ./scripts/setup-hosts.sh`
   - Update access URLs to use new domain and port
@@ -74,7 +106,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
   - No Homebrew or manual installation required
   - Supports Intel and Apple Silicon architectures
   - Generates trusted certificates with clean subject (CN=localcloudkit.local)
-  - Wildcard certificate support (*.localcloudkit.local) for subdomain access
+  - Wildcard certificate support (\*.localcloudkit.local) for subdomain access
   - Handles root-owned CA files with automatic permission fixes
 - **Certificate Management Scripts**:
   - Added `scripts/setup-mkcert.sh` - Automatic mkcert installation and certificate generation
