@@ -3,16 +3,8 @@ api:
   insecure: false
 
 entryPoints:
-  web:
-    address: ":80"
-    http:
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
-
   websecure:
-    address: ":443"
+    address: ":3030"
 
 # HTTPS required for .localhost domains (Chrome HSTS)
 # Using mkcert-generated certificates for Safari compatibility

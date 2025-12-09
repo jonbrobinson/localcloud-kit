@@ -41,7 +41,7 @@ If the command above doesn't work:
 
 5. **Restart Browser**
    - Completely quit your browser (Cmd+Q)
-   - Reopen and navigate to `https://localcloudkit.local`
+   - Reopen and navigate to `https://app-local.localcloudkit.com:3030`
 
 ### Verify Installation
 
@@ -76,7 +76,7 @@ The certificate should be installed automatically when you run `mkcert -install`
    ls -la traefik/certs/
    ```
 
-   Should show `localcloudkit.local.pem` and `localcloudkit.local-key.pem`
+   Should show `app-local.localcloudkit.com.pem` and `app-local.localcloudkit.com-key.pem`
 
 2. **Regenerate certificates:**
 

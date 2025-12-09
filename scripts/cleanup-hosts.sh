@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # Cleanup Script for LocalCloud Kit
-# Removes /etc/hosts entries for localcloudkit.local (if they exist)
+# Removes /etc/hosts entries for app-local.localcloudkit.com (if they exist)
 
 set -e
 
-HOSTNAME="localcloudkit.local"
+HOSTNAME="app-local.localcloudkit.com"
 HOSTS_FILE="/etc/hosts"
 BACKUP_FILE="/etc/hosts.localcloudkit.backup"
 
@@ -38,7 +38,7 @@ if ! grep -q "$HOSTNAME" "$HOSTS_FILE" 2>/dev/null; then
     echo -e "${GREEN}✓ No entries found for $HOSTNAME in $HOSTS_FILE${NC}"
     echo ""
     echo "Note: The .local domain uses mDNS/Bonjour. If it doesn't resolve,"
-    echo "you may need to add to /etc/hosts: 127.0.0.1 localcloudkit.local"
+    echo "you may need to add to /etc/hosts: 127.0.0.1 app-local.localcloudkit.com"
     echo ""
     exit 0
 fi
@@ -99,7 +99,7 @@ if grep -q "$HOSTNAME" "$HOSTS_FILE" 2>/dev/null; then
     echo "Backup saved at: $BACKUP_FILE"
     echo ""
     echo "Note: The .local domain uses mDNS/Bonjour. If it doesn't resolve,"
-    echo "you may need to add to /etc/hosts: 127.0.0.1 localcloudkit.local"
+    echo "you may need to add to /etc/hosts: 127.0.0.1 app-local.localcloudkit.com"
     echo ""
 fi
 

@@ -5,7 +5,7 @@
 
 set -e
 
-DOMAIN="localcloudkit.local"
+DOMAIN="app-local.localcloudkit.com"
 CERT_DIR="./traefik/certs"
 
 # Colors for output (only if terminal supports it)

@@ -4,6 +4,29 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.7.0] - 2025-12-09
+
+### Changed
+
+- **BREAKING: Domain and Port Configuration**: Updated local development domain and port to avoid blocking standard HTTP/HTTPS ports
+  - Changed domain from `localcloudkit.local` to `app-local.localcloudkit.com`
+  - Changed HTTPS port from `443` to `3030` (frees up standard ports 80/443 for other applications)
+  - Removed HTTP redirect on port 80 (port 80 is now completely free)
+  - Updated all configuration files, scripts, and documentation to reflect new domain and port
+  - Updated Traefik entry point from port 443 to 3030
+  - Removed HTTP to HTTPS redirect (direct HTTPS access only)
+  - Updated certificate generation scripts for new domain
+  - Updated `/etc/hosts` setup scripts for new domain
+  - Updated CORS and Socket.IO origins in API server
+  - Updated all documentation references (README, GETTING_STARTED, docs/)
+  - New access URL: `https://app-local.localcloudkit.com:3030`
+  
+  **Migration Notes:**
+  - Existing users must regenerate certificates: `./scripts/setup-mkcert.sh`
+  - Update `/etc/hosts`: `sudo ./scripts/setup-hosts.sh`
+  - Update access URLs to use new domain and port
+  - Ports 80 and 443 are now available for other local applications
+
 ## [0.6.2] - 2025-11-30
 
 ### Fixed

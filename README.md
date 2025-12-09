@@ -4,7 +4,7 @@
 
 Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, and Secrets Manager.
 
-[![Version](https://img.shields.io/badge/version-0.6.2-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.6.2)
+[![Version](https://img.shields.io/badge/version-0.7.0-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.7.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
@@ -39,7 +39,7 @@ Everything else is handled automatically!
 - Automatically downloads and installs `mkcert` if not found (works on macOS, Linux, Windows)
 - Installs the mkcert CA to your system trust store (requires sudo password)
 - Generates trusted certificates that work in both Chrome and Safari without warnings
-- Adds `localcloudkit.local` to `/etc/hosts` (requires sudo password)
+- Adds `app-local.localcloudkit.com` to `/etc/hosts` (requires sudo password)
 
 **No manual installation needed** - the script handles everything automatically!
 
@@ -64,12 +64,12 @@ This single command will:
 
 **Access URLs:**
 
-- **Web GUI**: https://localcloudkit.local
-- **API Server**: https://localcloudkit.local/api
+- **Web GUI**: https://app-local.localcloudkit.com:3030
+- **API Server**: https://app-local.localcloudkit.com:3030/api
 - **LocalStack**: http://localhost:4566 (direct access for AWS CLI)
 - **Express API (direct)**: http://localhost:3031 (direct access, bypasses Traefik)
 
-> **Note**: The `.local` domain uses mDNS/Bonjour. If it doesn't resolve, add to `/etc/hosts`: `127.0.0.1 localcloudkit.local`
+> **Note**: Add to `/etc/hosts`: `127.0.0.1 app-local.localcloudkit.com`
 
 **📖 For detailed getting started instructions, see [GETTING_STARTED.md](GETTING_STARTED.md)**
 
@@ -274,7 +274,7 @@ cd localcloud-gui && npm install && npm run dev
 
 #### Via Web GUI (Recommended)
 
-1. Open https://localcloudkit.local
+1. Open https://app-local.localcloudkit.com:3030
 2. Click individual resource buttons:
    - 🪣 **S3 Bucket** - Create storage buckets
    - 🗄️ **DynamoDB Table** - Create NoSQL tables
@@ -314,7 +314,7 @@ aws --endpoint-url=http://localhost:4566 secretsmanager create-secret \
 
 All resources can be managed through:
 
-- **Web GUI**: https://localcloudkit.local
+- **Web GUI**: https://app-local.localcloudkit.com:3030
 - **Shell Scripts**: Located in `scripts/shell/`
 - **AWS CLI**: Using `--endpoint-url=http://localhost:4566`
 - **AWS SDKs**: Configure with LocalStack endpoint
@@ -337,10 +337,10 @@ Then view files in the GUI with full syntax highlighting support.
 
 ### Service URLs
 
-| Service     | URL                             | Description                |
-| ----------- | ------------------------------- | -------------------------- |
-| Web GUI     | https://localcloudkit.local     | Main application interface |
-| API Server  | https://localcloudkit.local/api | REST API endpoints         |
+| Service     | URL                                          | Description                |
+| ----------- | -------------------------------------------- | -------------------------- |
+| Web GUI     | https://app-local.localcloudkit.com:3030     | Main application interface |
+| API Server  | https://app-local.localcloudkit.com:3030/api | REST API endpoints         |
 | LocalStack  | http://localhost:4566           | AWS services emulation     |
 | Redis Cache | localhost:6380                  | Redis cache (no password)  |
 
@@ -505,7 +505,7 @@ docker compose up -d                 # Start if not running
 **Verify services are healthy:**
 
 ```bash
-curl -k https://localcloudkit.local/api/health           # Check API
+curl -k https://app-local.localcloudkit.com:3030/api/health           # Check API
 curl http://localhost:4566/_localstack/health   # Check LocalStack
 ```
 

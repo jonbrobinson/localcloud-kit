@@ -6,7 +6,7 @@
 
 set -e
 
-DOMAIN="localcloudkit.local"
+DOMAIN="app-local.localcloudkit.com"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 

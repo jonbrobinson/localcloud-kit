@@ -23,7 +23,7 @@ Run the setup script (one-time per project):
 - **Automatically downloads and installs mkcert** if not found (works on macOS, Linux, Windows)
 - **No Homebrew or manual installation needed!**
 - Installs mkcert CA to system trust store (first time only, requires sudo password)
-- Generates certificates for `localcloudkit.local`
+- Generates certificates for `app-local.localcloudkit.com`
 - Creates `traefik/certs/` directory with certificates
 
 **Supported platforms:**
@@ -42,12 +42,12 @@ Run the setup script (one-time per project):
 
 Certificate directory: ./traefik/certs
 
-Generating certificate for localcloudkit.local ...
+Generating certificate for app-local.localcloudkit.com ...
 ✓ Certificates generated successfully!
 
 Generated files:
--rw-------  traefik/certs/localcloudkit.local-key.pem
--rw-r--r--  traefik/certs/localcloudkit.local.pem
+-rw-------  traefik/certs/app-local.localcloudkit.com-key.pem
+-rw-r--r--  traefik/certs/app-local.localcloudkit.com.pem
 
 === Next Steps ===
 
@@ -55,7 +55,7 @@ Generated files:
    docker compose down && docker compose up -d
 
 2. Open in your browser:
-   https://localcloudkit.local
+   https://app-local.localcloudkit.com:3030
 ```
 
 ### Step 3: Start Services
@@ -87,9 +87,9 @@ make restart
 
 Open in your browser:
 
-- **Main GUI**: `https://localcloudkit.local`
-- **API**: `https://localcloudkit.local/api`
-- **Health Check**: `https://localcloudkit.local/health`
+- **Main GUI**: `https://app-local.localcloudkit.com:3030`
+- **API**: `https://app-local.localcloudkit.com:3030/api`
+- **Health Check**: `https://app-local.localcloudkit.com:3030/health`
 
 ### Development Features
 
@@ -176,7 +176,7 @@ This will:
 ### Daily Development
 
 1. `make start` (or `make restart` if already running)
-2. Open `https://localcloudkit.local`
+2. Open `https://app-local.localcloudkit.com:3030`
 3. Edit code → auto-reloads
 4. `make stop` when done
 
@@ -200,10 +200,10 @@ This will:
 
 ## 🌐 Access URLs
 
-| Service     | URL                               | Description           |
-| ----------- | --------------------------------- | --------------------- |
-| Web GUI     | `https://localcloudkit.local`     | Main application      |
-| API         | `https://localcloudkit.local/api` | REST API              |
+| Service     | URL                                          | Description           |
+| ----------- | -------------------------------------------- | --------------------- |
+| Web GUI     | `https://app-local.localcloudkit.com:3030`   | Main application      |
+| API         | `https://app-local.localcloudkit.com:3030/api` | REST API              |
 | LocalStack  | `http://localhost:4566`           | AWS services (direct) |
 | Express API | `http://localhost:3031`           | API server (direct)   |
 | Redis       | `localhost:6380`                  | Cache (direct)        |
@@ -214,10 +214,10 @@ After starting, verify everything works:
 
 ```bash
 # Check health
-curl -k https://localcloudkit.local/health
+curl -k https://app-local.localcloudkit.com:3030/health
 
 # Check API
-curl -k https://localcloudkit.local/api/health
+curl -k https://app-local.localcloudkit.com:3030/api/health
 
 # Check services
 make status
