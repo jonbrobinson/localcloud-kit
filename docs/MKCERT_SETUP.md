@@ -63,7 +63,7 @@ This script will:
 
 1. Check if mkcert is installed (guides you if not)
 2. Install mkcert CA to your system trust store (first time only)
-3. Generate certificates for `localcloudkit.local`
+3. Generate certificates for `app-local.localcloudkit.com`
 4. Place certificates in `traefik/certs/`
 
 **Expected output:**
@@ -76,12 +76,12 @@ This script will:
 
 Certificate directory: ./traefik/certs
 
-Generating certificate for localcloudkit.local ...
+Generating certificate for app-local.localcloudkit.com ...
 ✓ Certificates generated successfully!
 
 Generated files:
--rw-------  1 user  staff  2.1K Nov 30 10:00 traefik/certs/localcloudkit.local-key.pem
--rw-r--r--  1 user  staff  1.5K Nov 30 10:00 traefik/certs/localcloudkit.local.pem
+-rw-------  1 user  staff  2.1K Nov 30 10:00 traefik/certs/app-local.localcloudkit.com-key.pem
+-rw-r--r--  1 user  staff  1.5K Nov 30 10:00 traefik/certs/app-local.localcloudkit.com.pem
 
 === Next Steps ===
 
@@ -89,7 +89,7 @@ Generated files:
    docker compose down && docker compose up -d
 
 2. Open in your browser:
-   https://localcloudkit.local
+   https://app-local.localcloudkit.com:3030
 
 Both Chrome and Safari will trust these certificates automatically!
 ```
@@ -111,9 +111,9 @@ docker compose up -d
 
 Open in your browser:
 
-- **Chrome**: `https://localcloudkit.local`
-- **Safari**: `https://localcloudkit.local`
-- **Firefox**: `https://localcloudkit.local`
+- **Chrome**: `https://app-local.localcloudkit.com:3030`
+- **Safari**: `https://app-local.localcloudkit.com:3030`
+- **Firefox**: `https://app-local.localcloudkit.com:3030`
 
 **No certificate warnings!** ✅
 
@@ -153,8 +153,8 @@ make reset
 
 ### Access Points
 
-- **Main GUI**: `https://localcloudkit.local`
-- **API**: `https://localcloudkit.local/api`
+- **Main GUI**: `https://app-local.localcloudkit.com:3030`
+- **API**: `https://app-local.localcloudkit.com:3030/api`
 - **LocalStack (direct)**: `http://localhost:4566`
 - **Express API (direct)**: `http://localhost:3031`
 
@@ -192,8 +192,8 @@ If you see certificate warnings:
    ```
 
 3. **Verify domain matches:**
-   - Certificate is for: `localcloudkit.local`
-   - You're accessing: `https://localcloudkit.local` (not `http://`)
+   - Certificate is for: `app-local.localcloudkit.com`
+   - You're accessing: `https://app-local.localcloudkit.com:3030` (not `http://`)
 
 ### mkcert Not Found
 
@@ -215,8 +215,8 @@ brew install mkcert
 
 Generated certificates are stored in:
 
-- `traefik/certs/localcloudkit.local.pem` (certificate)
-- `traefik/certs/localcloudkit.local-key.pem` (private key)
+- `traefik/certs/app-local.localcloudkit.com.pem` (certificate)
+- `traefik/certs/app-local.localcloudkit.com-key.pem` (private key)
 
 These files are:
 

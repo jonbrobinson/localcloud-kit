@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 # mkcert Setup Script for LocalCloud Kit
-# Generates trusted local certificates for localcloudkit.local
+# Generates trusted local certificates for app-local.localcloudkit.com
 # Automatically installs mkcert if not found
 
 set -e
 
-DOMAIN="localcloudkit.local"
+DOMAIN="app-local.localcloudkit.com"
 CERT_DIR="./traefik/certs"
 MKCERT_BIN_DIR="./scripts/bin"
 MKCERT_BIN="$MKCERT_BIN_DIR/mkcert"
@@ -253,7 +253,7 @@ fi
 echo -e "${GREEN}✓ Certificate directory is ready${NC}"
 echo ""
 
-# Generate certificate with custom subject (CN=localcloudkit.local only)
+# Generate certificate with custom subject (CN=app-local.localcloudkit.com only)
 echo -e "${YELLOW}Generating certificate for $DOMAIN with custom subject...${NC}"
 
 # Check if openssl is available

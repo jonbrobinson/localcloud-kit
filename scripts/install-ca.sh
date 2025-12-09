@@ -46,7 +46,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         echo "If you're still seeing certificate errors:"
         echo "  1. Completely quit Chrome (Cmd+Q)"
         echo "  2. Reopen Chrome"
-        echo "  3. Navigate to https://localcloudkit.local"
+        echo "  3. Navigate to https://app-local.localcloudkit.com:3030"
         exit 0
     fi
 fi
@@ -68,7 +68,7 @@ if [ "$EUID" -eq 0 ]; then
     echo -e "${YELLOW}Next steps:${NC}"
     echo "  1. ${BLUE}Completely quit Chrome${NC} (Cmd+Q, don't just close tabs)"
     echo "  2. ${BLUE}Reopen Chrome${NC}"
-    echo "  3. ${BLUE}Navigate to https://localcloudkit.local${NC}"
+    echo "  3. ${BLUE}Navigate to https://app-local.localcloudkit.com:3030${NC}"
         echo ""
         echo -e "${GREEN}The certificate should now be trusted!${NC}"
         exit 0

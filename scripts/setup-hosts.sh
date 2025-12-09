@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # Setup Script for LocalCloud Kit
-# Adds localcloudkit.local to /etc/hosts if not present
+# Adds app-local.localcloudkit.com to /etc/hosts if not present
 
 set -e
 
-HOSTNAME="localcloudkit.local"
+HOSTNAME="app-local.localcloudkit.com"
 IP="127.0.0.1"
 HOSTS_FILE="/etc/hosts"
 BACKUP_FILE="/etc/hosts.localcloudkit.backup"

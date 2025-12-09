@@ -24,8 +24,8 @@ That's it! Everything else (mkcert, Node.js, dependencies) is handled automatica
 
 - Automatically downloads and installs `mkcert` if needed (works on macOS, Linux, Windows)
 - Installs the mkcert CA to your system (prompts for sudo password)
-- Generates trusted certificates for `localcloudkit.local`
-- Adds `localcloudkit.local` to `/etc/hosts` (prompts for sudo password)
+- Generates trusted certificates for `app-local.localcloudkit.com`
+- Adds `app-local.localcloudkit.com` to `/etc/hosts` (prompts for sudo password)
 - No Homebrew, manual installation, or prerequisites needed!
 
 **Option B: Individual Scripts (For One-Off Operations)**
@@ -75,14 +75,14 @@ make start
 Starting LocalStack Template with Docker...
 Waiting for services to be ready...
 All services are ready! Access them via Traefik:
-GUI: https://localcloudkit.local
-API: https://localcloudkit.local/api
+GUI: https://app-local.localcloudkit.com:3030
+API: https://app-local.localcloudkit.com:3030/api
 LocalStack: http://localhost:4566
 ```
 
 ### Step 3: Open in Your Browser
 
-Open **https://localcloudkit.local** in your browser.
+Open **https://app-local.localcloudkit.com:3030** in your browser.
 
 You should see the LocalCloud Kit dashboard! 🎉
 
@@ -93,22 +93,22 @@ You should see the LocalCloud Kit dashboard! 🎉
 make status
 
 # Test health endpoint
-curl -k https://localcloudkit.local/health
+curl -k https://app-local.localcloudkit.com:3030/health
 
 # Test API endpoint
-curl -k https://localcloudkit.local/api/health
+curl -k https://app-local.localcloudkit.com:3030/api/health
 ```
 
 ## 📍 Access URLs
 
-| Service         | URL                               | Description                |
-| --------------- | --------------------------------- | -------------------------- |
-| **Web GUI**     | `https://localcloudkit.local`     | Main application dashboard |
-| **API**         | `https://localcloudkit.local/api` | REST API endpoints         |
-| **LocalStack**  | `http://localhost:4566`           | Direct AWS services access |
-| **Express API** | `http://localhost:3031`           | API server (direct)        |
+| Service         | URL                                            | Description                |
+| --------------- | ---------------------------------------------- | -------------------------- |
+| **Web GUI**     | `https://app-local.localcloudkit.com:3030`     | Main application dashboard |
+| **API**         | `https://app-local.localcloudkit.com:3030/api` | REST API endpoints         |
+| **LocalStack**  | `http://localhost:4566`                        | Direct AWS services access |
+| **Express API** | `http://localhost:3031`                        | API server (direct)        |
 
-> **Note**: The `.local` domain uses mDNS/Bonjour. If it doesn't resolve, add to `/etc/hosts`: `127.0.0.1 localcloudkit.local`
+> **Note**: Add to `/etc/hosts`: `127.0.0.1 app-local.localcloudkit.com`
 
 ## 🔄 Daily Workflow
 
