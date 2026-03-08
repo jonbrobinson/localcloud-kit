@@ -2,6 +2,32 @@
 
 Mailpit is a lightweight local SMTP server and web UI for catching and inspecting outgoing emails during development. No real emails are sent.
 
+## Existing Users — Required One-Time Steps
+
+If you already have LocalCloud Kit running and are adding Mailpit for the first time, two quick steps are needed before `make start`:
+
+**1. Regenerate your TLS certificate** (adds `mailpit.localcloudkit.com` to the cert's SAN list):
+
+```bash
+sudo ./scripts/setup-mkcert.sh
+```
+
+**2. Add the Mailpit hostname to `/etc/hosts`**:
+
+```bash
+sudo ./scripts/setup-hosts.sh
+```
+
+Then restart:
+
+```bash
+make restart
+```
+
+The Mailpit badge will appear in the dashboard header and the web UI will be available at `https://mailpit.localcloudkit.com:3030`.
+
+---
+
 ## Access
 
 | Interface | URL |
