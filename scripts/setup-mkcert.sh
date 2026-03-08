@@ -7,6 +7,7 @@
 set -e
 
 DOMAIN="app-local.localcloudkit.com"
+MAILPIT_DOMAIN="mailpit.localcloudkit.com"
 CERT_DIR="./traefik/certs"
 MKCERT_BIN_DIR="./scripts/bin"
 MKCERT_BIN="$MKCERT_BIN_DIR/mkcert"
@@ -311,11 +312,11 @@ fi
 echo -e "${GREEN}✓ mkcert CA found at: $CA_ROOT${NC}"
 
 # Create temporary config file for extensions
-# Include both base domain and wildcard for subdomain support
+# Include base domain, wildcard, and Mailpit subdomain
 TMP_EXT_FILE=$(mktemp)
 cat > "$TMP_EXT_FILE" <<EOF
 [v3_req]
-subjectAltName = DNS:$DOMAIN, DNS:*.$DOMAIN
+subjectAltName = DNS:$DOMAIN, DNS:*.$DOMAIN, DNS:$MAILPIT_DOMAIN
 EOF
 
 # Generate private key (show errors for debugging)

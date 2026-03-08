@@ -272,6 +272,22 @@ export const s3Api = {
   },
 };
 
+// Mailpit Email Testing
+export const mailpitApi = {
+  stats: async (): Promise<{ total: number; unread: number; status: string }> => {
+    try {
+      const response = await api.get("/mailpit/stats");
+      return response.data.data || { total: 0, unread: 0, status: "unavailable" };
+    } catch {
+      return { total: 0, unread: 0, status: "unavailable" };
+    }
+  },
+
+  clearMessages: async (): Promise<void> => {
+    await api.delete("/mailpit/messages");
+  },
+};
+
 // Redis Cache Management
 export const cacheApi = {
   status: async (): Promise<any> => {

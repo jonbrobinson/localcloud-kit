@@ -20,6 +20,7 @@ NC := \033[0m # No Color
 .PHONY: gui-start gui-stop gui-restart
 .PHONY: setup check-prerequisites docker-build docker-logs
 .PHONY: reset clean-volumes clean-all reset-env
+.PHONY: mailpit-logs mailpit-clear
 
 # Default target
 help: ## Show this help message
@@ -154,6 +155,15 @@ shell-list: ## List resources using Shell scripts
 	export PROJECT_NAME=$(PROJECT_NAME) && \
 	export ENVIRONMENT=$(ENVIRONMENT) && \
 	./list_resources.sh
+
+# Mailpit Email Testing
+mailpit-logs: ## View Mailpit container logs
+	docker compose logs -f mailpit
+
+mailpit-clear: ## Clear all Mailpit messages via its API
+	@curl -s -X DELETE http://localhost:8025/api/v1/messages \
+		&& echo "$(GREEN)All Mailpit messages cleared$(NC)" \
+		|| echo "$(RED)Failed to clear messages (is Mailpit running?)$(NC)"
 
 # Setup and Utilities
 setup: ## Initial setup - create directories and install dependencies

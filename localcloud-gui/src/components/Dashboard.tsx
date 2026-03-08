@@ -21,6 +21,7 @@ import BucketViewer from "./BucketViewer";
 import DynamoDBConfigModal from "./DynamoDBConfigModal";
 import DynamoDBViewer from "./DynamoDBViewer";
 import LogViewer from "./LogViewer";
+import MailpitBadge from "./MailpitBadge";
 import S3ConfigModal from "./S3ConfigModal";
 import SecretsManagerViewer from "./SecretsManagerViewer";
 
@@ -289,6 +290,7 @@ export default function Dashboard() {
               >
                 🔗 Connect
               </Link>
+              <MailpitBadge />
             </div>
           </div>
         </div>
