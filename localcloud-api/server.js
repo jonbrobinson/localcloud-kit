@@ -1781,6 +1781,44 @@ app.delete("/secrets/:secretName", async (req, res) => {
   }
 });
 
+// ─── Mailpit Email Testing ───────────────────────────────────────────────────
+
+const MAILPIT_INTERNAL_URL =
+  process.env.MAILPIT_INTERNAL_URL || "http://mailpit:8025";
+
+// GET /mailpit/stats — total + unread email counts
+app.get("/mailpit/stats", async (req, res) => {
+  try {
+    const response = await axios.get(`${MAILPIT_INTERNAL_URL}/api/v1/info`, {
+      timeout: 3000,
+    });
+    const { Messages: total = 0, Unread: unread = 0 } = response.data;
+    res.json({ success: true, data: { total, unread, status: "healthy" } });
+  } catch (error) {
+    res.json({
+      success: false,
+      data: { total: 0, unread: 0, status: "unavailable" },
+      error: error.message,
+    });
+  }
+});
+
+// DELETE /mailpit/messages — clear all messages
+app.delete("/mailpit/messages", async (req, res) => {
+  try {
+    await axios.delete(`${MAILPIT_INTERNAL_URL}/api/v1/messages`, {
+      timeout: 5000,
+    });
+    addLog("info", "Mailpit messages cleared", "mailpit");
+    res.json({ success: true, data: { message: "All messages deleted" } });
+  } catch (error) {
+    addLog("error", `Failed to clear Mailpit messages: ${error.message}`, "mailpit");
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Initial status check
 setTimeout(checkLocalStackStatus, 2000);
 
