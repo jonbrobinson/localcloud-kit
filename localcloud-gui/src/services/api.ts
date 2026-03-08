@@ -4,6 +4,7 @@ import {
   DestroyResourceRequest,
   LocalStackStatus,
   LogEntry,
+  MailpitStats,
   ProjectConfig,
   Resource,
 } from "@/types";
@@ -274,7 +275,7 @@ export const s3Api = {
 
 // Mailpit Email Testing
 export const mailpitApi = {
-  stats: async (): Promise<{ total: number; unread: number; status: string }> => {
+  stats: async (): Promise<MailpitStats> => {
     try {
       const response = await api.get("/mailpit/stats");
       return response.data.data || { total: 0, unread: 0, status: "unavailable" };

@@ -85,6 +85,18 @@ export interface ResourceTemplate {
   config: Record<string, any>;
 }
 
+export interface MailpitStats {
+  total: number;
+  unread: number;
+  status: "healthy" | "unavailable" | "unknown";
+}
+
+export interface RedisStatus {
+  status: "running" | "stopped" | "unknown";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  info?: Record<string, any>;
+}
+
 export interface LogEntry {
   timestamp: string;
   level: "info" | "success" | "warning" | "error";

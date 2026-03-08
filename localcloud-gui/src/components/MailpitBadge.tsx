@@ -1,41 +1,15 @@
 "use client";
 
-import { mailpitApi } from "@/services/api";
+import { MailpitStats } from "@/types";
 import { EnvelopeIcon } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
 
 const MAILPIT_URL = "https://mailpit.localcloudkit.com:3030";
-const POLL_INTERVAL = 30_000;
 
-interface MailpitStats {
-  total: number;
-  unread: number;
-  status: string;
+interface MailpitBadgeProps {
+  stats: MailpitStats;
 }
 
-export default function MailpitBadge() {
-  const [stats, setStats] = useState<MailpitStats>({
-    total: 0,
-    unread: 0,
-    status: "unknown",
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const poll = async () => {
-      const data = await mailpitApi.stats();
-      if (!cancelled) setStats(data);
-    };
-
-    poll();
-    const id = setInterval(poll, POLL_INTERVAL);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
-
+export default function MailpitBadge({ stats }: MailpitBadgeProps) {
   const isHealthy = stats.status === "healthy";
 
   // Badge count: prefer unread (red), fall back to total (blue)

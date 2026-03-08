@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocalStackData } from "@/hooks/useLocalStackData";
+import { useServicesData } from "@/hooks/useServicesData";
 import { resourceApi } from "@/services/api";
 import { DynamoDBTableConfig, S3BucketConfig } from "@/types";
 import {
@@ -28,13 +28,14 @@ import SecretsManagerViewer from "./SecretsManagerViewer";
 export default function Dashboard() {
   const router = useRouter();
   const {
-    localstackStatus,
-    projectConfig: config,
-    resources,
+    localstack,
+    mailpit,
     loading,
     error,
     refetch: loadInitialData,
-  } = useLocalStackData();
+  } = useServicesData();
+
+  const { status: localstackStatus, projectConfig: config, resources } = localstack;
 
   const [showDynamoDBConfig, setShowDynamoDBConfig] = useState(false);
   const [showS3Config, setShowS3Config] = useState(false);
@@ -290,7 +291,7 @@ export default function Dashboard() {
               >
                 🔗 Connect
               </Link>
-              <MailpitBadge />
+              <MailpitBadge stats={mailpit} />
             </div>
           </div>
         </div>

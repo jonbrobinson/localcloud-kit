@@ -38,6 +38,65 @@ The Mailpit badge will appear in the dashboard header and the web UI will be ava
 
 The **Mailpit badge** in the LocalCloud Kit dashboard shows live email counts and links directly to the web UI in a new tab.
 
+## Sending a Test Email
+
+Verify Mailpit is working by sending a test email from the command line — no app setup required.
+
+**Option 1: `swaks`** (install with `brew install swaks`)
+
+```bash
+swaks --to test@example.com --from sender@example.com \
+  --server localhost:1025 \
+  --subject "Test Email" \
+  --body "Hello from the CLI"
+```
+
+**Option 2: `curl`** (macOS/Linux)
+
+```bash
+curl smtp://localhost:1025 \
+  --mail-from "sender@example.com" \
+  --mail-rcpt "test@example.com" \
+  --upload-file - <<EOF
+From: sender@example.com
+To: test@example.com
+Subject: Test Email
+
+Hello from curl!
+EOF
+```
+
+**Option 3: `curl`** (Windows CMD)
+
+```cmd
+echo From: sender@example.com> msg.txt
+echo To: test@example.com>> msg.txt
+echo Subject: Test Email>> msg.txt
+echo.>> msg.txt
+echo Hello from curl!>> msg.txt
+curl smtp://localhost:1025 --mail-from "sender@example.com" --mail-rcpt "test@example.com" --upload-file msg.txt
+del msg.txt
+```
+
+**Option 4: Python** (cross-platform, no extra installs needed)
+
+```bash
+python3 -c "
+import smtplib
+from email.message import EmailMessage
+msg = EmailMessage()
+msg['From'] = 'sender@example.com'
+msg['To'] = 'test@example.com'
+msg['Subject'] = 'Test Email'
+msg.set_content('Hello from the CLI!')
+with smtplib.SMTP('localhost', 1025) as s:
+    s.send_message(msg)
+print('Sent!')
+"
+```
+
+The email will appear immediately in the Mailpit UI at [http://localhost:8025](http://localhost:8025).
+
 ## Configuring Your App to Use Mailpit
 
 Point your app's SMTP settings at Mailpit:
