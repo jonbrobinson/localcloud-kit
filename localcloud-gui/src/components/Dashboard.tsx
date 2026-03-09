@@ -4,14 +4,12 @@ import { useServicesData } from "@/hooks/useServicesData";
 import { resourceApi } from "@/services/api";
 import { DynamoDBTableConfig, S3BucketConfig } from "@/types";
 import {
-  ArrowPathIcon,
   BookOpenIcon,
   ChevronDownIcon,
   CircleStackIcon,
   DocumentTextIcon,
   EnvelopeIcon,
   FolderIcon,
-  PlusIcon,
   ServerIcon,
   Squares2X2Icon,
 } from "@heroicons/react/24/outline";
@@ -63,10 +61,8 @@ export default function Dashboard() {
   // Dropdowns
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showDocsMenu, setShowDocsMenu] = useState(false);
-  const [showAddMenu, setShowAddMenu] = useState(false);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const docsMenuRef = useRef<HTMLDivElement>(null);
-  const addMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -75,9 +71,6 @@ export default function Dashboard() {
       }
       if (docsMenuRef.current && !docsMenuRef.current.contains(e.target as Node)) {
         setShowDocsMenu(false);
-      }
-      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
-        setShowAddMenu(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -449,63 +442,17 @@ export default function Dashboard() {
         {/* Resource Management */}
         {localstackStatus.running && (
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Resources</h2>
-              <div className="flex items-center space-x-2">
-                {/* Icon-only refresh */}
-                <button
-                  onClick={loadInitialData}
-                  disabled={loading}
-                  className="p-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
-                  title="Refresh resources"
-                >
-                  <ArrowPathIcon className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-                </button>
-
-                {/* + Add dropdown */}
-                <div className="relative" ref={addMenuRef}>
-                  <button
-                    onClick={() => setShowAddMenu((v) => !v)}
-                    disabled={createLoading}
-                    className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                  >
-                    <PlusIcon className="h-4 w-4 mr-1.5" />
-                    Add
-                    <ChevronDownIcon className={`h-3.5 w-3.5 ml-1.5 transition-transform ${showAddMenu ? "rotate-180" : ""}`} />
-                  </button>
-                  {showAddMenu && (
-                    <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                      <button
-                        onClick={() => { handleCreateSingleResource("s3"); setShowAddMenu(false); }}
-                        className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                      >
-                        <span className="mr-3">🪣</span>
-                        S3 Bucket
-                      </button>
-                      <button
-                        onClick={() => { handleCreateSingleResource("dynamodb"); setShowAddMenu(false); }}
-                        className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                      >
-                        <span className="mr-3">🗄️</span>
-                        DynamoDB Table
-                      </button>
-                      <button
-                        onClick={() => { handleCreateSingleResource("secretsmanager"); setShowAddMenu(false); }}
-                        className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                      >
-                        <span className="mr-3">🔑</span>
-                        Secrets Manager
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
             <ResourceList
               resources={resources}
               onDestroy={handleDestroyResources}
               projectName={config.projectName}
               loading={destroyLoading}
+              onRefresh={loadInitialData}
+              onAddS3={() => handleCreateSingleResource("s3")}
+              onAddDynamoDB={() => handleCreateSingleResource("dynamodb")}
+              onAddSecrets={() => handleCreateSingleResource("secretsmanager")}
+              refreshLoading={loading}
+              addLoading={createLoading}
               onViewS3={(bucketName) => {
                 setSelectedS3Bucket(bucketName);
                 setShowBuckets(true);
