@@ -4,7 +4,7 @@
 
 Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Secrets Manager, Redis cache, and email testing with Mailpit.
 
-[![Version](https://img.shields.io/badge/version-0.7.1-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.7.1)
+[![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.8.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
@@ -131,7 +131,7 @@ localcloud-kit/
 
 ## 🎯 Features
 
-**Latest Release:** v0.7.1 adds Mailpit email testing integration, Redis cache modal, a restructured Resources navigation with labelled sections, and a comprehensive modal UX overhaul (scroll, Escape key, backdrop dismiss) across all viewers. [View detailed changelog →](CHANGELOG.md)
+**Latest Release:** v0.8.0 adds Mailpit email testing (local SMTP + inbox UI), Redis cache modal, a restructured Resources navigation with labelled sections (AWS, Cache, Inbox), a comprehensive modal UX overhaul (scroll lock, Escape key, backdrop dismiss) across all viewers, DynamoDB add-item fixes (focus close, scroll, number validation), and expanded SDK connection docs with Secrets Manager examples. [View detailed changelog →](CHANGELOG.md)
 
 ### AWS Service Emulation
 
