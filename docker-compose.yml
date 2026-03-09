@@ -1,7 +1,7 @@
 services:
   # Traefik Entry Point
   traefik:
-    image: traefik:v3.0
+    image: traefik:v3
     container_name: traefik
     ports:
       - "3030:3030"
