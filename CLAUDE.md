@@ -18,7 +18,7 @@ This file gives Claude Code the context needed to work effectively in this repos
 
 | Service | Container | Image | Port | Purpose |
 |---------|-----------|-------|------|---------|
-| `traefik` | traefik | traefik:v3.0 | 3030 (HTTPS entry) | Reverse proxy / TLS termination |
+| `traefik` | traefik | traefik:v3 | 3030 (HTTPS entry) | Reverse proxy / TLS termination |
 | `localstack` | localstack | localstack/localstack:latest | 4566 | AWS services emulation |
 | `gui` | localcloud-gui | custom (Dockerfile.gui) | 3030 (internal) | Next.js frontend |
 | `api` | localcloud-api | custom (Dockerfile.api) | 3031 | Express.js backend |

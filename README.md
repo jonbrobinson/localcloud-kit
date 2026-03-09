@@ -250,8 +250,10 @@ localcloud-kit/
 LocalCloud Kit uses the latest LocalStack version by default:
 
 - **Default Version**: `latest` (automatically pulls newest LocalStack release)
-- **Last Tested**: 4.9 (October 12, 2025)
+- **Last Tested**: 4.13.0 (March 9, 2026)
 - **Compatibility**: Maintained and updated as LocalStack evolves
+
+> ⚠️ **LocalStack Authentication Change (March 23, 2026)**: LocalStack is moving to a single unified image that requires a free auth token. A [Free plan](https://app.localstack.cloud/sign-up) is available for individual developers. After March 23, set `LOCALSTACK_AUTH_TOKEN` in your environment or `.env` file to continue using `latest`. Versions prior to this date remain available without authentication by pinning a version below `4.14`.
 
 ### Using Specific LocalStack Versions
 
@@ -259,13 +261,13 @@ The default configuration uses `latest`, but you can pin to a specific version i
 
 ```bash
 # Method 1: Using environment variable
-LOCALSTACK_VERSION=4.0 docker compose up
+LOCALSTACK_VERSION=4.13.0 docker compose up
 
 # Method 2: Using Makefile
-make start LOCALSTACK_VERSION=4.0
+make start LOCALSTACK_VERSION=4.13.0
 
 # Method 3: Create/edit .env file
-echo "LOCALSTACK_VERSION=4.0" > .env
+echo "LOCALSTACK_VERSION=4.13.0" > .env
 docker compose up
 
 # Method 4: Edit env.example
@@ -290,7 +292,7 @@ The `docker-compose.yml` uses `${LOCALSTACK_VERSION:-latest}` which means:
 - Gives users the latest features and improvements automatically
 - Can still pin to specific versions via environment variables if needed
 
-> ⚠️ **Note**: If you encounter compatibility issues with a new LocalStack version, pin to a known working version (e.g., `4.9`) using the methods above, and report the issue in [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues).
+> ⚠️ **Note**: If you encounter compatibility issues with a new LocalStack version, pin to a known working version (e.g., `4.13.0`) using the methods above, and report the issue in [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues).
 
 ## 📖 Usage
 
