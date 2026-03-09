@@ -28,6 +28,9 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **RedisModal**: Replaced broken `redis.localcloudkit.com` link with `/cache` route
 - **Dashboard**: Standalone Logs button folded into Resources dropdown; renamed Tools → Resources with labelled sections (AWS, Cache, Inbox) and alphabetised entries; Secrets Manager added to AWS section
 
+### Docs
+- **README**: Updated tagline to "Local Cloud Development Environment"; added Mailpit and Redis badges; added Mailpit feature section and service URLs; linked `docs/MAILPIT.md` in Service Documentation
+
 ## [0.7.1] - 2025-12-09
 
 ### Added
