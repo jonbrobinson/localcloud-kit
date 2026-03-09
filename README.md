@@ -83,35 +83,43 @@ The main dashboard provides an overview of all services and resources with real-
 
 ![Main Dashboard](docs/screenshots/01-main-dashboard.png)
 
-### S3 Bucket Configuration
+---
+
+### S3 Storage
+
+#### S3 Bucket Configuration
 
 Create S3 buckets with optional versioning and encryption settings.
 
 ![S3 Bucket Configuration](docs/screenshots/02-s3-bucket-configuration.png)
 
-### S3 Bucket Management
+#### S3 Bucket Management
 
 Browse bucket contents, upload files, and manage objects directly from the GUI.
 
 ![S3 Bucket Management](docs/screenshots/03-s3-bucket-management.png)
 
-### S3 File Viewer — CSV Table
+#### S3 File Viewer
 
-CSV files are rendered as formatted, pageable tables for quick data inspection.
+View file contents inline — raw text, syntax-highlighted code, images, and more.
 
-![S3 File Viewer CSV](docs/screenshots/04-s3-file-viewer.png)
+![S3 File Viewer](docs/screenshots/06-s3-file-viewer-detail.png)
 
-### DynamoDB Table Configuration
+---
 
-Create DynamoDB tables with custom partition keys, sort keys, billing mode, and Global Secondary Indexes.
+### DynamoDB
+
+#### DynamoDB Table Configuration
+
+Create tables with custom partition keys, sort keys, billing mode, and Global Secondary Indexes.
 
 ![DynamoDB Table Configuration](docs/screenshots/05-dynamodb-table-configuration.png)
 
-### S3 File Viewer — File Contents
+#### DynamoDB Table Data
 
-View raw file contents for any S3 object with syntax highlighting and download support.
+Scan and query table items with full CRUD support directly from the dashboard.
 
-![S3 File Viewer Detail](docs/screenshots/06-s3-file-viewer-detail.png)
+![DynamoDB Table Data](docs/screenshots/04-dynamodb-table-data.png)
 
 ## 🏗️ Project Structure
 
