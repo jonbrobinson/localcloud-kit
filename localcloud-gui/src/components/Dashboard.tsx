@@ -462,7 +462,7 @@ export default function Dashboard() {
               redis.status === "running" ? "bg-green-500" :
               redis.status === "stopped" ? "bg-red-500" : "bg-gray-400"
             }`} />
-            <span className="text-sm font-medium text-gray-700">Cache</span>
+            <span className="text-sm font-medium text-gray-700">Redis</span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
               redis.status === "running" ? "bg-green-100 text-green-800" :
               redis.status === "stopped" ? "bg-red-100 text-red-800" :
@@ -483,7 +483,7 @@ export default function Dashboard() {
             <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
               mailpit.status === "healthy" ? "bg-green-500" : "bg-gray-400"
             }`} />
-            <span className="text-sm font-medium text-gray-700">Inbox</span>
+            <span className="text-sm font-medium text-gray-700">Mailpit</span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
               mailpit.status === "healthy" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"
             }`}>
