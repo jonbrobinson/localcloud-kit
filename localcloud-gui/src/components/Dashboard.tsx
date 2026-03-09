@@ -11,6 +11,7 @@ import {
   DocumentTextIcon,
   EnvelopeIcon,
   FolderIcon,
+  PlusIcon,
   ServerIcon,
   Squares2X2Icon,
 } from "@heroicons/react/24/outline";
@@ -34,6 +35,8 @@ export default function Dashboard() {
   const router = useRouter();
   const {
     localstack,
+    mailpit,
+    redis,
     loading,
     error,
     refetch: loadInitialData,
@@ -60,8 +63,10 @@ export default function Dashboard() {
   // Dropdowns
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showDocsMenu, setShowDocsMenu] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const docsMenuRef = useRef<HTMLDivElement>(null);
+  const addMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -70,6 +75,9 @@ export default function Dashboard() {
       }
       if (docsMenuRef.current && !docsMenuRef.current.contains(e.target as Node)) {
         setShowDocsMenu(false);
+      }
+      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
+        setShowAddMenu(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -216,12 +224,12 @@ export default function Dashboard() {
           <div className="flex items-center justify-center space-x-3 mb-2">
             <Image
               src="/logo.svg"
-              alt="CloudStack Solutions"
+              alt="LocalCloud Kit"
               width={32}
               height={32}
             />
             <h2 className="text-xl font-bold text-gray-900">
-              CloudStack Solutions
+              LocalCloud Kit
             </h2>
           </div>
           <p className="text-gray-600">Loading LocalCloud Kit...</p>
@@ -361,40 +369,80 @@ export default function Dashboard() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* LocalStack Status — compact pill */}
-        <div className="mb-6 flex items-center space-x-3">
-          <span
-            className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
-              localstackStatus.health === "healthy"
-                ? "bg-green-500"
-                : localstackStatus.health === "unhealthy"
-                ? "bg-red-500"
-                : "bg-gray-400"
-            }`}
-          />
-          <span className="text-sm font-medium text-gray-700">LocalStack</span>
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+        {/* Services status bar */}
+        <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center space-x-6">
+          {/* LocalStack */}
+          <div className="flex items-center space-x-2">
+            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
+              localstackStatus.health === "healthy" ? "bg-green-500" :
+              localstackStatus.health === "unhealthy" ? "bg-red-500" : "bg-gray-400"
+            }`} />
+            <span className="text-sm font-medium text-gray-700">LocalStack</span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
               localstackStatus.running && localstackStatus.health === "healthy"
                 ? "bg-green-100 text-green-800"
-                : localstackStatus.running
-                ? "bg-yellow-100 text-yellow-800"
+                : localstackStatus.running ? "bg-yellow-100 text-yellow-800"
                 : "bg-gray-100 text-gray-600"
-            }`}
-          >
-            {localstackStatus.running
-              ? localstackStatus.health === "healthy"
-                ? "Running"
-                : "Unhealthy"
-              : "Stopped"}
-          </span>
-          <Link href="/localstack" className="text-xs text-blue-600 hover:text-blue-800 hover:underline">
-            View integration →
-          </Link>
-          {!localstackStatus.running && (
-            <span className="text-xs text-gray-500">
-              Run <code className="bg-gray-100 px-1 rounded">docker compose up -d</code> to start
+            }`}>
+              {localstackStatus.running
+                ? localstackStatus.health === "healthy" ? "Running" : "Unhealthy"
+                : "Stopped"}
             </span>
+          </div>
+
+          <div className="h-4 w-px bg-gray-200" />
+
+          {/* Redis */}
+          <button
+            onClick={() => router.push("/cache")}
+            className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
+            title="Open Redis Cache"
+          >
+            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
+              redis.status === "running" ? "bg-green-500" :
+              redis.status === "stopped" ? "bg-red-500" : "bg-gray-400"
+            }`} />
+            <span className="text-sm font-medium text-gray-700">Redis</span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+              redis.status === "running" ? "bg-green-100 text-green-800" :
+              redis.status === "stopped" ? "bg-red-100 text-red-800" :
+              "bg-gray-100 text-gray-600"
+            }`}>
+              {redis.status === "running" ? "Running" : redis.status === "stopped" ? "Stopped" : "Unknown"}
+            </span>
+          </button>
+
+          <div className="h-4 w-px bg-gray-200" />
+
+          {/* Mailpit */}
+          <button
+            onClick={() => setShowMailpit(true)}
+            className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
+            title="Open Mailpit Inbox"
+          >
+            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
+              mailpit.status === "healthy" ? "bg-green-500" : "bg-gray-400"
+            }`} />
+            <span className="text-sm font-medium text-gray-700">Mailpit</span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+              mailpit.status === "healthy" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"
+            }`}>
+              {mailpit.status === "healthy" ? "Running" : "Unavailable"}
+            </span>
+            {mailpit.unread > 0 && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                {mailpit.unread} unread
+              </span>
+            )}
+          </button>
+
+          {!localstackStatus.running && (
+            <>
+              <div className="h-4 w-px bg-gray-200" />
+              <span className="text-xs text-gray-500">
+                Run <code className="bg-gray-100 px-1 rounded">docker compose up -d</code> to start
+              </span>
+            </>
           )}
         </div>
 
@@ -403,44 +451,53 @@ export default function Dashboard() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Resources</h2>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                {/* Icon-only refresh */}
                 <button
                   onClick={loadInitialData}
                   disabled={loading}
-                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  className="p-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  title="Refresh resources"
                 >
-                  <ArrowPathIcon
-                    className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
-                  />
-                  Refresh
+                  <ArrowPathIcon className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                 </button>
 
-                {/* Individual Resource Creation Buttons */}
-                <div className="flex items-center space-x-2">
+                {/* + Add dropdown */}
+                <div className="relative" ref={addMenuRef}>
                   <button
-                    onClick={() => handleCreateSingleResource("s3")}
+                    onClick={() => setShowAddMenu((v) => !v)}
                     disabled={createLoading}
-                    className="flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
-                    title="Create S3 Bucket"
+                    className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
                   >
-                    🪣 S3
+                    <PlusIcon className="h-4 w-4 mr-1.5" />
+                    Add
+                    <ChevronDownIcon className={`h-3.5 w-3.5 ml-1.5 transition-transform ${showAddMenu ? "rotate-180" : ""}`} />
                   </button>
-                  <button
-                    onClick={() => handleCreateSingleResource("dynamodb")}
-                    disabled={createLoading}
-                    className="flex items-center px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 transition-colors"
-                    title="Create DynamoDB Table"
-                  >
-                    🗄️ DynamoDB
-                  </button>
-                  <button
-                    onClick={() => handleCreateSingleResource("secretsmanager")}
-                    disabled={createLoading}
-                    className="flex items-center px-3 py-2 text-sm font-medium text-white bg-yellow-600 rounded-md hover:bg-yellow-700 disabled:opacity-50 transition-colors"
-                    title="Create Secrets Manager Secret"
-                  >
-                    🔑 Secrets
-                  </button>
+                  {showAddMenu && (
+                    <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <button
+                        onClick={() => { handleCreateSingleResource("s3"); setShowAddMenu(false); }}
+                        className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <span className="mr-3">🪣</span>
+                        S3 Bucket
+                      </button>
+                      <button
+                        onClick={() => { handleCreateSingleResource("dynamodb"); setShowAddMenu(false); }}
+                        className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <span className="mr-3">🗄️</span>
+                        DynamoDB Table
+                      </button>
+                      <button
+                        onClick={() => { handleCreateSingleResource("secretsmanager"); setShowAddMenu(false); }}
+                        className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <span className="mr-3">🔑</span>
+                        Secrets Manager
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
