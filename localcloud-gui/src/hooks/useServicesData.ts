@@ -81,6 +81,21 @@ export function useServicesData() {
         console.warn("Failed to fetch Redis status");
       }
 
+      resources.push({
+        id: "mailpit-inbox",
+        name: "Inbox",
+        type: "mailpit",
+        status: mailpitStats.status === "healthy" ? "active" : "error",
+        environment: "local",
+        project: projectConfig.projectName,
+        createdAt: new Date().toISOString(),
+        details: {
+          total: mailpitStats.total,
+          unread: mailpitStats.unread,
+          status: mailpitStats.status,
+        },
+      });
+
       setData({
         localstack: { status: localstackStatus, projectConfig, resources },
         mailpit: mailpitStats,

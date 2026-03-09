@@ -284,8 +284,28 @@ export const mailpitApi = {
     }
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getMessages: async (limit = 10): Promise<{ messages: any[]; total: number }> => {
+    try {
+      const response = await api.get(`/mailpit/messages?limit=${limit}`);
+      return response.data.data || { messages: [], total: 0 };
+    } catch {
+      return { messages: [], total: 0 };
+    }
+  },
+
   clearMessages: async (): Promise<void> => {
     await api.delete("/mailpit/messages");
+  },
+
+  sendTest: async (payload: {
+    from: string;
+    to: string;
+    subject: string;
+    body: string;
+  }): Promise<ApiResponse> => {
+    const response = await api.post<ApiResponse>("/mailpit/send-test", payload);
+    return response.data;
   },
 };
 
