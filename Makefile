@@ -15,7 +15,7 @@ RED := \033[0;31m
 BLUE := \033[0;34m
 NC := \033[0m # No Color
 
-.PHONY: help start stop restart status logs clean
+.PHONY: help start start-legacy stop restart status logs clean
 .PHONY: shell-create shell-destroy shell-list
 .PHONY: gui-start gui-stop gui-restart
 .PHONY: setup check-prerequisites docker-build docker-logs
@@ -39,15 +39,17 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "(setup|check)"
 	@echo ""
 	@echo "$(YELLOW)Usage Examples:$(NC)"
-	@echo "  make start                    # Start all services with Docker"
-	@echo "  make gui-start                # Start GUI system with Docker"
-	@echo "  make shell-create ENV=dev     # Create resources with Shell scripts"
-	@echo "  make clean                    # Clean up all resources"
-	@echo "  make reset                    # Reset Docker environment (stop + clean volumes)"
-	@echo "  make reset-env                # Full environment reset (stop + clean all + volumes)"
+	@echo "  make start                              # Start with LocalStack latest"
+	@echo "  make start LOCALSTACK_VERSION=4.12      # Start with a specific LocalStack version"
+	@echo "  make start-legacy                       # Start with LocalStack 4.12 (community legacy)"
+	@echo "  make gui-start                          # Start GUI system with Docker"
+	@echo "  make shell-create ENV=dev               # Create resources with Shell scripts"
+	@echo "  make clean                              # Clean up all resources"
+	@echo "  make reset                              # Reset Docker environment (stop + clean volumes)"
+	@echo "  make reset-env                          # Full environment reset (stop + clean all + volumes)"
 
 # Docker Management
-start: ## Start all services with Docker Compose
+start: ## Start all services with Docker Compose (LOCALSTACK_VERSION=latest by default)
 	@echo "$(GREEN)Starting LocalStack Template with Docker...$(NC)"
 	@echo "$(YELLOW)Using LocalStack version: $(LOCALSTACK_VERSION)$(NC)"
 	@mkdir -p volume/cache volume/lib volume/logs volume/tmp
@@ -59,6 +61,9 @@ start: ## Start all services with Docker Compose
 	@echo "$(YELLOW)API: https://app-local.localcloudkit.com:3030/api$(NC)"
 	@echo "$(YELLOW)LocalStack: http://localhost:4566$(NC)"
 	@echo "$(YELLOW)Express API (direct): http://localhost:3031$(NC)"
+
+start-legacy: ## Start all services using LocalStack 4.12 (community legacy)
+	@$(MAKE) start LOCALSTACK_VERSION=4.12
 
 stop: ## Stop all Docker services
 	@echo "$(YELLOW)Stopping all services...$(NC)"

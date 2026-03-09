@@ -253,26 +253,28 @@ LocalCloud Kit uses the latest LocalStack version by default:
 - **Last Tested**: 4.13.0 (March 9, 2026)
 - **Compatibility**: Maintained and updated as LocalStack evolves
 
-> 📌 **LocalStack image change (March 23, 2026)**: LocalStack is consolidating Community and Pro into a single image. The **Community edition remains free** — all services LocalCloud Kit uses (S3, DynamoDB, Secrets Manager, IAM) are included at no cost. After March 23, you'll need a free account and `LOCALSTACK_AUTH_TOKEN` set in your `.env` to pull the `latest` tag. [Sign up free →](https://app.localstack.cloud/sign-up). To avoid this entirely, pin to `4.13.0` or earlier (no auth required for pre-consolidation versions).
+> 📌 **LocalStack image change (March 23, 2026)**: LocalStack is consolidating Community and Pro into a single image. The **Community edition remains free** — all services LocalCloud Kit uses (S3, DynamoDB, Secrets Manager, IAM) are included at no cost. After March 23, you'll need a free account and `LOCALSTACK_AUTH_TOKEN` set in your `.env` to pull the `latest` tag. [Sign up free →](https://app.localstack.cloud/sign-up). To avoid this entirely, use `make start-legacy` to pin to `4.12` (no auth required for pre-consolidation versions).
 
 ### Using Specific LocalStack Versions
 
 The default configuration uses `latest`, but you can pin to a specific version if needed:
 
 ```bash
-# Method 1: Using environment variable
-LOCALSTACK_VERSION=4.13.0 docker compose up
+# Start with latest (default)
+make start
 
-# Method 2: Using Makefile
+# Start with LocalStack 4.12 — community legacy, no auth token required
+make start-legacy
+
+# Start with any specific version
 make start LOCALSTACK_VERSION=4.13.0
 
-# Method 3: Create/edit .env file
-echo "LOCALSTACK_VERSION=4.13.0" > .env
-docker compose up
+# Using environment variable directly
+LOCALSTACK_VERSION=4.13.0 docker compose up
 
-# Method 4: Edit env.example
+# Using a .env file
 cp env.example .env
-# Edit LOCALSTACK_VERSION in .env
+# Edit LOCALSTACK_VERSION in .env, then:
 docker compose up
 ```
 
@@ -299,14 +301,17 @@ The `docker-compose.yml` uses `${LOCALSTACK_VERSION:-latest}` which means:
 ### Start Services
 
 ```bash
-# Recommended: Use Make (cross-platform)
+# Start with LocalStack latest (default)
 make start
+
+# Start with LocalStack 4.12 — community legacy, no auth token required
+make start-legacy
+
+# Start with any specific LocalStack version
+make start LOCALSTACK_VERSION=4.13.0
 
 # Alternative: Docker Compose directly
 docker compose up --build
-
-# Alternative: Using Makefile
-make start
 
 # Development mode (GUI outside Docker)
 docker compose up -d localstack api nginx
