@@ -99,11 +99,11 @@ Browse bucket contents, upload files, and manage objects directly from the GUI.
 
 ![S3 Bucket Management](docs/screenshots/03-s3-bucket-management.png)
 
-### S3 File Viewer
+### S3 File Viewer — CSV Table
 
-View file contents with rich rendering — including CSV tables, syntax-highlighted code, images, and more.
+CSV files are rendered as formatted, pageable tables for quick data inspection.
 
-![S3 File Viewer](docs/screenshots/04-s3-file-viewer.png)
+![S3 File Viewer CSV](docs/screenshots/04-s3-file-viewer.png)
 
 ### DynamoDB Table Configuration
 
@@ -111,11 +111,11 @@ Create DynamoDB tables with custom partition keys, sort keys, billing mode, and 
 
 ![DynamoDB Table Configuration](docs/screenshots/05-dynamodb-table-configuration.png)
 
-### DynamoDB Add Item
+### S3 File Viewer — File Contents
 
-Add items to a DynamoDB table with required key fields and unlimited custom attributes.
+View raw file contents for any S3 object with syntax highlighting and download support.
 
-![DynamoDB Add Item](docs/screenshots/06-dynamodb-add-item.png)
+![S3 File Viewer Detail](docs/screenshots/06-s3-file-viewer-detail.png)
 
 ## 🏗️ Project Structure
 

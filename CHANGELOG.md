@@ -36,7 +36,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **README**: Updated tagline to "Local Cloud Development Environment"; added Mailpit and Redis badges; added Mailpit feature section, access URLs, and service table rows; linked `docs/MAILPIT.md`
 - **docs/CONNECT.md**: Moved from root `CONNECT.md` to `docs/`; added Secrets Manager SDK examples for JS, Python, Go, and Java; fixed deprecated Go `EndpointResolverWithOptions` API to use per-service `BaseEndpoint`; added troubleshooting table and per-language debug logging snippets
 - **GETTING_STARTED.md**, **README.md**: Updated Connection Guide link to `docs/CONNECT.md`
-- **docs/screenshots**: Replaced outdated screenshots with 6 new v0.8.0 captures — main dashboard, S3 bucket configuration, S3 bucket management, S3 file viewer (CSV), DynamoDB table configuration, and DynamoDB add item
+- **docs/screenshots**: Replaced outdated screenshots with 6 new v0.8.0 captures — main dashboard, S3 bucket configuration, S3 bucket management, S3 file viewer (CSV table), DynamoDB table configuration, and S3 file viewer (raw file contents)
 
 ## [0.7.1] - 2025-12-09
 
