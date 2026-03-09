@@ -305,7 +305,7 @@ export default function ResourceList({
                     </h4>
                     <p className="text-xs text-gray-500 capitalize truncate">
                       {resource.type === "mailpit"
-                        ? "Inbox"
+                        ? "Mailpit"
                         : resource.type === "cache"
                         ? "Redis"
                         : `${resource.type} • ${resource.project}`}
