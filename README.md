@@ -83,15 +83,39 @@ This single command will:
 
 ### Main Dashboard
 
-The main dashboard provides an overview of all LocalCloud Kit services and resources.
+The main dashboard provides an overview of all services and resources with real-time status indicators.
 
 ![Main Dashboard](docs/screenshots/01-main-dashboard.png)
 
+### S3 Bucket Configuration
+
+Create S3 buckets with optional versioning and encryption settings.
+
+![S3 Bucket Configuration](docs/screenshots/02-s3-bucket-configuration.png)
+
 ### S3 Bucket Management
 
-Manage S3 buckets, upload files, and view bucket contents with syntax highlighting.
+Browse bucket contents, upload files, and manage objects directly from the GUI.
 
-![S3 Bucket Management](docs/screenshots/02-s3-bucket-management.png)
+![S3 Bucket Management](docs/screenshots/03-s3-bucket-management.png)
+
+### S3 File Viewer
+
+View file contents with rich rendering — including CSV tables, syntax-highlighted code, images, and more.
+
+![S3 File Viewer](docs/screenshots/04-s3-file-viewer.png)
+
+### DynamoDB Table Configuration
+
+Create DynamoDB tables with custom partition keys, sort keys, billing mode, and Global Secondary Indexes.
+
+![DynamoDB Table Configuration](docs/screenshots/05-dynamodb-table-configuration.png)
+
+### DynamoDB Add Item
+
+Add items to a DynamoDB table with required key fields and unlimited custom attributes.
+
+![DynamoDB Add Item](docs/screenshots/06-dynamodb-add-item.png)
 
 ## 🏗️ Project Structure
 
