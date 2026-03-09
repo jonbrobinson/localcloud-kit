@@ -67,6 +67,16 @@ export function useServicesData() {
           status: cacheStatus.status === "running" ? "running" : "stopped",
           info: cacheStatus.info,
         };
+        resources.push({
+          id: "cache-redis",
+          name: "Redis Cache",
+          type: "cache",
+          status: redis.status === "running" ? "active" : "error",
+          environment: "local",
+          project: projectConfig.projectName,
+          createdAt: new Date().toISOString(),
+          details: { info: cacheStatus.info, status: cacheStatus.status },
+        });
       } catch {
         console.warn("Failed to fetch Redis status");
       }

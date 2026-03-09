@@ -5,10 +5,15 @@ import { resourceApi } from "@/services/api";
 import { DynamoDBTableConfig, S3BucketConfig } from "@/types";
 import {
   ArrowPathIcon,
+  ChevronDownIcon,
+  CircleStackIcon,
   DocumentTextIcon,
   FolderIcon,
+  LinkIcon,
+  ServerIcon,
+  Squares2X2Icon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import ResourceList from "./ResourceList";
 import StatusCard from "./StatusCard";
@@ -51,6 +56,20 @@ export default function Dashboard() {
   // Loading states for buttons
   const [createLoading, setCreateLoading] = useState(false);
   const [destroyLoading, setDestroyLoading] = useState(false);
+
+  // Tools dropdown
+  const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const toolsMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (toolsMenuRef.current && !toolsMenuRef.current.contains(e.target as Node)) {
+        setShowToolsMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Debug logging
   console.log("Dashboard render - config:", config);
@@ -234,63 +253,79 @@ export default function Dashboard() {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <Image
-                  src="/logo.svg"
-                  alt="CloudStack Solutions"
-                  width={40}
-                  height={40}
-                />
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    LocalCloud Kit
-                  </h1>
-                  <p className="text-sm text-gray-500">
-                    by CloudStack Solutions
-                  </p>
-                </div>
+            {/* Logo + Title */}
+            <div className="flex items-center space-x-3">
+              <Image
+                src="/logo.svg"
+                alt="LocalCloud Kit"
+                width={40}
+                height={40}
+              />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  LocalCloud Kit
+                </h1>
+                <p className="text-xs text-gray-500">
+                  Local Cloud Development Environment • v{packageJson.version}
+                </p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="hidden md:block text-right">
-                <p className="text-sm text-gray-600">
-                  Local Cloud Development Environment
-                </p>
-                <p className="text-xs text-gray-400">v{packageJson.version}</p>
+
+            {/* Nav */}
+            <div className="flex items-center space-x-3">
+              {/* Tools dropdown */}
+              <div className="relative" ref={toolsMenuRef}>
+                <button
+                  onClick={() => setShowToolsMenu((v) => !v)}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  <Squares2X2Icon className="h-4 w-4 mr-2" />
+                  Tools
+                  <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showToolsMenu ? "rotate-180" : ""}`} />
+                </button>
+                {showToolsMenu && (
+                  <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <button
+                      onClick={() => { setShowLogs(true); setShowToolsMenu(false); }}
+                      className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Logs
+                    </button>
+                    <button
+                      onClick={() => { setShowBuckets(true); setShowToolsMenu(false); }}
+                      className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <FolderIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      S3 Buckets
+                    </button>
+                    <button
+                      onClick={() => { setShowDynamoDB(true); setShowToolsMenu(false); }}
+                      className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      DynamoDB Tables
+                    </button>
+                    <Link
+                      href="/cache"
+                      onClick={() => setShowToolsMenu(false)}
+                      className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Redis Cache
+                    </Link>
+                    <Link
+                      href="/connect"
+                      onClick={() => setShowToolsMenu(false)}
+                      className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <LinkIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Connect
+                    </Link>
+                  </div>
+                )}
               </div>
-              <button
-                onClick={() => setShowLogs(true)}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                <DocumentTextIcon className="h-4 w-4 mr-2" />
-                Logs
-              </button>
-              <button
-                onClick={() => setShowBuckets(true)}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                <FolderIcon className="h-4 w-4 mr-2" />
-                S3 Buckets
-              </button>
-              <button
-                onClick={() => setShowDynamoDB(true)}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                🗄️ DynamoDB Tables
-              </button>
-              <Link
-                href="/cache"
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                🧊 Redis Cache
-              </Link>
-              <Link
-                href="/connect"
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                🔗 Connect
-              </Link>
+
               <MailpitBadge stats={mailpit} />
             </div>
           </div>
@@ -413,20 +448,8 @@ export default function Dashboard() {
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <div className="flex items-center justify-center space-x-2 mb-2">
-            <Image
-              src="/logo.svg"
-              alt="CloudStack Solutions"
-              width={24}
-              height={24}
-            />
-            <span className="text-sm text-gray-600">
-              Powered by CloudStack Solutions
-            </span>
-          </div>
           <p className="text-xs text-gray-400">
-            Local Cloud Development Environment • LocalCloud Kit v
-            {packageJson.version}
+            LocalCloud Kit v{packageJson.version} • Local Cloud Development Environment
           </p>
         </div>
       </div>
