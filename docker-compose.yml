@@ -109,6 +109,23 @@ services:
       - localstack-network
     restart: unless-stopped
 
+  # Mailpit - Local Email Testing
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: localcloud-mailpit
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI (direct access)
+    networks:
+      - localstack-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mailpit.rule=Host(`mailpit.localcloudkit.com`)"
+      - "traefik.http.routers.mailpit.entrypoints=websecure"
+      - "traefik.http.routers.mailpit.tls=true"
+      - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
+
 networks:
   localstack-network:
     driver: bridge

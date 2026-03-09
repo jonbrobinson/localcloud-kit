@@ -6,6 +6,7 @@
 set -e
 
 HOSTNAME="app-local.localcloudkit.com"
+MAILPIT_HOSTNAME="mailpit.localcloudkit.com"
 IP="127.0.0.1"
 HOSTS_FILE="/etc/hosts"
 BACKUP_FILE="/etc/hosts.localcloudkit.backup"
@@ -34,12 +35,22 @@ if [ ! -f "$HOSTS_FILE" ]; then
     exit 1
 fi
 
-# Check if entry already exists
+# Check which entries are missing
+MAIN_EXISTS=false
+MAILPIT_EXISTS=false
+
 if grep -q "$HOSTNAME" "$HOSTS_FILE" 2>/dev/null; then
-    echo -e "${GREEN}✓ Entry for $HOSTNAME already exists in $HOSTS_FILE${NC}"
+    MAIN_EXISTS=true
+fi
+if grep -q "$MAILPIT_HOSTNAME" "$HOSTS_FILE" 2>/dev/null; then
+    MAILPIT_EXISTS=true
+fi
+
+if [ "$MAIN_EXISTS" = true ] && [ "$MAILPIT_EXISTS" = true ]; then
+    echo -e "${GREEN}✓ All entries already exist in $HOSTS_FILE${NC}"
     echo ""
-    echo "Current entry:"
-    grep "$HOSTNAME" "$HOSTS_FILE" | sed 's/^/  /'
+    echo "Current entries:"
+    grep -E "$HOSTNAME|$MAILPIT_HOSTNAME" "$HOSTS_FILE" | sed 's/^/  /'
     echo ""
     echo -e "${GREEN}No changes needed!${NC}"
     exit 0
@@ -47,10 +58,11 @@ fi
 
 # Need sudo to modify /etc/hosts
 if [ "$EUID" -ne 0 ]; then
-    echo -e "${YELLOW}Entry for $HOSTNAME not found in $HOSTS_FILE${NC}"
+    echo -e "${YELLOW}Missing entries in $HOSTS_FILE${NC}"
     echo ""
-    echo "This script needs to add the following entry:"
-    echo "  ${BLUE}$IP $HOSTNAME${NC}"
+    echo "This script needs to add the following entries:"
+    [ "$MAIN_EXISTS" = false ] && echo "  ${BLUE}$IP $HOSTNAME${NC}"
+    [ "$MAILPIT_EXISTS" = false ] && echo "  ${BLUE}$IP $MAILPIT_HOSTNAME${NC}"
     echo ""
     echo -e "${YELLOW}This requires sudo privileges to modify /etc/hosts${NC}"
     echo ""
@@ -66,26 +78,33 @@ cp "$HOSTS_FILE" "$BACKUP_FILE"
 echo -e "${GREEN}✓ Backup created${NC}"
 echo ""
 
-# Add entry
-echo -e "${YELLOW}Adding entry: $IP $HOSTNAME${NC}"
-echo "$IP $HOSTNAME" >> "$HOSTS_FILE"
+# Add missing entries
+if [ "$MAIN_EXISTS" = false ]; then
+    echo -e "${YELLOW}Adding entry: $IP $HOSTNAME${NC}"
+    echo "$IP $HOSTNAME" >> "$HOSTS_FILE"
+fi
+if [ "$MAILPIT_EXISTS" = false ]; then
+    echo -e "${YELLOW}Adding entry: $IP $MAILPIT_HOSTNAME${NC}"
+    echo "$IP $MAILPIT_HOSTNAME" >> "$HOSTS_FILE"
+fi
 
-# Verify addition
-if grep -q "$HOSTNAME" "$HOSTS_FILE" 2>/dev/null; then
-    echo -e "${GREEN}✓ Entry added successfully${NC}"
+# Verify additions
+if grep -q "$HOSTNAME" "$HOSTS_FILE" 2>/dev/null && grep -q "$MAILPIT_HOSTNAME" "$HOSTS_FILE" 2>/dev/null; then
+    echo -e "${GREEN}✓ Entries added successfully${NC}"
     echo ""
-    echo "Added entry:"
-    grep "$HOSTNAME" "$HOSTS_FILE" | sed 's/^/  /'
+    echo "Current entries:"
+    grep -E "$HOSTNAME|$MAILPIT_HOSTNAME" "$HOSTS_FILE" | sed 's/^/  /'
     echo ""
     echo -e "${GREEN}=== Setup Complete ===${NC}"
     echo ""
     echo "Backup saved at: $BACKUP_FILE"
     echo ""
     echo "You can now access:"
-    echo "  ${BLUE}https://$HOSTNAME${NC}"
+    echo "  ${BLUE}https://$HOSTNAME:3030${NC}"
+    echo "  ${BLUE}https://$MAILPIT_HOSTNAME:3030${NC}"
     echo ""
 else
-    echo -e "${RED}✗ Failed to add entry${NC}"
+    echo -e "${RED}✗ Failed to add entries${NC}"
     echo ""
     echo "Restoring from backup..."
     cp "$BACKUP_FILE" "$HOSTS_FILE"
