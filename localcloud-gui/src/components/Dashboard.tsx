@@ -26,6 +26,7 @@ import BucketViewer from "./BucketViewer";
 import DynamoDBConfigModal from "./DynamoDBConfigModal";
 import DynamoDBViewer from "./DynamoDBViewer";
 import LogViewer from "./LogViewer";
+import MailpitModal from "./MailpitModal";
 import S3ConfigModal from "./S3ConfigModal";
 import SecretsManagerViewer from "./SecretsManagerViewer";
 
@@ -46,6 +47,7 @@ export default function Dashboard() {
   const [showBuckets, setShowBuckets] = useState(false);
   const [showDynamoDB, setShowDynamoDB] = useState(false);
   const [showSecretsManager, setShowSecretsManager] = useState(false);
+  const [showMailpit, setShowMailpit] = useState(false);
 
   const [selectedDynamoDBTable, setSelectedDynamoDBTable] =
     useState<string>("");
@@ -463,9 +465,7 @@ export default function Dashboard() {
               onViewSecretsManager={() => {
                 setShowSecretsManager(true);
               }}
-              onViewMailpit={() => {
-                router.push("/mailpit");
-              }}
+              onViewMailpit={() => setShowMailpit(true)}
             />
           </div>
         )}
@@ -563,6 +563,10 @@ export default function Dashboard() {
           }}
           projectName={config.projectName}
         />
+      )}
+
+      {showMailpit && (
+        <MailpitModal onClose={() => setShowMailpit(false)} />
       )}
     </div>
   );
