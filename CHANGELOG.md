@@ -21,6 +21,12 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **DynamoDBAddItemModal**: Number (`N`) type fields now use `type="number"` input — prevents non-numeric values being sent to DynamoDB
 - **DynamoDBAddItemModal**: Boolean (`BOOL`) type fields replaced with a true/false dropdown instead of free-text
 - **DynamoDBAddItemModal**: Recursive pre-submit validator catches invalid number values in nested Maps and Lists before the request is sent
+- **BucketViewer**: FileViewerModal and UploadFileModal moved outside backdrop div — fixes S3 file upload being dismissed on click
+- **BucketViewer**: Added missing closing div for flex-1 content wrapper that caused broken JSX structure
+- **LogViewer**: Collapsed double-wrapper into single `flex-1 min-h-0 overflow-y-auto` container — fixes scroll and modal overflowing viewport
+- **LogViewer**: Fixed invisible select text by adding `bg-white text-gray-900`; `lastUpdated` tracked in state to stop footer flickering on auto-refresh
+- **RedisModal**: Replaced broken `redis.localcloudkit.com` link with `/cache` route
+- **Dashboard**: Standalone Logs button folded into Resources dropdown; renamed Tools → Resources with labelled sections (AWS, Cache, Inbox) and alphabetised entries; Secrets Manager added to AWS section
 
 ## [0.7.1] - 2025-12-09
 
