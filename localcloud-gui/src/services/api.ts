@@ -5,8 +5,11 @@ import {
   LocalStackStatus,
   LogEntry,
   MailpitStats,
+  Project,
   ProjectConfig,
   Resource,
+  SavedConfig,
+  UserProfile,
 } from "@/types";
 import axios from "axios";
 
@@ -386,5 +389,60 @@ export async function deleteDynamoDBItem(
   if (!res.ok) throw new Error("Failed to delete item");
   return res.json();
 }
+
+// Profile
+export const profileApi = {
+  get: async (): Promise<UserProfile> => {
+    const response = await api.get<ApiResponse<UserProfile>>("/profile");
+    return response.data.data!;
+  },
+  update: async (data: Partial<UserProfile>): Promise<UserProfile> => {
+    const response = await api.put<ApiResponse<UserProfile>>("/profile", data);
+    return response.data.data!;
+  },
+};
+
+// Projects
+export const projectsApi = {
+  list: async (): Promise<Project[]> => {
+    const response = await api.get<ApiResponse<Project[]>>("/projects");
+    return response.data.data || [];
+  },
+  create: async (name: string, label: string, description?: string): Promise<Project> => {
+    const response = await api.post<ApiResponse<Project>>("/projects", { name, label, description });
+    return response.data.data!;
+  },
+  update: async (id: number, label: string, description?: string): Promise<Project> => {
+    const response = await api.put<ApiResponse<Project>>(`/projects/${id}`, { label, description });
+    return response.data.data!;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/projects/${id}`);
+  },
+};
+
+// Saved Configs
+export const savedConfigsApi = {
+  list: async (projectId?: number, type?: string): Promise<SavedConfig[]> => {
+    const params: Record<string, string | number> = {};
+    if (projectId !== undefined) params.project_id = projectId;
+    if (type) params.type = type;
+    const response = await api.get<ApiResponse<SavedConfig[]>>("/saved-configs", { params });
+    return response.data.data || [];
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  create: async (projectId: number, name: string, resourceType: string, config: any): Promise<SavedConfig> => {
+    const response = await api.post<ApiResponse<SavedConfig>>("/saved-configs", {
+      project_id: projectId,
+      name,
+      resource_type: resourceType,
+      config,
+    });
+    return response.data.data!;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/saved-configs/${id}`);
+  },
+};
 
 export default api;

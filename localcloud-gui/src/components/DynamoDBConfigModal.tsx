@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { XMarkIcon, PlusIcon, TrashIcon, CircleStackIcon } from "@heroicons/react/24/outline";
 import { DynamoDBTableConfig, DynamoDBGSI } from "@/types";
+import SavedConfigPicker from "./SavedConfigPicker";
 
 interface DynamoDBConfigModalProps {
   isOpen: boolean;
@@ -41,6 +42,26 @@ export default function DynamoDBConfigModal({
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  const loadSavedConfig = (config: DynamoDBTableConfig) => {
+    setTableName(config.tableName || "");
+    setPartitionKey(config.partitionKey || "pk");
+    setSortKey(config.sortKey || "");
+    setBillingMode(config.billingMode || "PAY_PER_REQUEST");
+    setReadCapacity(config.readCapacity || 5);
+    setWriteCapacity(config.writeCapacity || 5);
+    setGsis(config.gsis || []);
+  };
+
+  const currentConfig: DynamoDBTableConfig = {
+    tableName,
+    partitionKey,
+    sortKey,
+    billingMode,
+    readCapacity: billingMode === "PROVISIONED" ? readCapacity : undefined,
+    writeCapacity: billingMode === "PROVISIONED" ? writeCapacity : undefined,
+    gsis,
+  };
 
   const addGSI = () => {
     if (gsis.length >= 5) return;
@@ -110,6 +131,13 @@ export default function DynamoDBConfigModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <SavedConfigPicker
+            resourceType="dynamodb"
+            onLoad={loadSavedConfig}
+            currentConfig={currentConfig}
+            configLabel="Table"
+          />
+
           {/* Basic Table Configuration */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

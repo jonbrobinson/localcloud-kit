@@ -8,7 +8,8 @@ import {
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { usePreferences } from "@/context/PreferencesContext";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
 function CodeBlock({ code }: { code: string }) {
@@ -32,7 +33,53 @@ function CodeBlock({ code }: { code: string }) {
   );
 }
 
+const PAGE_TABS = ["typescript", "node", "python", "cli"] as const;
+type PageTab = (typeof PAGE_TABS)[number];
+
 const sdkExamples = {
+  typescript: `// npm install @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  GetCommand,
+  QueryCommand,
+  DeleteCommand,
+} from "@aws-sdk/lib-dynamodb";
+
+const client = new DynamoDBClient({
+  region: "us-east-1",
+  endpoint: "http://localhost:4566",
+  credentials: { accessKeyId: "test", secretAccessKey: "test" },
+});
+const ddb = DynamoDBDocumentClient.from(client);
+
+// Put an item
+await ddb.send(new PutCommand({
+  TableName: "my-table",
+  Item: { id: "user-1", name: "Alice", email: "alice@example.com" },
+}));
+
+// Get an item
+const { Item } = await ddb.send(new GetCommand({
+  TableName: "my-table",
+  Key: { id: "user-1" },
+}));
+console.log(Item as Record<string, unknown>);
+
+// Query items
+const { Items } = await ddb.send(new QueryCommand({
+  TableName: "my-table",
+  KeyConditionExpression: "id = :id",
+  ExpressionAttributeValues: { ":id": "user-1" },
+}));
+console.log(Items);
+
+// Delete an item
+await ddb.send(new DeleteCommand({
+  TableName: "my-table",
+  Key: { id: "user-1" },
+}));`,
   node: `// npm install @aws-sdk/client-dynamodb @aws-sdk/lib-dynamodb
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
@@ -154,7 +201,20 @@ const externalResources = [
 ];
 
 export default function DynamoDBDocPage() {
-  const [activeTab, setActiveTab] = useState<"node" | "python" | "cli">("node");
+  const { profile, updateProfile } = usePreferences();
+  const [activeTab, setActiveTab] = useState<PageTab>("typescript");
+
+  useEffect(() => {
+    if (profile?.preferred_language) {
+      const lang = profile.preferred_language as PageTab;
+      setActiveTab(PAGE_TABS.includes(lang) ? lang : "typescript");
+    }
+  }, [profile?.preferred_language]);
+
+  const handleTabChange = (tab: PageTab) => {
+    setActiveTab(tab);
+    updateProfile({ preferred_language: tab }).catch(() => {});
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -249,13 +309,14 @@ export default function DynamoDBDocPage() {
           </p>
           <div className="flex space-x-1 mb-4 border-b border-gray-200">
             {([
+              { key: "typescript" as const, label: "TypeScript" },
               { key: "node" as const, label: "Node.js" },
               { key: "python" as const, label: "Python" },
               { key: "cli" as const, label: "AWS CLI" },
             ]).map(({ key, label }) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key)}
+                onClick={() => handleTabChange(key)}
                 className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
                   activeTab === key
                     ? "border-blue-600 text-blue-600"
@@ -266,6 +327,7 @@ export default function DynamoDBDocPage() {
               </button>
             ))}
           </div>
+          {activeTab === "typescript" && <CodeBlock code={sdkExamples.typescript} />}
           {activeTab === "node" && <CodeBlock code={sdkExamples.node} />}
           {activeTab === "python" && <CodeBlock code={sdkExamples.python} />}
           {activeTab === "cli" && <CodeBlock code={sdkExamples.cli} />}

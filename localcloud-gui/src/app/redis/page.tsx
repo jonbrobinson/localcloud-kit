@@ -9,7 +9,8 @@ import {
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { usePreferences } from "@/context/PreferencesContext";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
 function CodeBlock({ code }: { code: string }) {
@@ -33,7 +34,30 @@ function CodeBlock({ code }: { code: string }) {
   );
 }
 
+const PAGE_TABS = ["typescript", "node", "python", "cli"] as const;
+type PageTab = (typeof PAGE_TABS)[number];
+
 const clientExamples = {
+  typescript: `// npm install ioredis
+import Redis from "ioredis";
+
+const redis = new Redis({
+  host: "localhost",
+  port: 6380,
+});
+
+// Set a key
+await redis.set("greeting", "hello world");
+await redis.set("counter", "42", "EX", 3600); // expires in 1 hour
+
+// Get a key
+const value: string | null = await redis.get("greeting");
+console.log(value); // "hello world"
+
+// Delete a key
+await redis.del("greeting");
+
+redis.quit();`,
   node: `// npm install ioredis
 const Redis = require("ioredis");
 
@@ -114,7 +138,20 @@ const externalResources = [
 
 export default function RedisDocPage() {
   const [showModal, setShowModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<"node" | "python" | "cli">("node");
+  const { profile, updateProfile } = usePreferences();
+  const [activeTab, setActiveTab] = useState<PageTab>("typescript");
+
+  useEffect(() => {
+    if (profile?.preferred_language) {
+      const lang = profile.preferred_language as PageTab;
+      setActiveTab(PAGE_TABS.includes(lang) ? lang : "typescript");
+    }
+  }, [profile?.preferred_language]);
+
+  const handleTabChange = (tab: PageTab) => {
+    setActiveTab(tab);
+    updateProfile({ preferred_language: tab }).catch(() => {});
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -208,13 +245,14 @@ export default function RedisDocPage() {
           </p>
           <div className="flex space-x-1 mb-4 border-b border-gray-200">
             {([
+              { key: "typescript" as const, label: "TypeScript" },
               { key: "node" as const, label: "Node.js" },
               { key: "python" as const, label: "Python" },
               { key: "cli" as const, label: "Redis CLI" },
             ]).map(({ key, label }) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key)}
+                onClick={() => handleTabChange(key)}
                 className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
                   activeTab === key
                     ? "border-blue-600 text-blue-600"
@@ -225,6 +263,14 @@ export default function RedisDocPage() {
               </button>
             ))}
           </div>
+          {activeTab === "typescript" && (
+            <div>
+              <p className="text-sm text-gray-500 mb-2">
+                TypeScript — <code className="bg-gray-100 px-1 rounded">npm install ioredis</code>
+              </p>
+              <CodeBlock code={clientExamples.typescript} />
+            </div>
+          )}
           {activeTab === "node" && (
             <div>
               <p className="text-sm text-gray-500 mb-2">
