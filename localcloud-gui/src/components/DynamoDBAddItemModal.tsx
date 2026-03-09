@@ -35,6 +35,24 @@ interface DynamoDBAddItemModalProps {
   loading?: boolean;
 }
 
+// Recursively validate attributes — returns first error message or null
+function validateAttributes(attrs: NestedAttribute[], path = ""): string | null {
+  for (const attr of attrs) {
+    const label = path ? `${path}.${attr.key || "item"}` : (attr.key || "item");
+    if (attr.type === "N") {
+      const num = Number(attr.value);
+      if (attr.value === undefined || attr.value === "" || isNaN(num)) {
+        return `"${label}" must be a valid number (got "${attr.value ?? ""}")`;
+      }
+    }
+    if (attr.children?.length) {
+      const childError = validateAttributes(attr.children, label);
+      if (childError) return childError;
+    }
+  }
+  return null;
+}
+
 // Recursive builder for DynamoDB attribute
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildDynamoDBAttribute(attr: NestedAttribute): any {
@@ -116,7 +134,7 @@ function AttributeEditor({
           <option value="M">Map</option>
           <option value="L">List</option>
         </select>
-        {attr.type !== "M" && attr.type !== "L" && (
+        {attr.type === "S" && (
           <input
             type="text"
             value={attr.value ?? ""}
@@ -124,6 +142,26 @@ function AttributeEditor({
             className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
             placeholder="Value"
           />
+        )}
+        {attr.type === "N" && (
+          <input
+            type="number"
+            step="any"
+            value={attr.value ?? ""}
+            onChange={(e) => handleFieldChange("value", e.target.value)}
+            className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+            placeholder="0"
+          />
+        )}
+        {attr.type === "BOOL" && (
+          <select
+            value={attr.value ?? "true"}
+            onChange={(e) => handleFieldChange("value", e.target.value)}
+            className="w-24 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+          >
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
         )}
         {onRemove && (
           <button
@@ -247,6 +285,13 @@ export default function DynamoDBAddItemModal({
           .map((k) => k.AttributeName)
           .join(", ")}`
       );
+      return;
+    }
+
+    // Validate number fields recursively before sending
+    const validationError = validateAttributes(attributes);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
