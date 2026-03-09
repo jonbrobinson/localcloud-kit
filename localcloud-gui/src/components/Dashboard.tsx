@@ -76,8 +76,6 @@ export default function Dashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Debug logging
-  console.log("Dashboard render - config:", config);
 
   const handleCreateSingleResource = async (resourceType: string) => {
     // Special handling for DynamoDB and S3 - show config modals instead

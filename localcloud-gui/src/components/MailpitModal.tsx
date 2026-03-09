@@ -4,7 +4,6 @@ import { useMailpitStats } from "@/hooks/useMailpitStats";
 import { mailpitApi } from "@/services/api";
 import {
   ArrowTopRightOnSquareIcon,
-  ClipboardDocumentIcon,
   TrashIcon,
   XMarkIcon,
   EnvelopeIcon,
@@ -27,26 +26,6 @@ interface MailpitModalProps {
   onClose: () => void;
 }
 
-function CodeBlock({ code }: { code: string }) {
-  const copy = () => {
-    navigator.clipboard.writeText(code);
-    toast.success("Copied to clipboard");
-  };
-  return (
-    <div className="relative group">
-      <pre className="bg-gray-900 text-gray-100 rounded-lg p-3 text-xs overflow-x-auto whitespace-pre-wrap">
-        <code>{code}</code>
-      </pre>
-      <button
-        onClick={copy}
-        className="absolute top-2 right-2 p-1.5 rounded bg-gray-700 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-        title="Copy"
-      >
-        <ClipboardDocumentIcon className="h-3.5 w-3.5 text-gray-300" />
-      </button>
-    </div>
-  );
-}
 
 export default function MailpitModal({ onClose }: MailpitModalProps) {
   const { stats, refetch } = useMailpitStats();
@@ -72,11 +51,15 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
     return () => clearInterval(interval);
   }, [fetchMessages]);
 
-  // Close on Escape
+  // Close on Escape + lock body scroll
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
   }, [onClose]);
 
   const handleSend = async () => {
@@ -112,7 +95,10 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      onClick={onClose}
+    >
       <div
         className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
