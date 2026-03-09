@@ -253,7 +253,7 @@ LocalCloud Kit uses the latest LocalStack version by default:
 - **Last Tested**: 4.13.0 (March 9, 2026)
 - **Compatibility**: Maintained and updated as LocalStack evolves
 
-> ⚠️ **LocalStack Authentication Change (March 23, 2026)**: LocalStack is moving to a single unified image that requires a free auth token. A [Free plan](https://app.localstack.cloud/sign-up) is available for individual developers. After March 23, set `LOCALSTACK_AUTH_TOKEN` in your environment or `.env` file to continue using `latest`. Versions prior to this date remain available without authentication by pinning a version below `4.14`.
+> 📌 **LocalStack image change (March 23, 2026)**: LocalStack is consolidating Community and Pro into a single image. The **Community edition remains free** — all services LocalCloud Kit uses (S3, DynamoDB, Secrets Manager, IAM) are included at no cost. After March 23, you'll need a free account and `LOCALSTACK_AUTH_TOKEN` set in your `.env` to pull the `latest` tag. [Sign up free →](https://app.localstack.cloud/sign-up). To avoid this entirely, pin to `4.13.0` or earlier (no auth required for pre-consolidation versions).
 
 ### Using Specific LocalStack Versions
 
