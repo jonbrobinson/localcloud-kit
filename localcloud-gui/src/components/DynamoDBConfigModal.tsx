@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { XMarkIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { useState, useEffect } from "react";
+import { XMarkIcon, PlusIcon, TrashIcon, CircleStackIcon } from "@heroicons/react/24/outline";
 import { DynamoDBTableConfig, DynamoDBGSI } from "@/types";
 
 interface DynamoDBConfigModalProps {
@@ -28,6 +28,17 @@ export default function DynamoDBConfigModal({
   const [readCapacity, setReadCapacity] = useState(5);
   const [writeCapacity, setWriteCapacity] = useState(5);
   const [gsis, setGsis] = useState<DynamoDBGSI[]>([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -70,25 +81,35 @@ export default function DynamoDBConfigModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-          aria-label="Close"
-        >
-          <XMarkIcon className="h-6 w-6" />
-        </button>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-indigo-50 rounded-lg">
+              <CircleStackIcon className="h-5 w-5 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">DynamoDB Table Configuration</h2>
+              <p className="text-xs text-gray-500">Primary key, billing mode &amp; GSIs</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+            aria-label="Close"
+          >
+            <XMarkIcon className="h-5 w-5" />
+          </button>
+        </div>
 
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          DynamoDB Table Configuration
-        </h2>
-        <p className="text-sm text-gray-600 mb-6">
-          Configure your DynamoDB table with composite primary key and Global
-          Secondary Indexes.
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Basic Table Configuration */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
