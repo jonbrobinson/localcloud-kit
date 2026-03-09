@@ -1,0 +1,12 @@
+# Code owners file
+# This file defines who owns different parts of the codebase
+# When a pull request is opened, these users will be automatically requested as reviewers
+
+# Global ownership - all files
+* @jonbrobinson
+
+# Specific file patterns (if needed in the future)
+# /localcloud-gui/ @jonbrobinson
+# /localcloud-api/ @jonbrobinson
+# /scripts/ @jonbrobinson
+# /docs/ @jonbrobinson
