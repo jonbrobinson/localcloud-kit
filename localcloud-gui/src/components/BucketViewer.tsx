@@ -328,6 +328,7 @@ export default function BucketViewer({
   if (!isOpen) return null;
 
   return (
+  <>
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
@@ -659,31 +660,32 @@ export default function BucketViewer({
           )}
         </div>
       </div>
-
-      {/* File Viewer Modal */}
-      {selectedFile && (
-        <FileViewerModal
-          isOpen={fileViewerOpen}
-          onClose={handleCloseFileViewer}
-          projectName={projectName}
-          bucketName={selectedFile.bucketName}
-          objectKey={selectedFile.objectKey}
-          theme={selectedTheme}
-        />
-      )}
-
-      {/* Upload File Modal */}
-      {selectedBucket && (
-        <UploadFileModal
-          isOpen={uploadModalOpen}
-          onClose={() => setUploadModalOpen(false)}
-          projectName={projectName}
-          bucketName={selectedBucket}
-          onUploadSuccess={() => {
-            loadBucketContents(selectedBucket);
-          }}
-        />
-      )}
     </div>
+
+    {/* File Viewer Modal */}
+    {selectedFile && (
+      <FileViewerModal
+        isOpen={fileViewerOpen}
+        onClose={handleCloseFileViewer}
+        projectName={projectName}
+        bucketName={selectedFile.bucketName}
+        objectKey={selectedFile.objectKey}
+        theme={selectedTheme}
+      />
+    )}
+
+    {/* Upload File Modal */}
+    {selectedBucket && (
+      <UploadFileModal
+        isOpen={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        projectName={projectName}
+        bucketName={selectedBucket}
+        onUploadSuccess={() => {
+          loadBucketContents(selectedBucket);
+        }}
+      />
+    )}
+  </>
   );
 }

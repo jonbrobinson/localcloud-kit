@@ -3,13 +3,10 @@
 import { cacheApi } from "@/services/api";
 import {
   ArrowRightIcon,
-  ArrowTopRightOnSquareIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-
-const REDIS_UI_URL = "https://redis.localcloudkit.com:3031";
 
 interface RedisInfo {
   status: string;
@@ -103,15 +100,14 @@ export default function RedisModal({ onClose }: RedisModalProps) {
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <a
-              href={REDIS_UI_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+            <Link
+              href="/cache"
+              onClick={onClose}
+              className="flex items-center px-3 py-1.5 text-xs font-medium text-cyan-700 bg-cyan-50 border border-cyan-200 rounded-md hover:bg-cyan-100 transition-colors"
             >
-              <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 mr-1" />
-              Open Redis UI
-            </a>
+              <ArrowRightIcon className="h-3.5 w-3.5 mr-1" />
+              Manage Cache
+            </Link>
             <button
               onClick={onClose}
               className="p-1.5 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 transition-colors"

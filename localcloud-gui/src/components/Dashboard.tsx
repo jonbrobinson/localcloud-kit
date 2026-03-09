@@ -10,6 +10,7 @@ import {
   DocumentTextIcon,
   EnvelopeIcon,
   FolderIcon,
+  KeyIcon,
   ServerIcon,
   Squares2X2Icon,
 } from "@heroicons/react/24/outline";
@@ -277,49 +278,73 @@ export default function Dashboard() {
 
             {/* Nav */}
             <div className="flex items-center space-x-3">
-              {/* Logs — standalone */}
-              <button
-                onClick={() => setShowLogs(true)}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                <DocumentTextIcon className="h-4 w-4 mr-2" />
-                Logs
-              </button>
-
-              {/* Tools dropdown */}
+              {/* Resources dropdown */}
               <div className="relative" ref={toolsMenuRef}>
                 <button
                   onClick={() => { setShowToolsMenu((v) => !v); setShowDocsMenu(false); }}
                   className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   <Squares2X2Icon className="h-4 w-4 mr-2" />
-                  Tools
+                  Resources
                   <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showToolsMenu ? "rotate-180" : ""}`} />
                 </button>
                 {showToolsMenu && (
-                  <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                  <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                    {/* AWS */}
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">AWS</p>
+                    <button
+                      onClick={() => { setShowDynamoDB(true); setShowToolsMenu(false); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      DynamoDB Tables
+                    </button>
                     <button
                       onClick={() => { setShowBuckets(true); setShowToolsMenu(false); }}
-                      className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <FolderIcon className="h-4 w-4 mr-3 text-gray-400" />
                       S3 Buckets
                     </button>
                     <button
-                      onClick={() => { setShowDynamoDB(true); setShowToolsMenu(false); }}
-                      className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => { setShowSecretsManager(true); setShowToolsMenu(false); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      DynamoDB Tables
+                      <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Secrets Manager
                     </button>
-                    <Link
-                      href="/cache"
-                      onClick={() => setShowToolsMenu(false)}
-                      className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+
+                    {/* Cache */}
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Cache</p>
+                    <button
+                      onClick={() => { setShowRedis(true); setShowToolsMenu(false); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />
                       Redis Cache
-                    </Link>
+                    </button>
+
+                    {/* Inbox */}
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Inbox</p>
+                    <button
+                      onClick={() => { setShowMailpit(true); setShowToolsMenu(false); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Mailpit
+                    </button>
+
+                    {/* Logs */}
+                    <div className="border-t border-gray-100 mt-1" />
+                    <button
+                      onClick={() => { setShowLogs(true); setShowToolsMenu(false); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Logs
+                    </button>
                   </div>
                 )}
               </div>
@@ -461,7 +486,7 @@ export default function Dashboard() {
                 setSelectedDynamoDBTable(tableName);
                 setShowDynamoDB(true);
               }}
-              onViewCache={() => window.open("/cache", "_blank")}
+              onViewCache={() => setShowRedis(true)}
               onViewSecretsManager={() => {
                 setShowSecretsManager(true);
               }}
