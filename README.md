@@ -6,15 +6,11 @@ Build and test cloud apps locally — no AWS account needed. Free, fast, and wit
 
 [![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.8.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
-[![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
-[![Mailpit](https://img.shields.io/badge/Mailpit-Email%20Testing-orange?style=for-the-badge&logo=maildotru)](https://mailpit.axllent.org/)
-[![Redis](https://img.shields.io/badge/Redis-7.x-red?style=for-the-badge&logo=redis)](https://redis.io/)
-[![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-18.x-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![ESLint](https://img.shields.io/badge/ESLint-Configured-yellow?style=for-the-badge&logo=eslint)](https://eslint.org/)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/jonbrobinson/localcloud-kit)
+
+[![Docker](https://img.shields.io/badge/Docker-Containerized-0db7ed?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Emulation-1a1a2e?style=for-the-badge&logo=amazon-aws&logoColor=ff9900)](https://localstack.cloud/)
+[![Redis](https://img.shields.io/badge/Redis-7.x-dc382d?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
+[![Mailpit](https://img.shields.io/badge/Mailpit-Email%20Testing-e8622a?style=for-the-badge&logo=maildotru&logoColor=white)](https://mailpit.axllent.org/)
 
 ## 🚀 Quick Start
 
