@@ -249,7 +249,7 @@ aws configure set output json
 - **Detailed Workflow**: See `docs/LOCAL_WORKFLOW.md`
 - **Certificate Setup**: See `docs/MKCERT_SETUP.md`
 - **Docker Guide**: See `docs/DOCKER.md`
-- **Connection Guide**: See `CONNECT.md` for AWS SDK integration
+- **Connection Guide**: See `docs/CONNECT.md` for AWS SDK integration (JS, Python, Go, Java)
 - **Shell Scripts**: See `scripts/shell/README.md` for automation
 - **API Documentation**: See `localcloud-api/README.md`
 - **GUI Documentation**: See `localcloud-gui/README.md`

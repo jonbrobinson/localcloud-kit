@@ -1,13 +1,15 @@
 # LocalCloud Kit
 
-> **Local AWS Development Environment**
+> **Local Cloud Development Environment**
 
-Build and test cloud apps locally—no AWS account needed. Free, fast, and with full data visibility. Perfect for devs using S3, DynamoDB, and Secrets Manager.
+Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Secrets Manager, Redis cache, and email testing with Mailpit.
 
 [![Version](https://img.shields.io/badge/version-0.7.1-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.7.1)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Cloud-blue?style=for-the-badge&logo=aws)](https://localstack.cloud/)
+[![Mailpit](https://img.shields.io/badge/Mailpit-Email%20Testing-orange?style=for-the-badge&logo=maildotru)](https://mailpit.axllent.org/)
+[![Redis](https://img.shields.io/badge/Redis-7.x-red?style=for-the-badge&logo=redis)](https://redis.io/)
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-18.x-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
@@ -69,6 +71,8 @@ This single command will:
 - **Web GUI**: https://app-local.localcloudkit.com:3030
 - **API Server**: https://app-local.localcloudkit.com:3030/api
 - **LocalStack**: http://localhost:4566 (direct access for AWS CLI)
+- **Mailpit UI**: https://mailpit.localcloudkit.com:3030 (email testing inbox)
+- **Mailpit SMTP**: localhost:1025 (point your app here to catch emails)
 - **Express API (direct)**: http://localhost:3031 (direct access, bypasses Traefik)
 
 > **Note**: Add to `/etc/hosts`: `127.0.0.1 app-local.localcloudkit.com`
@@ -127,7 +131,7 @@ localcloud-kit/
 
 ## 🎯 Features
 
-**Latest Release:** v0.7.1 includes enhanced interactive cleanup script, updated branding to "Local Cloud Development Environment", and removed obsolete start-gui.sh script. v0.7.0 introduced domain and port changes (app-local.localcloudkit.com:3030) to free up standard ports 80/443. [View detailed changelog →](CHANGELOG.md)
+**Latest Release:** v0.7.1 adds Mailpit email testing integration, Redis cache modal, a restructured Resources navigation with labelled sections, and a comprehensive modal UX overhaul (scroll, Escape key, backdrop dismiss) across all viewers. [View detailed changelog →](CHANGELOG.md)
 
 ### AWS Service Emulation
 
@@ -162,6 +166,14 @@ localcloud-kit/
 - **Cache Management**: View all keys and values with JSON formatting
 - **Connection Info**: Easy integration with external Redis tools
 - **GUI Interface**: Full-screen cache management interface
+
+#### Mailpit Email Testing
+
+- **Local SMTP Server**: Catch all outbound emails without sending to real addresses
+- **Inbox UI**: Browse, read, and inspect emails directly from the dashboard
+- **Send Test Emails**: Fire test emails from the GUI to verify templates and flows
+- **Email Details**: View headers, body, recipient info, and timestamps
+- **Inbox Management**: Clear all messages or delete individually
 
 ### Development Tools
 
@@ -338,12 +350,14 @@ Then view files in the GUI with full syntax highlighting support.
 
 ### Service URLs
 
-| Service     | URL                                          | Description                |
-| ----------- | -------------------------------------------- | -------------------------- |
-| Web GUI     | https://app-local.localcloudkit.com:3030     | Main application interface |
-| API Server  | https://app-local.localcloudkit.com:3030/api | REST API endpoints         |
-| LocalStack  | http://localhost:4566                        | AWS services emulation     |
-| Redis Cache | localhost:6380                               | Redis cache (no password)  |
+| Service     | URL                                          | Description                     |
+| ----------- | -------------------------------------------- | ------------------------------- |
+| Web GUI     | https://app-local.localcloudkit.com:3030     | Main application interface      |
+| API Server  | https://app-local.localcloudkit.com:3030/api | REST API endpoints              |
+| LocalStack  | http://localhost:4566                        | AWS services emulation          |
+| Redis Cache | localhost:6380                               | Redis cache (no password)       |
+| Mailpit UI  | https://mailpit.localcloudkit.com:3030       | Email inbox and SMTP testing    |
+| Mailpit SMTP| localhost:1025                               | SMTP endpoint for sending email |
 
 > **Note**: Within Docker network, services use internal hostnames (e.g., `localstack:4566`, `redis:6379`)
 
@@ -400,7 +414,7 @@ docker compose up -d --scale api=3 # Scale services
 
 - **[Getting Started Guide](GETTING_STARTED.md)** - Complete setup and first-time installation (includes quick start, customization, and workflows)
 - **[Docker Guide](docs/DOCKER.md)** - Container deployment and management
-- **[Connection Guide](CONNECT.md)** - AWS SDK integration examples
+- **[Connection Guide](docs/CONNECT.md)** - AWS SDK integration examples (JS, Python, Go, Java)
 
 ### Setup & Configuration Scripts
 
@@ -469,6 +483,7 @@ sudo ./scripts/cleanup-hosts.sh
 
 ### Service Documentation
 
+- **[Mailpit Email Testing](docs/MAILPIT.md)** - Email testing guide with SMTP configuration and API examples
 - **[Redis Cache Management](docs/REDIS.md)** - Complete Redis cache guide with API endpoints and examples
 - **[Secrets Manager Integration](docs/SECRETS.md)** - Full Secrets Manager documentation with SDK examples
 

@@ -102,6 +102,17 @@ export default function DynamoDBViewer({
   }, [isOpen]);
 
   useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
     if (selectedTable) {
       loadTableSchema();
       loadTableContents();
@@ -355,24 +366,27 @@ export default function DynamoDBViewer({
   if (!isOpen) return <></>;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl h-5/6 flex flex-col">
+  <>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-7xl max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              DynamoDB Tables
-            </h2>
-            <p className="text-sm text-gray-600">
-              View and manage DynamoDB table contents
-            </p>
+            <h2 className="text-lg font-semibold text-gray-900">DynamoDB Tables</h2>
+            <p className="text-xs text-gray-500">View and manage table contents</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
             aria-label="Close"
           >
-            <XMarkIcon className="h-6 w-6" />
+            <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
 
@@ -686,102 +700,98 @@ export default function DynamoDBViewer({
           )}
         </div>
       </div>
+    </div>
 
-      <DynamoDBAddItemModal
-        isOpen={addModalOpen}
-        onClose={() => setAddModalOpen(false)}
-        onSubmit={handleAddItem}
-        tableName={selectedTable}
-        projectName={projectName}
-        loading={addLoading}
-      />
+    <DynamoDBAddItemModal
+      isOpen={addModalOpen}
+      onClose={() => setAddModalOpen(false)}
+      onSubmit={handleAddItem}
+      tableName={selectedTable}
+      projectName={projectName}
+      loading={addLoading}
+    />
 
-      {/* Delete Confirmation Modal */}
-      {deleteModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Delete Item</h2>
-                <p className="text-sm text-gray-600">
-                  Are you sure you want to delete this item?
-                </p>
+    {/* Delete Confirmation Modal */}
+    {deleteModalOpen && (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Delete Item</h2>
+              <p className="text-xs text-gray-500">This action cannot be undone</p>
+            </div>
+            <button
+              onClick={() => setDeleteModalOpen(false)}
+              className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              aria-label="Close"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6">
+            <div className="text-sm text-gray-700 mb-4">
+              <p>The item will be permanently deleted from the table.</p>
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                {error}
               </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setDeleteModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
-                aria-label="Close"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                disabled={deleteLoading}
               >
-                <XMarkIcon className="h-6 w-6" />
+                Cancel
               </button>
-            </div>
-
-            {/* Content */}
-            <div className="p-6">
-              <div className="text-sm text-gray-700 mb-4">
-                <p>
-                  This action cannot be undone. The item will be permanently
-                  deleted from the table.
-                </p>
-              </div>
-
-              {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-                  {error}
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => setDeleteModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                  disabled={deleteLoading}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeleteConfirm}
-                  disabled={deleteLoading}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
-                >
-                  {deleteLoading ? "Deleting..." : "Delete"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* JSON Viewer Modal */}
-      {jsonViewerOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-60">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-3/4 flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">JSON Viewer</h2>
-                <p className="text-sm text-gray-600">{selectedJsonTitle}</p>
-              </div>
               <button
-                onClick={() => setJsonViewerOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
-                aria-label="Close"
+                onClick={handleDeleteConfirm}
+                disabled={deleteLoading}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
               >
-                <XMarkIcon className="h-6 w-6" />
+                {deleteLoading ? "Deleting..." : "Delete"}
               </button>
-            </div>
-
-            {/* JSON Content */}
-            <div className="flex-1 p-6 overflow-auto">
-              <pre className="text-sm font-mono text-gray-800 bg-gray-50 p-4 rounded border overflow-auto h-full whitespace-pre-wrap">
-                {JSON.stringify(selectedJsonData, null, 2)}
-              </pre>
             </div>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    )}
+
+    {/* JSON Viewer Modal */}
+    {jsonViewerOpen && (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">JSON Viewer</h2>
+              <p className="text-xs text-gray-500">{selectedJsonTitle}</p>
+            </div>
+            <button
+              onClick={() => setJsonViewerOpen(false)}
+              className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              aria-label="Close"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* JSON Content */}
+          <div className="flex-1 p-6 overflow-auto">
+            <pre className="text-sm font-mono text-gray-800 bg-gray-50 p-4 rounded border overflow-auto h-full whitespace-pre-wrap">
+              {JSON.stringify(selectedJsonData, null, 2)}
+            </pre>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
   );
 }

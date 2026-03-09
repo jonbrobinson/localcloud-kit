@@ -4,6 +4,7 @@ import {
   DestroyResourceRequest,
   LocalStackStatus,
   LogEntry,
+  MailpitStats,
   ProjectConfig,
   Resource,
 } from "@/types";
@@ -269,6 +270,42 @@ export const s3Api = {
       console.error("Failed to delete object:", error);
       return { success: false, error: "Failed to delete object" };
     }
+  },
+};
+
+// Mailpit Email Testing
+export const mailpitApi = {
+  stats: async (): Promise<MailpitStats> => {
+    try {
+      const response = await api.get("/mailpit/stats");
+      return response.data.data || { total: 0, unread: 0, status: "unavailable" };
+    } catch {
+      return { total: 0, unread: 0, status: "unavailable" };
+    }
+  },
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getMessages: async (limit = 10): Promise<{ messages: any[]; total: number }> => {
+    try {
+      const response = await api.get(`/mailpit/messages?limit=${limit}`);
+      return response.data.data || { messages: [], total: 0 };
+    } catch {
+      return { messages: [], total: 0 };
+    }
+  },
+
+  clearMessages: async (): Promise<void> => {
+    await api.delete("/mailpit/messages");
+  },
+
+  sendTest: async (payload: {
+    from: string;
+    to: string;
+    subject: string;
+    body: string;
+  }): Promise<ApiResponse> => {
+    const response = await api.post<ApiResponse>("/mailpit/send-test", payload);
+    return response.data;
   },
 };
 
