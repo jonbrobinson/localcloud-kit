@@ -4,33 +4,37 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-03-09
+
 ### Added
-- **RedisModal**: New Redis status modal with key browser and connection info
+- **Mailpit**: Full email testing integration — local SMTP server (port 1025) with web inbox at `https://mailpit.localcloudkit.com:3030`
+- **MailpitModal**: In-dashboard modal for browsing the inbox, reading emails, sending test messages, and clearing all messages
+- **RedisModal**: New Redis status modal with key browser and connection info, accessible from the dashboard Resources menu and resource card
 - **Dashboard**: Redis and Mailpit status pills in the services bar, clickable to open their modals
-- **Dashboard**: Redis "Open" button in resource list opens `/cache` in a new tab
 
 ### Changed
+- **Dashboard navigation**: Standalone Logs button folded into a "Resources" dropdown (renamed from "Tools") with labelled sections — AWS (DynamoDB Tables, S3 Buckets, Secrets Manager), Cache (Redis Cache), Inbox (Mailpit) — and alphabetised entries within each section
 - **ResourceList**: Unified all "Open" action buttons to indigo-50/indigo-600 for visual consistency
 - **Modal UX**: Standardised shell across all modals — `bg-black/50` backdrop, `rounded-xl shadow-2xl`, `max-h-[90vh]`, backdrop click-to-close, Escape key dismiss, and body scroll lock
-- **Modal sizing**: Reduced SecretsManagerViewer (`max-w-6xl` → `max-w-2xl`), LogViewer (`max-w-6xl` → `max-w-4xl`), DynamoDBConfigModal (`max-w-4xl` → `max-w-xl`) to better match content density
+- **Modal sizing**: Right-sized all viewers — SecretsManagerViewer (`max-w-6xl` → `max-w-2xl`), LogViewer (`max-w-6xl` → `max-w-4xl`), DynamoDBConfigModal (`max-w-4xl` → `max-w-xl`)
 - **Modal headers**: Consistent `text-lg font-semibold` title + `text-xs text-gray-500` subtitle + `p-1.5 rounded-md hover:bg-gray-100` close button across all modals
-- **DynamoDBAddItemModal**: Fixed modal closing on field focus; sub-modals (Add Item, Delete, JSON Viewer) moved outside the parent backdrop to prevent click-event bubbling
 - **DynamoDBAddItemModal**: Scrollable body with pinned footer so the submit button is always visible when adding large items
+- **DynamoDBAddItemModal**: Sub-modals (Delete, JSON Viewer) moved outside the parent backdrop to prevent click-event bubbling
 
 ### Fixed
-- **DynamoDBAddItemModal**: Number (`N`) type fields now use `type="number"` input — prevents non-numeric values being sent to DynamoDB
+- **DynamoDBAddItemModal**: Modal no longer closes on field focus — sub-modals rendered outside backdrop div
+- **DynamoDBAddItemModal**: Number (`N`) type fields now use `type="number"` input, preventing non-numeric values being sent to DynamoDB
 - **DynamoDBAddItemModal**: Boolean (`BOOL`) type fields replaced with a true/false dropdown instead of free-text
 - **DynamoDBAddItemModal**: Recursive pre-submit validator catches invalid number values in nested Maps and Lists before the request is sent
 - **BucketViewer**: FileViewerModal and UploadFileModal moved outside backdrop div — fixes S3 file upload being dismissed on click
-- **BucketViewer**: Added missing closing div for flex-1 content wrapper that caused broken JSX structure
+- **BucketViewer**: Added missing closing div for flex-1 content wrapper
 - **LogViewer**: Collapsed double-wrapper into single `flex-1 min-h-0 overflow-y-auto` container — fixes scroll and modal overflowing viewport
-- **LogViewer**: Fixed invisible select text by adding `bg-white text-gray-900`; `lastUpdated` tracked in state to stop footer flickering on auto-refresh
+- **LogViewer**: Fixed invisible "All Sources" select text; `lastUpdated` tracked in state to stop footer flickering on auto-refresh
 - **RedisModal**: Replaced broken `redis.localcloudkit.com` link with `/cache` route
-- **Dashboard**: Standalone Logs button folded into Resources dropdown; renamed Tools → Resources with labelled sections (AWS, Cache, Inbox) and alphabetised entries; Secrets Manager added to AWS section
 
 ### Docs
-- **README**: Updated tagline to "Local Cloud Development Environment"; added Mailpit and Redis badges; added Mailpit feature section and service URLs; linked `docs/MAILPIT.md` in Service Documentation
-- **docs/CONNECT.md**: Moved from root `CONNECT.md` to `docs/`; added Secrets Manager SDK examples for JS, Python, Go, and Java; fixed deprecated Go `EndpointResolverWithOptions` API to use per-service `BaseEndpoint`; added troubleshooting table and debug logging snippets
+- **README**: Updated tagline to "Local Cloud Development Environment"; added Mailpit and Redis badges; added Mailpit feature section, access URLs, and service table rows; linked `docs/MAILPIT.md`
+- **docs/CONNECT.md**: Moved from root `CONNECT.md` to `docs/`; added Secrets Manager SDK examples for JS, Python, Go, and Java; fixed deprecated Go `EndpointResolverWithOptions` API to use per-service `BaseEndpoint`; added troubleshooting table and per-language debug logging snippets
 - **GETTING_STARTED.md**, **README.md**: Updated Connection Guide link to `docs/CONNECT.md`
 
 ## [0.7.1] - 2025-12-09
