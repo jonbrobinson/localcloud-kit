@@ -262,109 +262,129 @@ export default function ResourceList({
         </div>
       ) : (
         <>
+          {/* Column labels */}
+          <div className="grid items-center gap-x-4 px-6 py-2 bg-gray-50 border-b border-gray-200"
+            style={{ gridTemplateColumns: "1.25rem 2rem 1fr 9rem 6rem 1.75rem" }}>
+            <div />
+            <div />
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Resource</span>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</span>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide text-center">Action</span>
+            <div />
+          </div>
+
           {/* Resource List */}
           <div className="divide-y divide-gray-200">
             {filteredResources.map((resource) => (
-              <div key={resource.id} className="px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    {SERVICE_TYPES.includes(resource.type) ? (
-                      <div className="h-4 w-4" />
-                    ) : (
-                      <input
-                        type="checkbox"
-                        checked={selectedResources.includes(resource.id)}
-                        onChange={() => handleSelectResource(resource.id)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                    )}
-                    <span className="text-2xl">
-                      {getResourceIcon(resource.type)}
-                    </span>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900">
-                        {resource.name}
-                      </h4>
-                      <p className="text-sm text-gray-500 capitalize">
-                        {resource.type === "mailpit"
-                          ? "Mailpit Integration"
-                          : `${resource.type} • ${resource.project}`}
-                      </p>
-                    </div>
+              <div key={resource.id} className="px-6 py-3.5">
+                <div
+                  className="grid items-center gap-x-4"
+                  style={{ gridTemplateColumns: "1.25rem 2rem 1fr 9rem 6rem 1.75rem" }}
+                >
+                  {/* Col 1: checkbox or spacer */}
+                  {SERVICE_TYPES.includes(resource.type) ? (
+                    <div />
+                  ) : (
+                    <input
+                      type="checkbox"
+                      checked={selectedResources.includes(resource.id)}
+                      onChange={() => handleSelectResource(resource.id)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                  )}
+
+                  {/* Col 2: emoji icon */}
+                  <span className="text-xl leading-none text-center">
+                    {getResourceIcon(resource.type)}
+                  </span>
+
+                  {/* Col 3: name + subtitle */}
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-medium text-gray-900 truncate">
+                      {resource.name}
+                    </h4>
+                    <p className="text-xs text-gray-500 capitalize truncate">
+                      {resource.type === "mailpit"
+                        ? "Mailpit Integration"
+                        : `${resource.type} • ${resource.project}`}
+                    </p>
                   </div>
 
-                  <div className="flex items-center space-x-3">
+                  {/* Col 4: status badge — fixed column keeps all badges aligned */}
+                  <div>
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(
-                        resource.status
-                      )}`}
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(resource.status)}`}
                     >
                       {getStatusIcon(resource.status)}
                       <span className="ml-1 capitalize">{resource.status}</span>
                     </span>
+                  </div>
 
+                  {/* Col 5: action button — always rendered so col 6 stays aligned */}
+                  <div className="flex justify-center">
                     {resource.status === "active" && (
                       <>
                         {resource.type === "s3" && onViewS3 && (
                           <button
                             onClick={() => onViewS3(resource.name)}
-                            className="flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
                             title="View S3 Bucket Contents"
                           >
-                            <EyeIcon className="h-3 w-3 mr-1" />
+                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                             View
                           </button>
                         )}
                         {resource.type === "dynamodb" && onViewDynamoDB && (
                           <button
                             onClick={() => onViewDynamoDB(resource.name)}
-                            className="flex items-center px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors"
+                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors"
                             title="View DynamoDB Table Contents"
                           >
-                            <EyeIcon className="h-3 w-3 mr-1" />
+                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                             View
                           </button>
                         )}
                         {resource.type === "cache" && onViewCache && (
                           <button
                             onClick={onViewCache}
-                            className="flex items-center px-2 py-1 text-xs font-medium text-cyan-600 bg-cyan-50 rounded-md hover:bg-cyan-100 transition-colors"
+                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-cyan-600 bg-cyan-50 rounded-md hover:bg-cyan-100 transition-colors"
                             title="Open Cache Management"
                           >
-                            <EyeIcon className="h-3 w-3 mr-1" />
+                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                             Manage
                           </button>
                         )}
                         {resource.type === "mailpit" && onViewMailpit && (
                           <button
                             onClick={onViewMailpit}
-                            className="flex items-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
                             title="Open Mailpit Integration"
                           >
-                            <EyeIcon className="h-3 w-3 mr-1" />
+                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                             Manage
                           </button>
                         )}
                         {resource.type === "secretsmanager" && onViewSecretsManager && (
                           <button
                             onClick={onViewSecretsManager}
-                            className="flex items-center px-2 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors"
+                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors"
                             title="Open Secrets Manager"
                           >
-                            <EyeIcon className="h-3 w-3 mr-1" />
+                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                             Manage
                           </button>
                         )}
                       </>
                     )}
+                  </div>
 
+                  {/* Col 6: details toggle */}
+                  <div className="flex justify-center">
                     <button
                       onClick={() =>
-                        setShowDetails(
-                          showDetails === resource.id ? null : resource.id
-                        )
+                        setShowDetails(showDetails === resource.id ? null : resource.id)
                       }
-                      className="text-gray-400 hover:text-gray-600"
+                      className={`text-gray-400 hover:text-gray-600 transition-colors ${showDetails === resource.id ? "text-gray-600" : ""}`}
                       title="Show Details"
                     >
                       <EyeIcon className="h-4 w-4" />
