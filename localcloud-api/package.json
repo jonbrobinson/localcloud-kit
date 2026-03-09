@@ -3,6 +3,7 @@
   "version": "0.8.0",
   "description": "LocalCloud Kit API Server",
   "main": "server.js",
+  "type": "module",
   "engines": {
     "node": ">=22.0.0"
   },

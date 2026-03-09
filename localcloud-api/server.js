@@ -1,22 +1,22 @@
-const express = require("express");
-const cors = require("cors");
-const { exec } = require("child_process");
-const { promisify } = require("util");
-const axios = require("axios");
-const winston = require("winston");
-const cron = require("node-cron");
-const http = require("http");
-const socketIo = require("socket.io");
-const path = require("path");
-const fs = require("fs");
-const multer = require("multer");
-const nodemailer = require("nodemailer");
+import express from "express";
+import cors from "cors";
+import { exec } from "child_process";
+import { promisify } from "util";
+import axios from "axios";
+import winston from "winston";
+import cron from "node-cron";
+import http from "http";
+import { Server as SocketIOServer } from "socket.io";
+import path from "path";
+import fs from "fs";
+import multer from "multer";
+import nodemailer from "nodemailer";
 
 const execAsync = promisify(exec);
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
+const io = new SocketIOServer(server, {
   cors: {
     origin: process.env.SOCKET_IO_ORIGIN || "https://app-local.localcloudkit.com:3030",
     methods: ["GET", "POST"],
@@ -59,7 +59,7 @@ const internalEndpoint = "http://localstack:4566";
 const userEndpoint = "http://localhost:4566";
 const awsRegion = process.env.AWS_DEFAULT_REGION || "us-east-1";
 
-const db = require("./db");
+import db from "./db.js";
 
 // Configure multer for file uploads
 const upload = multer({

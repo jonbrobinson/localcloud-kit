@@ -1,11 +1,14 @@
-const Database = require("better-sqlite3");
-const path = require("path");
-const fs = require("fs");
+import Database from "better-sqlite3";
+import { existsSync, mkdirSync } from "fs";
+import { join } from "path";
+import { fileURLToPath } from "url";
 
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
-const db = new Database(path.join(DATA_DIR, "localcloud.db"));
+const DATA_DIR = process.env.DATA_DIR || join(__dirname, "data");
+if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
+
+const db = new Database(join(DATA_DIR, "localcloud.db"));
 db.pragma("journal_mode = WAL");
 
 db.exec(`
@@ -61,4 +64,4 @@ if (!profile) {
   ).run(defaultProject.id);
 }
 
-module.exports = db;
+export default db;
