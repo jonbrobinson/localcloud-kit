@@ -21,7 +21,11 @@ interface ResourceListProps {
   onViewDynamoDB?: (tableName: string) => void;
   onViewCache?: () => void;
   onViewSecretsManager?: () => void;
+  onViewMailpit?: () => void;
 }
+
+// Resource types that are services (not AWS resources) — not selectable/destroyable
+const SERVICE_TYPES = ["cache", "mailpit"];
 
 export default function ResourceList({
   resources,
@@ -32,6 +36,7 @@ export default function ResourceList({
   onViewDynamoDB,
   onViewCache,
   onViewSecretsManager,
+  onViewMailpit,
 }: ResourceListProps) {
   const [selectedResources, setSelectedResources] = useState<string[]>([]);
   const [showDetails, setShowDetails] = useState<string | null>(null);
@@ -83,16 +88,10 @@ export default function ResourceList({
         return "🧊";
       case "secretsmanager":
         return "🔑";
+      case "mailpit":
+        return "📬";
       default:
         return "📦";
-    }
-  };
-
-  const handleSelectAll = () => {
-    if (selectedResources.length === resources.length) {
-      setSelectedResources([]);
-    } else {
-      setSelectedResources(resources.map((r) => r.id));
     }
   };
 
@@ -124,6 +123,18 @@ export default function ResourceList({
   const filteredResources = resources.filter(
     (resource) => resource.project === projectName
   );
+
+  const selectableResources = filteredResources.filter(
+    (r: Resource) => !SERVICE_TYPES.includes(r.type)
+  );
+
+  const handleSelectAll = () => {
+    if (selectedResources.length === selectableResources.length) {
+      setSelectedResources([]);
+    } else {
+      setSelectedResources(selectableResources.map((r) => r.id));
+    }
+  };
 
   if (filteredResources.length === 0) {
     return (
@@ -172,12 +183,16 @@ export default function ResourceList({
           <div key={resource.id} className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <input
-                  type="checkbox"
-                  checked={selectedResources.includes(resource.id)}
-                  onChange={() => handleSelectResource(resource.id)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
+                {SERVICE_TYPES.includes(resource.type) ? (
+                  <div className="h-4 w-4" />
+                ) : (
+                  <input
+                    type="checkbox"
+                    checked={selectedResources.includes(resource.id)}
+                    onChange={() => handleSelectResource(resource.id)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                )}
                 <span className="text-2xl">
                   {getResourceIcon(resource.type)}
                 </span>
@@ -186,7 +201,9 @@ export default function ResourceList({
                     {resource.name}
                   </h4>
                   <p className="text-sm text-gray-500 capitalize">
-                    {resource.type} • {resource.project}
+                    {resource.type === "mailpit"
+                      ? "Mailpit Integration"
+                      : `${resource.type} • ${resource.project}`}
                   </p>
                 </div>
               </div>
@@ -234,6 +251,16 @@ export default function ResourceList({
                         Manage
                       </button>
                     )}
+                    {resource.type === "mailpit" && onViewMailpit && (
+                      <button
+                        onClick={onViewMailpit}
+                        className="flex items-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                        title="Open Mailpit Integration"
+                      >
+                        <EyeIcon className="h-3 w-3 mr-1" />
+                        Manage
+                      </button>
+                    )}
                     {resource.type === "secretsmanager" &&
                       onViewSecretsManager && (
                         <button
@@ -276,6 +303,30 @@ export default function ResourceList({
                       {new Date(resource.createdAt).toLocaleString()}
                     </dd>
                   </div>
+
+                  {/* Special handling for mailpit */}
+                  {resource.type === "mailpit" && resource.details && (
+                    <>
+                      <div>
+                        <dt className="font-medium text-gray-500">Total Emails</dt>
+                        <dd className="text-gray-900">{resource.details.total}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-gray-500">Unread</dt>
+                        <dd className={resource.details.unread > 0 ? "text-red-600 font-medium" : "text-gray-900"}>
+                          {resource.details.unread}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-gray-500">SMTP</dt>
+                        <dd className="text-gray-900 font-mono">localhost:1025</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-gray-500">Web UI</dt>
+                        <dd className="text-gray-900 font-mono">localhost:8025</dd>
+                      </div>
+                    </>
+                  )}
 
                   {/* Special handling for secrets manager */}
                   {resource.type === "secretsmanager" && resource.details && (
@@ -347,17 +398,17 @@ export default function ResourceList({
       </div>
 
       {/* Select All */}
-      {filteredResources.length > 0 && (
+      {selectableResources.length > 0 && (
         <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
           <div className="flex items-center space-x-3">
             <input
               type="checkbox"
-              checked={selectedResources.length === filteredResources.length}
+              checked={selectedResources.length === selectableResources.length && selectableResources.length > 0}
               onChange={handleSelectAll}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <span className="text-sm text-gray-700">
-              Select all ({filteredResources.length} resources)
+              Select all ({selectableResources.length} resources)
             </span>
           </div>
         </div>

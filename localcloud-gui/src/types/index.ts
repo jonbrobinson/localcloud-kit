@@ -15,7 +15,8 @@ export interface Resource {
     | "apigateway"
     | "iam"
     | "cache"
-    | "secretsmanager";
+    | "secretsmanager"
+    | "mailpit";
   status: "creating" | "active" | "deleting" | "error" | "unknown";
   environment: string;
   project: string;

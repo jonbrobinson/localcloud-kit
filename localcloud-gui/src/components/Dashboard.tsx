@@ -5,18 +5,18 @@ import { resourceApi } from "@/services/api";
 import { DynamoDBTableConfig, S3BucketConfig } from "@/types";
 import {
   ArrowPathIcon,
+  BookOpenIcon,
   ChevronDownIcon,
   CircleStackIcon,
   DocumentTextIcon,
+  EnvelopeIcon,
   FolderIcon,
-  LinkIcon,
   ServerIcon,
   Squares2X2Icon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import ResourceList from "./ResourceList";
-import StatusCard from "./StatusCard";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -26,7 +26,6 @@ import BucketViewer from "./BucketViewer";
 import DynamoDBConfigModal from "./DynamoDBConfigModal";
 import DynamoDBViewer from "./DynamoDBViewer";
 import LogViewer from "./LogViewer";
-import MailpitBadge from "./MailpitBadge";
 import S3ConfigModal from "./S3ConfigModal";
 import SecretsManagerViewer from "./SecretsManagerViewer";
 
@@ -34,7 +33,6 @@ export default function Dashboard() {
   const router = useRouter();
   const {
     localstack,
-    mailpit,
     loading,
     error,
     refetch: loadInitialData,
@@ -57,14 +55,19 @@ export default function Dashboard() {
   const [createLoading, setCreateLoading] = useState(false);
   const [destroyLoading, setDestroyLoading] = useState(false);
 
-  // Tools dropdown
+  // Dropdowns
   const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const [showDocsMenu, setShowDocsMenu] = useState(false);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
+  const docsMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (toolsMenuRef.current && !toolsMenuRef.current.contains(e.target as Node)) {
         setShowToolsMenu(false);
+      }
+      if (docsMenuRef.current && !docsMenuRef.current.contains(e.target as Node)) {
+        setShowDocsMenu(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -273,10 +276,19 @@ export default function Dashboard() {
 
             {/* Nav */}
             <div className="flex items-center space-x-3">
+              {/* Logs — standalone */}
+              <button
+                onClick={() => setShowLogs(true)}
+                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                <DocumentTextIcon className="h-4 w-4 mr-2" />
+                Logs
+              </button>
+
               {/* Tools dropdown */}
               <div className="relative" ref={toolsMenuRef}>
                 <button
-                  onClick={() => setShowToolsMenu((v) => !v)}
+                  onClick={() => { setShowToolsMenu((v) => !v); setShowDocsMenu(false); }}
                   className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   <Squares2X2Icon className="h-4 w-4 mr-2" />
@@ -285,13 +297,6 @@ export default function Dashboard() {
                 </button>
                 {showToolsMenu && (
                   <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                    <button
-                      onClick={() => { setShowLogs(true); setShowToolsMenu(false); }}
-                      className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Logs
-                    </button>
                     <button
                       onClick={() => { setShowBuckets(true); setShowToolsMenu(false); }}
                       className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -314,40 +319,83 @@ export default function Dashboard() {
                       <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />
                       Redis Cache
                     </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Docs dropdown */}
+              <div className="relative" ref={docsMenuRef}>
+                <button
+                  onClick={() => { setShowDocsMenu((v) => !v); setShowToolsMenu(false); }}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  <BookOpenIcon className="h-4 w-4 mr-2" />
+                  Docs
+                  <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showDocsMenu ? "rotate-180" : ""}`} />
+                </button>
+                {showDocsMenu && (
+                  <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                     <Link
-                      href="/connect"
-                      onClick={() => setShowToolsMenu(false)}
+                      href="/localstack"
+                      onClick={() => setShowDocsMenu(false)}
                       className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      <LinkIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Connect
+                      <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />
+                      LocalStack Integration
+                    </Link>
+                    <Link
+                      href="/mailpit"
+                      onClick={() => setShowDocsMenu(false)}
+                      className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Mailpit Integration
                     </Link>
                   </div>
                 )}
               </div>
 
-              <MailpitBadge stats={mailpit} />
             </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* LocalStack Status */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              LocalStack Status
-            </h2>
-            <div className="text-sm text-gray-500">
-              Use{" "}
-              <code className="bg-gray-100 px-1 rounded">
-                docker compose up -d
-              </code>{" "}
-              to start LocalStack
-            </div>
-          </div>
-          <StatusCard status={localstackStatus} />
+        {/* LocalStack Status — compact pill */}
+        <div className="mb-6 flex items-center space-x-3">
+          <span
+            className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
+              localstackStatus.health === "healthy"
+                ? "bg-green-500"
+                : localstackStatus.health === "unhealthy"
+                ? "bg-red-500"
+                : "bg-gray-400"
+            }`}
+          />
+          <span className="text-sm font-medium text-gray-700">LocalStack</span>
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              localstackStatus.running && localstackStatus.health === "healthy"
+                ? "bg-green-100 text-green-800"
+                : localstackStatus.running
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            {localstackStatus.running
+              ? localstackStatus.health === "healthy"
+                ? "Running"
+                : "Unhealthy"
+              : "Stopped"}
+          </span>
+          <Link href="/localstack" className="text-xs text-blue-600 hover:text-blue-800 hover:underline">
+            View integration →
+          </Link>
+          {!localstackStatus.running && (
+            <span className="text-xs text-gray-500">
+              Run <code className="bg-gray-100 px-1 rounded">docker compose up -d</code> to start
+            </span>
+          )}
         </div>
 
         {/* Resource Management */}
@@ -414,6 +462,9 @@ export default function Dashboard() {
               }}
               onViewSecretsManager={() => {
                 setShowSecretsManager(true);
+              }}
+              onViewMailpit={() => {
+                router.push("/mailpit");
               }}
             />
           </div>
