@@ -4,10 +4,12 @@ import { useMailpitStats } from "@/hooks/useMailpitStats";
 import { mailpitApi } from "@/services/api";
 import {
   ArrowTopRightOnSquareIcon,
+  BookOpenIcon,
   TrashIcon,
   XMarkIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
+import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 
@@ -122,6 +124,14 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
               <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 mr-1" />
               Open Mailpit UI
             </a>
+            <Link
+              href="/mailpit"
+              onClick={onClose}
+              className="flex items-center px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
+            >
+              <BookOpenIcon className="h-3.5 w-3.5 mr-1" />
+              Documentation
+            </Link>
             <button
               onClick={onClose}
               className="p-1.5 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 transition-colors"

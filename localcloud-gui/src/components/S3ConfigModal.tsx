@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useState, useEffect } from "react";
+import { XMarkIcon, FolderIcon } from "@heroicons/react/24/outline";
 import { S3BucketConfig } from "@/types";
 
 interface S3ConfigModalProps {
@@ -24,6 +24,17 @@ export default function S3ConfigModal({
   const [versioning, setVersioning] = useState(false);
   const [encryption, setEncryption] = useState(false);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -38,24 +49,35 @@ export default function S3ConfigModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-          aria-label="Close"
-        >
-          <XMarkIcon className="h-6 w-6" />
-        </button>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-indigo-50 rounded-lg">
+              <FolderIcon className="h-5 w-5 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">S3 Bucket Configuration</h2>
+              <p className="text-xs text-gray-500">Configure bucket settings</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+            aria-label="Close"
+          >
+            <XMarkIcon className="h-5 w-5" />
+          </button>
+        </div>
 
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          S3 Bucket Configuration
-        </h2>
-        <p className="text-sm text-gray-600 mb-6">
-          Configure your S3 bucket with custom settings.
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Bucket Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -158,4 +180,5 @@ export default function S3ConfigModal({
     </div>
   );
 }
+
  

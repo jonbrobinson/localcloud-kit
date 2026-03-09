@@ -186,6 +186,17 @@ export default function DynamoDBAddItemModal({
     }
   }, [isOpen, tableName]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, onClose]);
+
   const loadTableSchema = async () => {
     setSchemaLoading(true);
     setError("");
@@ -259,107 +270,126 @@ export default function DynamoDBAddItemModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-          aria-label="Close"
-        >
-          <XMarkIcon className="h-6 w-6" />
-        </button>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Add Item to {tableName}
-        </h2>
-
-        {schemaLoading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading table schema...</p>
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header — always visible */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Add Item</h2>
+            <p className="text-xs text-gray-500">{tableName}</p>
           </div>
-        ) : schema ? (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Key Fields */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Required Keys
-              </label>
-              {schema.Table.KeySchema.map((key) => (
-                <div key={key.AttributeName} className="mb-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {key.AttributeName} (
-                    {key.KeyType === "HASH" ? "Partition Key" : "Sort Key"})
-                  </label>
-                  <input
-                    type="text"
-                    value={keyValues[key.AttributeName] || ""}
-                    onChange={(e) =>
-                      handleKeyValueChange(key.AttributeName, e.target.value)
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+            aria-label="Close"
+          >
+            <XMarkIcon className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {schemaLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">Loading table schema...</p>
+            </div>
+          ) : schema ? (
+            <form id="add-item-form" onSubmit={handleSubmit} className="space-y-6">
+              {/* Key Fields */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Required Keys
+                </label>
+                {schema.Table.KeySchema.map((key) => (
+                  <div key={key.AttributeName} className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {key.AttributeName}{" "}
+                      <span className="text-xs text-gray-500 font-normal">
+                        ({key.KeyType === "HASH" ? "Partition Key" : "Sort Key"})
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      value={keyValues[key.AttributeName] || ""}
+                      onChange={(e) =>
+                        handleKeyValueChange(key.AttributeName, e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                      required
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Custom Attributes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Custom Attributes
+                </label>
+                {attributes.map((attr, idx) => (
+                  <AttributeEditor
+                    key={idx}
+                    attr={attr}
+                    onChange={(updated) => {
+                      const updatedAttrs = [...attributes];
+                      updatedAttrs[idx] = updated;
+                      setAttributes(updatedAttrs);
+                    }}
+                    onRemove={() =>
+                      setAttributes(attributes.filter((_, i) => i !== idx))
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    required
                   />
-                </div>
-              ))}
-            </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleAddAttribute}
+                  className="flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 mt-2"
+                >
+                  <PlusIcon className="h-4 w-4 mr-1" />
+                  Add Attribute
+                </button>
+              </div>
 
-            {/* Custom Attributes */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Custom Attributes
-              </label>
-              {attributes.map((attr, idx) => (
-                <AttributeEditor
-                  key={idx}
-                  attr={attr}
-                  onChange={(updated) => {
-                    const updatedAttrs = [...attributes];
-                    updatedAttrs[idx] = updated;
-                    setAttributes(updatedAttrs);
-                  }}
-                  onRemove={() =>
-                    setAttributes(attributes.filter((_, i) => i !== idx))
-                  }
-                />
-              ))}
+              {error && <div className="text-red-600 text-sm">{error}</div>}
+            </form>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-red-600">Failed to load table schema</p>
               <button
-                type="button"
-                onClick={handleAddAttribute}
-                className="flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 mt-2"
+                onClick={loadTableSchema}
+                className="mt-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
-                <PlusIcon className="h-4 w-4 mr-1" />
-                Add Attribute
+                Retry
               </button>
             </div>
+          )}
+        </div>
 
-            {error && <div className="text-red-600 text-sm">{error}</div>}
-
-            <div className="flex justify-end space-x-3 pt-4 border-t">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-                disabled={loading}
-              >
-                {loading ? "Adding..." : "Add Item"}
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="text-center py-8">
-            <p className="text-red-600">Failed to load table schema</p>
+        {/* Footer — always visible, pinned to bottom */}
+        {schema && !schemaLoading && (
+          <div className="flex justify-end space-x-3 px-6 py-4 border-t border-gray-200 flex-shrink-0">
             <button
-              onClick={loadTableSchema}
-              className="mt-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              disabled={loading}
             >
-              Retry
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="add-item-form"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? "Adding..." : "Add Item"}
             </button>
           </div>
         )}

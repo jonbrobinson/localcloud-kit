@@ -139,6 +139,17 @@ export default function BucketViewer({
   }, [isOpen]);
 
   useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
     const stored = localStorage.getItem("hljs-theme");
     if (stored && highlightThemes[stored])
       setSelectedTheme(stored as HighlightTheme);
@@ -317,10 +328,16 @@ export default function BucketViewer({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-3/4 flex flex-col">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 min-w-0 flex-1">
               {selectedBucket && (
@@ -337,7 +354,7 @@ export default function BucketViewer({
                 </button>
               )}
               <div className="min-w-0 flex-1">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-lg font-semibold text-gray-900">
                   {selectedBucket ? `Bucket: ${selectedBucket}` : "S3 Buckets"}
                 </h2>
                 {selectedBucket && currentPath && (
@@ -412,10 +429,10 @@ export default function BucketViewer({
               )}
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
+                className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                 aria-label="Close"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-5 w-5" />
               </button>
             </div>
           </div>

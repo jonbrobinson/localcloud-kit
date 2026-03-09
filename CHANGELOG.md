@@ -4,6 +4,19 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **RedisModal**: New Redis status modal with key browser and connection info
+- **Dashboard**: Redis and Mailpit status pills in the services bar, clickable to open their modals
+- **Dashboard**: Redis "Open" button in resource list opens `/cache` in a new tab
+
+### Changed
+- **ResourceList**: Unified all "Open" action buttons to indigo-50/indigo-600 for visual consistency
+- **Modal UX**: Standardised shell across all modals — `bg-black/50` backdrop, `rounded-xl shadow-2xl`, `max-h-[90vh]`, backdrop click-to-close, Escape key dismiss, and body scroll lock
+- **Modal sizing**: Reduced SecretsManagerViewer (`max-w-6xl` → `max-w-2xl`), LogViewer (`max-w-6xl` → `max-w-4xl`), DynamoDBConfigModal (`max-w-4xl` → `max-w-xl`) to better match content density
+- **Modal headers**: Consistent `text-lg font-semibold` title + `text-xs text-gray-500` subtitle + `p-1.5 rounded-md hover:bg-gray-100` close button across all modals
+- **DynamoDBAddItemModal**: Fixed modal closing on field focus; sub-modals (Add Item, Delete, JSON Viewer) moved outside the parent backdrop to prevent click-event bubbling
+- **DynamoDBAddItemModal**: Scrollable body with pinned footer so the submit button is always visible when adding large items
+
 ## [0.7.1] - 2025-12-09
 
 ### Added

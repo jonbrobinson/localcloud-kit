@@ -19,18 +19,17 @@ import ResourceList from "./ResourceList";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import packageJson from "../../package.json";
 import BucketViewer from "./BucketViewer";
 import DynamoDBConfigModal from "./DynamoDBConfigModal";
 import DynamoDBViewer from "./DynamoDBViewer";
 import LogViewer from "./LogViewer";
 import MailpitModal from "./MailpitModal";
+import RedisModal from "./RedisModal";
 import S3ConfigModal from "./S3ConfigModal";
 import SecretsManagerViewer from "./SecretsManagerViewer";
 
 export default function Dashboard() {
-  const router = useRouter();
   const {
     localstack,
     mailpit,
@@ -49,6 +48,7 @@ export default function Dashboard() {
   const [showDynamoDB, setShowDynamoDB] = useState(false);
   const [showSecretsManager, setShowSecretsManager] = useState(false);
   const [showMailpit, setShowMailpit] = useState(false);
+  const [showRedis, setShowRedis] = useState(false);
 
   const [selectedDynamoDBTable, setSelectedDynamoDBTable] =
     useState<string>("");
@@ -387,7 +387,7 @@ export default function Dashboard() {
 
           {/* Redis */}
           <button
-            onClick={() => router.push("/cache")}
+            onClick={() => setShowRedis(true)}
             className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
             title="Open Redis Cache"
           >
@@ -461,9 +461,7 @@ export default function Dashboard() {
                 setSelectedDynamoDBTable(tableName);
                 setShowDynamoDB(true);
               }}
-              onViewCache={() => {
-                router.push("/cache");
-              }}
+              onViewCache={() => window.open("/cache", "_blank")}
               onViewSecretsManager={() => {
                 setShowSecretsManager(true);
               }}
@@ -569,6 +567,10 @@ export default function Dashboard() {
 
       {showMailpit && (
         <MailpitModal onClose={() => setShowMailpit(false)} />
+      )}
+
+      {showRedis && (
+        <RedisModal onClose={() => setShowRedis(false)} />
       )}
     </div>
   );

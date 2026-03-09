@@ -327,51 +327,51 @@ export default function ResourceList({
                         {resource.type === "s3" && onViewS3 && (
                           <button
                             onClick={() => onViewS3(resource.name)}
-                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
-                            title="View S3 Bucket Contents"
+                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                            title="Open S3 Bucket"
                           >
                             <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            View
+                            Open
                           </button>
                         )}
                         {resource.type === "dynamodb" && onViewDynamoDB && (
                           <button
                             onClick={() => onViewDynamoDB(resource.name)}
-                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 rounded-md hover:bg-purple-100 transition-colors"
-                            title="View DynamoDB Table Contents"
+                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                            title="Open DynamoDB Table"
                           >
                             <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            View
+                            Open
                           </button>
                         )}
                         {resource.type === "cache" && onViewCache && (
                           <button
                             onClick={onViewCache}
-                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-cyan-600 bg-cyan-50 rounded-md hover:bg-cyan-100 transition-colors"
-                            title="Open Cache Management"
+                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                            title="Open Redis Cache"
                           >
                             <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            Manage
+                            Open
                           </button>
                         )}
                         {resource.type === "mailpit" && onViewMailpit && (
                           <button
                             onClick={onViewMailpit}
                             className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                            title="Open Mailpit Integration"
+                            title="Open Mailpit Inbox"
                           >
                             <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            Manage
+                            Open
                           </button>
                         )}
                         {resource.type === "secretsmanager" && onViewSecretsManager && (
                           <button
                             onClick={onViewSecretsManager}
-                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded-md hover:bg-yellow-100 transition-colors"
+                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
                             title="Open Secrets Manager"
                           >
                             <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            Manage
+                            Open
                           </button>
                         )}
                       </>
