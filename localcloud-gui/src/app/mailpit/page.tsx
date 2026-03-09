@@ -4,13 +4,13 @@ import MailpitModal from "@/components/MailpitModal";
 import {
   ArrowLeftIcon,
   ArrowTopRightOnSquareIcon,
+  ClipboardDocumentIcon,
   InboxIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 
 const MAILPIT_UI_URL = "https://mailpit.localcloudkit.com:3030";
 const MAILPIT_UI_DIRECT = "http://localhost:8025";
