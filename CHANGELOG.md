@@ -30,6 +30,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Docs
 - **README**: Updated tagline to "Local Cloud Development Environment"; added Mailpit and Redis badges; added Mailpit feature section and service URLs; linked `docs/MAILPIT.md` in Service Documentation
+- **docs/CONNECT.md**: Moved from root `CONNECT.md` to `docs/`; added Secrets Manager SDK examples for JS, Python, Go, and Java; fixed deprecated Go `EndpointResolverWithOptions` API to use per-service `BaseEndpoint`; added troubleshooting table and debug logging snippets
+- **GETTING_STARTED.md**, **README.md**: Updated Connection Guide link to `docs/CONNECT.md`
 
 ## [0.7.1] - 2025-12-09
 
