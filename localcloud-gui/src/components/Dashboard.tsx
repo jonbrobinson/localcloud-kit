@@ -46,7 +46,7 @@ export default function Dashboard() {
   const { profile, projects, updateProfile } = usePreferences();
 
   // Derive projectName: active project from preferences, fall back to config from API
-  const projectName = profile?.active_project_name || projectName;
+  const projectName = profile?.active_project_name || config.projectName;
 
   const [showDynamoDBConfig, setShowDynamoDBConfig] = useState(false);
   const [showS3Config, setShowS3Config] = useState(false);

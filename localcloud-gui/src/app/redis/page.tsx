@@ -4,35 +4,13 @@ import RedisModal from "@/components/RedisModal";
 import {
   ArrowLeftIcon,
   ArrowTopRightOnSquareIcon,
-  ClipboardDocumentIcon,
   ServerIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { usePreferences } from "@/context/PreferencesContext";
 import { useEffect, useState } from "react";
-import { toast } from "react-hot-toast";
-
-function CodeBlock({ code }: { code: string }) {
-  const copy = () => {
-    navigator.clipboard.writeText(code);
-    toast.success("Copied to clipboard");
-  };
-  return (
-    <div className="relative group">
-      <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto whitespace-pre-wrap">
-        <code>{code}</code>
-      </pre>
-      <button
-        onClick={copy}
-        className="absolute top-2 right-2 p-1.5 rounded bg-gray-700 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-        title="Copy"
-      >
-        <ClipboardDocumentIcon className="h-4 w-4 text-gray-300" />
-      </button>
-    </div>
-  );
-}
+import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 
 const PAGE_TABS = ["typescript", "node", "python", "cli"] as const;
 type PageTab = (typeof PAGE_TABS)[number];
@@ -268,7 +246,7 @@ export default function RedisDocPage() {
               <p className="text-sm text-gray-500 mb-2">
                 TypeScript — <code className="bg-gray-100 px-1 rounded">npm install ioredis</code>
               </p>
-              <CodeBlock code={clientExamples.typescript} />
+              <ThemeableCodeBlock code={clientExamples.typescript} language="typescript" />
             </div>
           )}
           {activeTab === "node" && (
@@ -276,7 +254,7 @@ export default function RedisDocPage() {
               <p className="text-sm text-gray-500 mb-2">
                 Node.js — <code className="bg-gray-100 px-1 rounded">npm install ioredis</code>
               </p>
-              <CodeBlock code={clientExamples.node} />
+              <ThemeableCodeBlock code={clientExamples.node} language="node" />
             </div>
           )}
           {activeTab === "python" && (
@@ -284,7 +262,7 @@ export default function RedisDocPage() {
               <p className="text-sm text-gray-500 mb-2">
                 Python — <code className="bg-gray-100 px-1 rounded">pip install redis</code>
               </p>
-              <CodeBlock code={clientExamples.python} />
+              <ThemeableCodeBlock code={clientExamples.python} language="python" />
             </div>
           )}
           {activeTab === "cli" && (
@@ -292,7 +270,7 @@ export default function RedisDocPage() {
               <p className="text-sm text-gray-500 mb-2">
                 Connect directly using <code className="bg-gray-100 px-1 rounded">redis-cli</code> on port 6380.
               </p>
-              <CodeBlock code={clientExamples.cli} />
+              <ThemeableCodeBlock code={clientExamples.cli} language="cli" />
             </div>
           )}
         </section>

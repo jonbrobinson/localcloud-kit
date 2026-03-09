@@ -4,9 +4,17 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **ThemeableCodeBlock**: Reusable code block component with highlight.js syntax highlighting and theme selector for SDK samples across S3, DynamoDB, Secrets, Redis, Mailpit, and LocalStack doc pages
+
 ### Changed
+- **ConnectionGuide**: Respects profile highlight_theme preference for SDK code examples
 - **docker-compose.yml**: Updated Traefik image from `traefik:v3.0` to `traefik:v3` (floating latest v3 — currently v3.6.10)
 - **README**: Updated LocalStack last-tested version from 4.9 to 4.13.0 (March 9, 2026); added notice about LocalStack's upcoming authentication requirement (March 23, 2026) with link to free plan signup
+
+### Fixed
+- **SecretsManagerViewer**: Sub-modals (Create, Edit, Delete) no longer close when focusing inputs — added stopPropagation to prevent backdrop click bubbling
+- **Dashboard**: Fixed projectName self-reference that caused TypeScript build error (fallback to config.projectName)
 
 ## [0.8.0] - 2026-03-09
 
