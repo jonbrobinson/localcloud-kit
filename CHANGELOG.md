@@ -17,6 +17,11 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **DynamoDBAddItemModal**: Fixed modal closing on field focus; sub-modals (Add Item, Delete, JSON Viewer) moved outside the parent backdrop to prevent click-event bubbling
 - **DynamoDBAddItemModal**: Scrollable body with pinned footer so the submit button is always visible when adding large items
 
+### Fixed
+- **DynamoDBAddItemModal**: Number (`N`) type fields now use `type="number"` input — prevents non-numeric values being sent to DynamoDB
+- **DynamoDBAddItemModal**: Boolean (`BOOL`) type fields replaced with a true/false dropdown instead of free-text
+- **DynamoDBAddItemModal**: Recursive pre-submit validator catches invalid number values in nested Maps and Lists before the request is sent
+
 ## [0.7.1] - 2025-12-09
 
 ### Added
