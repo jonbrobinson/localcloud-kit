@@ -7,12 +7,22 @@ import {
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
 const KEYCLOAK_TRAEFIK_URL = "https://keycloak.localcloudkit.com:3030";
 const KEYCLOAK_DIRECT_URL = "http://localhost:8080";
-const KEYCLOAK_ADMIN_URL = `${KEYCLOAK_DIRECT_URL}/admin`;
+
+function useKeycloakBaseUrl() {
+  const [baseUrl, setBaseUrl] = useState(KEYCLOAK_TRAEFIK_URL);
+  useEffect(() => {
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    setBaseUrl(isLocalhost ? KEYCLOAK_DIRECT_URL : KEYCLOAK_TRAEFIK_URL);
+  }, []);
+  return baseUrl;
+}
 
 function CodeBlock({ code }: { code: string }) {
   const copy = () => {
@@ -107,31 +117,33 @@ OIDC_TOKEN_URL=http://localhost:8080/realms/master/protocol/openid-connect/token
 OIDC_AUTH_URL=http://localhost:8080/realms/master/protocol/openid-connect/auth`,
 };
 
-const resources = [
-  {
-    name: "Keycloak Admin Console (direct)",
-    url: KEYCLOAK_ADMIN_URL,
-    description: "Direct access to the Keycloak admin console on localhost:8080.",
-  },
-  {
-    name: "Keycloak Admin Console (via Traefik)",
-    url: `${KEYCLOAK_TRAEFIK_URL}/admin`,
-    description: "Access the admin console through the Traefik reverse proxy.",
-  },
-  {
-    name: "Keycloak Documentation",
-    url: "https://www.keycloak.org/documentation",
-    description: "Official Keycloak documentation — realms, clients, flows, and more.",
-  },
-  {
-    name: "OpenID Connect Playground",
-    url: "https://openidconnect.net/",
-    description: "Interactive tool for testing OIDC flows against your local Keycloak.",
-  },
-];
-
 export default function KeycloakPage() {
   const [activeTab, setActiveTab] = useState<"nodejs" | "python" | "curl" | "envvars">("nodejs");
+  const keycloakBaseUrl = useKeycloakBaseUrl();
+  const keycloakAdminUrl = `${keycloakBaseUrl}/admin`;
+
+  const resources = [
+    {
+      name: "Keycloak Admin Console",
+      url: keycloakAdminUrl,
+      description: "Access the Keycloak admin console.",
+    },
+    {
+      name: "Keycloak Admin Console (via Traefik)",
+      url: `${KEYCLOAK_TRAEFIK_URL}/admin`,
+      description: "Access the admin console through the Traefik reverse proxy.",
+    },
+    {
+      name: "Keycloak Documentation",
+      url: "https://www.keycloak.org/documentation",
+      description: "Official Keycloak documentation — realms, clients, flows, and more.",
+    },
+    {
+      name: "OpenID Connect Playground",
+      url: "https://openidconnect.net/",
+      description: "Interactive tool for testing OIDC flows against your local Keycloak.",
+    },
+  ];
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -156,7 +168,7 @@ export default function KeycloakPage() {
             </div>
             <div className="flex items-center space-x-2">
               <a
-                href={KEYCLOAK_ADMIN_URL}
+                href={keycloakAdminUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
@@ -199,7 +211,7 @@ export default function KeycloakPage() {
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
                 {[
-                  { label: "Admin Console (direct)", value: KEYCLOAK_ADMIN_URL, link: KEYCLOAK_ADMIN_URL },
+                  { label: "Admin Console", value: keycloakAdminUrl, link: keycloakAdminUrl },
                   { label: "Admin Console (Traefik)", value: `${KEYCLOAK_TRAEFIK_URL}/admin`, link: `${KEYCLOAK_TRAEFIK_URL}/admin` },
                   { label: "Username", value: "admin", link: null },
                   { label: "Password", value: "admin", link: null },
@@ -233,11 +245,11 @@ export default function KeycloakPage() {
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
                 {[
-                  { label: "Discovery", url: `${KEYCLOAK_DIRECT_URL}/realms/master/.well-known/openid-configuration` },
-                  { label: "Authorization", url: `${KEYCLOAK_DIRECT_URL}/realms/master/protocol/openid-connect/auth` },
-                  { label: "Token", url: `${KEYCLOAK_DIRECT_URL}/realms/master/protocol/openid-connect/token` },
-                  { label: "JWKS (public keys)", url: `${KEYCLOAK_DIRECT_URL}/realms/master/protocol/openid-connect/certs` },
-                  { label: "UserInfo", url: `${KEYCLOAK_DIRECT_URL}/realms/master/protocol/openid-connect/userinfo` },
+                  { label: "Discovery", url: `${keycloakBaseUrl}/realms/master/.well-known/openid-configuration` },
+                  { label: "Authorization", url: `${keycloakBaseUrl}/realms/master/protocol/openid-connect/auth` },
+                  { label: "Token", url: `${keycloakBaseUrl}/realms/master/protocol/openid-connect/token` },
+                  { label: "JWKS (public keys)", url: `${keycloakBaseUrl}/realms/master/protocol/openid-connect/certs` },
+                  { label: "UserInfo", url: `${keycloakBaseUrl}/realms/master/protocol/openid-connect/userinfo` },
                 ].map((row) => (
                   <tr key={row.label}>
                     <td className="px-4 py-2.5 text-gray-600">{row.label}</td>

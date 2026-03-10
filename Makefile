@@ -63,12 +63,16 @@ start: ## Start all services with Docker Compose (LOCALSTACK_VERSION=latest by d
 	@echo "$(YELLOW)  GUI:            https://app-local.localcloudkit.com:3030$(NC)"
 	@echo "$(YELLOW)  API:            https://app-local.localcloudkit.com:3030/api$(NC)"
 	@echo "$(YELLOW)  Mailpit (mail): https://mailpit.localcloudkit.com:3030$(NC)"
+	@echo "$(YELLOW)  Keycloak:       https://keycloak.localcloudkit.com:3030$(NC)"
+	@echo "$(YELLOW)  pgAdmin:        https://pgadmin.localcloudkit.com:3030$(NC)"
 	@echo ""
 	@echo "$(GREEN)--- Direct localhost URLs (no TLS) ---$(NC)"
 	@echo "$(YELLOW)  LocalStack:     http://localhost:4566$(NC)"
 	@echo "$(YELLOW)  Express API:    http://localhost:3031$(NC)"
 	@echo "$(YELLOW)  Mailpit UI:     http://localhost:8025$(NC)"
 	@echo "$(YELLOW)  Mailpit SMTP:   localhost:1025$(NC)"
+	@echo "$(YELLOW)  Keycloak:       http://localhost:8080$(NC)"
+	@echo "$(YELLOW)  pgAdmin:        http://localhost:5050$(NC)"
 	@echo ""
 
 start-legacy: ## Start all services using LocalStack 4.12 (community legacy)
