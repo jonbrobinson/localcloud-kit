@@ -6,7 +6,7 @@ This file gives Claude Code the context needed to work effectively in this repos
 
 **LocalCloud Kit** is a free, local AWS development environment. It emulates AWS cloud services using LocalStack, managed through a Next.js web GUI and an Express.js API backend, all orchestrated via Docker Compose. No AWS account is required.
 
-- **Version**: 0.8.0
+- **Version**: 0.9.0
 - **License**: MIT
 - **Primary URL**: https://app-local.localcloudkit.com:3030
 
