@@ -6,13 +6,7 @@ import {
   MailpitStats,
   RedisStatus,
 } from "@/types";
-import {
-  localstackApi,
-  resourceApi,
-  configApi,
-  cacheApi,
-  mailpitApi,
-} from "@/services/api";
+import { dashboardApi } from "@/services/api";
 
 interface LocalStackData {
   status: LocalStackStatus;
@@ -50,56 +44,16 @@ export function useServicesData() {
   const loadData = useCallback(async () => {
     try {
       setError(null);
-      const [localstackStatus, projectConfig, mailpitStats] = await Promise.all(
-        [
-          localstackApi.getStatus(),
-          configApi.getProjectConfig(),
-          mailpitApi.stats(),
-        ]
-      );
-
-      const resources = await resourceApi.getStatus(projectConfig.projectName);
-
-      let redis: RedisStatus = { status: "unknown" };
-      try {
-        const cacheStatus = await cacheApi.status();
-        redis = {
-          status: cacheStatus.status === "running" ? "running" : "stopped",
-          info: cacheStatus.info,
-        };
-        resources.push({
-          id: "cache-redis",
-          name: "Redis Cache",
-          type: "cache",
-          status: redis.status === "running" ? "active" : "error",
-          environment: "local",
-          project: projectConfig.projectName,
-          createdAt: new Date().toISOString(),
-          details: { info: cacheStatus.info, status: cacheStatus.status },
-        });
-      } catch {
-        console.warn("Failed to fetch Redis status");
-      }
-
-      resources.push({
-        id: "mailpit-inbox",
-        name: "Inbox",
-        type: "mailpit",
-        status: mailpitStats.status === "healthy" ? "active" : "error",
-        environment: "local",
-        project: projectConfig.projectName,
-        createdAt: new Date().toISOString(),
-        details: {
-          total: mailpitStats.total,
-          unread: mailpitStats.unread,
-          status: mailpitStats.status,
-        },
-      });
+      const payload = await dashboardApi.getData();
 
       setData({
-        localstack: { status: localstackStatus, projectConfig, resources },
-        mailpit: mailpitStats,
-        redis,
+        localstack: {
+          status: payload.localstackStatus,
+          projectConfig: payload.projectConfig,
+          resources: payload.resources,
+        },
+        mailpit: payload.mailpit,
+        redis: payload.redis,
       });
     } catch (err) {
       const error =

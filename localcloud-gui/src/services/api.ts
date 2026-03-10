@@ -8,9 +8,18 @@ import {
   Project,
   ProjectConfig,
   Resource,
+  RedisStatus,
   SavedConfig,
   UserProfile,
 } from "@/types";
+
+export interface DashboardData {
+  localstackStatus: LocalStackStatus;
+  projectConfig: ProjectConfig;
+  mailpit: MailpitStats;
+  resources: Resource[];
+  redis: RedisStatus;
+}
 import axios from "axios";
 
 const API_BASE_URL = "/api";
@@ -115,6 +124,14 @@ export const configApi = {
   getTemplates: async (): Promise<any[]> => {
     const response = await api.get<ApiResponse<any[]>>("/config/templates");
     return response.data.data || [];
+  },
+};
+
+// Dashboard (batched data - single round-trip)
+export const dashboardApi = {
+  getData: async (): Promise<DashboardData> => {
+    const response = await api.get<ApiResponse<DashboardData>>("/dashboard");
+    return response.data.data!;
   },
 };
 

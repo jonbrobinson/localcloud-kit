@@ -29,6 +29,7 @@ import DynamoDBViewer from "./DynamoDBViewer";
 import LogViewer from "./LogViewer";
 import MailpitModal from "./MailpitModal";
 import RedisModal from "./RedisModal";
+import DashboardSkeleton from "./DashboardSkeleton";
 import S3ConfigModal from "./S3ConfigModal";
 import SecretsManagerViewer from "./SecretsManagerViewer";
 
@@ -247,25 +248,7 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <div className="flex items-center justify-center space-x-3 mb-2">
-            <Image
-              src="/logo.svg"
-              alt="LocalCloud Kit"
-              width={32}
-              height={32}
-            />
-            <h2 className="text-xl font-bold text-gray-900">
-              LocalCloud Kit
-            </h2>
-          </div>
-          <p className="text-gray-600">Loading LocalCloud Kit...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {
