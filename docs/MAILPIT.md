@@ -6,13 +6,13 @@ Mailpit is a lightweight local SMTP server and web UI for catching and inspectin
 
 If you already have LocalCloud Kit running and are adding Mailpit for the first time, two quick steps are needed before `make start`:
 
-**1. Regenerate your TLS certificate** (adds `mailpit.localcloudkit.com` to the cert's SAN list):
+**1. Regenerate your TLS certificate** (covers all LocalCloud Kit subdomains: `mailpit`, `pgadmin`, `keycloak`):
 
 ```bash
 sudo ./scripts/setup-mkcert.sh
 ```
 
-**2. Add the Mailpit hostname to `/etc/hosts`**:
+**2. Add subdomains to `/etc/hosts`** (also adds `pgadmin` and `keycloak` subdomains):
 
 ```bash
 sudo ./scripts/setup-hosts.sh
