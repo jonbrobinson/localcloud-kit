@@ -8,6 +8,8 @@ set -e
 
 DOMAIN="app-local.localcloudkit.com"
 MAILPIT_DOMAIN="mailpit.localcloudkit.com"
+PGADMIN_DOMAIN="pgadmin.localcloudkit.com"
+KEYCLOAK_DOMAIN="keycloak.localcloudkit.com"
 CERT_DIR="./traefik/certs"
 MKCERT_BIN_DIR="./scripts/bin"
 MKCERT_BIN="$MKCERT_BIN_DIR/mkcert"
@@ -316,7 +318,7 @@ echo -e "${GREEN}✓ mkcert CA found at: $CA_ROOT${NC}"
 TMP_EXT_FILE=$(mktemp)
 cat > "$TMP_EXT_FILE" <<EOF
 [v3_req]
-subjectAltName = DNS:$DOMAIN, DNS:*.$DOMAIN, DNS:$MAILPIT_DOMAIN
+subjectAltName = DNS:$DOMAIN, DNS:*.$DOMAIN, DNS:$MAILPIT_DOMAIN, DNS:$PGADMIN_DOMAIN, DNS:$KEYCLOAK_DOMAIN
 EOF
 
 # Generate private key (show errors for debugging)
