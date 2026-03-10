@@ -2,32 +2,11 @@
 
 import { useLocalStackStatus } from "@/hooks/useLocalStackStatus";
 import StatusCard from "@/components/StatusCard";
-import { ArrowLeftIcon, ClipboardDocumentIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "react-hot-toast";
-
-function CodeBlock({ code }: { code: string }) {
-  const copy = () => {
-    navigator.clipboard.writeText(code);
-    toast.success("Copied to clipboard");
-  };
-  return (
-    <div className="relative group">
-      <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto">
-        <code>{code}</code>
-      </pre>
-      <button
-        onClick={copy}
-        className="absolute top-2 right-2 p-1.5 rounded bg-gray-700 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-        title="Copy"
-      >
-        <ClipboardDocumentIcon className="h-4 w-4 text-gray-300" />
-      </button>
-    </div>
-  );
-}
+import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 
 export default function LocalStackIntegrationPage() {
   const { status, projectConfig, loading } = useLocalStackStatus();
@@ -194,9 +173,9 @@ alias awslocal='aws --endpoint-url ${projectConfig.awsEndpoint}'`;
               </button>
             ))}
           </div>
-          {activeTab === "node" && <CodeBlock code={nodeExample} />}
-          {activeTab === "python" && <CodeBlock code={pythonExample} />}
-          {activeTab === "cli" && <CodeBlock code={cliExample} />}
+          {activeTab === "node" && <ThemeableCodeBlock code={nodeExample} language="node" />}
+          {activeTab === "python" && <ThemeableCodeBlock code={pythonExample} language="python" />}
+          {activeTab === "cli" && <ThemeableCodeBlock code={cliExample} language="cli" />}
         </section>
 
         {/* Quick Commands */}
@@ -205,15 +184,15 @@ alias awslocal='aws --endpoint-url ${projectConfig.awsEndpoint}'`;
           <div className="space-y-3">
             <div>
               <p className="text-sm text-gray-600 mb-1.5">Start LocalStack</p>
-              <CodeBlock code="docker compose up -d localstack" />
+              <ThemeableCodeBlock code="docker compose up -d localstack" language="cli" showThemeSelector={false} />
             </div>
             <div>
               <p className="text-sm text-gray-600 mb-1.5">Stop LocalStack</p>
-              <CodeBlock code="docker compose stop localstack" />
+              <ThemeableCodeBlock code="docker compose stop localstack" language="cli" showThemeSelector={false} />
             </div>
             <div>
               <p className="text-sm text-gray-600 mb-1.5">Check health</p>
-              <CodeBlock code={`curl ${projectConfig.awsEndpoint}/_localstack/health`} />
+              <ThemeableCodeBlock code={`curl ${projectConfig.awsEndpoint}/_localstack/health`} language="cli" showThemeSelector={false} />
             </div>
           </div>
         </section>

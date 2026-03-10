@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CodeBracketIcon, CommandLineIcon } from "@heroicons/react/24/outline";
-import { useEffect } from "react";
+import { usePreferences } from "@/context/PreferencesContext";
 import hljs from "highlight.js";
 
 // Import language support
@@ -27,6 +27,16 @@ const themeMap: Record<string, string> = {
   "hljs-github-dark-dimmed": "github-dark-dimmed.css",
   "hljs-solarized": "base16/solarized-light.css",
   "hljs-dark": "dark.css",
+};
+
+// Map profile highlight_theme (from PreferencesContext) to ConnectionGuide themeMap keys
+const profileThemeToConnectionTheme: Record<string, string> = {
+  github: "hljs",
+  "github-light": "hljs",
+  "github-dark": "hljs-github-dark",
+  "github-dark-dimmed": "hljs-github-dark-dimmed",
+  "atom-one-dark": "hljs-atom-dark",
+  "atom-one-light": "hljs-atom-light",
 };
 
 const CodeBlock = ({
@@ -551,9 +561,18 @@ const languageOptions = [
 ];
 
 export default function ConnectionGuide() {
+  const { profile } = usePreferences();
   const [activeTab, setActiveTab] = useState("setup");
   const [selectedLanguage, setSelectedLanguage] = useState("JavaScript");
-  const [selectedTheme, setSelectedTheme] = useState("hljs");
+  const profileTheme =
+    profile?.highlight_theme && profileThemeToConnectionTheme[profile.highlight_theme]
+      ? profileThemeToConnectionTheme[profile.highlight_theme]
+      : "hljs";
+  const [selectedTheme, setSelectedTheme] = useState(profileTheme);
+
+  useEffect(() => {
+    setSelectedTheme(profileTheme);
+  }, [profileTheme]);
 
   const tabs = [
     { id: "setup", name: "Basic Setup", icon: CodeBracketIcon },

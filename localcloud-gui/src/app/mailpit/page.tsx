@@ -4,37 +4,15 @@ import MailpitModal from "@/components/MailpitModal";
 import {
   ArrowLeftIcon,
   ArrowTopRightOnSquareIcon,
-  ClipboardDocumentIcon,
   InboxIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "react-hot-toast";
+import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 
 const MAILPIT_UI_URL = "https://mailpit.localcloudkit.com:3030";
 const MAILPIT_UI_DIRECT = "http://localhost:8025";
-
-function CodeBlock({ code }: { code: string }) {
-  const copy = () => {
-    navigator.clipboard.writeText(code);
-    toast.success("Copied to clipboard");
-  };
-  return (
-    <div className="relative group">
-      <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto whitespace-pre-wrap">
-        <code>{code}</code>
-      </pre>
-      <button
-        onClick={copy}
-        className="absolute top-2 right-2 p-1.5 rounded bg-gray-700 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-        title="Copy"
-      >
-        <ClipboardDocumentIcon className="h-4 w-4 text-gray-300" />
-      </button>
-    </div>
-  );
-}
 
 const frameworkExamples = {
   nodemailer: `// npm install nodemailer
@@ -308,31 +286,31 @@ export default function MailpitIntegrationPage() {
           {activeFrameworkTab === "nodemailer" && (
             <div>
               <p className="text-sm text-gray-500 mb-2">Node.js — <code className="bg-gray-100 px-1 rounded">npm install nodemailer</code></p>
-              <CodeBlock code={frameworkExamples.nodemailer} />
+              <ThemeableCodeBlock code={frameworkExamples.nodemailer} language="nodemailer" />
             </div>
           )}
           {activeFrameworkTab === "sendgrid" && (
             <div>
               <p className="text-sm text-gray-500 mb-2">Use Nodemailer as a local transport swap — no SendGrid API key needed in dev.</p>
-              <CodeBlock code={frameworkExamples.sendgrid} />
+              <ThemeableCodeBlock code={frameworkExamples.sendgrid} language="sendgrid" />
             </div>
           )}
           {activeFrameworkTab === "laravel" && (
             <div>
               <p className="text-sm text-gray-500 mb-2">Set the mail driver in <code className="bg-gray-100 px-1 rounded">.env</code> and use the Mail facade normally.</p>
-              <CodeBlock code={frameworkExamples.laravel} />
+              <ThemeableCodeBlock code={frameworkExamples.laravel} language="laravel" />
             </div>
           )}
           {activeFrameworkTab === "django" && (
             <div>
               <p className="text-sm text-gray-500 mb-2">Configure <code className="bg-gray-100 px-1 rounded">settings.py</code> and use Django's built-in <code className="bg-gray-100 px-1 rounded">send_mail</code>.</p>
-              <CodeBlock code={frameworkExamples.django} />
+              <ThemeableCodeBlock code={frameworkExamples.django} language="django" />
             </div>
           )}
           {activeFrameworkTab === "flask" && (
             <div>
               <p className="text-sm text-gray-500 mb-2"><code className="bg-gray-100 px-1 rounded">pip install Flask-Mail</code> — configure once, send anywhere in your app.</p>
-              <CodeBlock code={frameworkExamples.flask} />
+              <ThemeableCodeBlock code={frameworkExamples.flask} language="flask" />
             </div>
           )}
         </section>

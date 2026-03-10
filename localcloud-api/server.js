@@ -1,22 +1,22 @@
-const express = require("express");
-const cors = require("cors");
-const { exec } = require("child_process");
-const { promisify } = require("util");
-const axios = require("axios");
-const winston = require("winston");
-const cron = require("node-cron");
-const http = require("http");
-const socketIo = require("socket.io");
-const path = require("path");
-const fs = require("fs");
-const multer = require("multer");
-const nodemailer = require("nodemailer");
+import express from "express";
+import cors from "cors";
+import { exec } from "child_process";
+import { promisify } from "util";
+import axios from "axios";
+import winston from "winston";
+import cron from "node-cron";
+import http from "http";
+import { Server as SocketIOServer } from "socket.io";
+import path from "path";
+import fs from "fs";
+import multer from "multer";
+import nodemailer from "nodemailer";
 
 const execAsync = promisify(exec);
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
+const io = new SocketIOServer(server, {
   cors: {
     origin: process.env.SOCKET_IO_ORIGIN || "https://app-local.localcloudkit.com:3030",
     methods: ["GET", "POST"],
@@ -57,13 +57,9 @@ let localstackStatus = {
 const internalEndpoint = "http://localstack:4566";
 // User-friendly endpoint for GUI display
 const userEndpoint = "http://localhost:4566";
+const awsRegion = process.env.AWS_DEFAULT_REGION || "us-east-1";
 
-// Default project configuration (hardcoded for local development)
-let projectConfig = {
-  projectName: "localstack-dev",
-  awsEndpoint: "http://localstack:4566",
-  awsRegion: "us-east-1",
-};
+import db from "./db.js";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -313,7 +309,7 @@ async function createSingleResource(projectName, resourceType, config = {}) {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -373,7 +369,7 @@ async function destroyResources(request) {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -407,7 +403,7 @@ async function destroySingleResource(projectName, resourceType, resourceName) {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -441,7 +437,7 @@ async function listResources(projectName) {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -486,7 +482,7 @@ async function listAllBuckets(projectName) {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -542,7 +538,7 @@ async function listBucketContents(projectName, bucketName) {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -594,7 +590,7 @@ async function listDynamoDBTables(projectName) {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -643,7 +639,7 @@ async function scanDynamoDBTable(projectName, tableName, limit = 100) {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -694,7 +690,7 @@ async function queryDynamoDBTable(
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -727,13 +723,13 @@ async function queryDynamoDBTable(
 
 async function getDynamoDBTableSchema(projectName, tableName) {
   try {
-    let command = `aws dynamodb describe-table --table-name "${tableName}" --endpoint-url "${internalEndpoint}" --region "${projectConfig.awsRegion}"`;
+    let command = `aws dynamodb describe-table --table-name "${tableName}" --endpoint-url "${internalEndpoint}" --region "${awsRegion}"`;
 
     const { stdout, stderr } = await execAsync(command, {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -780,6 +776,99 @@ app.get("/health", (req, res) => {
     vendor: "CloudStack Solutions",
     version: "0.5.3",
   });
+});
+
+// Batched dashboard data (single round-trip for dashboard load)
+app.get("/dashboard", async (req, res) => {
+  try {
+    const projectConfigRow = db
+      .prepare(
+        `SELECT p.name as projectName
+         FROM user_profile u
+         LEFT JOIN projects p ON u.active_project_id = p.id
+         WHERE u.id = 1`
+      )
+      .get();
+    const projectConfig = {
+      projectName: projectConfigRow?.projectName || "default",
+      awsEndpoint: userEndpoint,
+      awsRegion,
+    };
+
+    const localstackStatusForDashboard = {
+      ...localstackStatus,
+      endpoint: userEndpoint,
+    };
+
+    const MAILPIT_URL =
+      process.env.MAILPIT_INTERNAL_URL || "http://mailpit:8025";
+
+    const [mailpitResult, resources, cacheResult] = await Promise.all([
+      axios
+        .get(`${MAILPIT_URL}/api/v1/info`, { timeout: 3000 })
+        .then((r) => ({
+          total: r.data.Messages ?? 0,
+          unread: r.data.Unread ?? 0,
+          status: "healthy",
+        }))
+        .catch(() => ({ total: 0, unread: 0, status: "unavailable" })),
+      listResources(projectConfig.projectName),
+      execAsync(`/bin/sh ${path.join("/app/scripts/shell", "list_cache.sh")}`)
+        .then(({ stdout }) => JSON.parse(stdout))
+        .catch(() => ({ status: "unknown", info: null })),
+    ]);
+
+    const redisStatus =
+      cacheResult.status === "running" ? "running" : "stopped";
+    const resourcesWithExtras = [...resources];
+    resourcesWithExtras.push({
+      id: "cache-redis",
+      name: "Redis Cache",
+      type: "cache",
+      status: redisStatus === "running" ? "active" : "error",
+      environment: "local",
+      project: projectConfig.projectName,
+      createdAt: new Date().toISOString(),
+      details: {
+        info: cacheResult.info,
+        status: cacheResult.status,
+      },
+    });
+    resourcesWithExtras.push({
+      id: "mailpit-inbox",
+      name: "Inbox",
+      type: "mailpit",
+      status: mailpitResult.status === "healthy" ? "active" : "error",
+      environment: "local",
+      project: projectConfig.projectName,
+      createdAt: new Date().toISOString(),
+      details: {
+        total: mailpitResult.total,
+        unread: mailpitResult.unread,
+        status: mailpitResult.status,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        localstackStatus: localstackStatusForDashboard,
+        projectConfig,
+        mailpit: mailpitResult,
+        resources: resourcesWithExtras,
+        redis: {
+          status: redisStatus,
+          info: cacheResult.info,
+        },
+      },
+    });
+  } catch (err) {
+    addLog("error", `Dashboard aggregation failed: ${err.message}`, "api");
+    res.status(500).json({
+      success: false,
+      error: err.message || "Failed to load dashboard data",
+    });
+  }
 });
 
 // LocalStack Management
@@ -875,15 +964,135 @@ app.get("/resources/status", async (req, res) => {
 
 // Configuration Management
 app.get("/config/project", (req, res) => {
-  // Return user-friendly endpoint for GUI display
-  const userFriendlyConfig = {
-    ...projectConfig,
-    awsEndpoint: userEndpoint,
-  };
+  const row = db
+    .prepare(
+      `SELECT p.name as projectName
+       FROM user_profile u
+       LEFT JOIN projects p ON u.active_project_id = p.id
+       WHERE u.id = 1`
+    )
+    .get();
   res.json({
     success: true,
-    data: userFriendlyConfig,
+    data: {
+      projectName: row?.projectName || "default",
+      awsEndpoint: userEndpoint,
+      awsRegion,
+    },
   });
+});
+
+// Profile
+app.get("/profile", (req, res) => {
+  const profile = db
+    .prepare(
+      `SELECT u.*, p.name as active_project_name, p.label as active_project_label
+       FROM user_profile u
+       LEFT JOIN projects p ON u.active_project_id = p.id
+       WHERE u.id = 1`
+    )
+    .get();
+  res.json({ success: true, data: profile });
+});
+
+app.put("/profile", (req, res) => {
+  const { preferred_language, highlight_theme, display_name, active_project_id } = req.body;
+  const sets = [];
+  const vals = [];
+  if (preferred_language !== undefined) { sets.push("preferred_language = ?"); vals.push(preferred_language); }
+  if (highlight_theme !== undefined) { sets.push("highlight_theme = ?"); vals.push(highlight_theme); }
+  if (display_name !== undefined) { sets.push("display_name = ?"); vals.push(display_name); }
+  if (active_project_id !== undefined) { sets.push("active_project_id = ?"); vals.push(active_project_id); }
+  if (sets.length === 0) return res.status(400).json({ success: false, error: "No fields to update" });
+  sets.push("updated_at = CURRENT_TIMESTAMP");
+  db.prepare(`UPDATE user_profile SET ${sets.join(", ")} WHERE id = 1`).run(...vals);
+  const profile = db
+    .prepare(
+      `SELECT u.*, p.name as active_project_name, p.label as active_project_label
+       FROM user_profile u
+       LEFT JOIN projects p ON u.active_project_id = p.id
+       WHERE u.id = 1`
+    )
+    .get();
+  res.json({ success: true, data: profile });
+});
+
+// Projects
+app.get("/projects", (req, res) => {
+  const projects = db.prepare("SELECT * FROM projects ORDER BY created_at ASC").all();
+  res.json({ success: true, data: projects });
+});
+
+app.post("/projects", (req, res) => {
+  const { name, label, description } = req.body;
+  if (!name || !label) return res.status(400).json({ success: false, error: "name and label are required" });
+  try {
+    const result = db
+      .prepare("INSERT INTO projects (name, label, description) VALUES (?, ?, ?)")
+      .run(name, label, description || null);
+    const project = db.prepare("SELECT * FROM projects WHERE id = ?").get(result.lastInsertRowid);
+    res.json({ success: true, data: project });
+  } catch {
+    res.status(400).json({ success: false, error: "Project name already exists" });
+  }
+});
+
+app.put("/projects/:id", (req, res) => {
+  const { label, description } = req.body;
+  db.prepare("UPDATE projects SET label = COALESCE(?, label), description = COALESCE(?, description) WHERE id = ?")
+    .run(label || null, description !== undefined ? description : null, req.params.id);
+  const project = db.prepare("SELECT * FROM projects WHERE id = ?").get(req.params.id);
+  if (!project) return res.status(404).json({ success: false, error: "Project not found" });
+  res.json({ success: true, data: project });
+});
+
+app.delete("/projects/:id", (req, res) => {
+  const profile = db.prepare("SELECT active_project_id FROM user_profile WHERE id = 1").get();
+  if (profile?.active_project_id == req.params.id) {
+    return res.status(400).json({ success: false, error: "Cannot delete the active project. Switch projects first." });
+  }
+  db.prepare("DELETE FROM projects WHERE id = ?").run(req.params.id);
+  res.json({ success: true });
+});
+
+// Saved Configs
+app.get("/saved-configs", (req, res) => {
+  const { project_id, type } = req.query;
+  let query = "SELECT * FROM saved_configs WHERE 1=1";
+  const params = [];
+  if (project_id) { query += " AND project_id = ?"; params.push(project_id); }
+  if (type) { query += " AND resource_type = ?"; params.push(type); }
+  query += " ORDER BY created_at DESC";
+  const rows = db.prepare(query).all(...params);
+  const configs = rows.map((r) => ({ ...r, config: JSON.parse(r.config_json) }));
+  res.json({ success: true, data: configs });
+});
+
+app.post("/saved-configs", (req, res) => {
+  const { project_id, name, resource_type, config } = req.body;
+  if (!project_id || !name || !resource_type || !config) {
+    return res.status(400).json({ success: false, error: "project_id, name, resource_type, and config are required" });
+  }
+  const result = db
+    .prepare("INSERT INTO saved_configs (project_id, name, resource_type, config_json) VALUES (?, ?, ?, ?)")
+    .run(project_id, name, resource_type, JSON.stringify(config));
+  const row = db.prepare("SELECT * FROM saved_configs WHERE id = ?").get(result.lastInsertRowid);
+  res.json({ success: true, data: { ...row, config: JSON.parse(row.config_json) } });
+});
+
+app.put("/saved-configs/:id", (req, res) => {
+  const { name, config } = req.body;
+  db.prepare(
+    "UPDATE saved_configs SET name = COALESCE(?, name), config_json = COALESCE(?, config_json), updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+  ).run(name || null, config ? JSON.stringify(config) : null, req.params.id);
+  const row = db.prepare("SELECT * FROM saved_configs WHERE id = ?").get(req.params.id);
+  if (!row) return res.status(404).json({ success: false, error: "Saved config not found" });
+  res.json({ success: true, data: { ...row, config: JSON.parse(row.config_json) } });
+});
+
+app.delete("/saved-configs/:id", (req, res) => {
+  db.prepare("DELETE FROM saved_configs WHERE id = ?").run(req.params.id);
+  res.json({ success: true });
 });
 
 app.get("/config/templates", (req, res) => {
@@ -964,7 +1173,7 @@ app.get("/s3/bucket/:bucketName/object/*", async (req, res) => {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -1061,7 +1270,7 @@ app.post(
         env: {
           ...process.env,
           AWS_ENDPOINT_URL: internalEndpoint,
-          AWS_DEFAULT_REGION: projectConfig.awsRegion,
+          AWS_DEFAULT_REGION: awsRegion,
         },
       });
 
@@ -1144,7 +1353,7 @@ app.post("/s3/bucket/:bucketName/upload", async (req, res) => {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -1190,7 +1399,7 @@ app.delete("/s3/bucket/:bucketName/object/*", async (req, res) => {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -1293,7 +1502,7 @@ app.post("/dynamodb/table/:tableName/item", async (req, res) => {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
     if (stderr) {
@@ -1339,7 +1548,7 @@ app.delete("/dynamodb/table/:tableName/item", async (req, res) => {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -1501,7 +1710,7 @@ app.get("/secrets", async (req, res) => {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -1560,7 +1769,7 @@ app.post("/secrets", async (req, res) => {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -1622,7 +1831,7 @@ app.get("/secrets/:secretName", async (req, res) => {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -1671,7 +1880,7 @@ app.put("/secrets/:secretName", async (req, res) => {
     }
 
     // For updating, we'll use the AWS CLI directly since we need to handle updates
-    let command = `aws --endpoint-url=${internalEndpoint} --region=${projectConfig.awsRegion} secretsmanager update-secret --secret-id "${secretName}" --secret-string "${secretValue}"`;
+    let command = `aws --endpoint-url=${internalEndpoint} --region=${awsRegion} secretsmanager update-secret --secret-id "${secretName}" --secret-string "${secretValue}"`;
 
     if (description) {
       command += ` --description "${description}"`;
@@ -1685,7 +1894,7 @@ app.put("/secrets/:secretName", async (req, res) => {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 
@@ -1699,13 +1908,13 @@ app.put("/secrets/:secretName", async (req, res) => {
         .map(([key, value]) => `Key=${key},Value=${value}`)
         .join(" ");
 
-      const tagCommand = `aws --endpoint-url=${internalEndpoint} --region=${projectConfig.awsRegion} secretsmanager tag-resource --secret-id "${secretName}" --tags ${tagString}`;
+      const tagCommand = `aws --endpoint-url=${internalEndpoint} --region=${awsRegion} secretsmanager tag-resource --secret-id "${secretName}" --tags ${tagString}`;
 
       await execAsync(tagCommand, {
         env: {
           ...process.env,
           AWS_ENDPOINT_URL: internalEndpoint,
-          AWS_DEFAULT_REGION: projectConfig.awsRegion,
+          AWS_DEFAULT_REGION: awsRegion,
         },
       });
     }
@@ -1751,7 +1960,7 @@ app.delete("/secrets/:secretName", async (req, res) => {
       env: {
         ...process.env,
         AWS_ENDPOINT_URL: internalEndpoint,
-        AWS_DEFAULT_REGION: projectConfig.awsRegion,
+        AWS_DEFAULT_REGION: awsRegion,
       },
     });
 

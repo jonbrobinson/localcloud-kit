@@ -1,7 +1,8 @@
 "use client";
 
+import { usePreferences } from "@/context/PreferencesContext";
 import { useServicesData } from "@/hooks/useServicesData";
-import { resourceApi } from "@/services/api";
+import { projectsApi, resourceApi } from "@/services/api";
 import { DynamoDBTableConfig, S3BucketConfig } from "@/types";
 import {
   BookOpenIcon,
@@ -13,6 +14,7 @@ import {
   KeyIcon,
   ServerIcon,
   Squares2X2Icon,
+  UserCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
@@ -27,6 +29,7 @@ import DynamoDBViewer from "./DynamoDBViewer";
 import LogViewer from "./LogViewer";
 import MailpitModal from "./MailpitModal";
 import RedisModal from "./RedisModal";
+import DashboardSkeleton from "./DashboardSkeleton";
 import S3ConfigModal from "./S3ConfigModal";
 import SecretsManagerViewer from "./SecretsManagerViewer";
 
@@ -41,6 +44,10 @@ export default function Dashboard() {
   } = useServicesData();
 
   const { status: localstackStatus, projectConfig: config, resources } = localstack;
+  const { profile, projects, updateProfile } = usePreferences();
+
+  // Derive projectName: active project from preferences, fall back to config from API
+  const projectName = profile?.active_project_name || config.projectName;
 
   const [showDynamoDBConfig, setShowDynamoDBConfig] = useState(false);
   const [showS3Config, setShowS3Config] = useState(false);
@@ -62,8 +69,10 @@ export default function Dashboard() {
   // Dropdowns
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showDocsMenu, setShowDocsMenu] = useState(false);
+  const [showProjectMenu, setShowProjectMenu] = useState(false);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const docsMenuRef = useRef<HTMLDivElement>(null);
+  const projectMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -73,10 +82,38 @@ export default function Dashboard() {
       if (docsMenuRef.current && !docsMenuRef.current.contains(e.target as Node)) {
         setShowDocsMenu(false);
       }
+      if (projectMenuRef.current && !projectMenuRef.current.contains(e.target as Node)) {
+        setShowProjectMenu(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleSwitchProject = async (projectId: number) => {
+    try {
+      await updateProfile({ active_project_id: projectId });
+      setShowProjectMenu(false);
+      await loadInitialData();
+    } catch {
+      toast.error("Failed to switch project");
+    }
+  };
+
+  const handleCreateProject = async () => {
+    const label = prompt("Project name:");
+    if (!label) return;
+    const name = label.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+    try {
+      const project = await projectsApi.create(name, label);
+      await updateProfile({ active_project_id: project.id });
+      setShowProjectMenu(false);
+      await loadInitialData();
+      toast.success(`Project "${label}" created`);
+    } catch {
+      toast.error("Failed to create project");
+    }
+  };
 
 
   const handleCreateSingleResource = async (resourceType: string) => {
@@ -99,7 +136,7 @@ export default function Dashboard() {
     setCreateLoading(true);
     try {
       const response = await resourceApi.createSingle(
-        config.projectName,
+        projectName,
         resourceType
       );
       if (response.success) {
@@ -130,7 +167,7 @@ export default function Dashboard() {
     setCreateLoading(true);
     try {
       const response = await resourceApi.createSingleWithConfig(
-        config.projectName,
+        projectName,
         "dynamodb",
         { dynamodbConfig }
       );
@@ -159,7 +196,7 @@ export default function Dashboard() {
     setCreateLoading(true);
     try {
       const response = await resourceApi.createSingleWithConfig(
-        config.projectName,
+        projectName,
         "s3",
         { s3Config }
       );
@@ -188,7 +225,7 @@ export default function Dashboard() {
     setDestroyLoading(true);
     try {
       const response = await resourceApi.destroy({
-        projectName: config.projectName,
+        projectName: projectName,
         resourceIds: resourceIds,
       });
 
@@ -211,25 +248,7 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <div className="flex items-center justify-center space-x-3 mb-2">
-            <Image
-              src="/logo.svg"
-              alt="LocalCloud Kit"
-              width={32}
-              height={32}
-            />
-            <h2 className="text-xl font-bold text-gray-900">
-              LocalCloud Kit
-            </h2>
-          </div>
-          <p className="text-gray-600">Loading LocalCloud Kit...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {
@@ -423,6 +442,60 @@ export default function Dashboard() {
                 )}
               </div>
 
+              {/* Project Switcher */}
+              <div className="relative" ref={projectMenuRef}>
+                <button
+                  onClick={() => { setShowProjectMenu((v) => !v); setShowToolsMenu(false); setShowDocsMenu(false); }}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  <span className="h-2 w-2 rounded-full bg-blue-500 mr-2 flex-shrink-0" />
+                  {profile?.active_project_label || "Default"}
+                  <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showProjectMenu ? "rotate-180" : ""}`} />
+                </button>
+                {showProjectMenu && (
+                  <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Projects</p>
+                    {projects.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => handleSwitchProject(p.id)}
+                        className={`flex items-center w-full px-4 py-2 text-sm transition-colors ${
+                          p.id === profile?.active_project_id
+                            ? "text-blue-700 bg-blue-50 font-medium"
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <span className={`h-2 w-2 rounded-full mr-3 flex-shrink-0 ${p.id === profile?.active_project_id ? "bg-blue-500" : "bg-gray-300"}`} />
+                        {p.label}
+                      </button>
+                    ))}
+                    <div className="border-t border-gray-100 mt-1" />
+                    <button
+                      onClick={handleCreateProject}
+                      className="flex items-center w-full px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
+                    >
+                      + New project
+                    </button>
+                    <Link
+                      href="/profile"
+                      onClick={() => setShowProjectMenu(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Manage projects...
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Profile icon */}
+              <Link
+                href="/profile"
+                className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                title="Profile & Preferences"
+              >
+                <UserCircleIcon className="h-6 w-6" />
+              </Link>
+
             </div>
           </div>
         </div>
@@ -512,7 +585,7 @@ export default function Dashboard() {
             <ResourceList
               resources={resources}
               onDestroy={handleDestroyResources}
-              projectName={config.projectName}
+              projectName={projectName}
               loading={destroyLoading}
               onRefresh={loadInitialData}
               onAddS3={() => handleCreateSingleResource("s3")}
@@ -537,33 +610,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Configuration Summary */}
-        <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Current Configuration
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Project
-              </label>
-              <p className="mt-1 text-sm text-gray-900">{config.projectName}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                AWS Region
-              </label>
-              <p className="mt-1 text-sm text-gray-900">{config.awsRegion}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Endpoint
-              </label>
-              <p className="mt-1 text-sm text-gray-900">{config.awsEndpoint}</p>
-            </div>
-          </div>
-        </div>
-
         {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-400">
@@ -579,7 +625,7 @@ export default function Dashboard() {
           isOpen={showDynamoDBConfig}
           onClose={() => setShowDynamoDBConfig(false)}
           onSubmit={handleCreateDynamoDBTable}
-          projectName={config.projectName}
+          projectName={projectName}
           loading={createLoading}
         />
       )}
@@ -589,7 +635,7 @@ export default function Dashboard() {
           isOpen={showS3Config}
           onClose={() => setShowS3Config(false)}
           onSubmit={handleCreateS3Bucket}
-          projectName={config.projectName}
+          projectName={projectName}
           loading={createLoading}
         />
       )}
@@ -605,7 +651,7 @@ export default function Dashboard() {
             setShowBuckets(false);
             setSelectedS3Bucket("");
           }}
-          projectName={config.projectName}
+          projectName={projectName}
           selectedBucketName={selectedS3Bucket}
         />
       )}
@@ -617,7 +663,7 @@ export default function Dashboard() {
             setShowDynamoDB(false);
             setSelectedDynamoDBTable("");
           }}
-          projectName={config.projectName}
+          projectName={projectName}
           selectedTableName={selectedDynamoDBTable}
         />
       )}
@@ -628,7 +674,7 @@ export default function Dashboard() {
           onClose={() => {
             setShowSecretsManager(false);
           }}
-          projectName={config.projectName}
+          projectName={projectName}
         />
       )}
 
