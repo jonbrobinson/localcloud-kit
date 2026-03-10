@@ -36,8 +36,8 @@ Everything else is handled automatically!
 
 - Automatically downloads and installs `mkcert` if not found (works on macOS, Linux, Windows)
 - Installs the mkcert CA to your system trust store (requires sudo password)
-- Generates a single trusted certificate covering both `app-local.localcloudkit.com` and `mailpit.localcloudkit.com`
-- Adds both `app-local.localcloudkit.com` and `mailpit.localcloudkit.com` to `/etc/hosts` (requires sudo password)
+- Generates a single trusted certificate covering all LocalCloud Kit subdomains: `app-local`, `mailpit`, `pgadmin`, and `keycloak`
+- Adds all four subdomains (`app-local`, `mailpit`, `pgadmin`, `keycloak`) to `/etc/hosts` (requires sudo password)
 
 **No manual installation needed** - the script handles everything automatically!
 
@@ -45,7 +45,7 @@ Everything else is handled automatically!
 
 - `./scripts/setup-mkcert.sh` - Generate certificates only
 - `./scripts/install-ca.sh` - Install CA certificate only
-- `./scripts/setup-hosts.sh` - Add both `app-local.localcloudkit.com` and `mailpit.localcloudkit.com` to /etc/hosts
+- `./scripts/setup-hosts.sh` - Add all four subdomains (`app-local`, `mailpit`, `pgadmin`, `keycloak`) to /etc/hosts
 - `./scripts/cleanup-hosts.sh` - Remove LocalCloud Kit domains from /etc/hosts (with confirmation)
 - `./scripts/verify-setup.sh` - Verify setup and certificate configuration
 
@@ -69,6 +69,8 @@ Via Traefik (TLS — trusted cert, no browser warnings):
 - **Web GUI**: https://app-local.localcloudkit.com:3030
 - **API Server**: https://app-local.localcloudkit.com:3030/api
 - **Mailpit** (email inbox): https://mailpit.localcloudkit.com:3030
+- **pgAdmin** (database UI): https://pgadmin.localcloudkit.com:3030
+- **Keycloak** (identity & access): https://keycloak.localcloudkit.com:3030
 
 Direct localhost (no TLS — always available):
 
@@ -76,8 +78,11 @@ Direct localhost (no TLS — always available):
 - **Mailpit UI**: http://localhost:8025 (direct, no cert required)
 - **Mailpit SMTP**: localhost:1025 (point your app here to catch emails)
 - **Express API**: http://localhost:3031 (bypasses Traefik)
+- **PostgreSQL**: localhost:5432 (direct DB connection)
+- **pgAdmin**: http://localhost:5050 (direct, no cert required)
+- **Keycloak**: http://localhost:8080 (direct, no cert required)
 
-> **Note**: Run `./scripts/setup.sh` once to add both domains to `/etc/hosts` and generate the TLS certificate.
+> **Note**: Run `./scripts/setup.sh` once to add all subdomains to `/etc/hosts` and generate the TLS certificate.
 
 **📖 For detailed getting started instructions, see [GETTING_STARTED.md](GETTING_STARTED.md)**
 
@@ -391,14 +396,19 @@ Then view files in the GUI with full syntax highlighting support.
 
 ### Service URLs
 
-| Service     | URL                                          | Description                     |
-| ----------- | -------------------------------------------- | ------------------------------- |
-| Web GUI     | https://app-local.localcloudkit.com:3030     | Main application interface      |
-| API Server  | https://app-local.localcloudkit.com:3030/api | REST API endpoints              |
-| LocalStack  | http://localhost:4566                        | AWS services emulation          |
-| Redis Cache | localhost:6380                               | Redis cache (no password)       |
-| Mailpit UI  | https://mailpit.localcloudkit.com:3030       | Email inbox and SMTP testing    |
-| Mailpit SMTP| localhost:1025                               | SMTP endpoint for sending email |
+| Service       | URL                                          | Description                       |
+| ------------- | -------------------------------------------- | --------------------------------- |
+| Web GUI       | https://app-local.localcloudkit.com:3030     | Main application interface        |
+| API Server    | https://app-local.localcloudkit.com:3030/api | REST API endpoints                |
+| LocalStack    | http://localhost:4566                        | AWS services emulation            |
+| Redis Cache   | localhost:6380                               | Redis cache (no password)         |
+| Mailpit UI    | https://mailpit.localcloudkit.com:3030       | Email inbox and SMTP testing      |
+| Mailpit SMTP  | localhost:1025                               | SMTP endpoint for sending email   |
+| pgAdmin       | https://pgadmin.localcloudkit.com:3030       | PostgreSQL database UI            |
+| pgAdmin       | http://localhost:5050                        | pgAdmin direct (no cert required) |
+| PostgreSQL    | localhost:5432                               | Direct DB connection              |
+| Keycloak      | https://keycloak.localcloudkit.com:3030      | Identity & access management      |
+| Keycloak      | http://localhost:8080                        | Keycloak direct (no cert required)|
 
 > **Note**: Within Docker network, services use internal hostnames (e.g., `localstack:4566`, `redis:6379`)
 
@@ -467,17 +477,17 @@ LocalCloud Kit includes several setup and maintenance scripts:
 - `./scripts/setup.sh` - **Master setup script** - Runs all setup steps automatically
   - Installs mkcert (if needed)
   - Installs mkcert CA certificate
-  - Generates SSL certificates
-  - Adds domain to /etc/hosts
+  - Generates SSL certificates covering all four subdomains
+  - Adds all four subdomains to /etc/hosts
 - `./scripts/setup-mkcert.sh` - Generate SSL certificates only
 - `./scripts/install-ca.sh` - Install mkcert CA certificate to system trust store
-- `./scripts/setup-hosts.sh` - Add both `app-local.localcloudkit.com` and `mailpit.localcloudkit.com` to /etc/hosts
+- `./scripts/setup-hosts.sh` - Add all four subdomains (`app-local`, `mailpit`, `pgadmin`, `keycloak`) to /etc/hosts
 - `./scripts/verify-setup.sh` - Verify setup configuration
   - Checks certificate files exist and are valid
-  - Verifies certificate subject and SANs (including `mailpit.localcloudkit.com`)
-  - Checks `/etc/hosts` entries for both main app and Mailpit
+  - Verifies certificate SANs cover all four subdomains (`mailpit`, `pgadmin`, `keycloak`)
+  - Checks `/etc/hosts` entries for all four subdomains
   - Verifies mkcert CA is installed
-  - Tests HTTPS connectivity for both app and Mailpit
+  - Tests HTTPS connectivity for app and Mailpit
   - Provides troubleshooting guidance
 
 **Cleanup Scripts:**
@@ -630,9 +640,9 @@ curl http://localhost:4566/_localstack/health   # Check LocalStack
 
 - **502 Bad Gateway**: API server isn't running → `docker compose up -d`
 - **Can't connect to LocalStack**: Wait for startup or restart → `docker compose restart localstack`
-- **Certificate errors / "Not Secure"**: Run `./scripts/setup-mkcert.sh` to regenerate (also re-checks Mailpit SAN)
-- **Mailpit subdomain cert not trusted**: See [Certificate Troubleshooting](docs/CERTIFICATE_TROUBLESHOOTING.md) — cert may be missing the Mailpit SAN
-- **Domain not resolving**: Run `sudo ./scripts/setup-hosts.sh` (adds both `app-local.localcloudkit.com` and `mailpit.localcloudkit.com`)
+- **Certificate errors / "Not Secure"**: Run `./scripts/setup-mkcert.sh` to regenerate (covers all four subdomains)
+- **Subdomain cert not trusted** (Mailpit, pgAdmin, Keycloak): See [Certificate Troubleshooting](docs/CERTIFICATE_TROUBLESHOOTING.md) — cert may be missing SANs
+- **Domain not resolving**: Run `sudo ./scripts/setup-hosts.sh` (adds all four subdomains: `app-local`, `mailpit`, `pgadmin`, `keycloak`)
 - **Changes after `git pull` not showing**: Use `make restart` not `make start` — running containers must be stopped and recreated
 - **Clean up old domain entries**: Run `sudo ./scripts/cleanup-hosts.sh` to remove previous LocalCloud Kit domains (interactive, with confirmation)
 
