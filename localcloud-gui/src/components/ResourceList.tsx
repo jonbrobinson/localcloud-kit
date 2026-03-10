@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { Resource } from "@/types";
 import {
@@ -34,7 +35,7 @@ interface ResourceListProps {
 }
 
 // Resource types that are services (not AWS resources) — not selectable/destroyable
-const SERVICE_TYPES = ["cache", "mailpit"];
+const SERVICE_TYPES = ["cache", "mailpit", "postgres", "keycloak"];
 
 export default function ResourceList({
   resources,
@@ -117,6 +118,10 @@ export default function ResourceList({
         return "🔑";
       case "mailpit":
         return "📬";
+      case "postgres":
+        return "🐘";
+      case "keycloak":
+        return "🔒";
       default:
         return "📦";
     }
@@ -308,6 +313,10 @@ export default function ResourceList({
                         ? "Mailpit"
                         : resource.type === "cache"
                         ? "Redis"
+                        : resource.type === "postgres"
+                        ? "PostgreSQL • pgAdmin"
+                        : resource.type === "keycloak"
+                        ? "Keycloak • Identity Provider"
                         : `${resource.type} • ${resource.project}`}
                     </p>
                   </div>
@@ -375,6 +384,26 @@ export default function ResourceList({
                             <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                             Open
                           </button>
+                        )}
+                        {resource.type === "postgres" && (
+                          <Link
+                            href="/postgres"
+                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                            title="Open PostgreSQL info"
+                          >
+                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                            Open
+                          </Link>
+                        )}
+                        {resource.type === "keycloak" && (
+                          <Link
+                            href="/keycloak"
+                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                            title="Open Keycloak info"
+                          >
+                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                            Open
+                          </Link>
                         )}
                       </>
                     )}

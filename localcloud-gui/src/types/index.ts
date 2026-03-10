@@ -16,7 +16,9 @@ export interface Resource {
     | "iam"
     | "cache"
     | "secretsmanager"
-    | "mailpit";
+    | "mailpit"
+    | "postgres"
+    | "keycloak";
   status: "creating" | "active" | "deleting" | "error" | "unknown";
   environment: string;
   project: string;
@@ -96,6 +98,14 @@ export interface RedisStatus {
   status: "running" | "stopped" | "unknown";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   info?: Record<string, any>;
+}
+
+export interface PostgresStatus {
+  status: "running" | "stopped" | "unknown";
+}
+
+export interface KeycloakStatus {
+  status: "running" | "stopped" | "unknown";
 }
 
 export interface LogEntry {

@@ -2,9 +2,11 @@ import {
   ApiResponse,
   CreateResourceRequest,
   DestroyResourceRequest,
+  KeycloakStatus,
   LocalStackStatus,
   LogEntry,
   MailpitStats,
+  PostgresStatus,
   Project,
   ProjectConfig,
   Resource,
@@ -459,6 +461,30 @@ export const savedConfigsApi = {
   },
   delete: async (id: number): Promise<void> => {
     await api.delete(`/saved-configs/${id}`);
+  },
+};
+
+// PostgreSQL
+export const postgresApi = {
+  status: async (): Promise<PostgresStatus> => {
+    try {
+      const response = await api.get("/postgres/status");
+      return response.data.data || { status: "unknown" };
+    } catch {
+      return { status: "unknown" };
+    }
+  },
+};
+
+// Keycloak
+export const keycloakApi = {
+  status: async (): Promise<KeycloakStatus> => {
+    try {
+      const response = await api.get("/keycloak/status");
+      return response.data.data || { status: "unknown" };
+    } catch {
+      return { status: "unknown" };
+    }
   },
 };
 

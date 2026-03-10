@@ -2062,6 +2062,87 @@ app.delete("/mailpit/messages", async (req, res) => {
   }
 });
 
+// ─── PostgreSQL / pgAdmin ────────────────────────────────────────────────────
+
+const net = require("net");
+
+function checkTcpPort(host, port, timeout = 3000) {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    socket.setTimeout(timeout);
+    socket.connect(port, host, () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.on("error", () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.on("timeout", () => {
+      socket.destroy();
+      resolve(false);
+    });
+  });
+}
+
+// GET /postgres/status — check PostgreSQL connectivity via TCP
+app.get("/postgres/status", async (req, res) => {
+  try {
+    const reachable = await checkTcpPort("postgres", 5432);
+    res.json({
+      success: true,
+      data: {
+        status: reachable ? "running" : "stopped",
+        host: "localhost",
+        port: 5432,
+        user: "localcloud",
+        database: "localcloud",
+      },
+    });
+  } catch {
+    res.json({ success: true, data: { status: "stopped" } });
+  }
+});
+
+// GET /pgadmin/status — check pgAdmin availability
+app.get("/pgadmin/status", async (req, res) => {
+  try {
+    const response = await axios.get("http://pgadmin:80/misc/ping", {
+      timeout: 3000,
+    });
+    res.json({
+      success: true,
+      data: { status: response.status === 200 ? "running" : "stopped" },
+    });
+  } catch {
+    res.json({ success: true, data: { status: "stopped" } });
+  }
+});
+
+// ─── Keycloak ────────────────────────────────────────────────────────────────
+
+// GET /keycloak/status — check Keycloak health
+app.get("/keycloak/status", async (req, res) => {
+  try {
+    const response = await axios.get("http://keycloak:8080/health/ready", {
+      timeout: 5000,
+    });
+    const healthy = response.data?.status === "UP";
+    res.json({
+      success: true,
+      data: { status: healthy ? "running" : "stopped" },
+    });
+  } catch {
+    // Fall back to TCP check if health endpoint isn't yet available
+    try {
+      const reachable = await checkTcpPort("keycloak", 8080);
+      res.json({ success: true, data: { status: reachable ? "running" : "stopped" } });
+    } catch {
+      res.json({ success: true, data: { status: "stopped" } });
+    }
+  }
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Initial status check
