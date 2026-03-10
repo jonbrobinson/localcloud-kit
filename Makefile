@@ -68,6 +68,7 @@ start: ## Start all services with Docker Compose (LOCALSTACK_VERSION=latest by d
 	@echo "$(YELLOW)  Express API:    http://localhost:3031$(NC)"
 	@echo "$(YELLOW)  Mailpit UI:     http://localhost:8025$(NC)"
 	@echo "$(YELLOW)  Mailpit SMTP:   localhost:1025$(NC)"
+	@echo ""
 
 start-legacy: ## Start all services using LocalStack 4.12 (community legacy)
 	@$(MAKE) start LOCALSTACK_VERSION=4.12
