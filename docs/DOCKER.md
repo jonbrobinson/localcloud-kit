@@ -101,10 +101,16 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
    ```
 
 4. **Access the application:**
+
+   Via Traefik (TLS):
    - **GUI**: https://app-local.localcloudkit.com:3030
    - **API**: https://app-local.localcloudkit.com:3030/api
-   - **LocalStack**: http://localhost:4566 (direct access for AWS CLI)
-   - **Express API (direct)**: http://localhost:3031 (bypasses Traefik)
+   - **Mailpit**: https://mailpit.localcloudkit.com:3030
+
+   Direct localhost (no TLS):
+   - **LocalStack**: http://localhost:4566
+   - **Express API**: http://localhost:3031
+   - **Mailpit UI**: http://localhost:8025
 
 ## URL Structure
 
@@ -273,10 +279,10 @@ This allows browsers to trust the certificates without warnings.
 
 ### Certificate Features
 
-- **Domain**: `app-local.localcloudkit.com`
-- **Wildcard**: `*.app-local.localcloudkit.com` (for subdomains)
+- **SANs**: `app-local.localcloudkit.com`, `*.app-local.localcloudkit.com`, `mailpit.localcloudkit.com`
 - **Validity**: 825 days
 - **Trust**: Trusted by Chrome, Safari, and other browsers (after CA installation)
+- **Single cert** covers both the main app and the Mailpit subdomain
 
 ## Development Workflow
 
@@ -328,7 +334,31 @@ docker compose restart api
 
 ### Common Issues
 
-1. **Port Conflicts**
+1. **Code Changes Not Appearing After `git pull`**
+
+   `make start` rebuilds images but does **not** stop and recreate already-running containers. Use `make restart` instead:
+
+   ```bash
+   git pull
+   make restart
+   ```
+
+   If you pulled changes that include new npm packages and the app shows module errors:
+
+   ```bash
+   make stop
+   docker compose build --no-cache gui api
+   make start
+   ```
+
+   To confirm a container is running the new image after a rebuild:
+
+   ```bash
+   docker compose ps        # check status
+   docker compose logs api  # check for startup errors
+   ```
+
+3. **Port Conflicts**
 
    ```bash
    # Check what's using the ports
@@ -342,7 +372,7 @@ docker compose restart api
    docker compose down
    ```
 
-2. **Certificate Issues**
+4. **Certificate Issues**
 
    ```bash
    # Regenerate certificates
@@ -355,7 +385,7 @@ docker compose restart api
    docker compose restart traefik
    ```
 
-3. **Build Failures**
+5. **Build Failures**
 
    ```bash
    # Clean build
@@ -365,21 +395,22 @@ docker compose restart api
    docker compose logs [service-name]
    ```
 
-4. **Permission Issues**
+6. **Permission Issues**
 
    ```bash
    # Fix volume permissions
    sudo chown -R $USER:$USER ./volume ./logs ./traefik/certs
    ```
 
-5. **Domain Not Resolving**
+7. **Domain Not Resolving**
 
    ```bash
-   # Add to /etc/hosts
+   # Add both domains to /etc/hosts
    sudo ./scripts/setup-hosts.sh
 
    # Or manually
    echo "127.0.0.1 app-local.localcloudkit.com" | sudo tee -a /etc/hosts
+   echo "127.0.0.1 mailpit.localcloudkit.com" | sudo tee -a /etc/hosts
    ```
 
 ### Health Checks
@@ -474,6 +505,24 @@ make restart
 docker compose restart
 ```
 
+### After Pulling New Code
+
+After `git pull`, running containers must be stopped and recreated — `make start` alone won't update already-running containers:
+
+```bash
+git pull
+make restart          # recommended: stop → rebuild → start
+```
+
+If the pull added new npm dependencies:
+
+```bash
+git pull
+make stop
+docker compose build --no-cache gui api   # clean rebuild avoids stale node_modules
+make start
+```
+
 ### Maintenance
 
 ```bash
@@ -484,11 +533,11 @@ docker system prune
 make reset-env
 docker compose down -v
 
-# Update images
+# Pull updated third-party images (LocalStack, Redis, Traefik)
 docker compose pull
-docker compose up -d
+make restart          # rebuild custom images + recreate all containers
 
-# Rebuild specific service
+# Rebuild a specific custom service (clean)
 docker compose build --no-cache gui
 docker compose build --no-cache api
 ```
