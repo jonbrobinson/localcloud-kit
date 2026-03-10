@@ -7,6 +7,7 @@
 set -e
 
 DOMAIN="app-local.localcloudkit.com"
+MAILPIT_DOMAIN="mailpit.localcloudkit.com"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -34,8 +35,8 @@ echo ""
 echo -e "${BLUE}This script will:${NC}"
 echo "  1. Install mkcert (if needed)"
 echo "  2. Install mkcert CA certificate"
-echo "  3. Generate SSL certificates for $DOMAIN"
-echo "  4. Add $DOMAIN to /etc/hosts (if needed)"
+echo "  3. Generate SSL certificates for $DOMAIN and $MAILPIT_DOMAIN"
+echo "  4. Add $DOMAIN and $MAILPIT_DOMAIN to /etc/hosts (if needed)"
 echo ""
 echo -e "${YELLOW}Individual scripts are available for one-off operations:${NC}"
 echo "  - ${BLUE}./scripts/setup-mkcert.sh${NC} - Generate certificates only"
@@ -127,8 +128,37 @@ echo ""
 
 CERT_DIR="$PROJECT_ROOT/traefik/certs"
 if [ -f "$CERT_DIR/$DOMAIN.pem" ] && [ -f "$CERT_DIR/$DOMAIN-key.pem" ]; then
-    echo -e "${GREEN}✓ Certificates found${NC}"
+    echo -e "${GREEN}✓ Certificate files found${NC}"
     ls -lh "$CERT_DIR/$DOMAIN"* | sed 's/^/  /'
+    echo ""
+
+    # Verify the Mailpit subdomain is covered by the certificate SAN
+    echo -e "${BLUE}Checking certificate covers Mailpit subdomain ($MAILPIT_DOMAIN)...${NC}"
+    if command -v openssl &>/dev/null; then
+        CERT_SANS=$(openssl x509 -in "$CERT_DIR/$DOMAIN.pem" -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -1 || true)
+        if echo "$CERT_SANS" | grep -q "$MAILPIT_DOMAIN"; then
+            echo -e "${GREEN}✓ Certificate includes $MAILPIT_DOMAIN as a SAN${NC}"
+        else
+            echo -e "${YELLOW}⚠ Certificate does not include $MAILPIT_DOMAIN as a SAN${NC}"
+            echo -e "${YELLOW}  Current SANs: $CERT_SANS${NC}"
+            echo -e "${YELLOW}  Regenerating certificate to include Mailpit subdomain...${NC}"
+            rm -f "$CERT_DIR/$DOMAIN.pem" "$CERT_DIR/$DOMAIN-key.pem"
+            "$SCRIPT_DIR/setup-mkcert.sh" || {
+                echo -e "${RED}✗ Failed to regenerate certificate${NC}"
+                exit 1
+            }
+            # Re-verify after regeneration
+            CERT_SANS=$(openssl x509 -in "$CERT_DIR/$DOMAIN.pem" -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -1 || true)
+            if echo "$CERT_SANS" | grep -q "$MAILPIT_DOMAIN"; then
+                echo -e "${GREEN}✓ Certificate now includes $MAILPIT_DOMAIN as a SAN${NC}"
+            else
+                echo -e "${RED}✗ Certificate still missing $MAILPIT_DOMAIN SAN${NC}"
+                exit 1
+            fi
+        fi
+    else
+        echo -e "${YELLOW}⚠ openssl not available — cannot verify Mailpit SAN${NC}"
+    fi
 else
     echo -e "${RED}✗ Certificates not found${NC}"
     echo "Expected:"
@@ -144,27 +174,37 @@ echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 if [ -f "$SCRIPT_DIR/setup-hosts.sh" ]; then
-    # Check if entry already exists (read-only check)
-    if grep -q "$DOMAIN" /etc/hosts 2>/dev/null; then
-        echo -e "${GREEN}✓ Entry for $DOMAIN already exists in /etc/hosts${NC}"
+    # Check if both entries already exist (read-only check)
+    MAIN_EXISTS=false
+    MAILPIT_EXISTS=false
+    grep -q "$DOMAIN" /etc/hosts 2>/dev/null && MAIN_EXISTS=true
+    grep -q "$MAILPIT_DOMAIN" /etc/hosts 2>/dev/null && MAILPIT_EXISTS=true
+
+    if [ "$MAIN_EXISTS" = true ] && [ "$MAILPIT_EXISTS" = true ]; then
+        echo -e "${GREEN}✓ Entries for $DOMAIN and $MAILPIT_DOMAIN already exist in /etc/hosts${NC}"
     else
+        [ "$MAIN_EXISTS" = false ] && echo -e "${YELLOW}Missing /etc/hosts entry: $DOMAIN${NC}"
+        [ "$MAILPIT_EXISTS" = false ] && echo -e "${YELLOW}Missing /etc/hosts entry: $MAILPIT_DOMAIN${NC}"
+        echo ""
         if [ "$EUID" -ne 0 ]; then
-            echo -e "${YELLOW}Adding /etc/hosts entry requires sudo privileges${NC}"
+            echo -e "${YELLOW}Adding /etc/hosts entries requires sudo privileges${NC}"
             echo "Please enter your password when prompted:"
             echo ""
             sudo "$SCRIPT_DIR/setup-hosts.sh" || {
-                echo -e "${YELLOW}⚠ Failed to add /etc/hosts entry${NC}"
-                echo -e "${YELLOW}You can add it manually or run: sudo ./scripts/setup-hosts.sh${NC}"
+                echo -e "${YELLOW}⚠ Failed to add /etc/hosts entries${NC}"
+                echo -e "${YELLOW}You can add them manually or run: sudo ./scripts/setup-hosts.sh${NC}"
             }
         else
             "$SCRIPT_DIR/setup-hosts.sh" || {
-                echo -e "${YELLOW}⚠ Failed to add /etc/hosts entry${NC}"
+                echo -e "${YELLOW}⚠ Failed to add /etc/hosts entries${NC}"
             }
         fi
     fi
 else
     echo -e "${YELLOW}⚠ setup-hosts.sh not found, skipping /etc/hosts setup${NC}"
-    echo -e "${YELLOW}You can add it manually: 127.0.0.1 $DOMAIN${NC}"
+    echo -e "${YELLOW}Add manually:${NC}"
+    echo -e "${YELLOW}  127.0.0.1 $DOMAIN${NC}"
+    echo -e "${YELLOW}  127.0.0.1 $MAILPIT_DOMAIN${NC}"
 fi
 
 echo ""
@@ -180,11 +220,13 @@ echo "   or"
 echo -e "   ${CYAN}make start${NC}"
 echo ""
 echo "2. Open in your browser:"
-echo -e "   ${CYAN}https://$DOMAIN${NC}"
+echo -e "   ${CYAN}https://$DOMAIN:3030${NC}       (main app)"
+echo -e "   ${CYAN}https://$MAILPIT_DOMAIN:3030${NC}  (Mailpit email testing)"
 echo ""
 echo -e "${YELLOW}Note:${NC} If you see certificate warnings:"
 echo "  - Make sure the CA is installed: ${BLUE}sudo ./scripts/install-ca.sh${NC}"
 echo "  - Completely quit and restart your browser"
+echo "  - Run ${BLUE}./scripts/verify-setup.sh${NC} to diagnose any issues"
 echo ""
 echo -e "${GREEN}Happy coding! 🚀${NC}"
 echo ""

@@ -116,3 +116,70 @@ The certificate should be installed automatically when you run `mkcert -install`
 **Issue:** Chrome works but Safari doesn't
 
 - **Solution:** Safari is stricter - ensure CA is properly installed in System keychain with "Always Trust"
+
+---
+
+## Mailpit Subdomain Certificate Issues
+
+### `mailpit.localcloudkit.com` shows "Not Secure"
+
+The Mailpit subdomain uses the **same certificate file** as the main app, but requires `mailpit.localcloudkit.com` to be listed as a Subject Alternative Name (SAN). If you set up LocalCloud Kit before Mailpit was added, your cert won't include it.
+
+**Step 1: Verify the Mailpit SAN is present**
+
+```bash
+openssl x509 -in traefik/certs/app-local.localcloudkit.com.pem -noout -text \
+  | grep -A2 "Subject Alternative Name"
+```
+
+You should see `DNS:mailpit.localcloudkit.com` in the output. If it's missing:
+
+**Step 2: Regenerate the certificate**
+
+```bash
+./scripts/setup-mkcert.sh
+```
+
+This regenerates the cert with all three SANs: `app-local.localcloudkit.com`, `*.app-local.localcloudkit.com`, and `mailpit.localcloudkit.com`.
+
+**Step 3: Verify the `/etc/hosts` entry exists**
+
+```bash
+grep mailpit /etc/hosts
+```
+
+If missing:
+
+```bash
+sudo ./scripts/setup-hosts.sh
+```
+
+**Step 4: Restart Traefik to pick up the new cert**
+
+```bash
+docker compose restart traefik
+```
+
+**Step 5: Restart your browser** (fully quit, don't just close the tab)
+
+### Mailpit subdomain not found / DNS error
+
+If the browser shows a DNS error (not a cert error) for `mailpit.localcloudkit.com`, the `/etc/hosts` entry is missing:
+
+```bash
+sudo ./scripts/setup-hosts.sh
+```
+
+Or add manually:
+
+```bash
+echo "127.0.0.1  mailpit.localcloudkit.com" | sudo tee -a /etc/hosts
+```
+
+### Run full verification
+
+```bash
+./scripts/verify-setup.sh
+```
+
+This checks both the main app and Mailpit: cert SANs, `/etc/hosts` entries, and HTTPS connectivity.

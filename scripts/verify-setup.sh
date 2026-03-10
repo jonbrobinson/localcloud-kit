@@ -6,6 +6,7 @@
 set -e
 
 DOMAIN="app-local.localcloudkit.com"
+MAILPIT_DOMAIN="mailpit.localcloudkit.com"
 CERT_DIR="./traefik/certs"
 
 # Colors for output (only if terminal supports it)
@@ -44,8 +45,8 @@ else
 fi
 echo ""
 
-# Check 2: Certificate subject
-echo -e "${BLUE}✓ Checking certificate subject...${NC}"
+# Check 2: Certificate subject and SANs
+echo -e "${BLUE}✓ Checking certificate subject and SANs...${NC}"
 if [ -f "$CERT_DIR/$DOMAIN.pem" ]; then
     SUBJECT=$(openssl x509 -in "$CERT_DIR/$DOMAIN.pem" -noout -subject 2>/dev/null | sed 's/subject=//')
     if echo "$SUBJECT" | grep -q "CN=$DOMAIN"; then
@@ -55,20 +56,40 @@ if [ -f "$CERT_DIR/$DOMAIN.pem" ]; then
         echo -e "    Expected: CN=$DOMAIN"
         echo -e "    Regenerate with: ${BLUE}rm $CERT_DIR/$DOMAIN* && ./scripts/setup-mkcert.sh${NC}"
     fi
+
+    # Check that Mailpit subdomain is a SAN in the certificate
+    CERT_SANS=$(openssl x509 -in "$CERT_DIR/$DOMAIN.pem" -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -1 || true)
+    if echo "$CERT_SANS" | grep -q "$MAILPIT_DOMAIN"; then
+        echo -e "  ${GREEN}✓ Certificate covers Mailpit subdomain ($MAILPIT_DOMAIN)${NC}"
+    else
+        echo -e "  ${RED}✗ Certificate does NOT cover $MAILPIT_DOMAIN${NC}"
+        echo -e "    SANs found: $CERT_SANS"
+        echo -e "    Fix: ${BLUE}rm $CERT_DIR/$DOMAIN* && ./scripts/setup-mkcert.sh${NC}"
+        ERRORS=$((ERRORS + 1))
+    fi
 else
-    echo -e "  ${RED}✗ Cannot check certificate subject (file not found)${NC}"
+    echo -e "  ${RED}✗ Cannot check certificate (file not found)${NC}"
 fi
 echo ""
 
-# Check 3: /etc/hosts entry
-echo -e "${BLUE}✓ Checking /etc/hosts entry...${NC}"
+# Check 3: /etc/hosts entries (main + Mailpit)
+echo -e "${BLUE}✓ Checking /etc/hosts entries...${NC}"
+HOSTS_ERRORS=0
 if grep -q "$DOMAIN" /etc/hosts 2>/dev/null; then
-    echo -e "  ${GREEN}✓ Entry found in /etc/hosts${NC}"
-    grep "$DOMAIN" /etc/hosts | sed 's/^/    /'
+    echo -e "  ${GREEN}✓ Main entry found: $(grep "$DOMAIN" /etc/hosts | head -1)${NC}"
 else
-    echo -e "  ${YELLOW}⚠ Entry not found in /etc/hosts${NC}"
+    echo -e "  ${YELLOW}⚠ Main entry not found for $DOMAIN${NC}"
+    HOSTS_ERRORS=$((HOSTS_ERRORS + 1))
+fi
+if grep -q "$MAILPIT_DOMAIN" /etc/hosts 2>/dev/null; then
+    echo -e "  ${GREEN}✓ Mailpit entry found: $(grep "$MAILPIT_DOMAIN" /etc/hosts | head -1)${NC}"
+else
+    echo -e "  ${RED}✗ Mailpit entry not found for $MAILPIT_DOMAIN${NC}"
+    HOSTS_ERRORS=$((HOSTS_ERRORS + 1))
+fi
+if [ $HOSTS_ERRORS -gt 0 ]; then
     echo -e "    Run: ${BLUE}sudo ./scripts/setup-hosts.sh${NC}"
-    echo -e "    Or add manually: ${BLUE}127.0.0.1 $DOMAIN${NC}"
+    ERRORS=$((ERRORS + HOSTS_ERRORS))
 fi
 echo ""
 
@@ -111,17 +132,27 @@ else
 fi
 echo ""
 
-# Check 6: HTTPS connectivity
-echo -e "${BLUE}✓ Testing HTTPS connectivity...${NC}"
-if curl -k -s -o /dev/null -w "%{http_code}" "https://$DOMAIN/health" 2>/dev/null | grep -q "200"; then
-    echo -e "  ${GREEN}✓ HTTPS is working${NC}"
-    CERT_INFO=$(echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" 2>/dev/null | openssl x509 -noout -subject -issuer 2>/dev/null || echo "")
-    if [ -n "$CERT_INFO" ]; then
-        echo "$CERT_INFO" | sed 's/^/    /'
-    fi
+# Check 6: HTTPS connectivity (main app)
+echo -e "${BLUE}✓ Testing HTTPS connectivity (main app)...${NC}"
+if curl -k -s -o /dev/null -w "%{http_code}" "https://$DOMAIN:3030/health" 2>/dev/null | grep -q "200"; then
+    echo -e "  ${GREEN}✓ HTTPS is working for $DOMAIN${NC}"
 else
-    echo -e "  ${YELLOW}⚠ HTTPS test failed${NC}"
+    echo -e "  ${YELLOW}⚠ HTTPS test failed for $DOMAIN${NC}"
     echo -e "    Check if services are running: ${BLUE}docker compose ps${NC}"
+fi
+echo ""
+
+# Check 7: Mailpit HTTPS connectivity
+echo -e "${BLUE}✓ Testing HTTPS connectivity (Mailpit)...${NC}"
+MAILPIT_HTTP_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" "https://$MAILPIT_DOMAIN:3030" 2>/dev/null || true)
+if [ "$MAILPIT_HTTP_CODE" = "200" ] || [ "$MAILPIT_HTTP_CODE" = "301" ] || [ "$MAILPIT_HTTP_CODE" = "302" ]; then
+    echo -e "  ${GREEN}✓ Mailpit is reachable at https://$MAILPIT_DOMAIN:3030${NC}"
+elif [ -z "$MAILPIT_HTTP_CODE" ] || [ "$MAILPIT_HTTP_CODE" = "000" ]; then
+    echo -e "  ${YELLOW}⚠ Cannot reach $MAILPIT_DOMAIN — services may not be running${NC}"
+    echo -e "    Start services: ${BLUE}docker compose up -d${NC}"
+else
+    echo -e "  ${YELLOW}⚠ Mailpit returned HTTP $MAILPIT_HTTP_CODE${NC}"
+    echo -e "    Check Mailpit service: ${BLUE}docker compose ps mailpit${NC}"
 fi
 echo ""
 
@@ -130,12 +161,16 @@ echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━�
 if [ $ERRORS -eq 0 ]; then
     echo -e "${GREEN}✓ Setup verification complete - All checks passed!${NC}"
     echo ""
-    echo "Access your application at:"
-    echo -e "  ${BLUE}https://$DOMAIN${NC}"
+    echo "Access your services at:"
+    echo -e "  ${BLUE}https://$DOMAIN:3030${NC}       (main app)"
+    echo -e "  ${BLUE}https://$MAILPIT_DOMAIN:3030${NC}  (Mailpit email testing)"
 else
     echo -e "${YELLOW}⚠ Setup verification complete - Found $ERRORS issue(s)${NC}"
     echo ""
     echo "Please fix the issues above and run this script again."
+    echo -e "  Re-run setup:      ${BLUE}./scripts/setup.sh${NC}"
+    echo -e "  Regenerate certs:  ${BLUE}./scripts/setup-mkcert.sh${NC}"
+    echo -e "  Fix hosts:         ${BLUE}sudo ./scripts/setup-hosts.sh${NC}"
 fi
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""

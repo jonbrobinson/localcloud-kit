@@ -36,8 +36,8 @@ Everything else is handled automatically!
 
 - Automatically downloads and installs `mkcert` if not found (works on macOS, Linux, Windows)
 - Installs the mkcert CA to your system trust store (requires sudo password)
-- Generates trusted certificates that work in both Chrome and Safari without warnings
-- Adds `app-local.localcloudkit.com` to `/etc/hosts` (requires sudo password)
+- Generates a single trusted certificate covering both `app-local.localcloudkit.com` and `mailpit.localcloudkit.com`
+- Adds both `app-local.localcloudkit.com` and `mailpit.localcloudkit.com` to `/etc/hosts` (requires sudo password)
 
 **No manual installation needed** - the script handles everything automatically!
 
@@ -45,7 +45,7 @@ Everything else is handled automatically!
 
 - `./scripts/setup-mkcert.sh` - Generate certificates only
 - `./scripts/install-ca.sh` - Install CA certificate only
-- `./scripts/setup-hosts.sh` - Add domain to /etc/hosts only
+- `./scripts/setup-hosts.sh` - Add both `app-local.localcloudkit.com` and `mailpit.localcloudkit.com` to /etc/hosts
 - `./scripts/cleanup-hosts.sh` - Remove LocalCloud Kit domains from /etc/hosts (with confirmation)
 - `./scripts/verify-setup.sh` - Verify setup and certificate configuration
 
@@ -64,14 +64,20 @@ This single command will:
 
 **Access URLs:**
 
+Via Traefik (TLS — trusted cert, no browser warnings):
+
 - **Web GUI**: https://app-local.localcloudkit.com:3030
 - **API Server**: https://app-local.localcloudkit.com:3030/api
-- **LocalStack**: http://localhost:4566 (direct access for AWS CLI)
-- **Mailpit UI**: https://mailpit.localcloudkit.com:3030 (email testing inbox)
-- **Mailpit SMTP**: localhost:1025 (point your app here to catch emails)
-- **Express API (direct)**: http://localhost:3031 (direct access, bypasses Traefik)
+- **Mailpit** (email inbox): https://mailpit.localcloudkit.com:3030
 
-> **Note**: Add to `/etc/hosts`: `127.0.0.1 app-local.localcloudkit.com`
+Direct localhost (no TLS — always available):
+
+- **LocalStack**: http://localhost:4566 (for AWS CLI / SDKs)
+- **Mailpit UI**: http://localhost:8025 (direct, no cert required)
+- **Mailpit SMTP**: localhost:1025 (point your app here to catch emails)
+- **Express API**: http://localhost:3031 (bypasses Traefik)
+
+> **Note**: Run `./scripts/setup.sh` once to add both domains to `/etc/hosts` and generate the TLS certificate.
 
 **📖 For detailed getting started instructions, see [GETTING_STARTED.md](GETTING_STARTED.md)**
 
@@ -428,7 +434,8 @@ docker compose down                # Stop and remove containers
 docker compose stop                # Stop without removing
 
 # Restart services
-docker compose restart             # Restart all
+make restart                       # Recommended: stop → rebuild → start (use after git pull)
+docker compose restart             # Restart without rebuild
 docker compose restart api         # Restart specific service
 
 # Environment management
@@ -464,12 +471,13 @@ LocalCloud Kit includes several setup and maintenance scripts:
   - Adds domain to /etc/hosts
 - `./scripts/setup-mkcert.sh` - Generate SSL certificates only
 - `./scripts/install-ca.sh` - Install mkcert CA certificate to system trust store
-- `./scripts/setup-hosts.sh` - Add `app-local.localcloudkit.com` to /etc/hosts
+- `./scripts/setup-hosts.sh` - Add both `app-local.localcloudkit.com` and `mailpit.localcloudkit.com` to /etc/hosts
 - `./scripts/verify-setup.sh` - Verify setup configuration
   - Checks certificate files exist and are valid
-  - Verifies certificate subject matches domain
-  - Checks /etc/hosts entry exists
+  - Verifies certificate subject and SANs (including `mailpit.localcloudkit.com`)
+  - Checks `/etc/hosts` entries for both main app and Mailpit
   - Verifies mkcert CA is installed
+  - Tests HTTPS connectivity for both app and Mailpit
   - Provides troubleshooting guidance
 
 **Cleanup Scripts:**
@@ -622,8 +630,10 @@ curl http://localhost:4566/_localstack/health   # Check LocalStack
 
 - **502 Bad Gateway**: API server isn't running → `docker compose up -d`
 - **Can't connect to LocalStack**: Wait for startup or restart → `docker compose restart localstack`
-- **Certificate errors**: Run `./scripts/setup.sh` to generate certificates
-- **Domain not resolving**: Add to `/etc/hosts` or run `sudo ./scripts/setup-hosts.sh`
+- **Certificate errors / "Not Secure"**: Run `./scripts/setup-mkcert.sh` to regenerate (also re-checks Mailpit SAN)
+- **Mailpit subdomain cert not trusted**: See [Certificate Troubleshooting](docs/CERTIFICATE_TROUBLESHOOTING.md) — cert may be missing the Mailpit SAN
+- **Domain not resolving**: Run `sudo ./scripts/setup-hosts.sh` (adds both `app-local.localcloudkit.com` and `mailpit.localcloudkit.com`)
+- **Changes after `git pull` not showing**: Use `make restart` not `make start` — running containers must be stopped and recreated
 - **Clean up old domain entries**: Run `sudo ./scripts/cleanup-hosts.sh` to remove previous LocalCloud Kit domains (interactive, with confirmation)
 
 **Development mode (GUI outside Docker):**

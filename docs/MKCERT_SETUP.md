@@ -63,7 +63,10 @@ This script will:
 
 1. Check if mkcert is installed (guides you if not)
 2. Install mkcert CA to your system trust store (first time only)
-3. Generate certificates for `app-local.localcloudkit.com`
+3. Generate a single certificate for `app-local.localcloudkit.com` with SANs covering:
+   - `app-local.localcloudkit.com` (main app)
+   - `*.app-local.localcloudkit.com` (wildcard)
+   - `mailpit.localcloudkit.com` (Mailpit email testing)
 4. Place certificates in `traefik/certs/`
 
 **Expected output:**
@@ -153,10 +156,18 @@ make reset
 
 ### Access Points
 
+**Via Traefik (TLS — requires `/etc/hosts` entries and mkcert CA):**
+
 - **Main GUI**: `https://app-local.localcloudkit.com:3030`
 - **API**: `https://app-local.localcloudkit.com:3030/api`
-- **LocalStack (direct)**: `http://localhost:4566`
-- **Express API (direct)**: `http://localhost:3031`
+- **Mailpit (email testing)**: `https://mailpit.localcloudkit.com:3030`
+
+**Direct localhost (no TLS — always available):**
+
+- **LocalStack**: `http://localhost:4566`
+- **Express API**: `http://localhost:3031`
+- **Mailpit UI**: `http://localhost:8025`
+- **Mailpit SMTP**: `localhost:1025`
 
 ## Troubleshooting
 
@@ -192,8 +203,13 @@ If you see certificate warnings:
    ```
 
 3. **Verify domain matches:**
-   - Certificate is for: `app-local.localcloudkit.com`
-   - You're accessing: `https://app-local.localcloudkit.com:3030` (not `http://`)
+   - Certificate covers: `app-local.localcloudkit.com` and `mailpit.localcloudkit.com`
+   - You're accessing via `https://` (not `http://`)
+   - To confirm Mailpit SAN is in the cert:
+     ```bash
+     openssl x509 -in traefik/certs/app-local.localcloudkit.com.pem -noout -text | grep -A1 "Subject Alternative"
+     ```
+   - If `mailpit.localcloudkit.com` is missing, regenerate: `./scripts/setup-mkcert.sh`
 
 ### mkcert Not Found
 
