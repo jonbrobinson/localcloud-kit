@@ -421,11 +421,16 @@ echo "1. Restart Docker services:"
 echo "   ${BLUE}docker compose down && docker compose up -d${NC}"
 echo ""
 echo "2. Open in your browser:"
-echo "   ${BLUE}https://$DOMAIN${NC}"
+echo "   ${BLUE}https://$DOMAIN:3030${NC}       (main app)"
+echo "   ${BLUE}https://$MAILPIT_DOMAIN:3030${NC}  (Mailpit email testing)"
+echo ""
+echo "3. Verify setup (optional):"
+echo "   ${BLUE}./scripts/verify-setup.sh${NC}"
 echo ""
 
 if [ "$CA_INSTALLED" = true ]; then
     echo -e "${GREEN}Both Chrome and Safari will trust these certificates automatically!${NC}"
+    echo -e "${GREEN}The certificate covers both $DOMAIN and $MAILPIT_DOMAIN.${NC}"
 else
     echo -e "${YELLOW}⚠️  Remember to install the CA certificate first (see above)${NC}"
 fi

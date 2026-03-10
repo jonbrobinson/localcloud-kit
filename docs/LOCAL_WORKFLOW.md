@@ -135,11 +135,37 @@ make reset
 make status
 ```
 
-### Rebuild After Code Changes
+### After Pulling New Code (`git pull`)
+
+> **Important:** `make start` alone may not rebuild running containers after a pull. Always use `make restart` after pulling to ensure images are rebuilt and containers are recreated with the latest code.
 
 ```bash
-# Rebuild and restart
-docker compose up --build -d
+git pull
+make restart          # stop → rebuild images → start fresh containers
+```
+
+If the pull added new npm packages (changed `package.json`), do a clean rebuild to avoid stale `node_modules` inside the container:
+
+```bash
+git pull
+make stop
+docker compose build --no-cache gui api   # force clean rebuild of app images
+make start
+```
+
+**Signs you need a clean rebuild after a pull:**
+- App loads old UI / API behaves unexpectedly
+- `docker compose logs gui` or `docker compose logs api` shows module-not-found errors
+- A new feature or fix from the pull isn't appearing
+
+### Rebuild After Local Code Changes
+
+```bash
+# Rebuild and restart (containers were stopped)
+make start
+
+# Or if containers are already running
+make restart
 ```
 
 ### Regenerate Certificates
@@ -180,33 +206,55 @@ This will:
 3. Edit code → auto-reloads
 4. `make stop` when done
 
+### After Pulling New Code
+
+```bash
+git pull && make restart
+```
+
+For dependency changes: `make stop && docker compose build --no-cache gui api && make start`
+
 ### Troubleshooting
 
+- **Changes from `git pull` not showing**: Use `make restart` not `make start` — running containers must be stopped and recreated
+- **New npm packages not found after pull**: `make stop && docker compose build --no-cache gui api && make start`
 - **Certificate issues**: Run `./scripts/setup-mkcert.sh` again
 - **Port conflicts**: Check `make status` or `docker compose ps`
 - **Service won't start**: Check logs with `make logs`
 
 ## 🔍 Quick Reference
 
-| Task                  | Command                     |
-| --------------------- | --------------------------- |
-| Start services        | `make start`                |
-| Stop services         | `make stop`                 |
-| Restart services      | `make restart`              |
-| View logs             | `make logs`                 |
-| Check status          | `make status`               |
-| Generate certificates | `./scripts/setup-mkcert.sh` |
-| Full reset            | `make reset-env`            |
+| Task                        | Command                                                      |
+| --------------------------- | ------------------------------------------------------------ |
+| Start services              | `make start`                                                 |
+| Stop services               | `make stop`                                                  |
+| Restart services            | `make restart`                                               |
+| **After `git pull`**        | **`make restart`**                                           |
+| After `git pull` (new deps) | `make stop && docker compose build --no-cache gui api && make start` |
+| View logs                   | `make logs`                                                  |
+| Check status                | `make status`                                                |
+| Generate certificates       | `./scripts/setup-mkcert.sh`                                  |
+| Full reset                  | `make reset-env`                                             |
 
 ## 🌐 Access URLs
 
-| Service     | URL                                          | Description           |
-| ----------- | -------------------------------------------- | --------------------- |
-| Web GUI     | `https://app-local.localcloudkit.com:3030`   | Main application      |
-| API         | `https://app-local.localcloudkit.com:3030/api` | REST API              |
-| LocalStack  | `http://localhost:4566`           | AWS services (direct) |
-| Express API | `http://localhost:3031`           | API server (direct)   |
-| Redis       | `localhost:6380`                  | Cache (direct)        |
+**Via Traefik (TLS):**
+
+| Service        | URL                                            | Description              |
+| -------------- | ---------------------------------------------- | ------------------------ |
+| Web GUI        | `https://app-local.localcloudkit.com:3030`     | Main application         |
+| API            | `https://app-local.localcloudkit.com:3030/api` | REST API                 |
+| Mailpit        | `https://mailpit.localcloudkit.com:3030`       | Email testing UI         |
+
+**Direct localhost (no TLS):**
+
+| Service        | URL                        | Description              |
+| -------------- | -------------------------- | ------------------------ |
+| LocalStack     | `http://localhost:4566`    | AWS services             |
+| Express API    | `http://localhost:3031`    | API server               |
+| Mailpit UI     | `http://localhost:8025`    | Email testing (direct)   |
+| Mailpit SMTP   | `localhost:1025`           | SMTP server              |
+| Redis          | `localhost:6380`           | Cache                    |
 
 ## ✅ Verification
 
