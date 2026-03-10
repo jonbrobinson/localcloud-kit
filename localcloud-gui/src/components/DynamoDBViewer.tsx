@@ -6,8 +6,8 @@ import {
   getDynamoDBTableSchema,
 } from "@/services/api";
 import {
+  ArrowsPointingOutIcon,
   MagnifyingGlassIcon,
-  PlusIcon,
   TrashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -391,7 +391,7 @@ export default function DynamoDBViewer({
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex flex-col p-6 space-y-4 overflow-hidden">
+        <div className="flex-1 flex flex-col p-6 gap-4 min-h-0">
           {/* Table Selection */}
           <div className="flex items-center space-x-4 flex-shrink-0">
             <label className="text-sm font-medium text-gray-700">
@@ -596,36 +596,34 @@ export default function DynamoDBViewer({
               </div>
 
               {/* Items Table */}
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 min-h-0 overflow-auto border border-gray-200 rounded-lg pb-4">
                 {items.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     {loading ? "Loading items..." : "No items found"}
                   </div>
                 ) : (
-                  <div className="h-full overflow-auto border border-gray-200 rounded-lg">
-                    <table className="min-w-full divide-y divide-gray-200">
+                  <>
+                    <table className="w-full divide-y divide-gray-200 table-auto">
                       <thead className="bg-gray-50 sticky top-0 z-1">
                         <tr>
                           {getTableHeaders().map((header) => (
                             <th
                               key={header}
-                              className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                              className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap ${
                                 isKeyColumn(header)
                                   ? "bg-blue-100 text-blue-800 border-r border-blue-200"
                                   : "text-gray-500"
                               }`}
                             >
-                              <div className="flex flex-col">
-                                <span>{header}</span>
-                                {isKeyColumn(header) && (
-                                  <span className="text-xs font-normal text-blue-600 mt-1">
-                                    {getKeyType(header)}
-                                  </span>
-                                )}
-                              </div>
+                              <span>{header}</span>
+                              {isKeyColumn(header) && (
+                                <span className="ml-1.5 text-xs font-normal text-blue-500 normal-case">
+                                  ({getKeyType(header)})
+                                </span>
+                              )}
                             </th>
                           ))}
-                          <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 w-20">
+                          <th className="px-3 py-2 text-center text-xs font-medium uppercase tracking-wider text-gray-500 w-14">
                             Actions
                           </th>
                         </tr>
@@ -636,51 +634,37 @@ export default function DynamoDBViewer({
                             {getTableHeaders().map((header) => (
                               <td
                                 key={header}
-                                className={`px-6 py-4 text-sm ${
+                                className={`px-3 py-2 text-sm ${
                                   isKeyColumn(header)
                                     ? "bg-blue-50 text-blue-900 border-r border-blue-200 font-medium"
                                     : "text-gray-900"
                                 }`}
                               >
-                                <div
-                                  className={`${
-                                    typeof item[header] === "object" &&
-                                    item[header] !== null
-                                      ? "max-w-md overflow-auto"
-                                      : "max-w-xs truncate"
-                                  }`}
-                                  title={
-                                    typeof item[header] === "object" &&
-                                    item[header] !== null
-                                      ? "Click to view full JSON"
-                                      : formatValue(item[header])
-                                  }
-                                >
-                                  {typeof item[header] === "object" &&
-                                  item[header] !== null ? (
-                                    <button
-                                      onClick={() =>
-                                        handleJsonClick(
-                                          item[header],
-                                          `${header} - ${selectedTable}`
-                                        )
-                                      }
-                                      className="w-full text-left text-xs bg-blue-50 hover:bg-blue-100 p-2 rounded border border-blue-200 font-mono text-gray-800 transition-colors cursor-pointer"
-                                    >
-                                      <div className="truncate">
-                                        {formatValue(item[header])}
-                                      </div>
-                                      <div className="flex justify-center mt-1">
-                                        <PlusIcon className="h-4 w-4 text-blue-600" />
-                                      </div>
-                                    </button>
-                                  ) : (
-                                    formatValue(item[header])
-                                  )}
-                                </div>
+                                {typeof item[header] === "object" &&
+                                item[header] !== null ? (
+                                  <button
+                                    onClick={() =>
+                                      handleJsonClick(
+                                        item[header],
+                                        `${header} - ${selectedTable}`
+                                      )
+                                    }
+                                    className="flex items-center gap-1.5 text-left text-xs bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded border border-blue-200 font-mono text-gray-800 transition-colors cursor-pointer max-w-[200px]"
+                                    title="Click to view full JSON"
+                                  >
+                                    <ArrowsPointingOutIcon className="h-3.5 w-3.5 text-blue-600 flex-shrink-0" />
+                                    <span className="truncate">
+                                      {formatValue(item[header])}
+                                    </span>
+                                  </button>
+                                ) : (
+                                  <span className="block max-w-[220px] truncate" title={formatValue(item[header])}>
+                                    {formatValue(item[header])}
+                                  </span>
+                                )}
                               </td>
                             ))}
-                            <td className="px-6 py-4 text-center">
+                            <td className="px-3 py-2 text-center">
                               <button
                                 onClick={() => handleDeleteClick(item)}
                                 className="text-red-600 hover:text-red-800 transition-colors"
@@ -693,7 +677,7 @@ export default function DynamoDBViewer({
                         ))}
                       </tbody>
                     </table>
-                  </div>
+                  </>
                 )}
               </div>
             </>
