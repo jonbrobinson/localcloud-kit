@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   // Environment variables
   env: {
     NEXT_PUBLIC_API_URL:
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3030/api",
+      process.env.NEXT_PUBLIC_API_URL || "https://app-local.localcloudkit.com:3030/api",
   },
 
   // Improve performance
@@ -17,8 +17,9 @@ const nextConfig: NextConfig = {
         source: "/(.*)",
         headers: [
           {
+            // Allow same-origin framing (needed for Keycloak auth flows)
             key: "X-Frame-Options",
-            value: "DENY",
+            value: "SAMEORIGIN",
           },
           {
             key: "X-Content-Type-Options",
@@ -27,6 +28,16 @@ const nextConfig: NextConfig = {
           {
             key: "Referrer-Policy",
             value: "origin-when-cross-origin",
+          },
+          {
+            // Allow framing from the app domain and Keycloak subdomain;
+            // upgrade-insecure-requests ensures any stray http:// sub-resources
+            // are promoted to https automatically.
+            key: "Content-Security-Policy",
+            value: [
+              "frame-ancestors 'self' https://keycloak.localcloudkit.com:3030",
+              "upgrade-insecure-requests",
+            ].join("; "),
           },
         ],
       },
