@@ -479,8 +479,17 @@ export default function SecretsManagerViewer({
 
       {/* Create Secret Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 p-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowCreateModal(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Create Secret</h3>
@@ -602,8 +611,17 @@ export default function SecretsManagerViewer({
 
       {/* Edit Secret Modal */}
       {showEditModal && selectedSecret && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 p-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowEditModal(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Edit Secret</h3>
@@ -719,8 +737,17 @@ export default function SecretsManagerViewer({
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && selectedSecret && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 p-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowDeleteModal(false);
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="flex-shrink-0">

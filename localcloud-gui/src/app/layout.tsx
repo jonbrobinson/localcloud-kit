@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import { PreferencesProvider } from "@/context/PreferencesContext";
 
 export const metadata: Metadata = {
   title: "LocalCloud Kit",
@@ -14,7 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased font-sans">{children}</body>
+      <body className="antialiased font-sans">
+        <PreferencesProvider>{children}</PreferencesProvider>
+      </body>
     </html>
   );
 }

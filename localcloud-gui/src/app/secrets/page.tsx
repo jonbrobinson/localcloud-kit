@@ -3,34 +3,12 @@
 import {
   ArrowLeftIcon,
   ArrowTopRightOnSquareIcon,
-  ClipboardDocumentIcon,
   KeyIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "react-hot-toast";
-
-function CodeBlock({ code }: { code: string }) {
-  const copy = () => {
-    navigator.clipboard.writeText(code);
-    toast.success("Copied to clipboard");
-  };
-  return (
-    <div className="relative group">
-      <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto whitespace-pre-wrap">
-        <code>{code}</code>
-      </pre>
-      <button
-        onClick={copy}
-        className="absolute top-2 right-2 p-1.5 rounded bg-gray-700 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-        title="Copy"
-      >
-        <ClipboardDocumentIcon className="h-4 w-4 text-gray-300" />
-      </button>
-    </div>
-  );
-}
+import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 
 const sdkExamples = {
   node: `// npm install @aws-sdk/client-secrets-manager
@@ -285,9 +263,15 @@ export default function SecretsDocPage() {
               </button>
             ))}
           </div>
-          {activeTab === "node" && <CodeBlock code={sdkExamples.node} />}
-          {activeTab === "python" && <CodeBlock code={sdkExamples.python} />}
-          {activeTab === "cli" && <CodeBlock code={sdkExamples.cli} />}
+          {activeTab === "node" && (
+            <ThemeableCodeBlock code={sdkExamples.node} language="node" />
+          )}
+          {activeTab === "python" && (
+            <ThemeableCodeBlock code={sdkExamples.python} language="python" />
+          )}
+          {activeTab === "cli" && (
+            <ThemeableCodeBlock code={sdkExamples.cli} language="cli" />
+          )}
         </section>
 
         {/* Resources */}

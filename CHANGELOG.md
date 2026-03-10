@@ -4,9 +4,25 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **ThemeableCodeBlock**: Reusable code block component with highlight.js syntax highlighting and theme selector for SDK samples across S3, DynamoDB, Secrets, Redis, Mailpit, and LocalStack doc pages
+- **DashboardSkeleton**: Skeleton loading component with animated pulse placeholders for the dashboard header, services bar, and resource list
+- **GET /api/dashboard**: Batched backend endpoint that aggregates LocalStack status, project config, Mailpit stats, resources, and Redis status in a single round-trip
+
 ### Changed
+- **ConnectionGuide**: Respects profile highlight_theme preference for SDK code examples
 - **docker-compose.yml**: Updated Traefik image from `traefik:v3.0` to `traefik:v3` (floating latest v3 — currently v3.6.10)
 - **README**: Updated LocalStack last-tested version from 4.9 to 4.13.0 (March 9, 2026); added notice about LocalStack's upcoming authentication requirement (March 23, 2026) with link to free plan signup
+- **Dashboard**: Replaced full-screen spinner with DashboardSkeleton during initial load; data is lazy-loaded only when visiting the dashboard
+- **useServicesData**: Refactored to use the new batched `/api/dashboard` endpoint (single API call instead of multiple parallel requests)
+- **ResourceList**: Cache resource label changed from "Redis Cache" to "Cache" (type remains "Redis" in the subtitle)
+- **DynamoDBViewer**: Tighter row padding (`px-3 py-2`), auto-sizing columns (`table-auto`), inline JSON expand button with `ArrowsPointingOutIcon`, and fixed vertical + horizontal scroll in the items table
+
+### Fixed
+- **SecretsManagerViewer**: Sub-modals (Create, Edit, Delete) no longer close when focusing inputs — added stopPropagation to prevent backdrop click bubbling
+- **Dashboard**: Fixed projectName self-reference that caused TypeScript build error (fallback to config.projectName)
+- **DynamoDBAddItemModal**: Empty attributes are now filtered before submission — prevents partial items from being saved to DynamoDB
+- **DynamoDBAddItemModal**: Form state (keys, attributes, errors) is reset each time the modal is opened so stale data from a previous submission is not shown
 
 ## [0.8.0] - 2026-03-09
 
