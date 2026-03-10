@@ -53,23 +53,51 @@ function validateAttributes(attrs: NestedAttribute[], path = ""): string | null 
   return null;
 }
 
+// Helper to determine if an attribute is effectively empty and should be skipped
+function isAttributeEmpty(attr: NestedAttribute): boolean {
+  if (attr.type === "S" || attr.type === "N") {
+    return !attr.value || attr.value === "";
+  }
+  if (attr.type === "BOOL") {
+    return attr.value === undefined;
+  }
+  if ((attr.type === "M" || attr.type === "L") && (!attr.children || attr.children.length === 0)) {
+    return true;
+  }
+  return false;
+}
+
 // Recursive builder for DynamoDB attribute
+// Returns undefined when the attribute is effectively empty so it can be dropped cleanly
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildDynamoDBAttribute(attr: NestedAttribute): any {
+  if (isAttributeEmpty(attr)) return undefined;
+
   if (attr.type === "S") return { S: attr.value ?? "" };
   if (attr.type === "N") return { N: attr.value ?? "" };
   if (attr.type === "BOOL") return { BOOL: attr.value === "true" };
+
   if (attr.type === "M" && attr.children) {
     const mapObj: Record<string, any> = {};
     for (const child of attr.children) {
       if (!child.key) continue;
-      mapObj[child.key] = buildDynamoDBAttribute(child);
+      const builtChild = buildDynamoDBAttribute(child);
+      if (builtChild !== undefined) {
+        mapObj[child.key] = builtChild;
+      }
     }
+    if (Object.keys(mapObj).length === 0) return undefined;
     return { M: mapObj };
   }
+
   if (attr.type === "L" && attr.children) {
-    return { L: attr.children.map(buildDynamoDBAttribute) };
+    const builtChildren = attr.children
+      .map((child) => buildDynamoDBAttribute(child))
+      .filter((child) => child !== undefined);
+    if (builtChildren.length === 0) return undefined;
+    return { L: builtChildren };
   }
+
   return undefined;
 }
 
@@ -200,6 +228,11 @@ function AttributeEditor({
           ))}
         </div>
       )}
+      {isAttributeEmpty(attr) && (
+        <p className="mt-1 text-xs text-amber-600">
+          This attribute is empty and will not be saved.
+        </p>
+      )}
     </div>
   );
 }
@@ -223,6 +256,15 @@ export default function DynamoDBAddItemModal({
       loadTableSchema();
     }
   }, [isOpen, tableName]);
+
+  // Reset form state each time the modal is opened so previous values don't persist
+  useEffect(() => {
+    if (isOpen) {
+      setKeyValues({});
+      setAttributes([]);
+      setError("");
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -303,10 +345,12 @@ export default function DynamoDBAddItemModal({
       item[key.AttributeName] = { S: keyValues[key.AttributeName] };
     });
 
-    // Add custom attributes
+    // Add custom attributes (skip empty ones)
     for (const attr of attributes) {
       if (!attr.key) continue;
-      item[attr.key] = buildDynamoDBAttribute(attr);
+      const built = buildDynamoDBAttribute(attr);
+      if (built === undefined) continue;
+      item[attr.key] = built;
     }
 
     onSubmit(item);
