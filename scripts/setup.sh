@@ -8,6 +8,8 @@ set -e
 
 DOMAIN="app-local.localcloudkit.com"
 MAILPIT_DOMAIN="mailpit.localcloudkit.com"
+PGADMIN_DOMAIN="pgadmin.localcloudkit.com"
+KEYCLOAK_DOMAIN="keycloak.localcloudkit.com"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -35,8 +37,8 @@ echo ""
 echo -e "${BLUE}This script will:${NC}"
 echo "  1. Install mkcert (if needed)"
 echo "  2. Install mkcert CA certificate"
-echo "  3. Generate SSL certificates for $DOMAIN and $MAILPIT_DOMAIN"
-echo "  4. Add $DOMAIN and $MAILPIT_DOMAIN to /etc/hosts (if needed)"
+echo "  3. Generate SSL certificates for all LocalCloud Kit subdomains"
+echo "  4. Add all subdomains to /etc/hosts (if needed)"
 echo ""
 echo -e "${YELLOW}Individual scripts are available for one-off operations:${NC}"
 echo "  - ${BLUE}./scripts/setup-mkcert.sh${NC} - Generate certificates only"
@@ -132,16 +134,22 @@ if [ -f "$CERT_DIR/$DOMAIN.pem" ] && [ -f "$CERT_DIR/$DOMAIN-key.pem" ]; then
     ls -lh "$CERT_DIR/$DOMAIN"* | sed 's/^/  /'
     echo ""
 
-    # Verify the Mailpit subdomain is covered by the certificate SAN
-    echo -e "${BLUE}Checking certificate covers Mailpit subdomain ($MAILPIT_DOMAIN)...${NC}"
+    # Verify all subdomains are covered by the certificate SAN
+    echo -e "${BLUE}Checking certificate covers all subdomains...${NC}"
     if command -v openssl &>/dev/null; then
         CERT_SANS=$(openssl x509 -in "$CERT_DIR/$DOMAIN.pem" -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -1 || true)
-        if echo "$CERT_SANS" | grep -q "$MAILPIT_DOMAIN"; then
-            echo -e "${GREEN}✓ Certificate includes $MAILPIT_DOMAIN as a SAN${NC}"
-        else
-            echo -e "${YELLOW}⚠ Certificate does not include $MAILPIT_DOMAIN as a SAN${NC}"
+        MISSING_SANS=()
+        for SUBDOMAIN in "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN"; do
+            if echo "$CERT_SANS" | grep -q "$SUBDOMAIN"; then
+                echo -e "${GREEN}✓ Certificate includes $SUBDOMAIN${NC}"
+            else
+                echo -e "${YELLOW}⚠ Certificate missing: $SUBDOMAIN${NC}"
+                MISSING_SANS+=("$SUBDOMAIN")
+            fi
+        done
+        if [ ${#MISSING_SANS[@]} -gt 0 ]; then
             echo -e "${YELLOW}  Current SANs: $CERT_SANS${NC}"
-            echo -e "${YELLOW}  Regenerating certificate to include Mailpit subdomain...${NC}"
+            echo -e "${YELLOW}  Regenerating certificate to include all subdomains...${NC}"
             rm -f "$CERT_DIR/$DOMAIN.pem" "$CERT_DIR/$DOMAIN-key.pem"
             "$SCRIPT_DIR/setup-mkcert.sh" || {
                 echo -e "${RED}✗ Failed to regenerate certificate${NC}"
@@ -149,15 +157,19 @@ if [ -f "$CERT_DIR/$DOMAIN.pem" ] && [ -f "$CERT_DIR/$DOMAIN-key.pem" ]; then
             }
             # Re-verify after regeneration
             CERT_SANS=$(openssl x509 -in "$CERT_DIR/$DOMAIN.pem" -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -1 || true)
-            if echo "$CERT_SANS" | grep -q "$MAILPIT_DOMAIN"; then
-                echo -e "${GREEN}✓ Certificate now includes $MAILPIT_DOMAIN as a SAN${NC}"
-            else
-                echo -e "${RED}✗ Certificate still missing $MAILPIT_DOMAIN SAN${NC}"
-                exit 1
-            fi
+            ALL_OK=true
+            for SUBDOMAIN in "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN"; do
+                if echo "$CERT_SANS" | grep -q "$SUBDOMAIN"; then
+                    echo -e "${GREEN}✓ Certificate now includes $SUBDOMAIN${NC}"
+                else
+                    echo -e "${RED}✗ Certificate still missing $SUBDOMAIN SAN${NC}"
+                    ALL_OK=false
+                fi
+            done
+            [ "$ALL_OK" = false ] && exit 1
         fi
     else
-        echo -e "${YELLOW}⚠ openssl not available — cannot verify Mailpit SAN${NC}"
+        echo -e "${YELLOW}⚠ openssl not available — cannot verify subdomain SANs${NC}"
     fi
 else
     echo -e "${RED}✗ Certificates not found${NC}"
@@ -174,17 +186,18 @@ echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 if [ -f "$SCRIPT_DIR/setup-hosts.sh" ]; then
-    # Check if both entries already exist (read-only check)
-    MAIN_EXISTS=false
-    MAILPIT_EXISTS=false
-    grep -q "$DOMAIN" /etc/hosts 2>/dev/null && MAIN_EXISTS=true
-    grep -q "$MAILPIT_DOMAIN" /etc/hosts 2>/dev/null && MAILPIT_EXISTS=true
+    # Check if all entries already exist (read-only check)
+    MISSING_HOSTS=()
+    for HOST in "$DOMAIN" "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN"; do
+        grep -q "$HOST" /etc/hosts 2>/dev/null || MISSING_HOSTS+=("$HOST")
+    done
 
-    if [ "$MAIN_EXISTS" = true ] && [ "$MAILPIT_EXISTS" = true ]; then
-        echo -e "${GREEN}✓ Entries for $DOMAIN and $MAILPIT_DOMAIN already exist in /etc/hosts${NC}"
+    if [ ${#MISSING_HOSTS[@]} -eq 0 ]; then
+        echo -e "${GREEN}✓ All subdomains already exist in /etc/hosts${NC}"
     else
-        [ "$MAIN_EXISTS" = false ] && echo -e "${YELLOW}Missing /etc/hosts entry: $DOMAIN${NC}"
-        [ "$MAILPIT_EXISTS" = false ] && echo -e "${YELLOW}Missing /etc/hosts entry: $MAILPIT_DOMAIN${NC}"
+        for HOST in "${MISSING_HOSTS[@]}"; do
+            echo -e "${YELLOW}Missing /etc/hosts entry: $HOST${NC}"
+        done
         echo ""
         if [ "$EUID" -ne 0 ]; then
             echo -e "${YELLOW}Adding /etc/hosts entries requires sudo privileges${NC}"
@@ -205,6 +218,8 @@ else
     echo -e "${YELLOW}Add manually:${NC}"
     echo -e "${YELLOW}  127.0.0.1 $DOMAIN${NC}"
     echo -e "${YELLOW}  127.0.0.1 $MAILPIT_DOMAIN${NC}"
+    echo -e "${YELLOW}  127.0.0.1 $PGADMIN_DOMAIN${NC}"
+    echo -e "${YELLOW}  127.0.0.1 $KEYCLOAK_DOMAIN${NC}"
 fi
 
 echo ""
@@ -222,6 +237,8 @@ echo ""
 echo "2. Open in your browser:"
 echo -e "   ${CYAN}https://$DOMAIN:3030${NC}       (main app)"
 echo -e "   ${CYAN}https://$MAILPIT_DOMAIN:3030${NC}  (Mailpit email testing)"
+echo -e "   ${CYAN}https://$PGADMIN_DOMAIN:3030${NC}  (pgAdmin database UI)"
+echo -e "   ${CYAN}https://$KEYCLOAK_DOMAIN:3030${NC}  (Keycloak identity & access)"
 echo ""
 echo -e "${YELLOW}Note:${NC} If you see certificate warnings:"
 echo "  - Make sure the CA is installed: ${BLUE}sudo ./scripts/install-ca.sh${NC}"
