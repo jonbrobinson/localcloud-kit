@@ -4,6 +4,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-03-10
+
 ### Added
 - **ThemeableCodeBlock**: Reusable code block component with highlight.js syntax highlighting and theme selector for SDK samples across S3, DynamoDB, Secrets, Redis, Mailpit, and LocalStack doc pages
 - **DashboardSkeleton**: Skeleton loading component with animated pulse placeholders for the dashboard header, services bar, and resource list
