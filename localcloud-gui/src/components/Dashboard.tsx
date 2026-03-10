@@ -38,6 +38,8 @@ export default function Dashboard() {
     localstack,
     mailpit,
     redis,
+    postgres,
+    keycloak,
     loading,
     error,
     refetch: loadInitialData,
@@ -333,6 +335,30 @@ export default function Dashboard() {
                       Secrets Manager
                     </button>
 
+                    {/* Databases */}
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Databases</p>
+                    <Link
+                      href="/postgres"
+                      onClick={() => setShowToolsMenu(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      PostgreSQL
+                    </Link>
+
+                    {/* Identity */}
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Identity</p>
+                    <Link
+                      href="/keycloak"
+                      onClick={() => setShowToolsMenu(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Keycloak
+                    </Link>
+
                     {/* Cache */}
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Cache</p>
@@ -437,6 +463,22 @@ export default function Dashboard() {
                     >
                       <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />
                       Inbox
+                    </Link>
+                    <Link
+                      href="/postgres"
+                      onClick={() => setShowDocsMenu(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      PostgreSQL
+                    </Link>
+                    <Link
+                      href="/keycloak"
+                      onClick={() => setShowDocsMenu(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Keycloak
                     </Link>
                   </div>
                 )}
@@ -568,6 +610,50 @@ export default function Dashboard() {
               </span>
             )}
           </button>
+
+          <div className="h-4 w-px bg-gray-200" />
+
+          {/* PostgreSQL */}
+          <Link
+            href="/postgres"
+            className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
+            title="PostgreSQL — click to view connection info"
+          >
+            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
+              postgres.status === "running" ? "bg-green-500" :
+              postgres.status === "stopped" ? "bg-red-500" : "bg-gray-400"
+            }`} />
+            <span className="text-sm font-medium text-gray-700">PostgreSQL</span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+              postgres.status === "running" ? "bg-green-100 text-green-800" :
+              postgres.status === "stopped" ? "bg-red-100 text-red-800" :
+              "bg-gray-100 text-gray-600"
+            }`}>
+              {postgres.status === "running" ? "Running" : postgres.status === "stopped" ? "Stopped" : "Unknown"}
+            </span>
+          </Link>
+
+          <div className="h-4 w-px bg-gray-200" />
+
+          {/* Keycloak */}
+          <Link
+            href="/keycloak"
+            className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
+            title="Keycloak — click to view admin info"
+          >
+            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
+              keycloak.status === "running" ? "bg-green-500" :
+              keycloak.status === "stopped" ? "bg-red-500" : "bg-gray-400"
+            }`} />
+            <span className="text-sm font-medium text-gray-700">Keycloak</span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+              keycloak.status === "running" ? "bg-green-100 text-green-800" :
+              keycloak.status === "stopped" ? "bg-red-100 text-red-800" :
+              "bg-gray-100 text-gray-600"
+            }`}>
+              {keycloak.status === "running" ? "Running" : keycloak.status === "stopped" ? "Stopped" : "Unknown"}
+            </span>
+          </Link>
 
           {!localstackStatus.running && (
             <>
