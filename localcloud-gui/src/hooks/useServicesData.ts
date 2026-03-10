@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import {
+  KeycloakStatus,
   LocalStackStatus,
-  Resource,
-  ProjectConfig,
   MailpitStats,
+  PostgresStatus,
+  ProjectConfig,
   RedisStatus,
+  Resource,
 } from "@/types";
-import { dashboardApi } from "@/services/api";
+import { dashboardApi, keycloakApi, postgresApi } from "@/services/api";
 
 interface LocalStackData {
   status: LocalStackStatus;
@@ -18,6 +20,8 @@ interface ServicesData {
   localstack: LocalStackData;
   mailpit: MailpitStats;
   redis: RedisStatus;
+  postgres: PostgresStatus;
+  keycloak: KeycloakStatus;
 }
 
 export function useServicesData() {
@@ -37,6 +41,8 @@ export function useServicesData() {
     },
     mailpit: { total: 0, unread: 0, status: "unknown" },
     redis: { status: "unknown" },
+    postgres: { status: "unknown" },
+    keycloak: { status: "unknown" },
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -44,16 +50,42 @@ export function useServicesData() {
   const loadData = useCallback(async () => {
     try {
       setError(null);
-      const payload = await dashboardApi.getData();
+      const [payload, postgresStatus, keycloakStatus] = await Promise.all([
+        dashboardApi.getData(),
+        postgresApi.status(),
+        keycloakApi.status(),
+      ]);
+
+      const { localstackStatus, projectConfig, mailpit: mailpitStats, resources, redis } = payload;
+
+      resources.push({
+        id: "postgres-db",
+        name: "PostgreSQL",
+        type: "postgres",
+        status: postgresStatus.status === "running" ? "active" : "error",
+        environment: "local",
+        project: projectConfig.projectName,
+        createdAt: new Date().toISOString(),
+        details: { host: "localhost", port: 5432, user: "localcloud", database: "localcloud" },
+      });
+
+      resources.push({
+        id: "keycloak-idp",
+        name: "Keycloak",
+        type: "keycloak",
+        status: keycloakStatus.status === "running" ? "active" : "error",
+        environment: "local",
+        project: projectConfig.projectName,
+        createdAt: new Date().toISOString(),
+        details: { adminUrl: "http://localhost:8080", adminUser: "admin", port: 8080 },
+      });
 
       setData({
-        localstack: {
-          status: payload.localstackStatus,
-          projectConfig: payload.projectConfig,
-          resources: payload.resources,
-        },
-        mailpit: payload.mailpit,
-        redis: payload.redis,
+        localstack: { status: localstackStatus, projectConfig, resources },
+        mailpit: mailpitStats,
+        redis,
+        postgres: postgresStatus,
+        keycloak: keycloakStatus,
       });
     } catch (err) {
       const error =

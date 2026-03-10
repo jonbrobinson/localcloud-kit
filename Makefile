@@ -21,6 +21,7 @@ NC := \033[0m # No Color
 .PHONY: setup check-prerequisites docker-build docker-logs
 .PHONY: reset clean-volumes clean-all reset-env
 .PHONY: mailpit-logs mailpit-clear
+.PHONY: postgres-logs keycloak-logs pgadmin-logs
 
 # Default target
 help: ## Show this help message
@@ -178,6 +179,17 @@ mailpit-clear: ## Clear all Mailpit messages via its API
 	@curl -s -X DELETE http://localhost:8025/api/v1/messages \
 		&& echo "$(GREEN)All Mailpit messages cleared$(NC)" \
 		|| echo "$(RED)Failed to clear messages (is Mailpit running?)$(NC)"
+
+# PostgreSQL / pgAdmin
+postgres-logs: ## View PostgreSQL container logs
+	docker compose logs -f postgres
+
+pgadmin-logs: ## View pgAdmin container logs
+	docker compose logs -f pgadmin
+
+# Keycloak
+keycloak-logs: ## View Keycloak container logs
+	docker compose logs -f keycloak
 
 # Setup and Utilities
 setup: ## Initial setup - create directories and install dependencies

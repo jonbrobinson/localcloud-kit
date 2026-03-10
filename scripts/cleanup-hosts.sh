@@ -9,6 +9,9 @@ set -e
 PREVIOUS_DOMAINS=(
     "localcloudkit.local"
     "app-local.localcloudkit.com"
+    "mailpit.localcloudkit.com"
+    "pgadmin.localcloudkit.com"
+    "keycloak.localcloudkit.com"
 )
 
 CURRENT_DOMAIN="app-local.localcloudkit.com"

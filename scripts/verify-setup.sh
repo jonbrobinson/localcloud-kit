@@ -7,6 +7,8 @@ set -e
 
 DOMAIN="app-local.localcloudkit.com"
 MAILPIT_DOMAIN="mailpit.localcloudkit.com"
+PGADMIN_DOMAIN="pgadmin.localcloudkit.com"
+KEYCLOAK_DOMAIN="keycloak.localcloudkit.com"
 CERT_DIR="./traefik/certs"
 
 # Colors for output (only if terminal supports it)
@@ -57,36 +59,38 @@ if [ -f "$CERT_DIR/$DOMAIN.pem" ]; then
         echo -e "    Regenerate with: ${BLUE}rm $CERT_DIR/$DOMAIN* && ./scripts/setup-mkcert.sh${NC}"
     fi
 
-    # Check that Mailpit subdomain is a SAN in the certificate
+    # Check that all subdomains are SANs in the certificate
     CERT_SANS=$(openssl x509 -in "$CERT_DIR/$DOMAIN.pem" -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -1 || true)
-    if echo "$CERT_SANS" | grep -q "$MAILPIT_DOMAIN"; then
-        echo -e "  ${GREEN}✓ Certificate covers Mailpit subdomain ($MAILPIT_DOMAIN)${NC}"
-    else
-        echo -e "  ${RED}✗ Certificate does NOT cover $MAILPIT_DOMAIN${NC}"
+    SAN_ERRORS=0
+    for SUBDOMAIN in "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN"; do
+        if echo "$CERT_SANS" | grep -q "$SUBDOMAIN"; then
+            echo -e "  ${GREEN}✓ Certificate covers $SUBDOMAIN${NC}"
+        else
+            echo -e "  ${RED}✗ Certificate does NOT cover $SUBDOMAIN${NC}"
+            SAN_ERRORS=$((SAN_ERRORS + 1))
+        fi
+    done
+    if [ $SAN_ERRORS -gt 0 ]; then
         echo -e "    SANs found: $CERT_SANS"
         echo -e "    Fix: ${BLUE}rm $CERT_DIR/$DOMAIN* && ./scripts/setup-mkcert.sh${NC}"
-        ERRORS=$((ERRORS + 1))
+        ERRORS=$((ERRORS + SAN_ERRORS))
     fi
 else
     echo -e "  ${RED}✗ Cannot check certificate (file not found)${NC}"
 fi
 echo ""
 
-# Check 3: /etc/hosts entries (main + Mailpit)
+# Check 3: /etc/hosts entries (all subdomains)
 echo -e "${BLUE}✓ Checking /etc/hosts entries...${NC}"
 HOSTS_ERRORS=0
-if grep -q "$DOMAIN" /etc/hosts 2>/dev/null; then
-    echo -e "  ${GREEN}✓ Main entry found: $(grep "$DOMAIN" /etc/hosts | head -1)${NC}"
-else
-    echo -e "  ${YELLOW}⚠ Main entry not found for $DOMAIN${NC}"
-    HOSTS_ERRORS=$((HOSTS_ERRORS + 1))
-fi
-if grep -q "$MAILPIT_DOMAIN" /etc/hosts 2>/dev/null; then
-    echo -e "  ${GREEN}✓ Mailpit entry found: $(grep "$MAILPIT_DOMAIN" /etc/hosts | head -1)${NC}"
-else
-    echo -e "  ${RED}✗ Mailpit entry not found for $MAILPIT_DOMAIN${NC}"
-    HOSTS_ERRORS=$((HOSTS_ERRORS + 1))
-fi
+for HOST in "$DOMAIN" "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN"; do
+    if grep -q "$HOST" /etc/hosts 2>/dev/null; then
+        echo -e "  ${GREEN}✓ Entry found: $(grep "$HOST" /etc/hosts | head -1)${NC}"
+    else
+        echo -e "  ${RED}✗ Entry not found for $HOST${NC}"
+        HOSTS_ERRORS=$((HOSTS_ERRORS + 1))
+    fi
+done
 if [ $HOSTS_ERRORS -gt 0 ]; then
     echo -e "    Run: ${BLUE}sudo ./scripts/setup-hosts.sh${NC}"
     ERRORS=$((ERRORS + HOSTS_ERRORS))
@@ -142,18 +146,24 @@ else
 fi
 echo ""
 
-# Check 7: Mailpit HTTPS connectivity
-echo -e "${BLUE}✓ Testing HTTPS connectivity (Mailpit)...${NC}"
-MAILPIT_HTTP_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" "https://$MAILPIT_DOMAIN:3030" 2>/dev/null || true)
-if [ "$MAILPIT_HTTP_CODE" = "200" ] || [ "$MAILPIT_HTTP_CODE" = "301" ] || [ "$MAILPIT_HTTP_CODE" = "302" ]; then
-    echo -e "  ${GREEN}✓ Mailpit is reachable at https://$MAILPIT_DOMAIN:3030${NC}"
-elif [ -z "$MAILPIT_HTTP_CODE" ] || [ "$MAILPIT_HTTP_CODE" = "000" ]; then
-    echo -e "  ${YELLOW}⚠ Cannot reach $MAILPIT_DOMAIN — services may not be running${NC}"
-    echo -e "    Start services: ${BLUE}docker compose up -d${NC}"
-else
-    echo -e "  ${YELLOW}⚠ Mailpit returned HTTP $MAILPIT_HTTP_CODE${NC}"
-    echo -e "    Check Mailpit service: ${BLUE}docker compose ps mailpit${NC}"
-fi
+# Check 7: Subdomain HTTPS connectivity (Mailpit, pgAdmin, Keycloak)
+echo -e "${BLUE}✓ Testing HTTPS connectivity (subdomains)...${NC}"
+for SERVICE_INFO in "Mailpit:$MAILPIT_DOMAIN:mailpit" "pgAdmin:$PGADMIN_DOMAIN:pgadmin" "Keycloak:$KEYCLOAK_DOMAIN:keycloak"; do
+    SERVICE_NAME="${SERVICE_INFO%%:*}"
+    REST="${SERVICE_INFO#*:}"
+    SERVICE_HOST="${REST%%:*}"
+    SERVICE_CONTAINER="${REST##*:}"
+    HTTP_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" "https://$SERVICE_HOST:3030" 2>/dev/null || true)
+    if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "301" ] || [ "$HTTP_CODE" = "302" ]; then
+        echo -e "  ${GREEN}✓ $SERVICE_NAME is reachable at https://$SERVICE_HOST:3030${NC}"
+    elif [ -z "$HTTP_CODE" ] || [ "$HTTP_CODE" = "000" ]; then
+        echo -e "  ${YELLOW}⚠ Cannot reach $SERVICE_HOST — services may not be running${NC}"
+        echo -e "    Start services: ${BLUE}docker compose up -d${NC}"
+    else
+        echo -e "  ${YELLOW}⚠ $SERVICE_NAME returned HTTP $HTTP_CODE${NC}"
+        echo -e "    Check service: ${BLUE}docker compose ps $SERVICE_CONTAINER${NC}"
+    fi
+done
 echo ""
 
 # Summary
@@ -164,6 +174,8 @@ if [ $ERRORS -eq 0 ]; then
     echo "Access your services at:"
     echo -e "  ${BLUE}https://$DOMAIN:3030${NC}       (main app)"
     echo -e "  ${BLUE}https://$MAILPIT_DOMAIN:3030${NC}  (Mailpit email testing)"
+    echo -e "  ${BLUE}https://$PGADMIN_DOMAIN:3030${NC}  (pgAdmin database UI)"
+    echo -e "  ${BLUE}https://$KEYCLOAK_DOMAIN:3030${NC}  (Keycloak identity & access)"
 else
     echo -e "${YELLOW}⚠ Setup verification complete - Found $ERRORS issue(s)${NC}"
     echo ""
