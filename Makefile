@@ -57,10 +57,17 @@ start: ## Start all services with Docker Compose (LOCALSTACK_VERSION=latest by d
 	@echo "$(GREEN)Waiting for services to be ready...$(NC)"
 	@until curl -s -k https://app-local.localcloudkit.com:3030/health > /dev/null 2>&1 || curl -s http://localhost/health > /dev/null 2>&1; do sleep 2; done
 	@echo "$(GREEN)All services are ready!$(NC)"
-	@echo "$(YELLOW)GUI: https://app-local.localcloudkit.com:3030$(NC)"
-	@echo "$(YELLOW)API: https://app-local.localcloudkit.com:3030/api$(NC)"
-	@echo "$(YELLOW)LocalStack: http://localhost:4566$(NC)"
-	@echo "$(YELLOW)Express API (direct): http://localhost:3031$(NC)"
+	@echo ""
+	@echo "$(GREEN)--- App URLs (via Traefik, TLS) ---$(NC)"
+	@echo "$(YELLOW)  GUI:            https://app-local.localcloudkit.com:3030$(NC)"
+	@echo "$(YELLOW)  API:            https://app-local.localcloudkit.com:3030/api$(NC)"
+	@echo "$(YELLOW)  Mailpit (mail): https://mailpit.localcloudkit.com:3030$(NC)"
+	@echo ""
+	@echo "$(GREEN)--- Direct localhost URLs (no TLS) ---$(NC)"
+	@echo "$(YELLOW)  LocalStack:     http://localhost:4566$(NC)"
+	@echo "$(YELLOW)  Express API:    http://localhost:3031$(NC)"
+	@echo "$(YELLOW)  Mailpit UI:     http://localhost:8025$(NC)"
+	@echo "$(YELLOW)  Mailpit SMTP:   localhost:1025$(NC)"
 
 start-legacy: ## Start all services using LocalStack 4.12 (community legacy)
 	@$(MAKE) start LOCALSTACK_VERSION=4.12
@@ -76,8 +83,9 @@ status: ## Check Docker services status
 	@docker compose ps
 	@echo ""
 	@echo "$(YELLOW)Health Checks:$(NC)"
-	@curl -s -k https://app-local.localcloudkit.com:3030/health || curl -s http://localhost/health || echo "$(RED)GUI/API not responding$(NC)"
-	@curl -s http://localhost:4566/_localstack/health || echo "$(RED)LocalStack not responding$(NC)"
+	@curl -s -k https://app-local.localcloudkit.com:3030/health > /dev/null 2>&1 && echo "$(GREEN)  GUI/API:   https://app-local.localcloudkit.com:3030  ✓$(NC)" || echo "$(RED)  GUI/API:   not responding$(NC)"
+	@curl -s http://localhost:4566/_localstack/health > /dev/null 2>&1 && echo "$(GREEN)  LocalStack: http://localhost:4566  ✓$(NC)" || echo "$(RED)  LocalStack: not responding$(NC)"
+	@curl -s http://localhost:8025/api/v1/info > /dev/null 2>&1 && echo "$(GREEN)  Mailpit:   http://localhost:8025  ✓$(NC)" || echo "$(YELLOW)  Mailpit:   not responding (may not be running)$(NC)"
 
 logs: ## View Docker services logs
 	docker compose logs -f
