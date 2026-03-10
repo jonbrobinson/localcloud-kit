@@ -140,3 +140,44 @@ export interface ApiResponse<T = any> {
   error?: string;
   message?: string;
 }
+
+export type PreferredLanguage = "typescript" | "node" | "python" | "go" | "java" | "cli";
+
+export type HighlightTheme =
+  | "github"
+  | "github-dark"
+  | "github-dark-dimmed"
+  | "atom-one-dark"
+  | "atom-one-light";
+
+export interface Project {
+  id: number;
+  name: string;
+  label: string;
+  description?: string;
+  created_at: string;
+}
+
+export interface UserProfile {
+  id: number;
+  preferred_language: PreferredLanguage;
+  highlight_theme: HighlightTheme;
+  display_name: string;
+  active_project_id: number | null;
+  active_project_name: string | null;
+  active_project_label: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SavedConfig {
+  id: number;
+  project_id: number;
+  name: string;
+  resource_type: "s3" | "dynamodb" | "secrets";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  config: any;
+  config_json: string;
+  created_at: string;
+  updated_at: string;
+}

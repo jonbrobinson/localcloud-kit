@@ -3,6 +3,7 @@
   "version": "0.8.0",
   "description": "LocalCloud Kit API Server",
   "main": "server.js",
+  "type": "module",
   "engines": {
     "node": ">=22.0.0"
   },
@@ -22,6 +23,7 @@
   "dependencies": {
     "aws-sdk": "^2.1692.0",
     "axios": "^1.6.0",
+    "better-sqlite3": "^9.4.3",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "mammoth": "^1.9.1",

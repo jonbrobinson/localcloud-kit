@@ -301,7 +301,7 @@ export default function ResourceList({
                   {/* Col 3: name + subtitle */}
                   <div className="min-w-0">
                     <h4 className="text-sm font-medium text-gray-900 truncate">
-                      {resource.name}
+                      {resource.type === "cache" ? "Cache" : resource.name}
                     </h4>
                     <p className="text-xs text-gray-500 capitalize truncate">
                       {resource.type === "mailpit"

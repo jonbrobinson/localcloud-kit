@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { XMarkIcon, FolderIcon } from "@heroicons/react/24/outline";
 import { S3BucketConfig } from "@/types";
+import SavedConfigPicker from "./SavedConfigPicker";
 
 interface S3ConfigModalProps {
   isOpen: boolean;
@@ -36,6 +37,15 @@ export default function S3ConfigModal({
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  const loadSavedConfig = (config: S3BucketConfig) => {
+    setBucketName(config.bucketName || "");
+    setRegion(config.region || "us-east-1");
+    setVersioning(config.versioning || false);
+    setEncryption(config.encryption || false);
+  };
+
+  const currentConfig: S3BucketConfig = { bucketName, region, versioning, encryption };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +88,13 @@ export default function S3ConfigModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <SavedConfigPicker
+            resourceType="s3"
+            onLoad={loadSavedConfig}
+            currentConfig={currentConfig}
+            configLabel="Bucket"
+          />
+
           {/* Bucket Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
