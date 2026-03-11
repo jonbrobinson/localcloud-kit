@@ -1,14 +1,12 @@
 "use client";
 
 import {
-  ArrowLeftIcon,
   ArrowTopRightOnSquareIcon,
-  ClipboardDocumentIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { toast } from "react-hot-toast";
+import DocPageNav from "@/components/DocPageNav";
+import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
+import { usePreferences } from "@/context/PreferencesContext";
 
 const KEYCLOAK_TRAEFIK_URL = "https://keycloak.localcloudkit.com:3030";
 const KEYCLOAK_DIRECT_URL = "http://localhost:8080";
@@ -24,26 +22,15 @@ function useKeycloakBaseUrl() {
   return baseUrl;
 }
 
-function CodeBlock({ code }: { code: string }) {
-  const copy = () => {
-    navigator.clipboard.writeText(code);
-    toast.success("Copied to clipboard");
-  };
-  return (
-    <div className="relative group">
-      <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto whitespace-pre-wrap">
-        <code>{code}</code>
-      </pre>
-      <button
-        onClick={copy}
-        className="absolute top-2 right-2 p-1.5 rounded bg-gray-700 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-        title="Copy"
-      >
-        <ClipboardDocumentIcon className="h-4 w-4 text-gray-300" />
-      </button>
-    </div>
-  );
-}
+// Maps from PreferredLanguage to Keycloak tab keys
+const LANG_TO_TAB: Record<string, "nodejs" | "python" | "curl" | "envvars"> = {
+  typescript: "nodejs",
+  node: "nodejs",
+  python: "python",
+  go: "curl",
+  java: "curl",
+  cli: "curl",
+};
 
 const codeExamples = {
   nodejs: `// npm install openid-client
@@ -118,8 +105,16 @@ OIDC_AUTH_URL=http://localhost:8080/realms/master/protocol/openid-connect/auth`,
 };
 
 export default function KeycloakPage() {
+  const { profile } = usePreferences();
   const [activeTab, setActiveTab] = useState<"nodejs" | "python" | "curl" | "envvars">("nodejs");
   const keycloakBaseUrl = useKeycloakBaseUrl();
+
+  useEffect(() => {
+    if (profile?.preferred_language) {
+      const mapped = LANG_TO_TAB[profile.preferred_language];
+      if (mapped) setActiveTab(mapped);
+    }
+  }, [profile?.preferred_language]);
   const keycloakAdminUrl = `${keycloakBaseUrl}/admin`;
 
   const resources = [
@@ -147,39 +142,17 @@ export default function KeycloakPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeftIcon className="h-4 w-4 mr-1.5" />
-                Dashboard
-              </Link>
-              <div className="flex items-center space-x-3">
-                <Image src="/logo.svg" alt="LocalCloud Kit" width={36} height={36} />
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">Keycloak</h1>
-                  <p className="text-xs text-gray-500">Local identity and access management (maps to AWS Cognito)</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <a
-                href={keycloakAdminUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
-              >
-                <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1.5" />
-                Open Admin Console
-              </a>
-            </div>
-          </div>
-        </div>
-      </header>
+      <DocPageNav title="Keycloak" subtitle="Local identity and access management (maps to AWS Cognito)">
+        <a
+          href={keycloakAdminUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+        >
+          <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1.5" />
+          Open Admin Console
+        </a>
+      </DocPageNav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
@@ -290,7 +263,10 @@ export default function KeycloakPage() {
               </button>
             ))}
           </div>
-          <CodeBlock code={codeExamples[activeTab]} />
+          <ThemeableCodeBlock
+            code={codeExamples[activeTab]}
+            language={activeTab === "nodejs" ? "node" : activeTab === "curl" ? "cli" : activeTab}
+          />
         </section>
 
         {/* Resources */}

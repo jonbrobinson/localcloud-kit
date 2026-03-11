@@ -17,7 +17,7 @@ LocalCloud Kit includes comprehensive AWS Secrets Manager support for secure sec
 ## Quick Start
 
 1. Start all services: `docker compose up --build`
-2. Open the GUI: http://localhost:3030
+2. Open the GUI: https://app-local.localcloudkit.com:3030 (or http://localhost:3030 without TLS)
 3. Click the "🔑 Secrets" button in the Resources section
 4. Create and manage secrets through the full-screen interface
 

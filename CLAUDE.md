@@ -115,6 +115,120 @@ When adding a new service (e.g., MailHog):
 
 ---
 
+## Changelog Standards
+
+**CHANGELOG.md is updated once per PR — not per commit.**
+
+### When to update
+
+Update `CHANGELOG.md` as the **last step before opening a PR**, after all commits are ready. Never update it mid-feature or on every commit — the Angular commit history is the working log during development.
+
+### Format — Keep a Changelog (https://keepachangelog.com)
+
+Entries go under `## [Unreleased]` at the top of the file. Use these subsections (omit any that don't apply):
+
+```markdown
+## [Unreleased]
+
+### Added
+- **ComponentName**: description of new user-visible capability
+
+### Changed
+- **ComponentName**: description of changed behavior
+
+### Fixed
+- **ComponentName**: description of what was broken and is now fixed
+
+### Removed
+- **ComponentName**: what was removed and why
+
+### Security
+- description of security fix
+```
+
+### Rules
+
+- **One entry per PR** — summarize the net user-visible effect, not the implementation steps
+- **Bold the component/scope** — matches the Angular commit scope for traceability: `- **DocPageNav**: ...`
+- **User-facing language** — write for someone reading the changelog to understand what changed, not how
+- **Angular type → changelog section mapping**:
+  - `feat` → `### Added`
+  - `fix` → `### Fixed`
+  - `refactor` / `perf` → `### Changed` (only if user-visible)
+  - `docs` / `style` / `chore` / `build` / `ci` → omit unless user-facing
+  - `revert` → `### Fixed` or `### Changed` depending on impact
+- **Breaking changes** (`feat!` / `BREAKING CHANGE:`) → always appear in `### Changed` or `### Removed` with a `⚠️` prefix
+
+### Example
+
+```markdown
+## [Unreleased]
+
+### Added
+- **DocPageNav**: shared navigation header with Docs dropdown and Profile icon across all documentation pages
+
+### Fixed
+- **REDIS.md**: corrected Docker network hostname from `redis:6379` to `localcloud-redis:6379`
+```
+
+---
+
+## Commit Message Standards (Angular Commit Lint)
+
+**ALL commits MUST follow the Angular Conventional Commits format. This is a hard requirement — never deviate from it.**
+
+### Format
+
+```
+<type>(<scope>): <subject>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Types
+
+| Type | When to use |
+|------|-------------|
+| `feat` | New feature or capability |
+| `fix` | Bug fix |
+| `docs` | Documentation only changes |
+| `style` | Formatting, whitespace — no logic change |
+| `refactor` | Code restructure with no feature or fix |
+| `perf` | Performance improvement |
+| `test` | Adding or updating tests |
+| `build` | Build system, Docker, dependencies |
+| `ci` | CI/CD configuration changes |
+| `chore` | Maintenance tasks (deps, tooling) |
+| `revert` | Reverts a previous commit |
+
+### Rules
+
+- **Subject line**: 72 characters max, lowercase, no trailing period, imperative mood ("add" not "added")
+- **Scope**: optional, lowercase, describes the area changed — e.g. `feat(s3)`, `fix(api)`, `docs(redis)`
+- **Body**: wrap at 100 characters; explain *why*, not *what*
+- **Breaking changes**: add `BREAKING CHANGE:` in the footer, or append `!` after the type: `feat(api)!:`
+- **The session URL** goes in the footer on its own line (already required by other instructions)
+
+### Examples
+
+```
+feat(mailpit): add SMTP inbox modal with unread badge
+
+fix(secrets): resolve ARN format mismatch on delete
+
+docs(redis): update container hostname to localcloud-redis
+
+build(docker): pin localstack image to 3.x for stability
+
+refactor(nav): extract shared DocPageNav component
+
+chore(deps): upgrade next.js to 15.2
+```
+
+---
+
 ## Code Conventions
 
 - **API routes** follow `/api/<resource>` pattern in `server.js`
