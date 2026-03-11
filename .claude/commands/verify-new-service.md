@@ -92,8 +92,10 @@ The service being verified is: **$ARGUMENTS**
 ## 11. README.md & CHANGELOG.md
 
 - [ ] New service listed in README.md features section
-- [ ] Access URL added to README.md "Access URLs" table
-- [ ] CHANGELOG.md entry added under the current version
+- [ ] Access URL added to README.md "Access URLs" table (both Traefik HTTPS and direct localhost)
+- [ ] `CHANGELOG.md` has an entry under `## [Unreleased]` → `### Added` summarizing the new service
+- [ ] CHANGELOG entry uses bold component name format: `- **ServiceName**: description`
+- [ ] CHANGELOG entry is user-facing language (not implementation details)
 
 ## 12. CLAUDE.md
 
