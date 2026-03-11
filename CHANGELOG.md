@@ -11,6 +11,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **GUI**: Next.js rewrites to proxy /api to backend when running standalone dev (fixes 404/Network Error)
 
 ### Fixed
+- **GUI**: React duplicate key warnings — use unique keys for API endpoint tables (method+endpoint), ResourceList categories/details, BucketViewer objects/buckets, DynamoDBViewer rows/headers, SecretsManagerViewer secrets, LambdaCodeModal files, and external resource tables across all service pages
 - **API Gateway create**: Pass config to create_single_resource.sh; capture API ID from create-rest-api output for correct destroy; escape JSON config for shell
 - **SSM create**: Add ssmConfig handling in resources.js createSingleResource (was missing)
 - **SSM list**: Add list_ssm_parameters to list_resources.sh so SSM parameters appear in dashboard

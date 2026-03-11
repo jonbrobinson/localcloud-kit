@@ -422,7 +422,7 @@ cat response.json`}
                   ["DELETE", "/api/lambda/functions/:name", "Delete a function"],
                   ["POST", "/api/lambda/functions/:name/invoke", "Invoke a function"],
                 ].map(([method, endpoint, desc]) => (
-                  <tr key={endpoint}>
+                  <tr key={`${method}-${endpoint}`}>
                     <td className="px-4 py-2.5">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono ${
                         method === "GET" ? "bg-green-50 text-green-700" :
@@ -451,8 +451,8 @@ cat response.json`}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
-                {externalResources.map((r) => (
-                  <tr key={r.url}>
+                {externalResources.map((r, idx) => (
+                  <tr key={`${r.name}-${r.url}-${idx}`}>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <a
                         href={r.url}

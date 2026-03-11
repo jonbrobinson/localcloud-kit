@@ -752,9 +752,9 @@ export default function DynamoDBViewer({
                     <table className="w-full divide-y divide-gray-200 table-auto">
                       <thead className="bg-gray-50 sticky top-0 z-1">
                         <tr>
-                          {getTableHeaders().map((header) => (
+                          {getTableHeaders().map((header, hi) => (
                             <th
-                              key={header}
+                              key={`${selectedTable}-header-${header}-${hi}`}
                               className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap ${
                                 isKeyColumn(header)
                                   ? "bg-blue-100 text-blue-800 border-r border-blue-200"
@@ -776,10 +776,10 @@ export default function DynamoDBViewer({
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {items.map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-50">
-                            {getTableHeaders().map((header) => (
+                          <tr key={`${selectedTable}-row-${index}`} className="hover:bg-gray-50">
+                            {getTableHeaders().map((header, hj) => (
                               <td
-                                key={header}
+                                key={`${header}-${hj}`}
                                 className={`px-3 py-2 text-sm ${
                                   isKeyColumn(header)
                                     ? "bg-blue-50 text-blue-900 border-r border-blue-200 font-medium"

@@ -334,8 +334,8 @@ export default function SecretsDocPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
-                {externalResources.map((r) => (
-                  <tr key={r.url}>
+                {externalResources.map((r, idx) => (
+                  <tr key={`${r.name}-${r.url}-${idx}`}>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <a
                         href={r.url}

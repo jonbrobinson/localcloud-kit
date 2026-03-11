@@ -418,9 +418,9 @@ export default function SecretsManagerViewer({
                 </div>
               ) : (
                 <div className="grid gap-4">
-                  {secrets.map((secret) => (
+                  {secrets.map((secret, idx) => (
                     <div
-                      key={secret.Name}
+                      key={secret.ARN ?? secret.Name ?? `secret-${idx}`}
                       className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-start justify-between">
