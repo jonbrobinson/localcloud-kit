@@ -261,10 +261,10 @@ localcloud-kit/
 LocalCloud Kit uses the latest LocalStack version by default:
 
 - **Default Version**: `latest` (automatically pulls newest LocalStack release)
-- **Last Tested**: 4.13.0 (March 9, 2026)
+- **Last Tested**: 4.14.0 (March 11, 2026)
 - **Compatibility**: Maintained and updated as LocalStack evolves
 
-> 📌 **LocalStack image change (March 23, 2026)**: LocalStack is consolidating Community and Pro into a single image. The **Community edition remains free** — all services LocalCloud Kit uses (S3, DynamoDB, Secrets Manager, IAM) are included at no cost. After March 23, you'll need a free account and `LOCALSTACK_AUTH_TOKEN` set in your `.env` to pull the `latest` tag. [Sign up free →](https://app.localstack.cloud/sign-up). To avoid this entirely, use `make start-legacy` to pin to `4.12` (no auth required for pre-consolidation versions).
+> 📌 **LocalStack image change (March 23, 2026)**: LocalStack is consolidating Community and Pro into a single image. The **Community edition remains free** — all services LocalCloud Kit uses (S3, DynamoDB, Secrets Manager, IAM) are included at no cost. After March 23, you'll need a free account and `LOCALSTACK_AUTH_TOKEN` set in your `.env` to pull the `latest` tag. [Sign up free →](https://app.localstack.cloud/sign-up). To avoid this entirely, use `make start-legacy` to pin to `4.14` (no auth required for pre-consolidation versions).
 
 ### Using Specific LocalStack Versions
 
@@ -274,14 +274,14 @@ The default configuration uses `latest`, but you can pin to a specific version i
 # Start with latest (default)
 make start
 
-# Start with LocalStack 4.12 — community legacy, no auth token required
+# Start with LocalStack 4.14 — community legacy, no auth token required
 make start-legacy
 
 # Start with any specific version
-make start LOCALSTACK_VERSION=4.13.0
+make start LOCALSTACK_VERSION=4.14.0
 
 # Using environment variable directly
-LOCALSTACK_VERSION=4.13.0 docker compose up
+LOCALSTACK_VERSION=4.14.0 docker compose up
 
 # Using a .env file
 cp env.example .env
@@ -305,7 +305,7 @@ The `docker-compose.yml` uses `${LOCALSTACK_VERSION:-latest}` which means:
 - Gives users the latest features and improvements automatically
 - Can still pin to specific versions via environment variables if needed
 
-> ⚠️ **Note**: If you encounter compatibility issues with a new LocalStack version, pin to a known working version (e.g., `4.13.0`) using the methods above, and report the issue in [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues).
+> ⚠️ **Note**: If you encounter compatibility issues with a new LocalStack version, pin to a known working version (e.g., `4.14.0`) using the methods above, and report the issue in [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues).
 
 ## 📖 Usage
 
@@ -315,11 +315,11 @@ The `docker-compose.yml` uses `${LOCALSTACK_VERSION:-latest}` which means:
 # Start with LocalStack latest (default)
 make start
 
-# Start with LocalStack 4.12 — community legacy, no auth token required
+# Start with LocalStack 4.14 — community legacy, no auth token required
 make start-legacy
 
 # Start with any specific LocalStack version
-make start LOCALSTACK_VERSION=4.13.0
+make start LOCALSTACK_VERSION=4.14.0
 
 # Alternative: Docker Compose directly
 docker compose up --build
