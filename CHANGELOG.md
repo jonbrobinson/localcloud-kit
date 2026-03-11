@@ -4,6 +4,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-03-11
+
 ### Added
 - **docs/screenshots/07-create-secret.png**: Create Secret modal screenshot for Secrets Manager flow
 
