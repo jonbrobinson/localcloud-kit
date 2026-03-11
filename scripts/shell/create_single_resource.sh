@@ -488,6 +488,47 @@ EOF
 EOF
 }
 
+create_ssm_parameter() {
+  if [ -n "$RESOURCE_CONFIG" ]; then
+    PARAM_NAME=$(echo "$RESOURCE_CONFIG" | jq -r '.parameterName // empty')
+    PARAM_VALUE=$(echo "$RESOURCE_CONFIG" | jq -r '.parameterValue // "default-value"')
+    PARAM_TYPE=$(echo "$RESOURCE_CONFIG" | jq -r '.parameterType // "String"')
+    DESCRIPTION=$(echo "$RESOURCE_CONFIG" | jq -r '.description // empty')
+
+    if [ -z "$PARAM_NAME" ]; then
+      PARAM_NAME="/${PROJECT_NAME}/parameter"
+    fi
+  else
+    PARAM_NAME="/${PROJECT_NAME}/parameter"
+    PARAM_VALUE="default-value"
+    PARAM_TYPE="String"
+    DESCRIPTION="Default parameter created by LocalCloud Kit"
+  fi
+
+  CMD="$AWS_CMD ssm put-parameter --name \"$PARAM_NAME\" --value \"$PARAM_VALUE\" --type \"$PARAM_TYPE\" --overwrite"
+  if [ -n "$DESCRIPTION" ] && [ "$DESCRIPTION" != "null" ]; then
+    CMD="$CMD --description \"$DESCRIPTION\""
+  fi
+  eval $CMD 2>/dev/null || true
+  log "Created SSM parameter: $PARAM_NAME"
+
+  cat <<EOF
+{
+  "id": "ssm-$PARAM_NAME",
+  "name": "$PARAM_NAME",
+  "type": "ssm",
+  "status": "active",
+  "project": "$PROJECT_NAME",
+  "createdAt": "$NOW",
+  "details": {
+    "parameterName": "$PARAM_NAME",
+    "parameterType": "$PARAM_TYPE",
+    "description": "$DESCRIPTION"
+  }
+}
+EOF
+}
+
 main() {
   command -v aws >/dev/null 2>&1 || { echo "AWS CLI is not installed. Please install it first." >&2; exit 1; }
   command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Please install it first." >&2; exit 1; }
@@ -515,9 +556,12 @@ main() {
     secretsmanager)
       create_secrets_manager_secret
       ;;
+    ssm)
+      create_ssm_parameter
+      ;;
     *)
       echo "Unknown resource type: $RESOURCE_TYPE" >&2
-      echo "Supported types: s3, dynamodb, lambda, apigateway, secretsmanager" >&2
+      echo "Supported types: s3, dynamodb, lambda, apigateway, secretsmanager, ssm" >&2
       exit 1
       ;;
   esac

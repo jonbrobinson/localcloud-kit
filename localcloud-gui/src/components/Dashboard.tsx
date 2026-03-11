@@ -3,7 +3,7 @@
 import { usePreferences } from "@/context/PreferencesContext";
 import { useServicesData } from "@/hooks/useServicesData";
 import { projectsApi, resourceApi } from "@/services/api";
-import { DynamoDBTableConfig, S3BucketConfig } from "@/types";
+import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayConfig, SSMParameterConfig } from "@/types";
 import {
   Bars3Icon,
   BookOpenIcon,
@@ -37,6 +37,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import S3ConfigModal from "./S3ConfigModal";
 import SecretsConfigModal from "./SecretsConfigModal";
 import SecretsManagerViewer from "./SecretsManagerViewer";
+import LambdaConfigModal from "./LambdaConfigModal";
+import APIGatewayConfigModal from "./APIGatewayConfigModal";
+import SSMConfigModal from "./SSMConfigModal";
 
 export default function Dashboard() {
   const {
@@ -58,6 +61,9 @@ export default function Dashboard() {
   const [showDynamoDBConfig, setShowDynamoDBConfig] = useState(false);
   const [showS3Config, setShowS3Config] = useState(false);
   const [showSecretsConfig, setShowSecretsConfig] = useState(false);
+  const [showLambdaConfig, setShowLambdaConfig] = useState(false);
+  const [showAPIGatewayConfig, setShowAPIGatewayConfig] = useState(false);
+  const [showSSMConfig, setShowSSMConfig] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const [showBuckets, setShowBuckets] = useState(false);
   const [showDynamoDB, setShowDynamoDB] = useState(false);
@@ -157,6 +163,9 @@ export default function Dashboard() {
     if (resourceType === "dynamodb") { setShowDynamoDBConfig(true); return; }
     if (resourceType === "s3") { setShowS3Config(true); return; }
     if (resourceType === "secretsmanager") { setShowSecretsConfig(true); return; }
+    if (resourceType === "lambda") { setShowLambdaConfig(true); return; }
+    if (resourceType === "apigateway") { setShowAPIGatewayConfig(true); return; }
+    if (resourceType === "ssm") { setShowSSMConfig(true); return; }
 
     setCreateLoading(true);
     try {
@@ -231,6 +240,63 @@ export default function Dashboard() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const apiMessage = (error as any)?.response?.data?.error;
       toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create secret"));
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleCreateLambda = async (lambdaConfig: LambdaFunctionConfig) => {
+    setCreateLoading(true);
+    try {
+      const response = await resourceApi.createSingleWithConfig(projectName, "lambda", { lambdaConfig });
+      if (response.success) {
+        toast.success("Lambda function created successfully");
+        setShowLambdaConfig(false);
+        setTimeout(async () => { await loadInitialData(); }, 1000);
+      } else {
+        toast.error(response.error || "Failed to create Lambda function");
+      }
+    } catch (error) {
+      console.error("Create Lambda error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to create Lambda function");
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleCreateAPIGateway = async (apigatewayConfig: APIGatewayConfig) => {
+    setCreateLoading(true);
+    try {
+      const response = await resourceApi.createSingleWithConfig(projectName, "apigateway", { apigatewayConfig });
+      if (response.success) {
+        toast.success("API Gateway created successfully");
+        setShowAPIGatewayConfig(false);
+        setTimeout(async () => { await loadInitialData(); }, 1000);
+      } else {
+        toast.error(response.error || "Failed to create API Gateway");
+      }
+    } catch (error) {
+      console.error("Create API Gateway error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to create API Gateway");
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleCreateSSMParameter = async (ssmConfig: SSMParameterConfig) => {
+    setCreateLoading(true);
+    try {
+      const response = await resourceApi.createSingleWithConfig(projectName, "ssm", { ssmConfig });
+      if (response.success) {
+        toast.success("SSM parameter created successfully");
+        setShowSSMConfig(false);
+        setTimeout(async () => { await loadInitialData(); }, 1000);
+      } else {
+        toast.error(response.error || "Failed to create SSM parameter");
+      }
+    } catch (error) {
+      console.error("Create SSM parameter error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to create SSM parameter");
     } finally {
       setCreateLoading(false);
     }
@@ -346,6 +412,28 @@ export default function Dashboard() {
                       DynamoDB Tables
                     </button>
 
+                    {/* Compute */}
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Compute</p>
+                    <button
+                      onClick={() => { setShowLambdaConfig(true); closeAllMenus(); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />
+                      Lambda Functions
+                    </button>
+
+                    {/* Networking */}
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Networking</p>
+                    <button
+                      onClick={() => { setShowAPIGatewayConfig(true); closeAllMenus(); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />
+                      API Gateway
+                    </button>
+
                     {/* Security & Identity */}
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Security & Identity</p>
@@ -355,6 +443,13 @@ export default function Dashboard() {
                     >
                       <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                       Secrets Manager
+                    </button>
+                    <button
+                      onClick={() => { setShowSSMConfig(true); closeAllMenus(); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
+                      Parameter Store
                     </button>
 
                   </div>
@@ -453,12 +548,36 @@ export default function Dashboard() {
                       S3 Buckets
                     </Link>
                     <Link
+                      href="/lambda"
+                      onClick={() => setShowDocsMenu(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />
+                      Lambda
+                    </Link>
+                    <Link
+                      href="/apigateway"
+                      onClick={() => setShowDocsMenu(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />
+                      API Gateway
+                    </Link>
+                    <Link
                       href="/secrets"
                       onClick={() => setShowDocsMenu(false)}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                       Secrets Manager
+                    </Link>
+                    <Link
+                      href="/ssm"
+                      onClick={() => setShowDocsMenu(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
+                      Parameter Store
                     </Link>
 
                     {/* Platform Services */}
@@ -625,8 +744,17 @@ export default function Dashboard() {
                 <button onClick={() => { setShowDynamoDB(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />DynamoDB Tables
                 </button>
+                <button onClick={() => { setShowLambdaConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />Lambda Functions
+                </button>
+                <button onClick={() => { setShowAPIGatewayConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />API Gateway
+                </button>
                 <button onClick={() => { setShowSecretsConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Secrets Manager
+                </button>
+                <button onClick={() => { setShowSSMConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Parameter Store
                 </button>
               </div>
 
@@ -668,8 +796,17 @@ export default function Dashboard() {
                 <Link href="/dynamodb" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />DynamoDB
                 </Link>
+                <Link href="/lambda" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />Lambda
+                </Link>
+                <Link href="/apigateway" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />API Gateway
+                </Link>
                 <Link href="/secrets" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Secrets Manager
+                </Link>
+                <Link href="/ssm" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Parameter Store
                 </Link>
                 <Link href="/mailpit" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />Mailpit
@@ -800,6 +937,9 @@ export default function Dashboard() {
               onAddS3={() => handleCreateSingleResource("s3")}
               onAddDynamoDB={() => handleCreateSingleResource("dynamodb")}
               onAddSecrets={() => handleCreateSingleResource("secretsmanager")}
+              onAddLambda={() => handleCreateSingleResource("lambda")}
+              onAddAPIGateway={() => handleCreateSingleResource("apigateway")}
+              onAddSSM={() => handleCreateSingleResource("ssm")}
               refreshLoading={loading}
               addLoading={createLoading}
               onViewS3={(bucketName) => {
@@ -911,6 +1051,36 @@ export default function Dashboard() {
 
       {showRedis && (
         <RedisModal onClose={() => setShowRedis(false)} />
+      )}
+
+      {showLambdaConfig && (
+        <LambdaConfigModal
+          isOpen={showLambdaConfig}
+          onClose={() => setShowLambdaConfig(false)}
+          onSubmit={handleCreateLambda}
+          projectName={projectName}
+          loading={createLoading}
+        />
+      )}
+
+      {showAPIGatewayConfig && (
+        <APIGatewayConfigModal
+          isOpen={showAPIGatewayConfig}
+          onClose={() => setShowAPIGatewayConfig(false)}
+          onSubmit={handleCreateAPIGateway}
+          projectName={projectName}
+          loading={createLoading}
+        />
+      )}
+
+      {showSSMConfig && (
+        <SSMConfigModal
+          isOpen={showSSMConfig}
+          onClose={() => setShowSSMConfig(false)}
+          onSubmit={handleCreateSSMParameter}
+          projectName={projectName}
+          loading={createLoading}
+        />
       )}
     </div>
   );
