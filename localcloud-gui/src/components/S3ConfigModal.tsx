@@ -14,6 +14,18 @@ interface S3ConfigModalProps {
   loading?: boolean;
 }
 
+function validateBucketName(name: string): string {
+  if (!name) return "Bucket name is required";
+  if (name.length < 3) return "Must be at least 3 characters";
+  if (name.length > 63) return "Must be 63 characters or fewer";
+  if (!/^[a-z0-9]/.test(name)) return "Must start with a lowercase letter or number";
+  if (!/[a-z0-9]$/.test(name)) return "Must end with a lowercase letter or number";
+  if (!/^[a-z0-9.-]+$/.test(name)) return "Only lowercase letters, numbers, hyphens, and dots are allowed";
+  if (/\.\./.test(name)) return "Cannot contain consecutive dots";
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(name)) return "Cannot be formatted as an IP address";
+  return "";
+}
+
 export default function S3ConfigModal({
   isOpen,
   onClose,
@@ -27,9 +39,16 @@ export default function S3ConfigModal({
   const [versioning, setVersioning] = useState(false);
   const [encryption, setEncryption] = useState(false);
 
-  // Save-as-config inline state
-  const [saveMode, setSaveMode] = useState<"none" | "save">("none");
+  // Save config toggle
+  const [saveConfig_, setSaveConfig_] = useState(false);
   const [configName, setConfigName] = useState("");
+
+  // Validation
+  const [touched, setTouched] = useState({ bucketName: false, configName: false });
+  const bucketNameError = touched.bucketName ? validateBucketName(bucketName) : "";
+  const configNameError = touched.configName && saveConfig_ && !configName.trim()
+    ? "Config name is required"
+    : "";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -42,6 +61,19 @@ export default function S3ConfigModal({
     };
   }, [isOpen, onClose]);
 
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setBucketName(`${projectName}-bucket`);
+      setRegion("us-east-1");
+      setVersioning(false);
+      setEncryption(false);
+      setSaveConfig_(false);
+      setConfigName("");
+      setTouched({ bucketName: false, configName: false });
+    }
+  }, [isOpen, projectName]);
+
   if (!isOpen) return null;
 
   const projectConfigs = savedConfigs.filter(
@@ -53,13 +85,21 @@ export default function S3ConfigModal({
     setRegion(config.region || "us-east-1");
     setVersioning(config.versioning || false);
     setEncryption(config.encryption || false);
+    setTouched({ bucketName: false, configName: false });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Touch all fields to show errors
+    setTouched({ bucketName: true, configName: true });
+
+    if (validateBucketName(bucketName)) return;
+    if (saveConfig_ && !configName.trim()) return;
+
     const config: S3BucketConfig = { bucketName, region, versioning, encryption };
 
-    if (saveMode === "save" && configName.trim()) {
+    if (saveConfig_ && configName.trim()) {
       try {
         await saveConfig(configName.trim(), "s3", config);
         toast.success(`Config "${configName.trim()}" saved`);
@@ -100,9 +140,9 @@ export default function S3ConfigModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
 
-          {/* Saved config pills — load only */}
+          {/* Saved config pills */}
           {profile?.active_project_id && projectConfigs.length > 0 && (
             <div>
               <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Load saved config</p>
@@ -132,14 +172,22 @@ export default function S3ConfigModal({
             <input
               type="text"
               value={bucketName}
-              onChange={(e) => setBucketName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+              onChange={(e) => setBucketName(e.target.value.toLowerCase())}
+              onBlur={() => setTouched((t) => ({ ...t, bucketName: true }))}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
+                bucketNameError
+                  ? "border-red-400 focus:ring-red-400 focus:border-red-400 bg-red-50"
+                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              }`}
               placeholder="my-bucket-name"
-              required
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Must be globally unique and follow S3 naming conventions
-            </p>
+            {bucketNameError ? (
+              <p className="text-xs text-red-600 mt-1">{bucketNameError}</p>
+            ) : (
+              <p className="text-xs text-gray-400 mt-1">
+                Lowercase letters, numbers, and hyphens · 3–63 characters
+              </p>
+            )}
           </div>
 
           {/* Region */}
@@ -162,7 +210,7 @@ export default function S3ConfigModal({
           {/* Advanced Options */}
           <div className="border-t pt-4 space-y-3">
             <h3 className="text-sm font-semibold text-gray-700">Advanced Options</h3>
-            <label className="flex items-center space-x-3 text-gray-900">
+            <label className="flex items-center space-x-3 cursor-pointer text-gray-900">
               <input
                 type="checkbox"
                 checked={versioning}
@@ -174,7 +222,7 @@ export default function S3ConfigModal({
                 <p className="text-xs text-gray-500">Keep multiple versions of objects</p>
               </div>
             </label>
-            <label className="flex items-center space-x-3 text-gray-900">
+            <label className="flex items-center space-x-3 cursor-pointer text-gray-900">
               <input
                 type="checkbox"
                 checked={encryption}
@@ -188,44 +236,43 @@ export default function S3ConfigModal({
             </label>
           </div>
 
-          {/* Save-as-config radio */}
-          <div className="border-t pt-4 space-y-3">
-            <label className="flex items-start space-x-3 cursor-pointer">
+          {/* Save config toggle */}
+          <div className="border-t pt-4">
+            <label className="flex items-center space-x-3 cursor-pointer">
               <input
-                type="radio"
-                name="saveMode"
-                checked={saveMode === "none"}
-                onChange={() => setSaveMode("none")}
-                className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300"
+                type="checkbox"
+                checked={saveConfig_}
+                onChange={(e) => {
+                  setSaveConfig_(e.target.checked);
+                  if (!e.target.checked) setConfigName("");
+                }}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <span className="text-sm text-gray-700">Just create bucket</span>
+              <span className="text-sm text-gray-700">Save as config</span>
             </label>
-            <label className="flex items-start space-x-3 cursor-pointer">
-              <input
-                type="radio"
-                name="saveMode"
-                checked={saveMode === "save"}
-                onChange={() => setSaveMode("save")}
-                className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300"
-              />
-              <div className="flex-1">
-                <span className="text-sm text-gray-700">Create and save config</span>
-                {saveMode === "save" && (
-                  <input
-                    type="text"
-                    value={configName}
-                    onChange={(e) => setConfigName(e.target.value)}
-                    placeholder="Config name (e.g. my-app-assets)"
-                    className="mt-2 w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                    autoFocus
-                    required={saveMode === "save"}
-                  />
+            {saveConfig_ && (
+              <div className="mt-3">
+                <input
+                  type="text"
+                  value={configName}
+                  onChange={(e) => setConfigName(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, configName: true }))}
+                  placeholder="e.g. my-app-assets"
+                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
+                    configNameError
+                      ? "border-red-400 focus:ring-red-400 focus:border-red-400 bg-red-50"
+                      : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                  }`}
+                  autoFocus
+                />
+                {configNameError && (
+                  <p className="text-xs text-red-600 mt-1">{configNameError}</p>
                 )}
               </div>
-            </label>
+            )}
           </div>
 
-          {/* Action Buttons */}
+          {/* Actions */}
           <div className="flex justify-end space-x-3 pt-2">
             <button
               type="button"
@@ -238,9 +285,9 @@ export default function S3ConfigModal({
             <button
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-              disabled={loading || (saveMode === "save" && !configName.trim())}
+              disabled={loading}
             >
-              {loading ? "Creating..." : saveMode === "save" ? "Create & Save Config" : "Create Bucket"}
+              {loading ? "Creating..." : "Create Bucket"}
             </button>
           </div>
         </form>
