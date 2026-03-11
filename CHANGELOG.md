@@ -4,6 +4,32 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-03-10
+
+### Added
+- **PostgreSQL**: Full PostgreSQL service integration — container managed via Docker Compose with status monitoring, connection info, and pgAdmin support
+- **Keycloak**: Identity and access management service — HTTPS routing via Traefik, status page with admin console link, and dedicated docs (`docs/KEYCLOAK.md`)
+- **DocPageNav**: Persistent top navigation bar on all doc pages with profile icon, docs dropdown, and per-page language selector
+- **verify-new-service**: Claude command skill for verifying new service integrations end-to-end
+- **`/api/postgres`**: Backend route for PostgreSQL health-check and connection status
+- **`/api/keycloak`**: Backend route for Keycloak health-check and status
+- **docs/KEYCLOAK.md**: Documentation for Keycloak setup, configuration, and usage
+- **docs/PGADMIN.md**: Documentation for pgAdmin access and PostgreSQL administration
+
+### Changed
+- **docker-compose.yml**: Added PostgreSQL and Keycloak service blocks; configured `KC_HOSTNAME` and `KC_PROXY_HEADERS` for correct Traefik HTTPS routing
+- **localcloud-api**: Refactored into modular route files (`routes/`) and shared lib (`lib/`) — separates concerns from the monolithic `server.js`
+- **Dashboard**: Updated to display PostgreSQL and Keycloak status alongside existing services
+- **ResourceList**: Updated to handle `postgres` and `keycloak` resource types
+- **useServicesData**: Extended to fetch PostgreSQL and Keycloak status
+- **next.config.ts**: Added CSP and frame-ancestors config to resolve Keycloak HTTPS mixed-content blocking
+
+### Fixed
+- **Keycloak**: Resolved HTTPS mixed content errors and `frame-sec` blocking when embedding Keycloak admin console
+- **Keycloak**: Fixed `KC_HOSTNAME` and `KC_PROXY_HEADERS` so the admin console is reachable through Traefik without redirect loops
+- **Mailpit**: Fixed subdomain TLS cert generation and hosts file verification in setup scripts
+- **Language preferences**: Fixed language selector on doc pages not persisting the user's chosen SDK language
+
 ## [0.9.0] - 2026-03-10
 
 ### Added
