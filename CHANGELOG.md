@@ -4,6 +4,26 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-03-11
+
+### Added
+- **Dashboard**: "What's new" version dot on profile icon — red badge appears when app version changes, reveals changelog link in profile dropdown, clears on open
+- **Dashboard**: LocalStack stopped state inside AWS Resources panel — consistent panel layout with start command hint instead of hiding the section
+- **Dashboard**: Project switcher badge — active project shown as a styled `bg-blue-50` pill for clear environment context
+
+### Changed
+- **Dashboard**: Service status bar pills now have explicit `hover:bg-gray-50 rounded-lg` hover states instead of `opacity-75` fade
+- **Dashboard**: Nav buttons are now ghost/alpha style — removed borders and white backgrounds, consistent `rounded-lg` across all nav items
+- **Dashboard**: Toast notifications moved to `bottom-right` to avoid collision with the fixed header
+- **DashboardSkeleton**: Real logo, title, version subtitle, and service names shown immediately; only status badges pulse during load
+- **DashboardSkeleton**: Framer Motion entry/exit animation for smooth crossfade transition to loaded dashboard
+- **DocPageNav**: Nav buttons updated to ghost/alpha style matching Dashboard; page action buttons standardised to `indigo-50` fill, no border
+- **DynamoDBViewer**: Table selector uses `appearance-none` + custom `ChevronDownIcon` for aligned dropdown arrow; all buttons standardised to `py-1.5 rounded-md`
+- **SecretsConfigModal / DynamoDBConfigModal**: Saved config flow updated — pill buttons at top, "Save as config" checkbox at bottom, matching S3 flow
+
+### Fixed
+- **Dashboard**: Dropdown toggles now close all other menus (previously Resources/Docs/Services didn't close Project or Profile)
+
 ## [0.10.1] - 2026-03-11
 
 ### Changed

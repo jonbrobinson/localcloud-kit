@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { XMarkIcon, KeyIcon } from "@heroicons/react/24/outline";
 import { SecretsManagerConfig } from "@/types";
-import SavedConfigPicker from "./SavedConfigPicker";
+import { usePreferences } from "@/context/PreferencesContext";
+import { toast } from "react-hot-toast";
 
 interface SecretsConfigModalProps {
   isOpen: boolean;
@@ -20,10 +21,21 @@ export default function SecretsConfigModal({
   projectName,
   loading = false,
 }: SecretsConfigModalProps) {
+  const { profile, savedConfigs, saveConfig } = usePreferences();
+
   const [secretName, setSecretName] = useState(`${projectName}-secret`);
   const [secretValue, setSecretValue] = useState("");
   const [description, setDescription] = useState("");
 
+  // Save config
+  const [saveConfig_, setSaveConfig_] = useState(false);
+  const [configName, setConfigName] = useState("");
+  const [configNameTouched, setConfigNameTouched] = useState(false);
+  const configNameError = configNameTouched && saveConfig_ && !configName.trim()
+    ? "Config name is required"
+    : "";
+
+  // Keyboard / scroll lock
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -35,9 +47,23 @@ export default function SecretsConfigModal({
     };
   }, [isOpen, onClose]);
 
+  // Reset on open
+  useEffect(() => {
+    if (isOpen) {
+      setSecretName(`${projectName}-secret`);
+      setSecretValue("");
+      setDescription("");
+      setSaveConfig_(false);
+      setConfigName("");
+      setConfigNameTouched(false);
+    }
+  }, [isOpen, projectName]);
+
   if (!isOpen) return null;
 
-  const currentConfig: SecretsManagerConfig = { secretName, secretValue, description };
+  const projectConfigs = savedConfigs.filter(
+    (c) => c.resource_type === "secrets" && c.project_id === profile?.active_project_id
+  );
 
   const loadSavedConfig = (config: SecretsManagerConfig) => {
     setSecretName(config.secretName || "");
@@ -45,9 +71,23 @@ export default function SecretsConfigModal({
     setDescription(config.description || "");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(currentConfig);
+    setConfigNameTouched(true);
+    if (saveConfig_ && !configName.trim()) return;
+
+    const config: SecretsManagerConfig = { secretName, secretValue, description };
+
+    if (saveConfig_ && configName.trim()) {
+      try {
+        await saveConfig(configName.trim(), "secrets", config);
+        toast.success(`Config "${configName.trim()}" saved`);
+      } catch {
+        toast.error("Failed to save config — secret will still be created");
+      }
+    }
+
+    onSubmit(config);
   };
 
   return (
@@ -81,12 +121,27 @@ export default function SecretsConfigModal({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
 
-          <SavedConfigPicker
-            resourceType="secrets"
-            onLoad={loadSavedConfig}
-            currentConfig={currentConfig}
-            configLabel="Secret"
-          />
+          {/* Saved config pills — only shown if configs exist */}
+          {profile?.active_project_id && projectConfigs.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Load saved config</p>
+              <div className="flex flex-wrap gap-2">
+                {projectConfigs.map((cfg) => (
+                  <button
+                    key={cfg.id}
+                    type="button"
+                    onClick={() => {
+                      loadSavedConfig(cfg.config as SecretsManagerConfig);
+                      toast.success(`Loaded "${cfg.name}"`);
+                    }}
+                    className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:border-blue-400 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                  >
+                    {cfg.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Secret Name */}
           <div>
@@ -119,9 +174,7 @@ export default function SecretsConfigModal({
               placeholder='{"username":"admin","password":"secret"}'
               required
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Plain text or JSON string
-            </p>
+            <p className="text-xs text-gray-500 mt-1">Plain text or JSON string</p>
           </div>
 
           {/* Description */}
@@ -138,6 +191,42 @@ export default function SecretsConfigModal({
             />
           </div>
 
+          {/* Save as config */}
+          <div className="border-t pt-4">
+            <label className="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={saveConfig_}
+                onChange={(e) => {
+                  setSaveConfig_(e.target.checked);
+                  if (!e.target.checked) setConfigName("");
+                }}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <span className="text-sm text-gray-700">Save as config</span>
+            </label>
+            {saveConfig_ && (
+              <div className="mt-3">
+                <input
+                  type="text"
+                  value={configName}
+                  onChange={(e) => setConfigName(e.target.value)}
+                  onBlur={() => setConfigNameTouched(true)}
+                  placeholder="e.g. my-app/db-creds"
+                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
+                    configNameError
+                      ? "border-red-400 focus:ring-red-400 focus:border-red-400 bg-red-50"
+                      : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                  }`}
+                  autoFocus
+                />
+                {configNameError && (
+                  <p className="text-xs text-red-600 mt-1">{configNameError}</p>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Actions */}
           <div className="flex justify-end space-x-3 pt-2">
             <button
@@ -151,7 +240,7 @@ export default function SecretsConfigModal({
             <button
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-              disabled={loading || !secretName.trim() || !secretValue.trim()}
+              disabled={loading || !secretName.trim() || !secretValue.trim() || (saveConfig_ && !configName.trim())}
             >
               {loading ? "Creating..." : "Create Secret"}
             </button>

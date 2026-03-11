@@ -4,16 +4,23 @@ import {
   addDynamoDBItem,
   deleteDynamoDBItem,
   getDynamoDBTableSchema,
+  resourceApi,
 } from "@/services/api";
+import { DynamoDBTableConfig } from "@/types";
 import {
   ArrowsPointingOutIcon,
+  ChevronDownIcon,
   MagnifyingGlassIcon,
+  PlusIcon,
   TrashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import DynamoDBAddItemModal from "./DynamoDBAddItemModal";
+import DynamoDBConfigModal from "./DynamoDBConfigModal";
 import { Icon } from "@iconify/react";
+import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "react-hot-toast";
 
 interface DynamoDBViewerProps {
   isOpen: boolean;
@@ -79,6 +86,27 @@ export default function DynamoDBViewer({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<DynamoDBItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showCreateTableModal, setShowCreateTableModal] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+
+  const handleCreateTable = async (dynamodbConfig: DynamoDBTableConfig) => {
+    setCreateLoading(true);
+    try {
+      const response = await resourceApi.createSingleWithConfig(projectName, "dynamodb", { dynamodbConfig });
+      if (response.success) {
+        toast.success("DynamoDB table created successfully");
+        setShowCreateTableModal(false);
+        setTimeout(loadTables, 1000);
+      } else {
+        toast.error(response.error || "Failed to create DynamoDB table");
+      }
+    } catch (error) {
+      console.error("Create DynamoDB table error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to create DynamoDB table");
+    } finally {
+      setCreateLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -372,8 +400,12 @@ export default function DynamoDBViewer({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
     >
-      <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-7xl max-h-[90vh] flex flex-col"
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 8, scale: 0.98 }}
+        transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] as const }}
+        className="bg-white rounded-xl shadow-2xl w-full max-w-7xl h-[88vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -382,49 +414,126 @@ export default function DynamoDBViewer({
             <h2 className="text-lg font-semibold text-gray-900">DynamoDB Tables</h2>
             <p className="text-xs text-gray-500">View and manage table contents</p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-            aria-label="Close"
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowCreateTableModal(true)}
+              className="flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <PlusIcon className="h-4 w-4 mr-1.5" />
+              Create Table
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              aria-label="Close"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
         <div className="flex-1 flex flex-col p-6 gap-4 min-h-0">
           {/* Table Selection */}
-          <div className="flex items-center space-x-4 flex-shrink-0">
-            <label className="text-sm font-medium text-gray-700">
-              Select Table:
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
+              Select Table
             </label>
-            <select
-              value={selectedTable}
-              onChange={(e) => setSelectedTable(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              disabled={loading}
-            >
-              <option value="">Choose a table...</option>
-              {tables.map((table) => (
-                <option key={table} value={table}>
-                  {table}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedTable}
+                onChange={(e) => setSelectedTable(e.target.value)}
+                className="appearance-none pl-3 pr-8 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading}
+              >
+                <option value="">Choose a table…</option>
+                {tables.map((table) => (
+                  <option key={table} value={table}>
+                    {table}
+                  </option>
+                ))}
+              </select>
+              <ChevronDownIcon className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+            </div>
             <button
               onClick={refreshData}
               disabled={loading}
-              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+              className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               Refresh
             </button>
           </div>
 
+          {/* Below-selector area — switches between initial loading / empty / table content */}
+          <AnimatePresence mode="wait">
+
+          {loading && tables.length === 0 ? (
+            /* Initial skeleton while tables are loading */
+            <motion.div
+              key="initial-loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="flex-1 min-h-0 overflow-hidden border border-gray-200 rounded-lg animate-pulse"
+            >
+              {/* Fake table header */}
+              <div className="flex bg-gray-50 border-b border-gray-200 px-3 py-2 gap-6">
+                {[40, 28, 20, 12].map((w, i) => (
+                  <div key={i} className={`h-3 bg-gray-200 rounded`} style={{ width: `${w}%` }} />
+                ))}
+              </div>
+              {/* Fake rows */}
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center border-b border-gray-100 px-3 py-3 gap-6"
+                  style={{ opacity: 1 - i * 0.09 }}
+                >
+                  {[40, 28, 20, 12].map((w, j) => (
+                    <div key={j} className="h-3 bg-gray-100 rounded" style={{ width: `${w}%` }} />
+                  ))}
+                </div>
+              ))}
+            </motion.div>
+
+          ) : !loading && tables.length === 0 ? (
+            /* Empty state */
+            <motion.div
+              key="empty-tables"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] as const }}
+              className="flex-1 flex flex-col items-center justify-center text-center"
+            >
+              <Icon icon="logos:aws-dynamodb" className="w-20 h-20 mb-4 opacity-20" />
+              <p className="text-sm font-medium text-gray-700 mb-1">No DynamoDB tables found</p>
+              <p className="text-xs text-gray-400 mb-5">Create your first table to start storing data.</p>
+              <button
+                onClick={() => setShowCreateTableModal(true)}
+                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                <PlusIcon className="h-4 w-4 mr-1.5" />
+                Create Table
+              </button>
+            </motion.div>
+
+          ) : tables.length > 0 && (
+          <motion.div
+            key="table-content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex-1 flex flex-col gap-4 min-h-0"
+          >
+
           {selectedTable && (
             <>
               {/* Query Controls */}
-              <div className="bg-gray-50 rounded-lg p-4 flex-shrink-0">
-                <div className="flex items-center space-x-4 mb-4">
+              <div className="bg-gray-50 rounded-lg px-4 py-3 flex-shrink-0">
+                <div className="flex items-center space-x-4 mb-3">
                   <div className="flex items-center space-x-2">
                     <input
                       type="radio"
@@ -538,7 +647,7 @@ export default function DynamoDBViewer({
                   </div>
                 )}
 
-                <div className="flex items-center space-x-4 mt-4">
+                <div className="flex items-center space-x-4 mt-3">
                   <div className="flex items-center space-x-2">
                     <label className="text-sm font-medium text-gray-700">
                       Limit:
@@ -552,7 +661,7 @@ export default function DynamoDBViewer({
                           limit: e.target.value,
                         })
                       }
-                      className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                      className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                       min="1"
                       max="1000"
                     />
@@ -562,11 +671,11 @@ export default function DynamoDBViewer({
                       queryMode === "scan" ? loadTableContents : executeQuery
                     }
                     disabled={loading}
-                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    className="flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
                   >
-                    <MagnifyingGlassIcon className="h-4 w-4 mr-2" />
+                    <MagnifyingGlassIcon className="h-4 w-4 mr-1.5" />
                     {loading
-                      ? "Loading..."
+                      ? "Loading…"
                       : queryMode === "scan"
                       ? "Scan Table"
                       : "Execute Query"}
@@ -587,28 +696,56 @@ export default function DynamoDBViewer({
 
               {/* Add Item Button */}
               <div className="flex justify-between items-center flex-shrink-0">
-                <h3 className="text-lg font-semibold">Items</h3>
+                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Items</h3>
                 <button
-                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                   onClick={() => setAddModalOpen(true)}
+                  className="flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
                 >
+                  <PlusIcon className="h-4 w-4 mr-1.5" />
                   Add Item
                 </button>
               </div>
 
               {/* Items Table */}
-              <div className="flex-1 min-h-0 overflow-auto border border-gray-200 rounded-lg pb-4">
-                {items.length === 0 ? (
+              <AnimatePresence mode="wait">
+              <motion.div
+                key={`${selectedTable}-${loading ? "loading" : "loaded"}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="flex-1 min-h-0 overflow-auto border border-gray-200 rounded-lg pb-4"
+              >
+                {loading ? (
+                  /* Skeleton rows that match the real table layout */
+                  <div className="animate-pulse">
+                    <div className="flex bg-gray-50 border-b border-gray-200 px-3 py-2 gap-4">
+                      {[35, 25, 20, 15].map((w, i) => (
+                        <div key={i} className="h-3 bg-gray-200 rounded" style={{ width: `${w}%` }} />
+                      ))}
+                      <div className="h-3 w-10 bg-gray-100 rounded ml-auto" />
+                    </div>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="flex items-center border-b border-gray-100 px-3 py-3 gap-4" style={{ opacity: 1 - i * 0.12 }}>
+                        {[35, 25, 20, 15].map((w, j) => (
+                          <div key={j} className="h-3 bg-gray-100 rounded" style={{ width: `${w}%` }} />
+                        ))}
+                        <div className="h-5 w-5 bg-gray-100 rounded ml-auto" />
+                      </div>
+                    ))}
+                  </div>
+                ) : items.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                    {loading ? (
-                      <p className="text-sm text-gray-500">Loading items...</p>
-                    ) : (
-                      <>
-                        <Icon icon="logos:aws-dynamodb" className="w-20 h-20 mb-4 opacity-20" />
-                        <p className="text-sm font-medium text-gray-700">No items found</p>
-                        <p className="text-xs text-gray-400 mt-1">Add an item using the button above to get started.</p>
-                      </>
-                    )}
+                    <Icon icon="logos:aws-dynamodb" className="w-20 h-20 mb-4 opacity-20" />
+                    <p className="text-sm font-medium text-gray-700 mb-1">No items found</p>
+                    <p className="text-xs text-gray-400 mb-5">Add your first item to this table.</p>
+                    <button
+                      onClick={() => setAddModalOpen(true)}
+                      className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+                    >
+                      <PlusIcon className="h-4 w-4 mr-1.5" />
+                      Add Item
+                    </button>
                   </div>
                 ) : (
                   <>
@@ -688,11 +825,15 @@ export default function DynamoDBViewer({
                     </table>
                   </>
                 )}
-              </div>
+              </motion.div>
+              </AnimatePresence>
             </>
           )}
+          </motion.div>
+          )}
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
     </div>
 
     <DynamoDBAddItemModal
@@ -785,6 +926,15 @@ export default function DynamoDBViewer({
         </div>
       </div>
     )}
+
+    {/* Create Table Modal */}
+    <DynamoDBConfigModal
+      isOpen={showCreateTableModal}
+      onClose={() => setShowCreateTableModal(false)}
+      onSubmit={handleCreateTable}
+      projectName={projectName}
+      loading={createLoading}
+    />
   </>
   );
 }
