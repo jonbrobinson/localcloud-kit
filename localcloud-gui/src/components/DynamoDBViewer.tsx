@@ -13,6 +13,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import DynamoDBAddItemModal from "./DynamoDBAddItemModal";
+import { Icon } from "@iconify/react";
 
 interface DynamoDBViewerProps {
   isOpen: boolean;
@@ -598,8 +599,16 @@ export default function DynamoDBViewer({
               {/* Items Table */}
               <div className="flex-1 min-h-0 overflow-auto border border-gray-200 rounded-lg pb-4">
                 {items.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    {loading ? "Loading items..." : "No items found"}
+                  <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                    {loading ? (
+                      <p className="text-sm text-gray-500">Loading items...</p>
+                    ) : (
+                      <>
+                        <Icon icon="logos:aws-dynamodb" className="w-20 h-20 mb-4 opacity-20" />
+                        <p className="text-sm font-medium text-gray-700">No items found</p>
+                        <p className="text-xs text-gray-400 mt-1">Add an item using the button above to get started.</p>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <>

@@ -130,7 +130,8 @@ export async function createSingleResource(projectName, resourceType, config = {
       };
     }
   } catch (error) {
-    throw new Error(`Failed to create ${resourceType}: ${error.message}`);
+    const message = error.stderr?.trim() || error.message;
+    throw new Error(message);
   }
 }
 
