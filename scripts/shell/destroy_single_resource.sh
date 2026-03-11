@@ -111,12 +111,26 @@ destroy_secrets_manager_secret() {
       return
     fi
   fi
-  
+
   log "Destroying Secrets Manager secret: $SECRET_NAME"
   $AWS_CMD secretsmanager delete-secret --secret-id "$SECRET_NAME" --force-delete-without-recovery 2>/dev/null || true
   log "Deleted Secrets Manager secret: $SECRET_NAME"
-  
+
   echo "{\"success\": true, \"message\": \"Secrets Manager secret $SECRET_NAME destroyed successfully\"}"
+}
+
+destroy_ssm_parameter() {
+  if [ -n "$RESOURCE_NAME" ]; then
+    PARAM_NAME="$RESOURCE_NAME"
+  else
+    PARAM_NAME="/${PROJECT_NAME}/parameter"
+  fi
+
+  log "Destroying SSM parameter: $PARAM_NAME"
+  $AWS_CMD ssm delete-parameter --name "$PARAM_NAME" 2>/dev/null || true
+  log "Deleted SSM parameter: $PARAM_NAME"
+
+  echo "{\"success\": true, \"message\": \"SSM parameter $PARAM_NAME destroyed successfully\"}"
 }
 
 main() {
@@ -145,9 +159,12 @@ main() {
     secretsmanager)
       destroy_secrets_manager_secret
       ;;
+    ssm)
+      destroy_ssm_parameter
+      ;;
     *)
       echo "Unknown resource type: $RESOURCE_TYPE" >&2
-      echo "Supported types: s3, dynamodb, lambda, apigateway, secretsmanager" >&2
+      echo "Supported types: s3, dynamodb, lambda, apigateway, secretsmanager, ssm" >&2
       exit 1
       ;;
   esac

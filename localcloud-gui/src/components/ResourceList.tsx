@@ -28,19 +28,22 @@ interface ResourceListProps {
   onAddS3?: () => void;
   onAddDynamoDB?: () => void;
   onAddSecrets?: () => void;
+  onAddLambda?: () => void;
+  onAddAPIGateway?: () => void;
+  onAddSSM?: () => void;
   refreshLoading?: boolean;
   addLoading?: boolean;
 }
 
 // AWS resource types only — platform services are excluded
-const AWS_RESOURCE_TYPES = ["s3", "dynamodb", "lambda", "apigateway", "iam", "secretsmanager"];
+const AWS_RESOURCE_TYPES = ["s3", "dynamodb", "lambda", "apigateway", "ssm", "iam", "secretsmanager"];
 
 const AWS_CATEGORIES = [
   { name: "Storage", types: ["s3"] },
   { name: "Database", types: ["dynamodb"] },
   { name: "Compute", types: ["lambda"] },
   { name: "Networking", types: ["apigateway"] },
-  { name: "Security & Identity", types: ["iam", "secretsmanager"] },
+  { name: "Security & Identity", types: ["iam", "secretsmanager", "ssm"] },
 ];
 
 const RESOURCE_ICON: Record<string, string> = {
@@ -48,6 +51,7 @@ const RESOURCE_ICON: Record<string, string> = {
   dynamodb: "logos:aws-dynamodb",
   lambda: "logos:aws-lambda",
   apigateway: "logos:aws-api-gateway",
+  ssm: "logos:aws-systems-manager",
   iam: "logos:aws-iam",
   secretsmanager: "logos:aws-secrets-manager",
 };
@@ -57,6 +61,7 @@ const RESOURCE_LABEL: Record<string, string> = {
   dynamodb: "DynamoDB Table",
   lambda: "Lambda Function",
   apigateway: "API Gateway",
+  ssm: "Parameter Store",
   iam: "IAM",
   secretsmanager: "Secrets Manager",
 };
@@ -73,6 +78,9 @@ export default function ResourceList({
   onAddS3,
   onAddDynamoDB,
   onAddSecrets,
+  onAddLambda,
+  onAddAPIGateway,
+  onAddSSM,
   refreshLoading = false,
   addLoading = false,
 }: ResourceListProps) {
@@ -160,7 +168,7 @@ export default function ResourceList({
     }
   };
 
-  const hasAddActions = onAddS3 || onAddDynamoDB || onAddSecrets;
+  const hasAddActions = onAddS3 || onAddDynamoDB || onAddSecrets || onAddLambda || onAddAPIGateway || onAddSSM;
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -213,36 +221,77 @@ export default function ResourceList({
                   <ChevronDownIcon className={`h-3.5 w-3.5 ml-1.5 transition-transform ${showAddMenu ? "rotate-180" : ""}`} />
                 </button>
                 {showAddMenu && (
-                  <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Storage</p>
-                    {onAddS3 && (
-                      <button
-                        onClick={() => { onAddS3(); setShowAddMenu(false); }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                      >
-                        <Icon icon="logos:aws-s3" className="w-5 h-5 mr-3 flex-shrink-0" />
-                        S3 Bucket
-                      </button>
+                  <div className="absolute right-0 mt-1 w-60 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    {(onAddS3) && (
+                      <>
+                        <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Storage</p>
+                        <button
+                          onClick={() => { onAddS3(); setShowAddMenu(false); }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Icon icon="logos:aws-s3" className="w-5 h-5 mr-3 flex-shrink-0" />
+                          S3 Bucket
+                        </button>
+                      </>
                     )}
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Database</p>
-                    {onAddDynamoDB && (
-                      <button
-                        onClick={() => { onAddDynamoDB(); setShowAddMenu(false); }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                      >
-                        <Icon icon="logos:aws-dynamodb" className="w-5 h-5 mr-3 flex-shrink-0" />
-                        DynamoDB Table
-                      </button>
+                    {(onAddDynamoDB) && (
+                      <>
+                        <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Database</p>
+                        <button
+                          onClick={() => { onAddDynamoDB(); setShowAddMenu(false); }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Icon icon="logos:aws-dynamodb" className="w-5 h-5 mr-3 flex-shrink-0" />
+                          DynamoDB Table
+                        </button>
+                      </>
                     )}
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Security & Identity</p>
-                    {onAddSecrets && (
-                      <button
-                        onClick={() => { onAddSecrets(); setShowAddMenu(false); }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                      >
-                        <Icon icon="logos:aws-secrets-manager" className="w-5 h-5 mr-3 flex-shrink-0" />
-                        Secrets Manager
-                      </button>
+                    {(onAddLambda) && (
+                      <>
+                        <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Compute</p>
+                        <button
+                          onClick={() => { onAddLambda(); setShowAddMenu(false); }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Icon icon="logos:aws-lambda" className="w-5 h-5 mr-3 flex-shrink-0" />
+                          Lambda Function
+                        </button>
+                      </>
+                    )}
+                    {(onAddAPIGateway) && (
+                      <>
+                        <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Networking</p>
+                        <button
+                          onClick={() => { onAddAPIGateway(); setShowAddMenu(false); }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Icon icon="logos:aws-api-gateway" className="w-5 h-5 mr-3 flex-shrink-0" />
+                          API Gateway
+                        </button>
+                      </>
+                    )}
+                    {(onAddSecrets || onAddSSM) && (
+                      <>
+                        <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Security & Identity</p>
+                        {onAddSecrets && (
+                          <button
+                            onClick={() => { onAddSecrets(); setShowAddMenu(false); }}
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <Icon icon="logos:aws-secrets-manager" className="w-5 h-5 mr-3 flex-shrink-0" />
+                            Secrets Manager
+                          </button>
+                        )}
+                        {onAddSSM && (
+                          <button
+                            onClick={() => { onAddSSM(); setShowAddMenu(false); }}
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <Icon icon="logos:aws-systems-manager" className="w-5 h-5 mr-3 flex-shrink-0" />
+                            Parameter Store
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
@@ -256,13 +305,15 @@ export default function ResourceList({
       {awsResources.length === 0 ? (
         <div className="px-6 py-16 text-center">
           <div className="flex items-center justify-center space-x-4 mb-6 opacity-20">
-            <Icon icon="logos:aws-s3" className="w-12 h-12" />
-            <Icon icon="logos:aws-dynamodb" className="w-12 h-12" />
-            <Icon icon="logos:aws-secrets-manager" className="w-12 h-12" />
+            <Icon icon="logos:aws-s3" className="w-10 h-10" />
+            <Icon icon="logos:aws-dynamodb" className="w-10 h-10" />
+            <Icon icon="logos:aws-lambda" className="w-10 h-10" />
+            <Icon icon="logos:aws-api-gateway" className="w-10 h-10" />
+            <Icon icon="logos:aws-secrets-manager" className="w-10 h-10" />
           </div>
           <h4 className="text-sm font-semibold text-gray-900 mb-1">No AWS Resources Yet</h4>
           <p className="text-sm text-gray-500">
-            Use the <span className="font-medium">+ Add</span> button to create your first S3 bucket, DynamoDB table, or secret.
+            Use the <span className="font-medium">+ Add</span> button to create your first S3 bucket, DynamoDB table, Lambda function, API Gateway, or secret.
           </p>
         </div>
       ) : (

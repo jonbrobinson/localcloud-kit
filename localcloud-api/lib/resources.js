@@ -103,6 +103,14 @@ export async function createSingleResource(projectName, resourceType, config = {
       command += ` --config '${JSON.stringify(config.secretsmanagerConfig)}'`;
     }
 
+    if (resourceType === "lambda" && config.lambdaConfig) {
+      command += ` --config '${JSON.stringify(config.lambdaConfig)}'`;
+    }
+
+    if (resourceType === "apigateway" && config.apigatewayConfig) {
+      command += ` --config '${JSON.stringify(config.apigatewayConfig)}'`;
+    }
+
     console.log("[DEBUG] Running command:", command);
 
     const { stdout, stderr } = await execAsync(command, {
