@@ -41,8 +41,8 @@ help: ## Show this help message
 	@echo ""
 	@echo "$(YELLOW)Usage Examples:$(NC)"
 	@echo "  make start                              # Start with LocalStack latest"
-	@echo "  make start LOCALSTACK_VERSION=4.12      # Start with a specific LocalStack version"
-	@echo "  make start-legacy                       # Start with LocalStack 4.12 (community legacy)"
+	@echo "  make start LOCALSTACK_VERSION=4.14      # Start with a specific LocalStack version"
+	@echo "  make start-legacy                       # Start with LocalStack 4.14 (community legacy)"
 	@echo "  make gui-start                          # Start GUI system with Docker"
 	@echo "  make shell-create ENV=dev               # Create resources with Shell scripts"
 	@echo "  make clean                              # Clean up all resources"
@@ -75,8 +75,8 @@ start: ## Start all services with Docker Compose (LOCALSTACK_VERSION=latest by d
 	@echo "$(YELLOW)  pgAdmin:        http://localhost:5050$(NC)"
 	@echo ""
 
-start-legacy: ## Start all services using LocalStack 4.12 (community legacy)
-	@$(MAKE) start LOCALSTACK_VERSION=4.12
+start-legacy: ## Start all services using LocalStack 4.14 (community legacy)
+	@$(MAKE) start LOCALSTACK_VERSION=4.14
 
 stop: ## Stop all Docker services
 	@echo "$(YELLOW)Stopping all services...$(NC)"
