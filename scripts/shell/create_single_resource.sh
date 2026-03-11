@@ -423,18 +423,21 @@ create_api_gateway() {
 
   log "Creating API Gateway: $API_NAME"
 
-  CREATE_CMD="$AWS_CMD apigateway create-rest-api --name \"$API_NAME\""
   if [ -n "$DESCRIPTION" ] && [ "$DESCRIPTION" != "null" ]; then
-    CREATE_CMD="$CREATE_CMD --description \"$DESCRIPTION\""
+    CREATE_OUTPUT=$($AWS_CMD apigateway create-rest-api --name "$API_NAME" --description "$DESCRIPTION" --output json 2>/dev/null) || CREATE_OUTPUT=""
+  else
+    CREATE_OUTPUT=$($AWS_CMD apigateway create-rest-api --name "$API_NAME" --output json 2>/dev/null) || CREATE_OUTPUT=""
   fi
+  API_ID=$(echo "$CREATE_OUTPUT" | jq -r '.id // empty')
+  if [ -z "$API_ID" ]; then
+    API_ID="$API_NAME"
+  fi
+  log "Created API Gateway: $API_NAME (id: $API_ID)"
 
-  eval $CREATE_CMD 2>/dev/null || true
-  log "Created API Gateway: $API_NAME"
-
-  # Return resource info as JSON
+  # Return resource info as JSON (id must use API_ID for destroy to work)
   cat <<EOF
 {
-  "id": "apigateway-$API_NAME",
+  "id": "apigateway-$API_ID",
   "name": "$API_NAME",
   "type": "apigateway",
   "status": "active",
@@ -442,6 +445,7 @@ create_api_gateway() {
   "createdAt": "$NOW",
   "details": {
     "apiName": "$API_NAME",
+    "apiId": "$API_ID",
     "description": "$DESCRIPTION",
     "type": "REST"
   }

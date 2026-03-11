@@ -86,6 +86,11 @@ if [ -n "$SPECIFIC_RESOURCES" ]; then
                 $AWS_CMD secretsmanager delete-secret --secret-id $resource_name --force-delete-without-recovery 2>/dev/null || true
                 log "Deleted Secrets Manager secret: $resource_name"
                 ;;
+            "ssm")
+                log "Destroying SSM parameter: $resource_name"
+                $AWS_CMD ssm delete-parameter --name "$resource_name" 2>/dev/null || true
+                log "Deleted SSM parameter: $resource_name"
+                ;;
             *)
                 log "Unknown resource type: $resource_type for resource: $resource_id"
                 ;;
@@ -128,6 +133,13 @@ else
     for SECRET in $SECRETS; do
         $AWS_CMD secretsmanager delete-secret --secret-id $SECRET --force-delete-without-recovery 2>/dev/null || true
         log "Deleted Secrets Manager secret: $SECRET"
+    done
+
+    # Destroy SSM Parameters (path-based, under /$NAME_PREFIX)
+    PARAMS=$($AWS_CMD ssm describe-parameters --query "Parameters[?starts_with(Name, '/$NAME_PREFIX')].Name" --output text 2>/dev/null || true)
+    for PARAM in $PARAMS; do
+        $AWS_CMD ssm delete-parameter --name "$PARAM" 2>/dev/null || true
+        log "Deleted SSM parameter: $PARAM"
     done
 fi
 
