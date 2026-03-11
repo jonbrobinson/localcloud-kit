@@ -443,8 +443,23 @@ export default function BucketViewer({
         {/* Content */}
         <div className="flex-1 overflow-hidden">
           {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="flex flex-col items-center justify-center h-full gap-4">
+              <Icon
+                icon="logos:aws-s3"
+                className="w-16 h-16 animate-pulse opacity-40"
+              />
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm text-gray-400">Loading</span>
+                <span className="flex gap-1">
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce"
+                      style={{ animationDelay: `${i * 150}ms` }}
+                    />
+                  ))}
+                </span>
+              </div>
             </div>
           ) : error ? (
             <div className="flex items-center justify-center h-full">
