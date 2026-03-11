@@ -53,6 +53,22 @@ router.delete("/lambda/functions/:functionName", async (req, res) => {
   }
 });
 
+// Get Lambda function code (unzipped file contents)
+router.get("/lambda/functions/:functionName/code", async (req, res) => {
+  try {
+    const { functionName } = req.params;
+    const { stdout, stderr } = await execAsync(
+      `/bin/sh /app/scripts/shell/get_lambda_code.sh "${functionName}"`,
+      { cwd: "/app/scripts/shell", env: awsEnv(), timeout: 15000 }
+    );
+    if (stderr) addLog("warn", `Lambda code fetch warning: ${stderr}`, "automation");
+    res.json({ success: true, data: JSON.parse(stdout) });
+  } catch (error) {
+    addLog("error", `Failed to get Lambda code: ${error.message}`, "automation");
+    res.status(500).json({ success: false, error: "Failed to get Lambda code", message: error.message });
+  }
+});
+
 // Invoke a Lambda function
 router.post("/lambda/functions/:functionName/invoke", async (req, res) => {
   try {
