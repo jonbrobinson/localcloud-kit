@@ -4,6 +4,10 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **Docker**: Add `.dockerignore` to exclude `node_modules` and build artifacts — prevents host `node_modules` from being copied into Docker builds so `npm ci` runs fresh
+- **API**: Replace Express 4 `:name(*)` route syntax with Express 5–compatible `*name` splat in SSM and S3 routes — fixes path-to-regexp v8 TypeError with parameter names containing slashes
+
 ### Added
 - **Lambda**: Lambda function management — create modal with runtime/handler selection, dedicated `/lambda` doc page with SDK examples (TypeScript, Node.js, Python, CLI), API routes (`/api/lambda/functions`), and shell script (`list_lambda_functions.sh`)
 - **API Gateway**: API Gateway management — create modal, dedicated `/apigateway` doc page with full REST API walkthrough (resources, methods, mock/Lambda integrations, stage deployment), API routes (`/api/apigateway/apis`), and shell script (`list_apis.sh`)
