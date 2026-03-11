@@ -11,7 +11,8 @@ RUN apk add --no-cache curl jq aws-cli redis python3 make g++
 COPY localcloud-api/package*.json ./
 
 # Install all dependencies (including dev dependencies for development)
-RUN npm ci
+# --loglevel=error suppresses deprecation warnings from transitive deps (e.g. prebuild-install via better-sqlite3)
+RUN npm ci --loglevel=error
 
 # Copy the rest of the application
 COPY localcloud-api/ ./
