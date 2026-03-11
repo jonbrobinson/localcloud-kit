@@ -8,12 +8,20 @@ import {
   TrashIcon,
   XMarkIcon,
   EnvelopeIcon,
+  PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 
 const MAILPIT_UI_URL = "https://mailpit.localcloudkit.com:3030";
+
+const TEST_EMAIL_DEFAULTS = {
+  from: "sender@example.com",
+  to: "test@example.com",
+  subject: "Test Email from LocalCloud Kit",
+  body: "Hello! This is a test email sent from the LocalCloud Kit dashboard.",
+};
 
 interface MailMessage {
   ID: string;
@@ -28,16 +36,9 @@ interface MailpitModalProps {
   onClose: () => void;
 }
 
-
 export default function MailpitModal({ onClose }: MailpitModalProps) {
   const { stats, refetch } = useMailpitStats();
 
-  const [form, setForm] = useState({
-    from: "sender@example.com",
-    to: "test@example.com",
-    subject: "Test Email from LocalCloud Kit",
-    body: "Hello! This is a test email sent from the LocalCloud Kit dashboard.",
-  });
   const [sending, setSending] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [messages, setMessages] = useState<MailMessage[]>([]);
@@ -53,7 +54,6 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
     return () => clearInterval(interval);
   }, [fetchMessages]);
 
-  // Close on Escape + lock body scroll
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
@@ -64,12 +64,12 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
     };
   }, [onClose]);
 
-  const handleSend = async () => {
+  const handleSendTest = async () => {
     setSending(true);
     try {
-      const result = await mailpitApi.sendTest(form);
+      const result = await mailpitApi.sendTest(TEST_EMAIL_DEFAULTS);
       if (result.success) {
-        toast.success("Email sent — check the inbox below");
+        toast.success("Test email sent");
         refetch();
         fetchMessages();
       } else {
@@ -102,16 +102,16 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center space-x-3">
-            <span className="text-2xl">📬</span>
+            <EnvelopeIcon className="h-5 w-5 text-gray-500" />
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Mailpit Inbox</h2>
-              <p className="text-xs text-gray-500">Local email testing</p>
+              <p className="text-xs text-gray-500">Local email testing · read-only preview</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -122,7 +122,7 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
               className="flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
             >
               <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 mr-1" />
-              Open Mailpit UI
+              Open Mailpit
             </a>
             <Link
               href="/mailpit"
@@ -130,7 +130,7 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
               className="flex items-center px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
             >
               <BookOpenIcon className="h-3.5 w-3.5 mr-1" />
-              Documentation
+              Docs
             </Link>
             <button
               onClick={onClose}
@@ -144,7 +144,7 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
         {/* Scrollable body */}
         <div className="overflow-y-auto flex-1 divide-y divide-gray-100">
 
-          {/* Stats bar */}
+          {/* Stats + actions bar */}
           <div className="px-6 py-4 bg-gray-50 flex items-center justify-between">
             <div className="flex items-center space-x-6">
               <div>
@@ -169,14 +169,25 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
                 </span>
               </div>
             </div>
-            <button
-              onClick={handleClear}
-              disabled={clearing || stats.total === 0}
-              className="flex items-center px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 disabled:opacity-40 transition-colors"
-            >
-              <TrashIcon className="h-4 w-4 mr-1.5" />
-              {clearing ? "Clearing…" : "Clear All"}
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleSendTest}
+                disabled={sending}
+                className="flex items-center px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 disabled:opacity-40 transition-colors"
+                title="Send a preset test email to verify SMTP is working"
+              >
+                <PaperAirplaneIcon className="h-4 w-4 mr-1.5" />
+                {sending ? "Sending…" : "Send Test"}
+              </button>
+              <button
+                onClick={handleClear}
+                disabled={clearing || stats.total === 0}
+                className="flex items-center px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 disabled:opacity-40 transition-colors"
+              >
+                <TrashIcon className="h-4 w-4 mr-1.5" />
+                {clearing ? "Clearing…" : "Clear All"}
+              </button>
+            </div>
           </div>
 
           {/* Recent Messages */}
@@ -186,9 +197,12 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
               <span className="text-xs text-gray-400">Auto-refreshes every 5s</span>
             </div>
             {messages.length === 0 ? (
-              <div className="text-center py-6 text-gray-400">
+              <div className="text-center py-8 text-gray-400">
                 <EnvelopeIcon className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                <p className="text-sm">No messages yet. Send a test email below.</p>
+                <p className="text-sm">No messages yet.</p>
+                <p className="text-xs mt-1">
+                  Use <span className="font-medium">Send Test</span> above or point your app at SMTP localhost:1025.
+                </p>
               </div>
             ) : (
               <div className="overflow-hidden rounded-lg border border-gray-200">
@@ -230,56 +244,16 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
                 </table>
               </div>
             )}
-          </div>
-
-          {/* Send Test Email */}
-          <div className="px-6 py-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Send Test Email</h3>
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">From</label>
-                <input
-                  type="email"
-                  value={form.from}
-                  onChange={(e) => setForm({ ...form, from: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">To</label>
-                <input
-                  type="email"
-                  value={form.to}
-                  onChange={(e) => setForm({ ...form, to: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-            <div className="mb-3">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
-              <input
-                type="text"
-                value={form.subject}
-                onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="mb-3">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Body</label>
-              <textarea
-                rows={3}
-                value={form.body}
-                onChange={(e) => setForm({ ...form, body: e.target.value })}
-                className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <button
-              onClick={handleSend}
-              disabled={sending}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              {sending ? "Sending…" : "Send Test Email"}
-            </button>
+            <p className="mt-3 text-xs text-gray-400 text-center">
+              For the full inbox experience, compose options, and SMTP settings —{" "}
+              <Link href="/mailpit" onClick={onClose} className="text-blue-500 hover:underline">
+                view documentation
+              </Link>{" "}
+              or{" "}
+              <a href={MAILPIT_UI_URL} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                open Mailpit UI
+              </a>.
+            </p>
           </div>
 
         </div>
