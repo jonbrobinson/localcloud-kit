@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { XMarkIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, XMarkIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { getDynamoDBTableSchema } from "@/services/api";
 
 type AttributeType = "S" | "N" | "BOOL" | "M" | "L";
@@ -147,27 +147,30 @@ function AttributeEditor({
             type="text"
             value={attr.key}
             onChange={(e) => handleFieldChange("key", e.target.value)}
-            className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+            className="w-32 px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
             placeholder="Attribute Name"
           />
         )}
-        <select
-          value={attr.type}
-          onChange={(e) => handleFieldChange("type", e.target.value)}
-          className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-        >
-          <option value="S">String</option>
-          <option value="N">Number</option>
-          <option value="BOOL">Boolean</option>
-          <option value="M">Map</option>
-          <option value="L">List</option>
-        </select>
+        <div className="relative">
+          <select
+            value={attr.type}
+            onChange={(e) => handleFieldChange("type", e.target.value)}
+            className="appearance-none pl-2.5 pr-7 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white cursor-pointer"
+          >
+            <option value="S">String</option>
+            <option value="N">Number</option>
+            <option value="BOOL">Boolean</option>
+            <option value="M">Map</option>
+            <option value="L">List</option>
+          </select>
+          <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+        </div>
         {attr.type === "S" && (
           <input
             type="text"
             value={attr.value ?? ""}
             onChange={(e) => handleFieldChange("value", e.target.value)}
-            className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+            className="w-32 px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
             placeholder="Value"
           />
         )}
@@ -177,19 +180,22 @@ function AttributeEditor({
             step="any"
             value={attr.value ?? ""}
             onChange={(e) => handleFieldChange("value", e.target.value)}
-            className="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+            className="w-32 px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
             placeholder="0"
           />
         )}
         {attr.type === "BOOL" && (
-          <select
-            value={attr.value ?? "true"}
-            onChange={(e) => handleFieldChange("value", e.target.value)}
-            className="w-24 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-          >
-            <option value="true">true</option>
-            <option value="false">false</option>
-          </select>
+          <div className="relative">
+            <select
+              value={attr.value ?? "true"}
+              onChange={(e) => handleFieldChange("value", e.target.value)}
+              className="appearance-none w-24 pl-2.5 pr-7 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white cursor-pointer"
+            >
+              <option value="true">true</option>
+              <option value="false">false</option>
+            </select>
+            <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+          </div>
         )}
         {onRemove && (
           <button

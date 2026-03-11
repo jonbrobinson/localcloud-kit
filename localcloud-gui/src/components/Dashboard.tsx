@@ -5,6 +5,7 @@ import { useServicesData } from "@/hooks/useServicesData";
 import { projectsApi, resourceApi } from "@/services/api";
 import { DynamoDBTableConfig, S3BucketConfig } from "@/types";
 import {
+  Bars3Icon,
   BookOpenIcon,
   ChevronDownIcon,
   CircleStackIcon,
@@ -15,6 +16,7 @@ import {
   ServerIcon,
   Squares2X2Icon,
   UserCircleIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Icon } from "@iconify/react";
 import { useEffect, useRef, useState } from "react";
@@ -30,7 +32,7 @@ import DynamoDBViewer from "./DynamoDBViewer";
 import LogViewer from "./LogViewer";
 import MailpitModal from "./MailpitModal";
 import RedisModal from "./RedisModal";
-import DashboardSkeleton from "./DashboardSkeleton";
+import { ResourcesPanelSkeleton, ServicesBarSkeleton } from "./DashboardSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import S3ConfigModal from "./S3ConfigModal";
 import SecretsConfigModal from "./SecretsConfigModal";
@@ -80,6 +82,9 @@ export default function Dashboard() {
     setHasNewVersion(false);
   };
 
+  // Mobile nav
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
   // Dropdowns
   const [showResourcesMenu, setShowResourcesMenu] = useState(false);
   const [showServicesMenu, setShowServicesMenu] = useState(false);
@@ -120,6 +125,7 @@ export default function Dashboard() {
     setShowDocsMenu(false);
     setShowProjectMenu(false);
     setShowProfileMenu(false);
+    setShowMobileMenu(false);
   };
 
   const handleSwitchProject = async (projectId: number) => {
@@ -264,14 +270,6 @@ export default function Dashboard() {
     return "Unknown";
   };
 
-  if (loading) {
-    return (
-      <AnimatePresence mode="wait">
-        <DashboardSkeleton key="skeleton" />
-      </AnimatePresence>
-    );
-  }
-
   if (error) {
     return (
       <AnimatePresence mode="wait">
@@ -298,14 +296,7 @@ export default function Dashboard() {
   }
 
   return (
-    <AnimatePresence mode="wait">
-    <motion.div
-      key="dashboard"
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }}
-      className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100"
-    >
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -319,8 +310,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Nav */}
-            <div className="flex items-center gap-0.5">
+            {/* Desktop Nav */}
+            <div className="hidden md:flex items-center gap-0.5">
 
               {/* Resources dropdown — AWS resources only */}
               <div className="relative" ref={resourcesMenuRef}>
@@ -387,19 +378,14 @@ export default function Dashboard() {
                 </button>
                 {showServicesMenu && (
                   <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
-                    {/* Alphabetical: Keycloak, Mailpit, PostgreSQL, Redis */}
-                    <Link
-                      href="/keycloak"
-                      onClick={() => closeAllMenus()}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Identity</p>
+                    <Link href="/keycloak" onClick={() => closeAllMenus()} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                       <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
                       Keycloak
                     </Link>
-                    <button
-                      onClick={() => { setShowMailpit(true); closeAllMenus(); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Email</p>
+                    <button onClick={() => { setShowMailpit(true); closeAllMenus(); }} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                       <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />
                       Mailpit Inbox
                       {mailpit.unread > 0 && (
@@ -408,18 +394,15 @@ export default function Dashboard() {
                         </span>
                       )}
                     </button>
-                    <Link
-                      href="/postgres"
-                      onClick={() => closeAllMenus()}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Database</p>
+                    <Link href="/postgres" onClick={() => closeAllMenus()} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                       <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />
                       PostgreSQL
                     </Link>
-                    <button
-                      onClick={() => { setShowRedis(true); closeAllMenus(); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Cache</p>
+                    <button onClick={() => { setShowRedis(true); closeAllMenus(); }} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                       <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />
                       Redis Cache
                     </button>
@@ -608,21 +591,131 @@ export default function Dashboard() {
                 )}
               </div>
             </div>
+
+            {/* Mobile hamburger */}
+            <div className="flex md:hidden items-center gap-2">
+              {hasNewVersion && (
+                <span className="h-2 w-2 rounded-full bg-red-500" />
+              )}
+              {mailpit.unread > 0 && (
+                <span className="flex items-center justify-center h-5 min-w-5 px-1 rounded-full text-xs font-bold bg-red-500 text-white">
+                  {mailpit.unread > 99 ? "99+" : mailpit.unread}
+                </span>
+              )}
+              <button
+                onClick={() => setShowMobileMenu((v) => !v)}
+                className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                aria-label="Open menu"
+              >
+                {showMobileMenu ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+              </button>
+            </div>
           </div>
+
+          {/* Mobile menu drawer */}
+          {showMobileMenu && (
+            <div className="md:hidden border-t border-gray-100 pb-3">
+
+              {/* Resources */}
+              <div className="pt-3 px-2">
+                <p className="px-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">AWS Resources</p>
+                <button onClick={() => { setShowBuckets(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />S3 Buckets
+                </button>
+                <button onClick={() => { setShowDynamoDB(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />DynamoDB Tables
+                </button>
+                <button onClick={() => { setShowSecretsConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Secrets Manager
+                </button>
+              </div>
+
+              {/* Services — categorised */}
+              <div className="pt-2 px-2 border-t border-gray-100 mt-2">
+                <p className="px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Identity</p>
+                <Link href="/keycloak" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />Keycloak
+                </Link>
+                <p className="px-2 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Email</p>
+                <button onClick={() => { setShowMailpit(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />
+                  Mailpit Inbox
+                  {mailpit.unread > 0 && (
+                    <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-xs font-bold bg-red-500 text-white">
+                      {mailpit.unread > 99 ? "99+" : mailpit.unread}
+                    </span>
+                  )}
+                </button>
+                <p className="px-2 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Database</p>
+                <Link href="/postgres" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />PostgreSQL
+                </Link>
+                <p className="px-2 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Cache</p>
+                <button onClick={() => { setShowRedis(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />Redis Cache
+                </button>
+              </div>
+
+              {/* Docs */}
+              <div className="pt-2 px-2 border-t border-gray-100 mt-2">
+                <p className="px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Docs</p>
+                <Link href="/localstack" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />LocalStack
+                </Link>
+                <Link href="/s3" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />S3 Buckets
+                </Link>
+                <Link href="/dynamodb" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />DynamoDB
+                </Link>
+                <Link href="/secrets" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Secrets Manager
+                </Link>
+                <Link href="/mailpit" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />Mailpit
+                </Link>
+                <Link href="/redis" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />Redis Cache
+                </Link>
+                <Link href="/keycloak" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />Keycloak
+                </Link>
+                <Link href="/postgres" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />PostgreSQL
+                </Link>
+              </div>
+
+              {/* Account */}
+              <div className="pt-2 px-2 border-t border-gray-100 mt-2">
+                <p className="px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Account</p>
+                <div className="px-3 py-2">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-xs font-semibold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                    {profile?.active_project_label || "Default"}
+                  </span>
+                </div>
+                <Link href="/profile" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <UserCircleIcon className="h-4 w-4 mr-3 text-gray-400" />Profile & Preferences
+                </Link>
+                <button onClick={() => { setShowLogs(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />Logs
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* Services status bar — alphabetical: Keycloak, LocalStack, Mailpit, PostgreSQL, Redis */}
+        {/* Services status bar — categorised; skeleton when loading */}
+        {loading ? (
+          <ServicesBarSkeleton />
+        ) : (
         <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center flex-wrap gap-y-2 gap-x-0">
 
           {/* Keycloak */}
-          <Link
-            href="/keycloak"
-            className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-            title="Keycloak — click to view admin info"
-          >
+          <Link href="/keycloak" className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="Keycloak">
             <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(keycloak.status)}`} />
             <span className="text-sm font-medium text-gray-700">Keycloak</span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(keycloak.status)}`}>
@@ -654,18 +747,10 @@ export default function Dashboard() {
           <div className="h-4 w-px bg-gray-200" />
 
           {/* Mailpit */}
-          <button
-            onClick={() => setShowMailpit(true)}
-            className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-            title="Open Mailpit Inbox"
-          >
-            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
-              mailpit.status === "healthy" ? "bg-green-500" : "bg-gray-400"
-            }`} />
+          <button onClick={() => setShowMailpit(true)} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="Open Mailpit Inbox">
+            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${mailpit.status === "healthy" ? "bg-green-500" : "bg-gray-400"}`} />
             <span className="text-sm font-medium text-gray-700">Mailpit</span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              mailpit.status === "healthy" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"
-            }`}>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${mailpit.status === "healthy" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
               {mailpit.status === "healthy" ? "Running" : "Unavailable"}
             </span>
             {mailpit.unread > 0 && (
@@ -678,11 +763,7 @@ export default function Dashboard() {
           <div className="h-4 w-px bg-gray-200" />
 
           {/* PostgreSQL */}
-          <Link
-            href="/postgres"
-            className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-            title="PostgreSQL — click to view connection info"
-          >
+          <Link href="/postgres" className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="PostgreSQL">
             <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(postgres.status)}`} />
             <span className="text-sm font-medium text-gray-700">PostgreSQL</span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(postgres.status)}`}>
@@ -693,11 +774,7 @@ export default function Dashboard() {
           <div className="h-4 w-px bg-gray-200" />
 
           {/* Redis */}
-          <button
-            onClick={() => setShowRedis(true)}
-            className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-            title="Open Redis Cache"
-          >
+          <button onClick={() => setShowRedis(true)} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="Open Redis Cache">
             <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(redis.status)}`} />
             <span className="text-sm font-medium text-gray-700">Redis</span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(redis.status)}`}>
@@ -706,8 +783,12 @@ export default function Dashboard() {
           </button>
 
         </div>
+        )}
 
-        {/* AWS Resource Management — always visible */}
+        {/* AWS Resource Management — skeleton when loading, real content when loaded */}
+        {loading ? (
+          <ResourcesPanelSkeleton />
+        ) : (
         <div className="mb-8">
           {localstackStatus.running ? (
             <ResourceList
@@ -752,6 +833,7 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+        )}
 
         {/* Footer */}
         <div className="mt-8 text-center">
@@ -830,7 +912,6 @@ export default function Dashboard() {
       {showRedis && (
         <RedisModal onClose={() => setShowRedis(false)} />
       )}
-    </motion.div>
-    </AnimatePresence>
+    </div>
   );
 }
