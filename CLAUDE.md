@@ -115,6 +115,62 @@ When adding a new service (e.g., MailHog):
 
 ---
 
+## Commit Message Standards (Angular Commit Lint)
+
+**ALL commits MUST follow the Angular Conventional Commits format. This is a hard requirement — never deviate from it.**
+
+### Format
+
+```
+<type>(<scope>): <subject>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Types
+
+| Type | When to use |
+|------|-------------|
+| `feat` | New feature or capability |
+| `fix` | Bug fix |
+| `docs` | Documentation only changes |
+| `style` | Formatting, whitespace — no logic change |
+| `refactor` | Code restructure with no feature or fix |
+| `perf` | Performance improvement |
+| `test` | Adding or updating tests |
+| `build` | Build system, Docker, dependencies |
+| `ci` | CI/CD configuration changes |
+| `chore` | Maintenance tasks (deps, tooling) |
+| `revert` | Reverts a previous commit |
+
+### Rules
+
+- **Subject line**: 72 characters max, lowercase, no trailing period, imperative mood ("add" not "added")
+- **Scope**: optional, lowercase, describes the area changed — e.g. `feat(s3)`, `fix(api)`, `docs(redis)`
+- **Body**: wrap at 100 characters; explain *why*, not *what*
+- **Breaking changes**: add `BREAKING CHANGE:` in the footer, or append `!` after the type: `feat(api)!:`
+- **The session URL** goes in the footer on its own line (already required by other instructions)
+
+### Examples
+
+```
+feat(mailpit): add SMTP inbox modal with unread badge
+
+fix(secrets): resolve ARN format mismatch on delete
+
+docs(redis): update container hostname to localcloud-redis
+
+build(docker): pin localstack image to 3.x for stability
+
+refactor(nav): extract shared DocPageNav component
+
+chore(deps): upgrade next.js to 15.2
+```
+
+---
+
 ## Code Conventions
 
 - **API routes** follow `/api/<resource>` pattern in `server.js`
