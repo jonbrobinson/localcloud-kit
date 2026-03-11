@@ -6,7 +6,7 @@ This file gives Claude Code the context needed to work effectively in this repos
 
 **LocalCloud Kit** is a free, local AWS development environment. It emulates AWS cloud services using LocalStack, managed through a Next.js web GUI and an Express.js API backend, all orchestrated via Docker Compose. No AWS account is required.
 
-- **Version**: 0.9.0
+- **Version**: 0.10.0
 - **License**: MIT
 - **Primary URL**: https://app-local.localcloudkit.com:3030
 
@@ -170,6 +170,13 @@ Entries go under `## [Unreleased]` at the top of the file. Use these subsections
 ### Fixed
 - **REDIS.md**: corrected Docker network hostname from `redis:6379` to `localcloud-redis:6379`
 ```
+
+---
+
+## Attribution
+
+- **Never** include `Co-Authored-By: Claude` or any Claude/Anthropic attribution in commit messages or footers
+- **Never** include the `🤖 Generated with [Claude Code](https://claude.com/claude-code)` line (or any variant) in PR descriptions, commit bodies, or any other output
 
 ---
 
