@@ -10,6 +10,7 @@ import DocPageNav from "@/components/DocPageNav";
 import { useState } from "react";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { mailpitApi } from "@/services/api";
+import ServiceStatusBadge from "@/components/ServiceStatusBadge";
 import { toast } from "react-hot-toast";
 
 const MAILPIT_UI_URL = "https://mailpit.localcloudkit.com:3030";
@@ -187,11 +188,12 @@ export default function MailpitIntegrationPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <DocPageNav title="Mailpit Inbox" subtitle="Local email testing for development">
+        <ServiceStatusBadge service="mailpit" name="Mailpit" />
         <a
           href={MAILPIT_UI_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center px-3 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 transition-colors"
+          className="flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
         >
           <InboxIcon className="h-4 w-4 mr-1.5" />
           Open Mailpit

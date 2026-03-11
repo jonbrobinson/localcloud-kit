@@ -31,6 +31,7 @@ import LogViewer from "./LogViewer";
 import MailpitModal from "./MailpitModal";
 import RedisModal from "./RedisModal";
 import DashboardSkeleton from "./DashboardSkeleton";
+import { motion, AnimatePresence } from "framer-motion";
 import S3ConfigModal from "./S3ConfigModal";
 import SecretsConfigModal from "./SecretsConfigModal";
 import SecretsManagerViewer from "./SecretsManagerViewer";
@@ -67,6 +68,17 @@ export default function Dashboard() {
 
   const [createLoading, setCreateLoading] = useState(false);
   const [destroyLoading, setDestroyLoading] = useState(false);
+
+  // "What's new" dot — shows when the stored version doesn't match the current one
+  const [hasNewVersion, setHasNewVersion] = useState(false);
+  useEffect(() => {
+    const seen = localStorage.getItem("lck_last_seen_version");
+    if (seen !== packageJson.version) setHasNewVersion(true);
+  }, []);
+  const dismissVersionDot = () => {
+    localStorage.setItem("lck_last_seen_version", packageJson.version);
+    setHasNewVersion(false);
+  };
 
   // Dropdowns
   const [showResourcesMenu, setShowResourcesMenu] = useState(false);
@@ -236,26 +248,6 @@ export default function Dashboard() {
     }
   };
 
-  if (loading) return <DashboardSkeleton />;
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 to-pink-100">
-        <div className="text-center">
-          <div className="text-red-600 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Failed to Load Data</h2>
-          <p className="text-gray-600 mb-4">{error.message}</p>
-          <button
-            onClick={loadInitialData}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const serviceStatusClass = (status: string) => {
     if (status === "running") return "bg-green-100 text-green-800";
     if (status === "stopped") return "bg-red-100 text-red-800";
@@ -272,8 +264,48 @@ export default function Dashboard() {
     return "Unknown";
   };
 
+  if (loading) {
+    return (
+      <AnimatePresence mode="wait">
+        <DashboardSkeleton key="skeleton" />
+      </AnimatePresence>
+    );
+  }
+
+  if (error) {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="error"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 to-pink-100"
+        >
+          <div className="text-center">
+            <div className="text-red-600 text-6xl mb-4">⚠️</div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Failed to Load Data</h2>
+            <p className="text-gray-600 mb-4">{error.message}</p>
+            <button
+              onClick={loadInitialData}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <AnimatePresence mode="wait">
+    <motion.div
+      key="dashboard"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }}
+      className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100"
+    >
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -288,13 +320,13 @@ export default function Dashboard() {
             </div>
 
             {/* Nav */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-0.5">
 
               {/* Resources dropdown — AWS resources only */}
               <div className="relative" ref={resourcesMenuRef}>
                 <button
-                  onClick={() => { setShowResourcesMenu((v) => !v); setShowServicesMenu(false); setShowDocsMenu(false); }}
-                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  onClick={() => { setShowResourcesMenu((v) => !v); setShowServicesMenu(false); setShowDocsMenu(false); setShowProjectMenu(false); setShowProfileMenu(false); }}
+                  className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <Squares2X2Icon className="h-4 w-4 mr-2" />
                   Resources
@@ -341,8 +373,8 @@ export default function Dashboard() {
               {/* Services dropdown — platform services */}
               <div className="relative" ref={servicesMenuRef}>
                 <button
-                  onClick={() => { setShowServicesMenu((v) => !v); setShowResourcesMenu(false); setShowDocsMenu(false); }}
-                  className="relative flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  onClick={() => { setShowServicesMenu((v) => !v); setShowResourcesMenu(false); setShowDocsMenu(false); setShowProjectMenu(false); setShowProfileMenu(false); }}
+                  className="relative flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <ServerIcon className="h-4 w-4 mr-2" />
                   Services
@@ -398,8 +430,8 @@ export default function Dashboard() {
               {/* Docs dropdown */}
               <div className="relative" ref={docsMenuRef}>
                 <button
-                  onClick={() => { setShowDocsMenu((v) => !v); setShowResourcesMenu(false); setShowServicesMenu(false); }}
-                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  onClick={() => { setShowDocsMenu((v) => !v); setShowResourcesMenu(false); setShowServicesMenu(false); setShowProjectMenu(false); setShowProfileMenu(false); }}
+                  className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <BookOpenIcon className="h-4 w-4 mr-2" />
                   Docs
@@ -485,15 +517,20 @@ export default function Dashboard() {
                 )}
               </div>
 
+              {/* Divider before project + profile */}
+              <div className="h-5 w-px bg-gray-200 mx-1.5" />
+
               {/* Project Switcher */}
               <div className="relative" ref={projectMenuRef}>
                 <button
-                  onClick={() => { setShowProjectMenu((v) => !v); setShowResourcesMenu(false); setShowServicesMenu(false); setShowDocsMenu(false); }}
-                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  onClick={() => { setShowProjectMenu((v) => !v); setShowResourcesMenu(false); setShowServicesMenu(false); setShowDocsMenu(false); setShowProfileMenu(false); }}
+                  className="flex items-center gap-1.5 px-2 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <span className="h-2 w-2 rounded-full bg-blue-500 mr-2 flex-shrink-0" />
-                  {profile?.active_project_label || "Default"}
-                  <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showProjectMenu ? "rotate-180" : ""}`} />
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-xs font-semibold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                    {profile?.active_project_label || "Default"}
+                  </span>
+                  <ChevronDownIcon className={`h-3.5 w-3.5 text-gray-400 transition-transform ${showProjectMenu ? "rotate-180" : ""}`} />
                 </button>
                 {showProjectMenu && (
                   <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
@@ -533,14 +570,23 @@ export default function Dashboard() {
               {/* Profile dropdown */}
               <div className="relative" ref={profileMenuRef}>
                 <button
-                  onClick={() => { setShowProfileMenu((v) => !v); setShowResourcesMenu(false); setShowServicesMenu(false); setShowDocsMenu(false); setShowProjectMenu(false); }}
-                  className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  onClick={() => { setShowProfileMenu((v) => !v); setShowResourcesMenu(false); setShowServicesMenu(false); setShowDocsMenu(false); setShowProjectMenu(false); dismissVersionDot(); }}
+                  className="relative p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                   title="Profile & Settings"
                 >
                   <UserCircleIcon className="h-6 w-6" />
+                  {hasNewVersion && (
+                    <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+                  )}
                 </button>
                 {showProfileMenu && (
                   <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                    {hasNewVersion && (
+                      <div className="mx-2 mb-1 px-3 py-2 bg-blue-50 rounded-md border border-blue-100">
+                        <p className="text-xs font-semibold text-blue-700">v{packageJson.version} — What&apos;s new</p>
+                        <Link href="https://github.com/localcloud-kit/localcloud-kit/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline">View changelog →</Link>
+                      </div>
+                    )}
                     <Link
                       href="/profile"
                       onClick={() => setShowProfileMenu(false)}
@@ -574,7 +620,7 @@ export default function Dashboard() {
           {/* Keycloak */}
           <Link
             href="/keycloak"
-            className="flex items-center space-x-2 hover:opacity-75 transition-opacity px-3"
+            className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
             title="Keycloak — click to view admin info"
           >
             <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(keycloak.status)}`} />
@@ -610,7 +656,7 @@ export default function Dashboard() {
           {/* Mailpit */}
           <button
             onClick={() => setShowMailpit(true)}
-            className="flex items-center space-x-2 hover:opacity-75 transition-opacity px-3"
+            className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
             title="Open Mailpit Inbox"
           >
             <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
@@ -634,7 +680,7 @@ export default function Dashboard() {
           {/* PostgreSQL */}
           <Link
             href="/postgres"
-            className="flex items-center space-x-2 hover:opacity-75 transition-opacity px-3"
+            className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
             title="PostgreSQL — click to view connection info"
           >
             <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(postgres.status)}`} />
@@ -649,7 +695,7 @@ export default function Dashboard() {
           {/* Redis */}
           <button
             onClick={() => setShowRedis(true)}
-            className="flex items-center space-x-2 hover:opacity-75 transition-opacity px-3"
+            className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
             title="Open Redis Cache"
           >
             <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(redis.status)}`} />
@@ -659,19 +705,11 @@ export default function Dashboard() {
             </span>
           </button>
 
-          {!localstackStatus.running && (
-            <>
-              <div className="h-4 w-px bg-gray-200" />
-              <span className="text-xs text-gray-500 px-3">
-                Run <code className="bg-gray-100 px-1 rounded">docker compose up -d</code> to start
-              </span>
-            </>
-          )}
         </div>
 
-        {/* AWS Resource Management */}
-        {localstackStatus.running && (
-          <div className="mb-8">
+        {/* AWS Resource Management — always visible */}
+        <div className="mb-8">
+          {localstackStatus.running ? (
             <ResourceList
               resources={resources}
               onDestroy={handleDestroyResources}
@@ -693,8 +731,27 @@ export default function Dashboard() {
               }}
               onViewSecretsManager={() => setShowSecretsManager(true)}
             />
-          </div>
-        )}
+          ) : (
+            <div className="bg-white rounded-lg shadow border border-gray-200">
+              {/* Same header structure as ResourceList */}
+              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">AWS Resources</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">LocalStack is not running</p>
+                </div>
+              </div>
+              {/* Stopped state */}
+              <div className="px-6 py-14 text-center">
+                <Icon icon="logos:aws" className="w-14 h-14 opacity-10 mx-auto mb-4" />
+                <h4 className="text-sm font-semibold text-gray-700 mb-1">LocalStack is stopped</h4>
+                <p className="text-sm text-gray-500 mb-4">Start the stack to manage your AWS resources.</p>
+                <code className="inline-block bg-gray-100 text-gray-700 text-xs font-mono px-3 py-1.5 rounded-md">
+                  docker compose up -d
+                </code>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Footer */}
         <div className="mt-8 text-center">
@@ -773,6 +830,7 @@ export default function Dashboard() {
       {showRedis && (
         <RedisModal onClose={() => setShowRedis(false)} />
       )}
-    </div>
+    </motion.div>
+    </AnimatePresence>
   );
 }

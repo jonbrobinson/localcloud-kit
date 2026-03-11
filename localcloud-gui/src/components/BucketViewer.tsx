@@ -13,11 +13,21 @@ import {
   ChevronUpIcon,
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
-import { s3Api } from "@/services/api";
+import { s3Api, resourceApi } from "@/services/api";
+import { S3BucketConfig } from "@/types";
 import FileViewerModal from "./FileViewerModal";
 import UploadFileModal from "./UploadFileModal";
+import S3ConfigModal from "./S3ConfigModal";
 import { highlightThemes, HighlightTheme } from "./highlightThemes";
 import { Icon } from "@iconify/react";
+import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "react-hot-toast";
+
+const panelVariants = {
+  hidden:  { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0,  transition: { duration: 0.25, ease: [0.4, 0, 0.2, 1] as const } },
+  exit:    { opacity: 0, y: -6, transition: { duration: 0.15, ease: [0.4, 0, 1, 1]  as const } },
+};
 
 interface BucketViewerProps {
   isOpen: boolean;
@@ -60,6 +70,29 @@ export default function BucketViewer({
     key: "name" | "size" | "modified" | "storage";
     direction: "asc" | "desc";
   } | null>(null);
+  const [showCreateBucket, setShowCreateBucket] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+
+  const handleCreateBucket = async (s3Config: S3BucketConfig) => {
+    setCreateLoading(true);
+    try {
+      const response = await resourceApi.createSingleWithConfig(projectName, "s3", { s3Config });
+      if (response.success) {
+        toast.success("S3 bucket created successfully");
+        setShowCreateBucket(false);
+        setTimeout(loadBuckets, 1000);
+      } else {
+        toast.error(response.error || "Failed to create S3 bucket");
+      }
+    } catch (error) {
+      console.error("Create S3 bucket error:", error);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const apiMessage = (error as any)?.response?.data?.error;
+      toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create S3 bucket"));
+    } finally {
+      setCreateLoading(false);
+    }
+  };
 
   const loadBuckets = useCallback(async () => {
     setLoading(true);
@@ -334,8 +367,12 @@ export default function BucketViewer({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
     >
-      <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 8, scale: 0.98 }}
+        transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] as const }}
+        className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[88vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -442,27 +479,72 @@ export default function BucketViewer({
 
         {/* Content */}
         <div className="flex-1 overflow-hidden">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center h-full gap-4">
-              <Icon
-                icon="logos:aws-s3"
-                className="w-16 h-16 animate-pulse opacity-40"
-              />
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm text-gray-400">Loading</span>
-                <span className="flex gap-1">
-                  {[0, 1, 2].map((i) => (
-                    <span
-                      key={i}
-                      className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce"
-                      style={{ animationDelay: `${i * 150}ms` }}
-                    />
-                  ))}
-                </span>
+          <AnimatePresence mode="wait">
+          {loading && !selectedBucket ? (
+            /* ── Bucket list skeleton ── */
+            <motion.div
+              key="loading-buckets"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="h-full overflow-y-auto p-6 space-y-4 animate-pulse"
+            >
+              {[1, 0.85, 0.7, 0.55].map((op, i) => (
+                <div
+                  key={i}
+                  className="border border-gray-200 rounded-lg p-4 flex items-center justify-between"
+                  style={{ opacity: op }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded bg-blue-100 flex-shrink-0" />
+                    <div className="space-y-1.5">
+                      <div className="h-4 w-44 bg-gray-200 rounded" />
+                      <div className="h-3 w-32 bg-gray-100 rounded" />
+                    </div>
+                  </div>
+                  <div className="h-3 w-24 bg-gray-100 rounded" />
+                </div>
+              ))}
+            </motion.div>
+          ) : loading && selectedBucket ? (
+            /* ── File table skeleton ── */
+            <motion.div
+              key={`loading-files-${selectedBucket}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="h-full overflow-auto animate-pulse"
+            >
+              {/* Fake table header */}
+              <div className="flex bg-gray-50 border-b border-gray-200 px-6 py-3 gap-6">
+                <div className="h-3 w-2/5 bg-gray-200 rounded" />
+                <div className="h-3 w-16 bg-gray-100 rounded" />
+                <div className="h-3 w-32 bg-gray-100 rounded" />
+                <div className="h-3 w-28 bg-gray-100 rounded" />
+                <div className="h-3 w-16 bg-gray-100 rounded ml-auto" />
               </div>
-            </div>
+              {/* Fake rows */}
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center border-b border-gray-100 px-6 py-4 gap-6"
+                  style={{ opacity: 1 - i * 0.09 }}
+                >
+                  <div className="flex items-center gap-2 w-2/5">
+                    <div className="h-5 w-5 rounded bg-gray-200 flex-shrink-0" />
+                    <div className="h-3 flex-1 bg-gray-200 rounded" />
+                  </div>
+                  <div className="h-3 w-16 bg-gray-100 rounded" />
+                  <div className="h-3 w-32 bg-gray-100 rounded" />
+                  <div className="h-3 w-20 bg-gray-100 rounded" />
+                  <div className="h-3 w-12 bg-gray-100 rounded ml-auto" />
+                </div>
+              ))}
+            </motion.div>
           ) : error ? (
-            <div className="flex items-center justify-center h-full">
+            <motion.div key="error" variants={panelVariants} initial="hidden" animate="visible" exit="exit" className="flex items-center justify-center h-full">
               <div className="text-center">
                 <p className="text-red-600 mb-4">{error}</p>
                 <button
@@ -476,10 +558,10 @@ export default function BucketViewer({
                   Retry
                 </button>
               </div>
-            </div>
+            </motion.div>
           ) : selectedBucket ? (
             /* Bucket Contents */
-            <div className="h-full overflow-auto">
+            <motion.div key={`bucket-${selectedBucket}`} variants={panelVariants} initial="hidden" animate="visible" exit="exit" className="h-full overflow-auto">
               {bucketContents.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-16 px-6">
                   <Icon icon="logos:aws-s3" className="w-20 h-20 mb-4 opacity-20" />
@@ -636,15 +718,22 @@ export default function BucketViewer({
                   </div>
                 </div>
               )}
-            </div>
+            </motion.div>
           ) : (
             /* Bucket List */
-            <div className="h-full overflow-auto">
+            <motion.div key="bucket-list" variants={panelVariants} initial="hidden" animate="visible" exit="exit" className="h-full overflow-auto">
               {buckets.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-16 px-6">
                   <Icon icon="logos:aws-s3" className="w-24 h-24 mb-4 opacity-20" />
                   <p className="text-sm font-medium text-gray-700">No S3 buckets found</p>
-                  <p className="text-xs text-gray-400 mt-1">Create a bucket from the AWS Resources panel to get started.</p>
+                  <p className="text-xs text-gray-400 mt-1 mb-5">Create your first bucket to start storing files.</p>
+                  <button
+                    onClick={() => setShowCreateBucket(true)}
+                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+                  >
+                    <PlusIcon className="h-4 w-4 mr-1.5" />
+                    Create Bucket
+                  </button>
                 </div>
               ) : (
                 <div className="p-6">
@@ -676,10 +765,11 @@ export default function BucketViewer({
                   </div>
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
     </div>
 
     {/* File Viewer Modal */}
@@ -706,6 +796,15 @@ export default function BucketViewer({
         }}
       />
     )}
+
+    {/* Create Bucket Modal */}
+    <S3ConfigModal
+      isOpen={showCreateBucket}
+      onClose={() => setShowCreateBucket(false)}
+      onSubmit={handleCreateBucket}
+      projectName={projectName}
+      loading={createLoading}
+    />
   </>
   );
 }

@@ -13,6 +13,10 @@ import {
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
+import { resourceApi } from "@/services/api";
+import { SecretsManagerConfig } from "@/types";
+import SecretsConfigModal from "./SecretsConfigModal";
 
 interface Secret {
   Name: string;
@@ -37,6 +41,7 @@ export default function SecretsManagerViewer({
   const [secrets, setSecrets] = useState<Secret[]>([]);
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedSecret, setSelectedSecret] = useState<Secret | null>(null);
@@ -273,6 +278,25 @@ export default function SecretsManagerViewer({
     }
   };
 
+  const handleCreateSecretFromConfig = async (secretsmanagerConfig: SecretsManagerConfig) => {
+    setCreateLoading(true);
+    try {
+      const response = await resourceApi.createSingleWithConfig(projectName, "secretsmanager", { secretsmanagerConfig });
+      if (response.success) {
+        toast.success("Secret created successfully");
+        setShowCreateModal(false);
+        setTimeout(loadSecrets, 800);
+      } else {
+        toast.error(response.error || "Failed to create secret");
+      }
+    } catch (error) {
+      console.error("Create secret error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to create secret");
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   const openEditModal = (secret: Secret) => {
     setSelectedSecret(secret);
     setFormData({
@@ -298,8 +322,12 @@ export default function SecretsManagerViewer({
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
-      <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 8, scale: 0.98 }}
+        transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] as const }}
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl h-[74vh] min-h-[500px] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -332,25 +360,59 @@ export default function SecretsManagerViewer({
 
         {/* Content */}
         <div className="flex-1 overflow-hidden">
+          <AnimatePresence mode="wait">
           {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="h-full overflow-y-auto p-6 space-y-4"
+            >
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="border border-gray-200 rounded-lg p-4 animate-pulse">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-2/5" />
+                      <div className="h-3 bg-gray-100 rounded w-3/5" />
+                      <div className="h-3 bg-gray-100 rounded w-1/4 mt-3" />
+                      <div className="mt-3 bg-gray-50 rounded-md p-3">
+                        <div className="h-3 bg-gray-200 rounded w-1/3 mb-2" />
+                        <div className="h-6 bg-gray-100 rounded w-full" />
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2 ml-4 mt-1">
+                      <div className="h-8 w-8 bg-gray-100 rounded" />
+                      <div className="h-8 w-8 bg-gray-100 rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
           ) : (
-            <div className="h-full overflow-y-auto p-6">
+            <motion.div
+              key="content"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] as const }}
+              className="h-full overflow-y-auto p-6"
+            >
               {secrets.length === 0 ? (
                 <div className="text-center py-12">
                   <KeyIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
                     No secrets found
                   </h3>
-                  <p className="text-gray-500 mb-4">
+                  <p className="text-gray-500 mb-5">
                     Get started by creating your first secret.
                   </p>
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors shadow-sm mx-auto"
                   >
+                    <PlusIcon className="h-4 w-4 mr-1.5" />
                     Create Secret
                   </button>
                 </div>
@@ -472,142 +534,20 @@ export default function SecretsManagerViewer({
                   ))}
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Create Secret Modal */}
-      {showCreateModal && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 p-4"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowCreateModal(false);
-          }}
-        >
-          <div
-            className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Create Secret</h3>
-                <p className="text-xs text-gray-500">Store a new secret value</p>
-              </div>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateSecret} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Secret Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.secretName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      secretName: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Secret Value *
-                </label>
-                <textarea
-                  value={formData.secretValue}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      secretValue: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                  rows={3}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <input
-                  type="text"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tags (comma-separated, format: key=value)
-                </label>
-                <input
-                  type="text"
-                  value={formData.tags}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, tags: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                  placeholder="Environment=dev, Project=myapp"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  KMS Key ID
-                </label>
-                <input
-                  type="text"
-                  value={formData.kmsKeyId}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      kmsKeyId: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Create Secret
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Create Secret Modal — uses SecretsConfigModal with SavedConfigPicker */}
+      <SecretsConfigModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreateSecretFromConfig}
+        projectName={projectName}
+        loading={createLoading}
+      />
 
       {/* Edit Secret Modal */}
       {showEditModal && selectedSecret && (
