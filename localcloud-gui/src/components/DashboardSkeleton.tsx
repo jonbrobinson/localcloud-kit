@@ -27,7 +27,7 @@ function ResourceRowSkeleton({ opacity = 1 }: { opacity?: number }) {
 }
 
 /** Service pill: real name + pulsing status badge */
-function ServicePillSkeleton({ name }: { name: string }) {
+export function ServicePillSkeleton({ name }: { name: string }) {
   return (
     <div className="flex items-center space-x-2 px-3">
       <div className="h-2.5 w-2.5 rounded-full bg-gray-300 flex-shrink-0 animate-pulse" />
@@ -37,8 +37,62 @@ function ServicePillSkeleton({ name }: { name: string }) {
   );
 }
 
-function Divider() {
-  return <div className="h-4 w-px bg-gray-200 flex-shrink-0" />;
+/** Single-row services bar skeleton — matches Dashboard flat layout */
+export function ServicesBarSkeleton() {
+  return (
+    <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center flex-wrap gap-y-2 gap-x-0">
+      <ServicePillSkeleton name="Keycloak" />
+      <div className="h-4 w-px bg-gray-200" />
+      <ServicePillSkeleton name="LocalStack" />
+      <div className="h-4 w-px bg-gray-200" />
+      <ServicePillSkeleton name="Mailpit" />
+      <div className="h-4 w-px bg-gray-200" />
+      <ServicePillSkeleton name="PostgreSQL" />
+      <div className="h-4 w-px bg-gray-200" />
+      <ServicePillSkeleton name="Redis" />
+    </div>
+  );
+}
+
+/** Resources panel skeleton */
+export function ResourcesPanelSkeleton() {
+  return (
+    <div className="mb-8 bg-white rounded-lg shadow animate-pulse">
+      <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div className="space-y-1.5">
+          <div className="h-4 w-28 bg-gray-200 rounded" />
+          <div className="h-3 w-36 bg-gray-100 rounded" />
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="h-8 w-8 bg-gray-100 rounded-md" />
+          <div className="h-8 w-20 bg-gray-200 rounded-md" />
+        </div>
+      </div>
+      <div className="px-6 py-2 bg-gray-50 border-b border-gray-200 flex items-center space-x-2">
+        <div className="h-3 w-14 bg-gray-200 rounded" />
+        <div className="h-3 w-5 bg-gray-100 rounded" />
+      </div>
+      <div className="grid items-center gap-x-4 px-6 py-2 bg-white border-b border-gray-100" style={{ gridTemplateColumns: "1.25rem 2.5rem 1fr 9rem 6rem 1.75rem" }}>
+        <div /><div />
+        <div className="h-2.5 w-16 bg-gray-100 rounded" />
+        <div className="h-2.5 w-12 bg-gray-100 rounded" />
+        <div className="h-2.5 w-12 bg-gray-100 rounded mx-auto" />
+        <div />
+      </div>
+      <ResourceRowSkeleton opacity={1} />
+      <ResourceRowSkeleton opacity={0.85} />
+      <div className="px-6 py-2 bg-gray-50 border-b border-gray-200 border-t border-t-gray-200 flex items-center space-x-2">
+        <div className="h-3 w-16 bg-gray-200 rounded" />
+        <div className="h-3 w-5 bg-gray-100 rounded" />
+      </div>
+      <ResourceRowSkeleton opacity={0.7} />
+      <div className="px-6 py-2 bg-gray-50 border-b border-gray-200 border-t border-t-gray-200 flex items-center space-x-2">
+        <div className="h-3 w-32 bg-gray-200 rounded" />
+        <div className="h-3 w-5 bg-gray-100 rounded" />
+      </div>
+      <ResourceRowSkeleton opacity={0.5} />
+    </div>
+  );
 }
 
 export default function DashboardSkeleton() {
@@ -81,65 +135,10 @@ export default function DashboardSkeleton() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* ── Services status bar ─────────────────────────── */}
-        <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center flex-wrap gap-y-2">
-          <ServicePillSkeleton name="Keycloak" />
-          <Divider />
-          <ServicePillSkeleton name="LocalStack" />
-          <Divider />
-          <ServicePillSkeleton name="Mailpit" />
-          <Divider />
-          <ServicePillSkeleton name="PostgreSQL" />
-          <Divider />
-          <ServicePillSkeleton name="Redis" />
-        </div>
+        <ServicesBarSkeleton />
 
         {/* ── AWS Resources panel ─────────────────────────── */}
-        <div className="mb-8 bg-white rounded-lg shadow animate-pulse">
-
-          {/* Panel header */}
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <div className="space-y-1.5">
-              <div className="h-4 w-28 bg-gray-200 rounded" />
-              <div className="h-3 w-36 bg-gray-100 rounded" />
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-gray-100 rounded-md" />
-              <div className="h-8 w-20 bg-gray-200 rounded-md" />
-            </div>
-          </div>
-
-          {/* Storage section */}
-          <div className="px-6 py-2 bg-gray-50 border-b border-gray-200 flex items-center space-x-2">
-            <div className="h-3 w-14 bg-gray-200 rounded" />
-            <div className="h-3 w-5 bg-gray-100 rounded" />
-          </div>
-          <div
-            className="grid items-center gap-x-4 px-6 py-2 bg-white border-b border-gray-100"
-            style={{ gridTemplateColumns: "1.25rem 2.5rem 1fr 9rem 6rem 1.75rem" }}
-          >
-            <div /><div />
-            <div className="h-2.5 w-16 bg-gray-100 rounded" />
-            <div className="h-2.5 w-12 bg-gray-100 rounded" />
-            <div className="h-2.5 w-12 bg-gray-100 rounded mx-auto" />
-            <div />
-          </div>
-          <ResourceRowSkeleton opacity={1} />
-          <ResourceRowSkeleton opacity={0.85} />
-
-          {/* Database section */}
-          <div className="px-6 py-2 bg-gray-50 border-b border-gray-200 border-t border-t-gray-200 flex items-center space-x-2">
-            <div className="h-3 w-16 bg-gray-200 rounded" />
-            <div className="h-3 w-5 bg-gray-100 rounded" />
-          </div>
-          <ResourceRowSkeleton opacity={0.7} />
-
-          {/* Security section */}
-          <div className="px-6 py-2 bg-gray-50 border-b border-gray-200 border-t border-t-gray-200 flex items-center space-x-2">
-            <div className="h-3 w-32 bg-gray-200 rounded" />
-            <div className="h-3 w-5 bg-gray-100 rounded" />
-          </div>
-          <ResourceRowSkeleton opacity={0.5} />
-        </div>
+        <ResourcesPanelSkeleton />
 
         {/* ── Footer ──────────────────────────────────────── */}
         <div className="mt-8 text-center">
