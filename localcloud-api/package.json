@@ -21,7 +21,6 @@
   "author": "LocalCloud Kit Team",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.1692.0",
     "axios": "^1.13.6",
     "better-sqlite3": "^9.4.3",
     "cors": "^2.8.5",
