@@ -2,20 +2,40 @@
 
 import { useLocalStackStatus } from "@/hooks/useLocalStackStatus";
 import StatusCard from "@/components/StatusCard";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import DocPageNav from "@/components/DocPageNav";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
+import { usePreferences } from "@/context/PreferencesContext";
+
+const PAGE_TABS = ["node", "python", "cli"] as const;
+type PageTab = (typeof PAGE_TABS)[number];
+
+// Maps PreferredLanguage → localstack tab (no typescript tab here — node is equivalent)
+const LANG_TO_TAB: Record<string, PageTab> = {
+  typescript: "node",
+  node: "node",
+  python: "python",
+  go: "node",
+  java: "node",
+  cli: "cli",
+};
 
 export default function LocalStackIntegrationPage() {
   const { status, projectConfig, loading } = useLocalStackStatus();
-  const [activeTab, setActiveTab] = useState<"node" | "python" | "cli">("node");
+  const { profile } = usePreferences();
+  const [activeTab, setActiveTab] = useState<PageTab>("node");
 
-  const tabs = [
-    { id: "node" as const, label: "Node.js" },
-    { id: "python" as const, label: "Python" },
-    { id: "cli" as const, label: "AWS CLI" },
+  useEffect(() => {
+    if (profile?.preferred_language) {
+      const mapped = LANG_TO_TAB[profile.preferred_language];
+      if (mapped) setActiveTab(mapped);
+    }
+  }, [profile?.preferred_language]);
+
+  const tabs: { id: PageTab; label: string }[] = [
+    { id: "node", label: "Node.js" },
+    { id: "python", label: "Python" },
+    { id: "cli", label: "AWS CLI" },
   ];
 
   const nodeExample = `import { S3Client } from "@aws-sdk/client-s3";
@@ -53,58 +73,34 @@ alias awslocal='aws --endpoint-url ${projectConfig.awsEndpoint}'`;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeftIcon className="h-4 w-4 mr-1.5" />
-                Dashboard
-              </Link>
-              <div className="flex items-center space-x-3">
-                <Image src="/logo.svg" alt="LocalCloud Kit" width={36} height={36} />
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">LocalStack Integration</h1>
-                  <p className="text-xs text-gray-500">
-                    Local Cloud Development Environment • v{require("../../../package.json").version}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              {!loading && (
-                <span
-                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                    status.running && status.health === "healthy"
-                      ? "bg-green-100 text-green-800"
-                      : status.running
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full mr-1.5 ${
-                      status.running && status.health === "healthy"
-                        ? "bg-green-500"
-                        : status.running
-                        ? "bg-yellow-500"
-                        : "bg-gray-400"
-                    }`}
-                  />
-                  {status.running
-                    ? status.health === "healthy"
-                      ? "Running"
-                      : "Unhealthy"
-                    : "Stopped"}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <DocPageNav title="LocalStack Integration" subtitle="Local AWS service emulation">
+        {!loading && (
+          <span
+            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+              status.running && status.health === "healthy"
+                ? "bg-green-100 text-green-800"
+                : status.running
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full mr-1.5 ${
+                status.running && status.health === "healthy"
+                  ? "bg-green-500"
+                  : status.running
+                  ? "bg-yellow-500"
+                  : "bg-gray-400"
+              }`}
+            />
+            {status.running
+              ? status.health === "healthy"
+                ? "Running"
+                : "Unhealthy"
+              : "Stopped"}
+          </span>
+        )}
+      </DocPageNav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 

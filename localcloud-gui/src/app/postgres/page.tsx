@@ -1,38 +1,26 @@
 "use client";
 
 import {
-  ArrowLeftIcon,
   ArrowTopRightOnSquareIcon,
-  ClipboardDocumentIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { toast } from "react-hot-toast";
+import { useEffect, useState } from "react";
+import DocPageNav from "@/components/DocPageNav";
+import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
+import { usePreferences } from "@/context/PreferencesContext";
 
 const PGADMIN_TRAEFIK_URL = "https://pgadmin.localcloudkit.com:3030";
 const PGADMIN_DIRECT_URL = "http://localhost:5050";
 
-function CodeBlock({ code }: { code: string }) {
-  const copy = () => {
-    navigator.clipboard.writeText(code);
-    toast.success("Copied to clipboard");
-  };
-  return (
-    <div className="relative group">
-      <pre className="bg-gray-900 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto whitespace-pre-wrap">
-        <code>{code}</code>
-      </pre>
-      <button
-        onClick={copy}
-        className="absolute top-2 right-2 p-1.5 rounded bg-gray-700 hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-        title="Copy"
-      >
-        <ClipboardDocumentIcon className="h-4 w-4 text-gray-300" />
-      </button>
-    </div>
-  );
-}
+// Maps from PreferredLanguage to Postgres tab keys
+const LANG_TO_TAB: Record<string, "nodejs" | "python" | "go" | "java"> = {
+  typescript: "nodejs",
+  node: "nodejs",
+  python: "python",
+  go: "go",
+  java: "java",
+  cli: "nodejs",
+};
 
 const frameworkExamples = {
   nodejs: `// npm install pg
@@ -142,43 +130,29 @@ const resources = [
 ];
 
 export default function PostgresPage() {
+  const { profile } = usePreferences();
   const [activeTab, setActiveTab] = useState<"nodejs" | "python" | "go" | "java">("nodejs");
+
+  useEffect(() => {
+    if (profile?.preferred_language) {
+      const mapped = LANG_TO_TAB[profile.preferred_language];
+      if (mapped) setActiveTab(mapped);
+    }
+  }, [profile?.preferred_language]);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeftIcon className="h-4 w-4 mr-1.5" />
-                Dashboard
-              </Link>
-              <div className="flex items-center space-x-3">
-                <Image src="/logo.svg" alt="LocalCloud Kit" width={36} height={36} />
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">PostgreSQL</h1>
-                  <p className="text-xs text-gray-500">Local relational database with pgAdmin GUI</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <a
-                href={PGADMIN_DIRECT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
-              >
-                <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1.5" />
-                Open pgAdmin
-              </a>
-            </div>
-          </div>
-        </div>
-      </header>
+      <DocPageNav title="PostgreSQL" subtitle="Local relational database with pgAdmin GUI">
+        <a
+          href={PGADMIN_DIRECT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+        >
+          <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1.5" />
+          Open pgAdmin
+        </a>
+      </DocPageNav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
@@ -293,7 +267,10 @@ export default function PostgresPage() {
               </button>
             ))}
           </div>
-          <CodeBlock code={frameworkExamples[activeTab]} />
+          <ThemeableCodeBlock
+            code={frameworkExamples[activeTab]}
+            language={activeTab === "nodejs" ? "node" : activeTab}
+          />
         </section>
 
         {/* Resources */}
