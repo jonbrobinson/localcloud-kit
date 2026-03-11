@@ -13,6 +13,7 @@ export interface Resource {
     | "dynamodb"
     | "lambda"
     | "apigateway"
+    | "ssm"
     | "iam"
     | "cache"
     | "secretsmanager"
@@ -71,6 +72,25 @@ export interface SecretsManagerConfig {
   description?: string;
   tags?: Record<string, string>;
   kmsKeyId?: string;
+}
+
+export interface LambdaFunctionConfig {
+  functionName: string;
+  runtime?: string;
+  handler?: string;
+  description?: string;
+}
+
+export interface APIGatewayConfig {
+  apiName: string;
+  description?: string;
+}
+
+export interface SSMParameterConfig {
+  parameterName: string;
+  parameterValue: string;
+  parameterType: "String" | "StringList" | "SecureString";
+  description?: string;
 }
 
 export interface ResourceTemplate {
@@ -132,10 +152,13 @@ export interface CreateResourceRequest {
 
 export interface CreateSingleResourceRequest {
   projectName: string;
-  resourceType: "s3" | "dynamodb" | "lambda" | "apigateway" | "secretsmanager";
+  resourceType: "s3" | "dynamodb" | "lambda" | "apigateway" | "secretsmanager" | "ssm";
   dynamodbConfig?: DynamoDBTableConfig;
   s3Config?: S3BucketConfig;
   secretsmanagerConfig?: SecretsManagerConfig;
+  lambdaConfig?: LambdaFunctionConfig;
+  apigatewayConfig?: APIGatewayConfig;
+  ssmConfig?: SSMParameterConfig;
 }
 
 export interface DestroyResourceRequest {

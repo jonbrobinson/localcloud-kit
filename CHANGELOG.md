@@ -4,6 +4,16 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Lambda**: Lambda function management — create modal with runtime/handler selection, dedicated `/lambda` doc page with SDK examples (TypeScript, Node.js, Python, CLI), API routes (`/api/lambda/functions`), and shell script (`list_lambda_functions.sh`)
+- **API Gateway**: API Gateway management — create modal, dedicated `/apigateway` doc page with full REST API walkthrough (resources, methods, mock/Lambda integrations, stage deployment), API routes (`/api/apigateway/apis`), and shell script (`list_apis.sh`)
+- **Parameter Store**: SSM Parameter Store service — create modal with String / StringList / SecureString type selection, dedicated `/ssm` doc page with SDK examples, API routes (`/api/ssm/parameters` CRUD), and shell scripts (`list_parameters.sh`, `create_parameter.sh`, `get_parameter.sh`, `delete_parameter.sh`)
+- **ResourceList**: Lambda, API Gateway, and Parameter Store entries in the `+ Add` dropdown under Compute, Networking, and Security & Identity sections
+- **Dashboard**: Resources dropdown now includes Compute (Lambda), Networking (API Gateway), and Parameter Store sections; Docs dropdown updated with Lambda, API Gateway, and Parameter Store links; mobile menu updated accordingly
+- **docs/LAMBDA.md**: Lambda integration reference — runtimes, API endpoints, SDK examples, CLI usage, troubleshooting
+- **docs/API_GATEWAY.md**: API Gateway integration reference — REST API creation, resource/method/integration setup, stage deployment, Lambda proxy
+- **docs/SSM.md**: Parameter Store integration reference — parameter types, hierarchical paths, SDK examples, best practices
+
 ## [0.11.5] - 2026-03-11
 
 ### Changed
