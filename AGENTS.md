@@ -73,6 +73,20 @@ samples/            # Sample files for S3/DynamoDB testing
 
 ---
 
+## Pre-Commit Build Check (Required)
+
+**Always run the GUI build before committing any changes to `localcloud-gui/`.**
+
+```bash
+cd localcloud-gui && npm run build
+```
+
+- The build must pass with **no type errors** before committing
+- Warnings are acceptable; errors are not — fix them before proceeding
+- If you changed only backend (`localcloud-api/`) or shell scripts, the build is not required but recommended
+
+---
+
 ## Commit Message Standards (Required)
 
 **All commits MUST use Angular Conventional Commits format.**
