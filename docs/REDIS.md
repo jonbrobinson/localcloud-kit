@@ -15,7 +15,7 @@ LocalCloud Kit includes full Redis cache support for local development and testi
 ## Quick Start
 
 1. Start all services: `docker compose up --build`
-2. Open the GUI: http://localhost:3030
+2. Open the GUI: https://app-local.localcloudkit.com:3030 (or http://localhost:3030 without TLS)
 3. Click "Redis Cache" in the dashboard or resource list
 4. Use the full-page interface to manage your cache
 
@@ -218,7 +218,7 @@ docker compose restart redis
 Make sure you're using the correct port:
 
 - **From host machine**: `localhost:6380`
-- **From other containers**: `redis:6379`
+- **From other containers**: `localcloud-redis:6379`
 
 ### Cache not persisting
 
