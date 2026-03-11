@@ -345,6 +345,64 @@ export default function LambdaDocPage() {
           )}
         </section>
 
+        {/* Uploading Function Code */}
+        <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Uploading Function Code</h2>
+          <p className="text-sm text-gray-600 leading-relaxed mb-4">
+            When you create a Lambda function from the dashboard, LocalStack provisions it with a
+            minimal placeholder zip. To run real code, upload your own deployment package using the
+            AWS CLI or any AWS SDK.
+          </p>
+
+          <h3 className="text-sm font-semibold text-gray-800 mb-2">Step 1 — Package your code</h3>
+          <ThemeableCodeBlock
+            language="bash"
+            code={`# Python example
+echo 'def lambda_handler(event, context):
+    return {"statusCode": 200, "body": "Hello!"}' > lambda_function.py
+zip function.zip lambda_function.py
+
+# Node.js example
+echo 'exports.handler = async (event) => ({ statusCode: 200, body: "Hello!" });' > index.js
+zip function.zip index.js`}
+          />
+
+          <h3 className="text-sm font-semibold text-gray-800 mt-4 mb-2">Step 2 — Upload to LocalStack</h3>
+          <ThemeableCodeBlock
+            language="bash"
+            code={`export AWS_ACCESS_KEY_ID=test
+export AWS_SECRET_ACCESS_KEY=test
+export AWS_DEFAULT_REGION=us-east-1
+
+# Replace YOUR_FUNCTION_NAME with your function name shown on the dashboard
+awslocal='aws --endpoint-url http://localhost:4566'
+
+$awslocal lambda update-function-code \\
+  --function-name YOUR_FUNCTION_NAME \\
+  --zip-file fileb://function.zip`}
+          />
+
+          <h3 className="text-sm font-semibold text-gray-800 mt-4 mb-2">Step 3 — Verify and invoke</h3>
+          <ThemeableCodeBlock
+            language="bash"
+            code={`# Check the function is updated
+$awslocal lambda get-function --function-name YOUR_FUNCTION_NAME
+
+# Invoke it
+$awslocal lambda invoke \\
+  --function-name YOUR_FUNCTION_NAME \\
+  --payload '{"key":"value"}' \\
+  response.json
+cat response.json`}
+          />
+
+          <div className="mt-4 rounded-md bg-orange-50 border border-orange-200 p-3 text-xs text-orange-800">
+            <strong>Tip:</strong> Use <code className="font-mono">update-function-code</code> (not{" "}
+            <code className="font-mono">create-function</code>) to push new code to an existing function.
+            The function ARN and configuration stay the same.
+          </div>
+        </section>
+
         {/* API Endpoints */}
         <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">LocalCloud Kit API</h2>

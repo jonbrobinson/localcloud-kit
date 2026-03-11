@@ -352,12 +352,44 @@ EOF
 }
 
 create_lambda_function() {
-  FUNCTION_NAME="${NAME_PREFIX}-lambda"
-  $AWS_CMD lambda create-function --function-name "$FUNCTION_NAME" \
-    --runtime python3.9 --role arn:aws:iam::000000000000:role/service-role/irrelevant \
-    --handler lambda_function.lambda_handler --zip-file fileb://function.zip 2>/dev/null || true
+  if [ -n "$RESOURCE_CONFIG" ]; then
+    FUNCTION_NAME=$(echo "$RESOURCE_CONFIG" | jq -r '.functionName // empty')
+    RUNTIME=$(echo "$RESOURCE_CONFIG" | jq -r '.runtime // "python3.12"')
+    HANDLER=$(echo "$RESOURCE_CONFIG" | jq -r '.handler // "lambda_function.lambda_handler"')
+    DESCRIPTION=$(echo "$RESOURCE_CONFIG" | jq -r '.description // empty')
+
+    if [ -z "$FUNCTION_NAME" ]; then
+      FUNCTION_NAME="${NAME_PREFIX}-lambda"
+    fi
+  else
+    FUNCTION_NAME="${NAME_PREFIX}-lambda"
+    RUNTIME="python3.12"
+    HANDLER="lambda_function.lambda_handler"
+    DESCRIPTION=""
+  fi
+
+  log "Creating Lambda function: $FUNCTION_NAME (runtime=$RUNTIME, handler=$HANDLER)"
+
+  # Create a minimal placeholder zip in a temp dir
+  TMPDIR_LAMBDA=$(mktemp -d)
+  echo 'def lambda_handler(event, context): return {"statusCode": 200}' > "$TMPDIR_LAMBDA/lambda_function.py"
+  (cd "$TMPDIR_LAMBDA" && zip -q function.zip lambda_function.py)
+
+  CREATE_CMD="$AWS_CMD lambda create-function \
+    --function-name \"$FUNCTION_NAME\" \
+    --runtime \"$RUNTIME\" \
+    --role arn:aws:iam::000000000000:role/service-role/irrelevant \
+    --handler \"$HANDLER\" \
+    --zip-file fileb://$TMPDIR_LAMBDA/function.zip"
+
+  if [ -n "$DESCRIPTION" ] && [ "$DESCRIPTION" != "null" ]; then
+    CREATE_CMD="$CREATE_CMD --description \"$DESCRIPTION\""
+  fi
+
+  eval $CREATE_CMD 2>/dev/null || true
+  rm -rf "$TMPDIR_LAMBDA"
   log "Created Lambda function: $FUNCTION_NAME"
-  
+
   # Return resource info as JSON
   cat <<EOF
 {
@@ -369,18 +401,36 @@ create_lambda_function() {
   "createdAt": "$NOW",
   "details": {
     "functionName": "$FUNCTION_NAME",
-    "runtime": "python3.9",
-    "handler": "lambda_function.lambda_handler"
+    "runtime": "$RUNTIME",
+    "handler": "$HANDLER"
   }
 }
 EOF
 }
 
 create_api_gateway() {
-  API_NAME="${NAME_PREFIX}-api"
-  $AWS_CMD apigateway create-rest-api --name "$API_NAME" 2>/dev/null || true
+  if [ -n "$RESOURCE_CONFIG" ]; then
+    API_NAME=$(echo "$RESOURCE_CONFIG" | jq -r '.apiName // empty')
+    DESCRIPTION=$(echo "$RESOURCE_CONFIG" | jq -r '.description // empty')
+
+    if [ -z "$API_NAME" ]; then
+      API_NAME="${NAME_PREFIX}-api"
+    fi
+  else
+    API_NAME="${NAME_PREFIX}-api"
+    DESCRIPTION=""
+  fi
+
+  log "Creating API Gateway: $API_NAME"
+
+  CREATE_CMD="$AWS_CMD apigateway create-rest-api --name \"$API_NAME\""
+  if [ -n "$DESCRIPTION" ] && [ "$DESCRIPTION" != "null" ]; then
+    CREATE_CMD="$CREATE_CMD --description \"$DESCRIPTION\""
+  fi
+
+  eval $CREATE_CMD 2>/dev/null || true
   log "Created API Gateway: $API_NAME"
-  
+
   # Return resource info as JSON
   cat <<EOF
 {
@@ -392,6 +442,7 @@ create_api_gateway() {
   "createdAt": "$NOW",
   "details": {
     "apiName": "$API_NAME",
+    "description": "$DESCRIPTION",
     "type": "REST"
   }
 }

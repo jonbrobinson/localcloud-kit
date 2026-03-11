@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Icon } from "@iconify/react";
 import { APIGatewayConfig } from "@/types";
+import { usePreferences } from "@/context/PreferencesContext";
+import { toast } from "react-hot-toast";
 
 interface APIGatewayConfigModalProps {
   isOpen: boolean;
@@ -20,8 +22,13 @@ export default function APIGatewayConfigModal({
   projectName,
   loading = false,
 }: APIGatewayConfigModalProps) {
+  const { profile, savedConfigs, saveConfig } = usePreferences();
   const [apiName, setApiName] = useState(`${projectName}-api`);
   const [description, setDescription] = useState("");
+
+  // Save config toggle
+  const [saveConfig_, setSaveConfig_] = useState(false);
+  const [configName, setConfigName] = useState("");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -38,14 +45,39 @@ export default function APIGatewayConfigModal({
     if (isOpen) {
       setApiName(`${projectName}-api`);
       setDescription("");
+      setSaveConfig_(false);
+      setConfigName("");
     }
   }, [isOpen, projectName]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const projectConfigs = savedConfigs.filter(
+    (c) => c.resource_type === "apigateway" && c.project_id === profile?.active_project_id
+  );
+
+  const loadSavedConfig = (config: APIGatewayConfig) => {
+    setApiName(config.apiName || "");
+    setDescription(config.description || "");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ apiName, description });
+    if (!apiName.trim()) return;
+    if (saveConfig_ && !configName.trim()) return;
+
+    const config: APIGatewayConfig = { apiName, description };
+
+    if (saveConfig_ && configName.trim()) {
+      try {
+        await saveConfig(configName.trim(), "apigateway", config);
+        toast.success(`Config "${configName.trim()}" saved`);
+      } catch {
+        toast.error("Failed to save config — API will still be created");
+      }
+    }
+
+    onSubmit(config);
   };
 
   return (
@@ -78,6 +110,25 @@ export default function APIGatewayConfigModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+
+          {/* Saved Configs */}
+          {projectConfigs.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-2">Saved configs</p>
+              <div className="flex flex-wrap gap-2">
+                {projectConfigs.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => loadSavedConfig(c.config as APIGatewayConfig)}
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-pink-50 text-pink-700 border border-pink-200 hover:bg-pink-100 transition-colors"
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* API Name */}
           <div>
@@ -117,6 +168,33 @@ export default function APIGatewayConfigModal({
             <code className="font-mono">http://localhost:4566</code>.
           </div>
 
+          {/* Save Config Toggle */}
+          <div className="border-t border-gray-100 pt-4">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={saveConfig_}
+                onChange={(e) => setSaveConfig_(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-pink-600 focus:ring-pink-500"
+              />
+              <span className="text-sm text-gray-700">Save as config for future use</span>
+            </label>
+            {saveConfig_ && (
+              <div className="mt-3">
+                <input
+                  type="text"
+                  value={configName}
+                  onChange={(e) => setConfigName(e.target.value)}
+                  placeholder="Config name (e.g. My REST API)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-gray-900"
+                />
+                {saveConfig_ && !configName.trim() && (
+                  <p className="text-xs text-red-500 mt-1">Config name is required</p>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Actions */}
           <div className="flex justify-end space-x-3 pt-2">
             <button
@@ -130,7 +208,7 @@ export default function APIGatewayConfigModal({
             <button
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-pink-600 rounded-md hover:bg-pink-700 disabled:opacity-50"
-              disabled={loading || !apiName.trim()}
+              disabled={loading || !apiName.trim() || (saveConfig_ && !configName.trim())}
             >
               {loading ? "Creating..." : "Create API"}
             </button>

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Icon } from "@iconify/react";
 import { LambdaFunctionConfig } from "@/types";
+import { usePreferences } from "@/context/PreferencesContext";
+import { toast } from "react-hot-toast";
 
 interface LambdaConfigModalProps {
   isOpen: boolean;
@@ -33,10 +35,15 @@ export default function LambdaConfigModal({
   projectName,
   loading = false,
 }: LambdaConfigModalProps) {
+  const { profile, savedConfigs, saveConfig } = usePreferences();
   const [functionName, setFunctionName] = useState(`${projectName}-lambda`);
   const [runtime, setRuntime] = useState("python3.12");
   const [handler, setHandler] = useState("lambda_function.lambda_handler");
   const [description, setDescription] = useState("");
+
+  // Save config toggle
+  const [saveConfig_, setSaveConfig_] = useState(false);
+  const [configName, setConfigName] = useState("");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -55,6 +62,8 @@ export default function LambdaConfigModal({
       setRuntime("python3.12");
       setHandler("lambda_function.lambda_handler");
       setDescription("");
+      setSaveConfig_(false);
+      setConfigName("");
     }
   }, [isOpen, projectName]);
 
@@ -69,9 +78,34 @@ export default function LambdaConfigModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const projectConfigs = savedConfigs.filter(
+    (c) => c.resource_type === "lambda" && c.project_id === profile?.active_project_id
+  );
+
+  const loadSavedConfig = (config: LambdaFunctionConfig) => {
+    setFunctionName(config.functionName || "");
+    setRuntime(config.runtime || "python3.12");
+    setHandler(config.handler || "lambda_function.lambda_handler");
+    setDescription(config.description || "");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ functionName, runtime, handler, description });
+    if (!functionName.trim()) return;
+    if (saveConfig_ && !configName.trim()) return;
+
+    const config: LambdaFunctionConfig = { functionName, runtime, handler, description };
+
+    if (saveConfig_ && configName.trim()) {
+      try {
+        await saveConfig(configName.trim(), "lambda", config);
+        toast.success(`Config "${configName.trim()}" saved`);
+      } catch {
+        toast.error("Failed to save config — function will still be created");
+      }
+    }
+
+    onSubmit(config);
   };
 
   return (
@@ -104,6 +138,25 @@ export default function LambdaConfigModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+
+          {/* Saved Configs */}
+          {projectConfigs.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-2">Saved configs</p>
+              <div className="flex flex-wrap gap-2">
+                {projectConfigs.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => loadSavedConfig(c.config as LambdaFunctionConfig)}
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors"
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Function Name */}
           <div>
@@ -173,7 +226,34 @@ export default function LambdaConfigModal({
 
           {/* Note */}
           <div className="rounded-md bg-orange-50 border border-orange-200 p-3 text-xs text-orange-800">
-            LocalStack creates the function with a placeholder zip. Replace the code via the AWS CLI or SDK after creation.
+            LocalStack creates the function with a placeholder zip. Upload your code via the AWS CLI or SDK after creation.
+          </div>
+
+          {/* Save Config Toggle */}
+          <div className="border-t border-gray-100 pt-4">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={saveConfig_}
+                onChange={(e) => setSaveConfig_(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+              />
+              <span className="text-sm text-gray-700">Save as config for future use</span>
+            </label>
+            {saveConfig_ && (
+              <div className="mt-3">
+                <input
+                  type="text"
+                  value={configName}
+                  onChange={(e) => setConfigName(e.target.value)}
+                  placeholder="Config name (e.g. My Python Handler)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900"
+                />
+                {saveConfig_ && !configName.trim() && (
+                  <p className="text-xs text-red-500 mt-1">Config name is required</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Actions */}
@@ -189,7 +269,7 @@ export default function LambdaConfigModal({
             <button
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 disabled:opacity-50"
-              disabled={loading || !functionName.trim()}
+              disabled={loading || !functionName.trim() || (saveConfig_ && !configName.trim())}
             >
               {loading ? "Creating..." : "Create Function"}
             </button>
