@@ -207,7 +207,7 @@ export interface SavedConfig {
   id: number;
   project_id: number;
   name: string;
-  resource_type: "s3" | "dynamodb" | "secrets";
+  resource_type: "s3" | "dynamodb" | "secrets" | "secretsmanager" | "lambda" | "apigateway" | "ssm";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: any;
   config_json: string;

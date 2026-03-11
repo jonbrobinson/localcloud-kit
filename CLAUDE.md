@@ -190,6 +190,20 @@ Entries go under `## [Unreleased]` at the top of the file. Use these subsections
 
 ---
 
+## Pre-Commit Build Check
+
+**Run the GUI build before committing any changes that touch `localcloud-gui/`.**
+
+```bash
+cd localcloud-gui && npm run build
+```
+
+- The build must pass with **no type errors** before committing — fix any errors first
+- Warnings are acceptable; type errors and compile failures are not
+- For backend-only or shell-script-only changes the build is not required, but run it when in doubt
+
+---
+
 ## Commit Message Standards (Angular Commit Lint)
 
 **ALL commits MUST follow the Angular Conventional Commits format. This is a hard requirement — never deviate from it.**
