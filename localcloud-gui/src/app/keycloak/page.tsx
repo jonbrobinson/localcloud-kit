@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import DocPageNav from "@/components/DocPageNav";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { usePreferences } from "@/context/PreferencesContext";
+import ServiceStatusBadge from "@/components/ServiceStatusBadge";
 
 const KEYCLOAK_TRAEFIK_URL = "https://keycloak.localcloudkit.com:3030";
 const KEYCLOAK_DIRECT_URL = "http://localhost:8080";
@@ -143,11 +144,12 @@ export default function KeycloakPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <DocPageNav title="Keycloak" subtitle="Local identity and access management (maps to AWS Cognito)">
+        <ServiceStatusBadge service="keycloak" name="Keycloak" />
         <a
           href={keycloakAdminUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+          className="flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
         >
           <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1.5" />
           Open Admin Console

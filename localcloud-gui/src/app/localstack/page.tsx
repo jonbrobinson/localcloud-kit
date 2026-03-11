@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import DocPageNav from "@/components/DocPageNav";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { usePreferences } from "@/context/PreferencesContext";
+import ServiceStatusBadge from "@/components/ServiceStatusBadge";
 
 const PAGE_TABS = ["node", "python", "cli"] as const;
 type PageTab = (typeof PAGE_TABS)[number];
@@ -74,32 +75,7 @@ alias awslocal='aws --endpoint-url ${projectConfig.awsEndpoint}'`;
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <DocPageNav title="LocalStack Integration" subtitle="Local AWS service emulation">
-        {!loading && (
-          <span
-            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-              status.running && status.health === "healthy"
-                ? "bg-green-100 text-green-800"
-                : status.running
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-gray-100 text-gray-600"
-            }`}
-          >
-            <span
-              className={`h-1.5 w-1.5 rounded-full mr-1.5 ${
-                status.running && status.health === "healthy"
-                  ? "bg-green-500"
-                  : status.running
-                  ? "bg-yellow-500"
-                  : "bg-gray-400"
-              }`}
-            />
-            {status.running
-              ? status.health === "healthy"
-                ? "Running"
-                : "Unhealthy"
-              : "Stopped"}
-          </span>
-        )}
+        <ServiceStatusBadge service="localstack" name="LocalStack" />
       </DocPageNav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">

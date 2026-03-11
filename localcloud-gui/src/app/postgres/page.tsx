@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import DocPageNav from "@/components/DocPageNav";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { usePreferences } from "@/context/PreferencesContext";
+import ServiceStatusBadge from "@/components/ServiceStatusBadge";
 
 const PGADMIN_TRAEFIK_URL = "https://pgadmin.localcloudkit.com:3030";
 const PGADMIN_DIRECT_URL = "http://localhost:5050";
@@ -143,11 +144,12 @@ export default function PostgresPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <DocPageNav title="PostgreSQL" subtitle="Local relational database with pgAdmin GUI">
+        <ServiceStatusBadge service="postgres" name="PostgreSQL" />
         <a
           href={PGADMIN_DIRECT_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+          className="flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
         >
           <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1.5" />
           Open pgAdmin

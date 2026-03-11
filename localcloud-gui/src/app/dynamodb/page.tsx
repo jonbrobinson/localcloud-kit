@@ -9,6 +9,7 @@ import DocPageNav from "@/components/DocPageNav";
 import { usePreferences } from "@/context/PreferencesContext";
 import { useEffect, useState } from "react";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
+import ServiceStatusBadge from "@/components/ServiceStatusBadge";
 
 const PAGE_TABS = ["typescript", "node", "python", "cli"] as const;
 type PageTab = (typeof PAGE_TABS)[number];
@@ -196,9 +197,10 @@ export default function DynamoDBDocPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <DocPageNav title="DynamoDB Tables" subtitle="Local NoSQL database via LocalStack">
+        <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
           href="/"
-          className="flex items-center px-3 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 transition-colors"
+          className="flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
         >
           <CircleStackIcon className="h-4 w-4 mr-1.5" />
           Manage Tables

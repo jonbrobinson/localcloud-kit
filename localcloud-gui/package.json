@@ -1,6 +1,6 @@
 {
   "name": "localcloud-gui",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p ${PORT:-3000}",
@@ -12,6 +12,7 @@
     "@heroicons/react": "^2.0.18",
     "@iconify/react": "^6.0.2",
     "axios": "^1.6.0",
+    "framer-motion": "^12.35.2",
     "highlight.js": "^11.9.0",
     "marked": "^12.0.1",
     "next": "15.3.4",
