@@ -90,10 +90,10 @@ Direct localhost (no TLS — always available):
 
 ### Main Dashboard
 
-The dashboard is divided into two distinct areas:
+The dashboard shows your local cloud environment at a glance:
 
-- **Services Status Bar** — health indicators for all platform services (Keycloak, LocalStack, Mailpit, PostgreSQL, Redis), listed alphabetically. Click any service to open its management panel or documentation.
-- **AWS Resources** — a categorized view of your LocalStack resources (Storage, Database, Compute, Networking, Security & Identity), with AWS service icons, add/destroy actions, and inline resource inspection.
+- **Services Status Bar** — health indicators for Keycloak, LocalStack, Mailpit, PostgreSQL, and Redis. Click any service to open its management panel or docs.
+- **AWS Resources** — categorized view (Storage, Database, Security & Identity) with add/destroy actions and inline inspection.
 
 ![Main Dashboard](docs/screenshots/01-main-dashboard.png)
 
@@ -101,39 +101,49 @@ The dashboard is divided into two distinct areas:
 
 ### S3 Storage
 
-#### S3 Bucket Configuration
+#### Create S3 Bucket
 
-Create S3 buckets with optional versioning and encryption settings.
+Create buckets with region selection, optional versioning, encryption, and save-as-config.
 
-![S3 Bucket Configuration](docs/screenshots/02-s3-bucket-configuration.png)
+![Create S3 Bucket](docs/screenshots/02-s3-bucket-configuration.png)
 
-#### S3 Bucket Management
+#### Bucket Management
 
 Browse bucket contents, upload files, and manage objects directly from the GUI.
 
-![S3 Bucket Management](docs/screenshots/03-s3-bucket-management.png)
+![Bucket Management](docs/screenshots/03-s3-bucket-management.png)
 
-#### S3 File Viewer
+#### Empty Bucket
 
-View file contents inline — raw text, syntax-highlighted code, images, and more.
+Empty buckets show an upload prompt. Use + Upload File to add your first object.
 
-![S3 File Viewer](docs/screenshots/06-s3-file-viewer-detail.png)
+![Empty Bucket](docs/screenshots/06-s3-file-viewer-detail.png)
 
 ---
 
 ### DynamoDB
 
-#### DynamoDB Table Configuration
+#### Create DynamoDB Table
 
-Create tables with custom partition keys, sort keys, billing mode, and Global Secondary Indexes.
+Configure tables with partition key, sort key, billing mode, and Global Secondary Indexes.
 
-![DynamoDB Table Configuration](docs/screenshots/05-dynamodb-table-configuration.png)
+![Create DynamoDB Table](docs/screenshots/05-dynamodb-table-configuration.png)
 
 #### DynamoDB Table Data
 
-Scan and query table items with full CRUD support directly from the dashboard.
+Scan and query items, add new entries, and manage table contents from the dashboard.
 
 ![DynamoDB Table Data](docs/screenshots/04-dynamodb-table-data.png)
+
+---
+
+### Secrets Manager
+
+#### Create Secret
+
+Add Secrets Manager secrets with name, value (plain text or JSON), optional description, and save-as-config.
+
+![Create Secret](docs/screenshots/07-create-secret.png)
 
 ## 🏗️ Project Structure
 
