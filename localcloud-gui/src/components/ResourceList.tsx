@@ -254,11 +254,15 @@ export default function ResourceList({
 
       {/* Empty state */}
       {awsResources.length === 0 ? (
-        <div className="px-6 py-12 text-center">
-          <Icon icon="logos:aws" className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <h4 className="text-sm font-medium text-gray-900 mb-1">No AWS Resources</h4>
+        <div className="px-6 py-16 text-center">
+          <div className="flex items-center justify-center space-x-4 mb-6 opacity-20">
+            <Icon icon="logos:aws-s3" className="w-12 h-12" />
+            <Icon icon="logos:aws-dynamodb" className="w-12 h-12" />
+            <Icon icon="logos:aws-secrets-manager" className="w-12 h-12" />
+          </div>
+          <h4 className="text-sm font-semibold text-gray-900 mb-1">No AWS Resources Yet</h4>
           <p className="text-sm text-gray-500">
-            Add your first resource using the button above.
+            Use the <span className="font-medium">+ Add</span> button to create your first S3 bucket, DynamoDB table, or secret.
           </p>
         </div>
       ) : (

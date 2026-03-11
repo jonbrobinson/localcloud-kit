@@ -66,12 +66,18 @@ create_s3_bucket() {
     fi
     
     log "Creating S3 bucket with configuration: $BUCKET_NAME"
-    
+
+    # Fail fast if bucket already exists
+    if $AWS_CMD s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
+      echo "ERROR: Bucket '${BUCKET_NAME}' already exists. Choose a different name." >&2
+      exit 1
+    fi
+
     # Create the bucket
     if [ "$BUCKET_REGION" != "us-east-1" ]; then
-      $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" --region "$BUCKET_REGION" --create-bucket-configuration LocationConstraint="$BUCKET_REGION" 2>/dev/null || true
+      $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" --region "$BUCKET_REGION" --create-bucket-configuration LocationConstraint="$BUCKET_REGION"
     else
-      $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" --region "$BUCKET_REGION" 2>/dev/null || true
+      $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" --region "$BUCKET_REGION"
     fi
     
     # Enable versioning if requested
@@ -110,7 +116,12 @@ EOF
   else
     # Default simple bucket creation
     BUCKET_NAME="${NAME_PREFIX}-bucket"
-    $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" 2>/dev/null || true
+    # Fail fast if bucket already exists
+    if $AWS_CMD s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
+      echo "ERROR: Bucket '${BUCKET_NAME}' already exists. Choose a different name." >&2
+      exit 1
+    fi
+    $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME"
     log "Created S3 bucket: $BUCKET_NAME"
     
     DETAILS_JSON=$(cat <<EOF
