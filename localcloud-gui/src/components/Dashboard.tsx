@@ -39,7 +39,10 @@ import SecretsConfigModal from "./SecretsConfigModal";
 import SecretsManagerViewer from "./SecretsManagerViewer";
 import LambdaConfigModal from "./LambdaConfigModal";
 import APIGatewayConfigModal from "./APIGatewayConfigModal";
+import APIGatewayConfigViewer from "./APIGatewayConfigViewer";
 import SSMConfigModal from "./SSMConfigModal";
+import SSMEditModal from "./SSMEditModal";
+import LambdaCodeModal from "./LambdaCodeModal";
 
 export default function Dashboard() {
   const {
@@ -64,6 +67,11 @@ export default function Dashboard() {
   const [showLambdaConfig, setShowLambdaConfig] = useState(false);
   const [showAPIGatewayConfig, setShowAPIGatewayConfig] = useState(false);
   const [showSSMConfig, setShowSSMConfig] = useState(false);
+  const [showSSMEdit, setShowSSMEdit] = useState(false);
+  const [editingSSMParameter, setEditingSSMParameter] = useState<string>("");
+  const [showLambdaCode, setShowLambdaCode] = useState(false);
+  const [viewingLambdaFunction, setViewingLambdaFunction] = useState<string>("");
+  const [configuringAPIGateway, setConfiguringAPIGateway] = useState<{ apiId: string; apiName: string } | null>(null);
   const [showLogs, setShowLogs] = useState(false);
   const [showBuckets, setShowBuckets] = useState(false);
   const [showDynamoDB, setShowDynamoDB] = useState(false);
@@ -297,6 +305,35 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Create SSM parameter error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to create SSM parameter");
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleSaveSSMParameter = async (ssmConfig: SSMParameterConfig) => {
+    setCreateLoading(true);
+    try {
+      const path = `/api/ssm/parameters/${ssmConfig.parameterName.split("/").filter(Boolean).map(encodeURIComponent).join("/")}`;
+      const res = await fetch(path, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          value: ssmConfig.parameterValue,
+          type: ssmConfig.parameterType,
+          description: ssmConfig.description || "",
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Parameter updated");
+        setShowSSMEdit(false);
+        setEditingSSMParameter("");
+        setTimeout(async () => { await loadInitialData(); }, 500);
+      } else {
+        toast.error(data.error || "Failed to update parameter");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update parameter");
     } finally {
       setCreateLoading(false);
     }
@@ -951,6 +988,15 @@ export default function Dashboard() {
                 setShowDynamoDB(true);
               }}
               onViewSecretsManager={() => setShowSecretsManager(true)}
+              onEditSSM={(name) => {
+                setEditingSSMParameter(name);
+                setShowSSMEdit(true);
+              }}
+              onViewLambdaCode={(name) => {
+                setViewingLambdaFunction(name);
+                setShowLambdaCode(true);
+              }}
+              onConfigureAPIGateway={(apiId, apiName) => setConfiguringAPIGateway({ apiId, apiName })}
             />
           ) : (
             <div className="bg-white rounded-lg shadow border border-gray-200">
@@ -1070,6 +1116,33 @@ export default function Dashboard() {
           onSubmit={handleCreateAPIGateway}
           projectName={projectName}
           loading={createLoading}
+        />
+      )}
+
+      {showSSMEdit && editingSSMParameter && (
+        <SSMEditModal
+          isOpen={showSSMEdit}
+          onClose={() => { setShowSSMEdit(false); setEditingSSMParameter(""); }}
+          onSave={handleSaveSSMParameter}
+          parameterName={editingSSMParameter}
+          loading={createLoading}
+        />
+      )}
+
+      {showLambdaCode && viewingLambdaFunction && (
+        <LambdaCodeModal
+          isOpen={showLambdaCode}
+          onClose={() => { setShowLambdaCode(false); setViewingLambdaFunction(""); }}
+          functionName={viewingLambdaFunction}
+        />
+      )}
+
+      {configuringAPIGateway && (
+        <APIGatewayConfigViewer
+          isOpen={!!configuringAPIGateway}
+          onClose={() => setConfiguringAPIGateway(null)}
+          apiId={configuringAPIGateway.apiId}
+          apiName={configuringAPIGateway.apiName}
         />
       )}
 
