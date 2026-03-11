@@ -330,11 +330,170 @@ docker compose restart gui
 docker compose restart api
 ```
 
+## Docker Resource Management
+
+LocalCloud Kit runs 10+ containers simultaneously. Without occasional maintenance, Docker's virtual disk fills up and causes cryptic container failures (most commonly seen as Keycloak crashing with "No space left on device").
+
+### Understanding Docker Disk Usage
+
+```bash
+docker system df
+```
+
+| TYPE | What it is |
+|---|---|
+| **Images** | Pulled/built images. Safe to prune untagged ones. |
+| **Containers** | Writable layers for running/stopped containers. |
+| **Local Volumes** | Named volumes (LocalStack data, postgres data, etc.). **Accumulate silently.** |
+| **Build Cache** | Layer cache from `docker build`. Speeds up rebuilds but can grow large. |
+
+### Why Volumes Accumulate
+
+Every `make reset`, `docker compose down -v`, or abandoned compose session can leave orphaned volumes. A volume is only deleted when explicitly pruned — Docker never auto-removes them even if no container references them.
+
+```bash
+# See all volumes (including orphaned ones)
+docker volume ls
+
+# See how much is reclaimable
+docker system df
+```
+
+### Keycloak `/tmp` — tmpfs Mount
+
+Keycloak (Quarkus / Vert.x) writes worker caches to `/tmp/vertx-cache` at startup. By default, `/tmp` inside a container is disk-backed (part of the container's writable overlay layer on the Docker host VM). When the VM disk is under pressure, this causes:
+
+```
+ERROR: Unable to create folder at path '/tmp/vertx-cache/-xxx'
+ERROR: /tmp/vertx-cache: No space left on device
+```
+
+**Fix applied in `docker-compose.yml`:**
+
+```yaml
+keycloak:
+  tmpfs:
+    - /tmp
+```
+
+This mounts `/tmp` in RAM (tmpfs) instead of disk. It is:
+- **Faster** — RAM I/O vs. overlay disk
+- **Safe** — `/tmp` is always ephemeral; nothing in `/tmp` should survive a restart
+- **Disk-neutral** — does not consume the Docker VM disk quota
+
+### Routine Maintenance Commands
+
+Run these periodically (monthly, or when Docker feels slow / containers crash unexpectedly):
+
+```bash
+# 1. Remove stopped containers + dangling images + danielle build cache
+#    Does NOT remove volumes — safe to run anytime
+docker system prune -f
+
+# 2. Remove unused volumes (check first what will be deleted)
+docker volume ls --filter dangling=true
+docker volume prune -f            # frees the most space
+
+# 3. Remove unused images (untagged + not referenced by any container)
+docker image prune -a -f          # aggressive: removes all unused images
+
+# 4. Nuclear option — removes everything except running container data
+docker system prune -af --volumes
+# ⚠️  This deletes ALL volumes including LocalStack data. Run make reset first.
+```
+
+### Recommendations
+
+**1. Increase Docker Desktop disk size (if you hit limits)**
+
+Docker Desktop → Settings → Resources → Virtual disk limit
+Default is 64 GB. Increase to 128 GB+ if you work across multiple projects.
+
+**2. Monitor live resource usage**
+
+```bash
+docker stats                     # live CPU/mem per container
+docker stats --no-stream         # one-shot snapshot
+```
+
+**3. Set memory limits on heavy containers**
+
+LocalStack and Keycloak are the heaviest. You can cap them in `docker-compose.yml`:
+
+```yaml
+localstack:
+  deploy:
+    resources:
+      limits:
+        memory: 1g
+```
+
+**4. Check what's eating disk before pruning**
+
+```bash
+docker system df -v              # verbose: per-image and per-volume breakdown
+docker volume inspect <name>    # see where a specific volume's data lives on disk
+```
+
+**5. Add a cleanup alias to your shell**
+
+```bash
+# Add to ~/.zshrc or ~/.bashrc
+alias docker-clean='docker system prune -f && docker volume prune -f'
+```
+
+---
+
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Code Changes Not Appearing After `git pull`**
+1. **Keycloak Keeps Restarting / Crashing on Startup**
+
+   **Symptom:** `localcloud-keycloak` shows `Restarting (1)` in `docker ps`. Logs show:
+   ```
+   ERROR: Unable to create folder at path '/tmp/vertx-cache/-xxx'
+   ERROR: /tmp/vertx-cache: No space left on device
+   ```
+
+   **Cause:** Docker's virtual disk (on macOS, the Docker Desktop VM) is full. Keycloak writes startup caches to `/tmp` which is disk-backed by default.
+
+   **Fix:**
+   ```bash
+   # 1. Free up Docker disk space
+   docker volume prune -f            # removes unused volumes (often 10–30 GB)
+   docker system prune -f            # removes dangling images + stopped containers
+
+   # 2. Verify the tmpfs mount is in docker-compose.yml
+   grep -A2 "tmpfs" docker-compose.yml
+   # Expected output:
+   #     tmpfs:
+   #       - /tmp
+
+   # 3. Restart
+   make restart
+   ```
+
+   If the error persists, increase Docker Desktop's disk limit:
+   **Docker Desktop → Settings → Resources → Virtual disk limit** (increase to 128 GB+).
+
+2. **"Uncaught SyntaxError: Invalid or unexpected token" in Browser Console**
+
+   **Symptom:** Browser console shows a SyntaxError on a script file after running `make restart`.
+
+   **Cause:** The browser has cached stale JS chunk filenames from the previous build. After a new build, those chunk URLs no longer exist and the server returns an HTML 404 page, which the browser tries to parse as JavaScript.
+
+   **Fix:**
+   ```bash
+   # Hard refresh — clears cached JS chunks
+   Cmd + Shift + R    # macOS
+   Ctrl + Shift + R   # Windows/Linux
+   ```
+
+   For a persistent fix, clear site data:
+   **DevTools → Application → Storage → Clear site data → Reload**
+
+3. **Code Changes Not Appearing After `git pull`**
 
    `make start` rebuilds images but does **not** stop and recreate already-running containers. Use `make restart` instead:
 
@@ -430,6 +589,67 @@ curl http://localhost:4566/_localstack/health
 
 # Check Redis
 redis-cli -h localhost -p 6380 ping
+```
+
+### Diagnosing a Crashing Container
+
+When a container is in a restart loop (`Restarting (1)` in `docker ps`):
+
+```bash
+# 1. Identify the crashing container
+docker ps -a
+
+# 2. Read its last crash logs
+docker logs <container-name> --tail=50
+
+# 3. Check its exit code (non-zero = crashed)
+docker inspect <container-name> | grep -A5 '"State"'
+
+# 4. Common exit codes
+#    Exit 1  — application error (check logs for ERROR lines)
+#    Exit 137 — OOM killed (container ran out of memory)
+#    Exit 139 — segfault
+
+# 5. Enter the container for live debugging (if it stays up long enough)
+docker exec -it <container-name> sh
+
+# 6. Check disk pressure on the Docker VM
+docker system df
+docker volume prune -f    # if volumes are consuming most space
+```
+
+### Service-Specific Debug Commands
+
+```bash
+# --- LocalStack ---
+# Check which AWS services are healthy
+curl http://localhost:4566/_localstack/health | jq .
+
+# List all S3 buckets
+aws --endpoint-url=http://localhost:4566 --region=us-east-1 s3 ls
+
+# List all DynamoDB tables
+aws --endpoint-url=http://localhost:4566 --region=us-east-1 dynamodb list-tables
+
+# --- Keycloak ---
+# Check if Keycloak HTTP is up (bypassing Traefik)
+curl -s http://localhost:8080/health/ready | jq .
+
+# Get an admin token directly
+curl -s -X POST http://localhost:8080/realms/master/protocol/openid-connect/token \
+  -d "client_id=admin-cli&grant_type=password&username=admin&password=admin" | jq .access_token
+
+# --- PostgreSQL ---
+# Connect directly
+psql -h localhost -p 5432 -U postgres
+
+# --- Redis ---
+redis-cli -h localhost -p 6380 ping
+redis-cli -h localhost -p 6380 info memory
+
+# --- Mailpit ---
+# Check API
+curl -s http://localhost:8025/api/v1/messages | jq .total
 ```
 
 ### Service Status
