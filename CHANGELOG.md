@@ -4,6 +4,15 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-03-11
+
+### Changed
+- **Makefile**: `make start-legacy` now pins LocalStack to `4.14` (previously `4.12`)
+- **README**: Updated last-tested LocalStack version to `4.14.0` and all legacy pinned version references
+
+### Fixed
+- **Keycloak page**: Duplicate React key warning — resources table now uses `name` as key instead of `url` (two entries shared the same admin URL)
+
 ## [0.10.0] - 2026-03-10
 
 ### Added
