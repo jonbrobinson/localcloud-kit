@@ -25,7 +25,7 @@ router.get("/s3/bucket/:bucketName/object/*path", async (req, res) => {
   try {
     const { projectName } = req.query;
     const { bucketName } = req.params;
-    const objectKey = req.params.path;
+    const objectKey = Array.isArray(req.params.path) ? req.params.path.join("/") : (req.params.path || "");
 
     if (!projectName || !bucketName || !objectKey) {
       return res.status(400).json({
@@ -154,7 +154,7 @@ router.delete("/s3/bucket/:bucketName/object/*path", async (req, res) => {
   try {
     const { projectName } = req.query;
     const { bucketName } = req.params;
-    const objectKey = req.params.path;
+    const objectKey = Array.isArray(req.params.path) ? req.params.path.join("/") : (req.params.path || "");
 
     if (!projectName || !bucketName || !objectKey) {
       return res.status(400).json({
