@@ -4,6 +4,18 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.11.2] - 2026-03-11
+
+### Added
+- **AGENTS.md**: AI coding agent context file — build commands, conventions, commit standards, architecture
+
+### Changed
+- **docs/screenshots/01-main-dashboard.png**: Main dashboard screenshot now shows Create Secret modal
+- **README**: Removed Create Secret section from screenshots
+
+### Removed
+- **docs/screenshots/07-create-secret.png**: Removed; Create Secret flow no longer has dedicated screenshot section
+
 ## [0.11.1] - 2026-03-11
 
 ### Added
