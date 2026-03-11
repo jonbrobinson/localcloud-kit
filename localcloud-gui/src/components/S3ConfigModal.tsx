@@ -285,7 +285,7 @@ export default function S3ConfigModal({
             <button
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-              disabled={loading}
+              disabled={loading || (saveConfig_ && !configName.trim())}
             >
               {loading ? "Creating..." : "Create Bucket"}
             </button>
