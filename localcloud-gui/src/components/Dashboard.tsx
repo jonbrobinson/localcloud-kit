@@ -190,7 +190,9 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Create S3 bucket error:", error);
-      toast.error(`Failed to create S3 bucket: ${error instanceof Error ? error.message : "Unknown error"}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const apiMessage = (error as any)?.response?.data?.error;
+      toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create S3 bucket"));
     } finally {
       setCreateLoading(false);
     }

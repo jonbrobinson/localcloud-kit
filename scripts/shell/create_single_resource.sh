@@ -73,11 +73,11 @@ create_s3_bucket() {
       exit 1
     fi
 
-    # Create the bucket
+    # Create the bucket (redirect AWS CLI output to stderr to keep stdout clean for JSON response)
     if [ "$BUCKET_REGION" != "us-east-1" ]; then
-      $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" --region "$BUCKET_REGION" --create-bucket-configuration LocationConstraint="$BUCKET_REGION"
+      $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" --region "$BUCKET_REGION" --create-bucket-configuration LocationConstraint="$BUCKET_REGION" >/dev/null
     else
-      $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" --region "$BUCKET_REGION"
+      $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" --region "$BUCKET_REGION" >/dev/null
     fi
     
     # Enable versioning if requested
@@ -121,7 +121,7 @@ EOF
       echo "ERROR: Bucket '${BUCKET_NAME}' already exists. Choose a different name." >&2
       exit 1
     fi
-    $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME"
+    $AWS_CMD s3api create-bucket --bucket "$BUCKET_NAME" >/dev/null
     log "Created S3 bucket: $BUCKET_NAME"
     
     DETAILS_JSON=$(cat <<EOF
