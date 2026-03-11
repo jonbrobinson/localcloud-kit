@@ -311,7 +311,7 @@ export default function MailpitIntegrationPage() {
           )}
           {activeFrameworkTab === "django" && (
             <div>
-              <p className="text-sm text-gray-500 mb-2">Configure <code className="bg-gray-100 px-1 rounded">settings.py</code> and use Django's built-in <code className="bg-gray-100 px-1 rounded">send_mail</code>.</p>
+              <p className="text-sm text-gray-500 mb-2">Configure <code className="bg-gray-100 px-1 rounded">settings.py</code> and use Django&apos;s built-in <code className="bg-gray-100 px-1 rounded">send_mail</code>.</p>
               <ThemeableCodeBlock code={frameworkExamples.django} language="django" />
             </div>
           )}

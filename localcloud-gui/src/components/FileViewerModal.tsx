@@ -328,7 +328,7 @@ export default function FileViewerModal({
   let jsonParseError: string | null = null;
   let prettyJson = "";
   if (viewerType === "json" && fileContent) {
-    let jsonString = fileContent.content.trim();
+    const jsonString = fileContent.content.trim();
     try {
       prettyJson = JSON.stringify(JSON.parse(jsonString), null, 2);
     } catch (e: any) {
