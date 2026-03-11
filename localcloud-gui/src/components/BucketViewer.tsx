@@ -637,7 +637,7 @@ export default function BucketViewer({
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {getSortedContents().map((item, index) => (
-                          <tr key={index} className="hover:bg-gray-50">
+                          <tr key={item.Key ?? `obj-${index}`} className="hover:bg-gray-50">
                             <td className="px-6 py-4">
                               <div className="flex items-center">
                                 {isFolder(item.Key || "") ? (
@@ -740,7 +740,7 @@ export default function BucketViewer({
                   <div className="grid gap-4">
                     {buckets.map((bucket, index) => (
                       <div
-                        key={index}
+                        key={bucket.Name ?? `bucket-${index}`}
                         className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
                         onClick={() => loadBucketContents(bucket.Name || "")}
                       >
