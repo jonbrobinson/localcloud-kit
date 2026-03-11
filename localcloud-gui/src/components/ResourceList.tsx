@@ -6,6 +6,9 @@ import { Icon } from "@iconify/react";
 import {
   TrashIcon,
   EyeIcon,
+  PencilSquareIcon,
+  CodeBracketIcon,
+  Cog6ToothIcon,
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
@@ -24,6 +27,9 @@ interface ResourceListProps {
   onViewS3?: (bucketName: string) => void;
   onViewDynamoDB?: (tableName: string) => void;
   onViewSecretsManager?: () => void;
+  onEditSSM?: (parameterName: string) => void;
+  onViewLambdaCode?: (functionName: string) => void;
+  onConfigureAPIGateway?: (apiId: string, apiName: string) => void;
   onRefresh?: () => void;
   onAddS3?: () => void;
   onAddDynamoDB?: () => void;
@@ -74,6 +80,9 @@ export default function ResourceList({
   onViewS3,
   onViewDynamoDB,
   onViewSecretsManager,
+  onEditSSM,
+  onViewLambdaCode,
+  onConfigureAPIGateway,
   onRefresh,
   onAddS3,
   onAddDynamoDB,
@@ -167,6 +176,8 @@ export default function ResourceList({
       setSelectedResources(awsResources.map((r) => r.id));
     }
   };
+
+  const getApiId = (r: Resource) => r.details?.apiId || r.id.replace(/^apigateway-/, "");
 
   const hasAddActions = onAddS3 || onAddDynamoDB || onAddSecrets || onAddLambda || onAddAPIGateway || onAddSSM;
 
@@ -423,6 +434,36 @@ export default function ResourceList({
                                 >
                                   <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                                   Open
+                                </button>
+                              )}
+                              {resource.type === "ssm" && onEditSSM && (
+                                <button
+                                  onClick={() => onEditSSM(resource.name)}
+                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                                  title="Edit parameter"
+                                >
+                                  <PencilSquareIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  Edit
+                                </button>
+                              )}
+                              {resource.type === "lambda" && onViewLambdaCode && (
+                                <button
+                                  onClick={() => onViewLambdaCode(resource.name)}
+                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                                  title="View code"
+                                >
+                                  <CodeBracketIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  Code
+                                </button>
+                              )}
+                              {resource.type === "apigateway" && onConfigureAPIGateway && (
+                                <button
+                                  onClick={() => onConfigureAPIGateway(getApiId(resource), resource.name)}
+                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                                  title="Configure API"
+                                >
+                                  <Cog6ToothIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  Config
                                 </button>
                               )}
                             </>

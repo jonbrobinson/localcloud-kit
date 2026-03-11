@@ -4,6 +4,12 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Parameter Store**: Edit action — SSMEditModal to view/edit parameter value, type, description
+- **Lambda**: Code action — LambdaCodeModal to unzip and view deployment package contents with syntax highlighting
+- **API Gateway**: Config action — APIGatewayConfigViewer to add path, method (MOCK), deploy to stage
+- **GUI**: Next.js rewrites to proxy /api to backend when running standalone dev (fixes 404/Network Error)
+
 ### Fixed
 - **API Gateway create**: Pass config to create_single_resource.sh; capture API ID from create-rest-api output for correct destroy; escape JSON config for shell
 - **SSM create**: Add ssmConfig handling in resources.js createSingleResource (was missing)
