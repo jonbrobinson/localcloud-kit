@@ -21,11 +21,11 @@ router.get("/s3/bucket/:bucketName/contents", async (req, res) => {
   res.json({ success: true, data: contents });
 });
 
-router.get("/s3/bucket/:bucketName/object/*", async (req, res) => {
+router.get("/s3/bucket/:bucketName/object/*path", async (req, res) => {
   try {
     const { projectName } = req.query;
     const { bucketName } = req.params;
-    const objectKey = req.params[0];
+    const objectKey = req.params.path;
 
     if (!projectName || !bucketName || !objectKey) {
       return res.status(400).json({
@@ -150,11 +150,11 @@ router.post("/s3/bucket/:bucketName/upload", async (req, res) => {
   }
 });
 
-router.delete("/s3/bucket/:bucketName/object/*", async (req, res) => {
+router.delete("/s3/bucket/:bucketName/object/*path", async (req, res) => {
   try {
     const { projectName } = req.query;
     const { bucketName } = req.params;
-    const objectKey = req.params[0];
+    const objectKey = req.params.path;
 
     if (!projectName || !bucketName || !objectKey) {
       return res.status(400).json({
