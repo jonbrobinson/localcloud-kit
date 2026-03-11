@@ -87,28 +87,36 @@ export async function createResources(request) {
   }
 }
 
+function escapeConfigForShell(jsonStr) {
+  return jsonStr.replace(/'/g, "'\"'\"'");
+}
+
 export async function createSingleResource(projectName, resourceType, config = {}) {
   try {
     let command = `./create_single_resource.sh ${projectName} ${resourceType}`;
 
     if (resourceType === "dynamodb" && config.dynamodbConfig) {
-      command += ` --config '${JSON.stringify(config.dynamodbConfig)}'`;
+      command += ` --config '${escapeConfigForShell(JSON.stringify(config.dynamodbConfig))}'`;
     }
 
     if (resourceType === "s3" && config.s3Config) {
-      command += ` --config '${JSON.stringify(config.s3Config)}'`;
+      command += ` --config '${escapeConfigForShell(JSON.stringify(config.s3Config))}'`;
     }
 
     if (resourceType === "secretsmanager" && config.secretsmanagerConfig) {
-      command += ` --config '${JSON.stringify(config.secretsmanagerConfig)}'`;
+      command += ` --config '${escapeConfigForShell(JSON.stringify(config.secretsmanagerConfig))}'`;
     }
 
     if (resourceType === "lambda" && config.lambdaConfig) {
-      command += ` --config '${JSON.stringify(config.lambdaConfig)}'`;
+      command += ` --config '${escapeConfigForShell(JSON.stringify(config.lambdaConfig))}'`;
     }
 
     if (resourceType === "apigateway" && config.apigatewayConfig) {
-      command += ` --config '${JSON.stringify(config.apigatewayConfig)}'`;
+      command += ` --config '${escapeConfigForShell(JSON.stringify(config.apigatewayConfig))}'`;
+    }
+
+    if (resourceType === "ssm" && config.ssmConfig) {
+      command += ` --config '${escapeConfigForShell(JSON.stringify(config.ssmConfig))}'`;
     }
 
     console.log("[DEBUG] Running command:", command);

@@ -137,6 +137,20 @@ list_secrets_manager_secrets() {
   done
 }
 
+list_ssm_parameters() {
+  params=$($AWS_CMD ssm describe-parameters --query "Parameters[].{Name:Name,Type:Type,LastModifiedDate:LastModifiedDate}" --output json 2>/dev/null) || params="[]"
+  echo "$params" | jq -c '.[]' | while read row; do
+    name=$(echo "$row" | jq -r .Name)
+    param_type=$(echo "$row" | jq -r '.Type // "String"')
+    lastModified=$(echo "$row" | jq -r '.LastModifiedDate // ""')
+    if [ "$SHOW_ALL" = true ] || [ -z "$NAME_PREFIX" ] || case "$name" in "/${NAME_PREFIX}"*) true ;; *) false ;; esac; then
+      id="ssm-$name"
+      obj=$(jq -nc --arg id "$id" --arg name "$name" --arg type ssm --arg status active --arg project "$PROJECT_NAME" --arg createdAt "$lastModified" --arg paramType "$param_type" '{id:$id,name:$name,type:$type,status:$status,project:$project,createdAt:$createdAt,details:{parameterType:$paramType}}')
+      tmp_add_resource "$obj"
+    fi
+  done
+}
+
 main() {
   command -v aws >/dev/null 2>&1 || { echo "AWS CLI is not installed. Please install it first." >&2; exit 1; }
   command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Please install it first." >&2; exit 1; }
@@ -151,6 +165,7 @@ main() {
   list_iam_roles
   list_api_gateways
   list_secrets_manager_secrets
+  list_ssm_parameters
   # Output JSON array
   if [ -s "$TMPFILE" ]; then
     printf '[%s]\n' "$(paste -sd, "$TMPFILE")"
