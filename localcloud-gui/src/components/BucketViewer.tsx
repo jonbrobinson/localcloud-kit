@@ -17,6 +17,7 @@ import { s3Api } from "@/services/api";
 import FileViewerModal from "./FileViewerModal";
 import UploadFileModal from "./UploadFileModal";
 import { highlightThemes, HighlightTheme } from "./highlightThemes";
+import { Icon } from "@iconify/react";
 
 interface BucketViewerProps {
   isOpen: boolean;
@@ -465,8 +466,10 @@ export default function BucketViewer({
             /* Bucket Contents */
             <div className="h-full overflow-auto">
               {bucketContents.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-gray-500">
-                  <p>This bucket is empty</p>
+                <div className="flex flex-col items-center justify-center h-full text-center py-16 px-6">
+                  <Icon icon="logos:aws-s3" className="w-20 h-20 mb-4 opacity-20" />
+                  <p className="text-sm font-medium text-gray-700">This bucket is empty</p>
+                  <p className="text-xs text-gray-400 mt-1">Upload a file using the button above to get started.</p>
                 </div>
               ) : (
                 <div className="p-6">
@@ -623,8 +626,10 @@ export default function BucketViewer({
             /* Bucket List */
             <div className="h-full overflow-auto">
               {buckets.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-gray-500">
-                  <p>No S3 buckets found for this project</p>
+                <div className="flex flex-col items-center justify-center h-full text-center py-16 px-6">
+                  <Icon icon="logos:aws-s3" className="w-24 h-24 mb-4 opacity-20" />
+                  <p className="text-sm font-medium text-gray-700">No S3 buckets found</p>
+                  <p className="text-xs text-gray-400 mt-1">Create a bucket from the AWS Resources panel to get started.</p>
                 </div>
               ) : (
                 <div className="p-6">

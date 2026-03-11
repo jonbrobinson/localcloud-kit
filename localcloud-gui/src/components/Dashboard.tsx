@@ -74,10 +74,12 @@ export default function Dashboard() {
   const [showServicesMenu, setShowServicesMenu] = useState(false);
   const [showDocsMenu, setShowDocsMenu] = useState(false);
   const [showProjectMenu, setShowProjectMenu] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const resourcesMenuRef = useRef<HTMLDivElement>(null);
   const servicesMenuRef = useRef<HTMLDivElement>(null);
   const docsMenuRef = useRef<HTMLDivElement>(null);
   const projectMenuRef = useRef<HTMLDivElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -93,6 +95,9 @@ export default function Dashboard() {
       if (projectMenuRef.current && !projectMenuRef.current.contains(e.target as Node)) {
         setShowProjectMenu(false);
       }
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -103,6 +108,7 @@ export default function Dashboard() {
     setShowServicesMenu(false);
     setShowDocsMenu(false);
     setShowProjectMenu(false);
+    setShowProfileMenu(false);
   };
 
   const handleSwitchProject = async (projectId: number) => {
@@ -326,15 +332,6 @@ export default function Dashboard() {
                       IAM <span className="ml-auto text-xs">coming soon</span>
                     </span>
 
-                    {/* Logs */}
-                    <div className="border-t border-gray-100 mt-1" />
-                    <button
-                      onClick={() => { setShowLogs(true); closeAllMenus(); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Logs
-                    </button>
                   </div>
                 )}
               </div>
@@ -343,11 +340,16 @@ export default function Dashboard() {
               <div className="relative" ref={servicesMenuRef}>
                 <button
                   onClick={() => { setShowServicesMenu((v) => !v); setShowResourcesMenu(false); setShowDocsMenu(false); }}
-                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  className="relative flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   <ServerIcon className="h-4 w-4 mr-2" />
                   Services
                   <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showServicesMenu ? "rotate-180" : ""}`} />
+                  {mailpit.unread > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-xs font-bold bg-red-500 text-white leading-none">
+                      {mailpit.unread > 99 ? "99+" : mailpit.unread}
+                    </span>
+                  )}
                 </button>
                 {showServicesMenu && (
                   <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
@@ -365,7 +367,12 @@ export default function Dashboard() {
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Mailpit
+                      Mailpit Inbox
+                      {mailpit.unread > 0 && (
+                        <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-xs font-bold bg-red-500 text-white leading-none">
+                          {mailpit.unread > 99 ? "99+" : mailpit.unread}
+                        </span>
+                      )}
                     </button>
                     <Link
                       href="/postgres"
@@ -521,14 +528,37 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* Profile icon */}
-              <Link
-                href="/profile"
-                className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                title="Profile & Preferences"
-              >
-                <UserCircleIcon className="h-6 w-6" />
-              </Link>
+              {/* Profile dropdown */}
+              <div className="relative" ref={profileMenuRef}>
+                <button
+                  onClick={() => { setShowProfileMenu((v) => !v); setShowResourcesMenu(false); setShowServicesMenu(false); setShowDocsMenu(false); setShowProjectMenu(false); }}
+                  className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  title="Profile & Settings"
+                >
+                  <UserCircleIcon className="h-6 w-6" />
+                </button>
+                {showProfileMenu && (
+                  <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                    <Link
+                      href="/profile"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <UserCircleIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Profile & Preferences
+                    </Link>
+                    <div className="border-t border-gray-100 my-1" />
+                    <p className="px-4 pt-1 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Dev Tools</p>
+                    <button
+                      onClick={() => { setShowLogs(true); setShowProfileMenu(false); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Logs
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
