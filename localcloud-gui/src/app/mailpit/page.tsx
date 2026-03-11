@@ -186,7 +186,7 @@ export default function MailpitIntegrationPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="Mailpit Integration" subtitle="Local email testing for development">
+      <DocPageNav title="Mailpit Inbox" subtitle="Local email testing for development">
         <a
           href={MAILPIT_UI_URL}
           target="_blank"

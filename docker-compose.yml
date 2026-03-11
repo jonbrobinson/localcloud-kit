@@ -155,6 +155,8 @@ services:
       - KC_HOSTNAME_STRICT=false
       - KC_HOSTNAME_STRICT_HTTPS=false
     command: start-dev
+    tmpfs:
+      - /tmp
     networks:
       - localstack-network
     restart: unless-stopped
