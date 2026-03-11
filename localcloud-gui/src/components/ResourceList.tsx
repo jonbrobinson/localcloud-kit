@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { Resource } from "@/types";
+import { Icon } from "@iconify/react";
 import {
   TrashIcon,
   EyeIcon,
@@ -23,9 +23,7 @@ interface ResourceListProps {
   loading?: boolean;
   onViewS3?: (bucketName: string) => void;
   onViewDynamoDB?: (tableName: string) => void;
-  onViewCache?: () => void;
   onViewSecretsManager?: () => void;
-  onViewMailpit?: () => void;
   onRefresh?: () => void;
   onAddS3?: () => void;
   onAddDynamoDB?: () => void;
@@ -34,8 +32,34 @@ interface ResourceListProps {
   addLoading?: boolean;
 }
 
-// Resource types that are services (not AWS resources) — not selectable/destroyable
-const SERVICE_TYPES = ["cache", "mailpit", "postgres", "keycloak"];
+// AWS resource types only — platform services are excluded
+const AWS_RESOURCE_TYPES = ["s3", "dynamodb", "lambda", "apigateway", "iam", "secretsmanager"];
+
+const AWS_CATEGORIES = [
+  { name: "Storage", types: ["s3"] },
+  { name: "Database", types: ["dynamodb"] },
+  { name: "Compute", types: ["lambda"] },
+  { name: "Networking", types: ["apigateway"] },
+  { name: "Security & Identity", types: ["iam", "secretsmanager"] },
+];
+
+const RESOURCE_ICON: Record<string, string> = {
+  s3: "logos:aws-s3",
+  dynamodb: "logos:aws-dynamodb",
+  lambda: "logos:aws-lambda",
+  apigateway: "logos:aws-api-gateway",
+  iam: "logos:aws-iam",
+  secretsmanager: "logos:aws-secrets-manager",
+};
+
+const RESOURCE_LABEL: Record<string, string> = {
+  s3: "S3 Bucket",
+  dynamodb: "DynamoDB Table",
+  lambda: "Lambda Function",
+  apigateway: "API Gateway",
+  iam: "IAM",
+  secretsmanager: "Secrets Manager",
+};
 
 export default function ResourceList({
   resources,
@@ -44,9 +68,7 @@ export default function ResourceList({
   loading = false,
   onViewS3,
   onViewDynamoDB,
-  onViewCache,
   onViewSecretsManager,
-  onViewMailpit,
   onRefresh,
   onAddS3,
   onAddDynamoDB,
@@ -100,33 +122,6 @@ export default function ResourceList({
     }
   };
 
-  const getResourceIcon = (type: string) => {
-    switch (type) {
-      case "s3":
-        return "🪣";
-      case "dynamodb":
-        return "🗄️";
-      case "lambda":
-        return "⚡";
-      case "apigateway":
-        return "🌐";
-      case "iam":
-        return "🔐";
-      case "cache":
-        return "🧊";
-      case "secretsmanager":
-        return "🔑";
-      case "mailpit":
-        return "📬";
-      case "postgres":
-        return "🐘";
-      case "keycloak":
-        return "🔒";
-      default:
-        return "📦";
-    }
-  };
-
   const handleSelectResource = (resourceId: string) => {
     setSelectedResources((prev) =>
       prev.includes(resourceId)
@@ -152,19 +147,16 @@ export default function ResourceList({
     }
   };
 
-  const filteredResources = resources.filter(
-    (resource) => resource.project === projectName
-  );
-
-  const selectableResources = filteredResources.filter(
-    (r: Resource) => !SERVICE_TYPES.includes(r.type)
+  // Only show AWS resources (no platform services)
+  const awsResources = resources.filter(
+    (r) => r.project === projectName && AWS_RESOURCE_TYPES.includes(r.type)
   );
 
   const handleSelectAll = () => {
-    if (selectedResources.length === selectableResources.length) {
+    if (selectedResources.length === awsResources.length) {
       setSelectedResources([]);
     } else {
-      setSelectedResources(selectableResources.map((r) => r.id));
+      setSelectedResources(awsResources.map((r) => r.id));
     }
   };
 
@@ -175,11 +167,12 @@ export default function ResourceList({
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-gray-900">
-            Resources ({filteredResources.length})
-          </h3>
+          <div>
+            <h3 className="text-lg font-medium text-gray-900">AWS Resources</h3>
+            <p className="text-xs text-gray-500 mt-0.5">{awsResources.length} resource{awsResources.length !== 1 ? "s" : ""} in &quot;{projectName}&quot;</p>
+          </div>
           <div className="flex items-center space-x-2">
-            {/* Destroy Selected — only when rows are checked */}
+            {/* Destroy Selected */}
             {selectedResources.length > 0 && (
               <button
                 onClick={handleDestroySelected}
@@ -195,7 +188,7 @@ export default function ResourceList({
               </button>
             )}
 
-            {/* Refresh icon */}
+            {/* Refresh */}
             {onRefresh && (
               <button
                 onClick={onRefresh}
@@ -220,31 +213,34 @@ export default function ResourceList({
                   <ChevronDownIcon className={`h-3.5 w-3.5 ml-1.5 transition-transform ${showAddMenu ? "rotate-180" : ""}`} />
                 </button>
                 {showAddMenu && (
-                  <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                  <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Storage</p>
                     {onAddS3 && (
                       <button
                         onClick={() => { onAddS3(); setShowAddMenu(false); }}
-                        className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       >
-                        <span className="mr-3">🪣</span>
+                        <Icon icon="logos:aws-s3" className="w-5 h-5 mr-3 flex-shrink-0" />
                         S3 Bucket
                       </button>
                     )}
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Database</p>
                     {onAddDynamoDB && (
                       <button
                         onClick={() => { onAddDynamoDB(); setShowAddMenu(false); }}
-                        className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       >
-                        <span className="mr-3">🗄️</span>
+                        <Icon icon="logos:aws-dynamodb" className="w-5 h-5 mr-3 flex-shrink-0" />
                         DynamoDB Table
                       </button>
                     )}
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Security & Identity</p>
                     {onAddSecrets && (
                       <button
                         onClick={() => { onAddSecrets(); setShowAddMenu(false); }}
-                        className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       >
-                        <span className="mr-3">🔑</span>
+                        <Icon icon="logos:aws-secrets-manager" className="w-5 h-5 mr-3 flex-shrink-0" />
                         Secrets Manager
                       </button>
                     )}
@@ -256,282 +252,231 @@ export default function ResourceList({
         </div>
       </div>
 
-      {/* Empty state — inside the card so the header stays visible */}
-      {filteredResources.length === 0 ? (
+      {/* Empty state */}
+      {awsResources.length === 0 ? (
         <div className="px-6 py-12 text-center">
-          <div className="text-gray-400 text-5xl mb-3">📦</div>
-          <h4 className="text-sm font-medium text-gray-900 mb-1">No Resources Found</h4>
+          <Icon icon="logos:aws" className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <h4 className="text-sm font-medium text-gray-900 mb-1">No AWS Resources</h4>
           <p className="text-sm text-gray-500">
-            No resources found for project &quot;{projectName}&quot;.
+            Add your first resource using the button above.
           </p>
         </div>
       ) : (
         <>
-          {/* Column labels */}
-          <div className="grid items-center gap-x-4 px-6 py-2 bg-gray-50 border-b border-gray-200"
-            style={{ gridTemplateColumns: "1.25rem 2rem 1fr 9rem 6rem 1.75rem" }}>
-            <div />
-            <div />
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Resource</span>
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</span>
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide text-center">Action</span>
-            <div />
-          </div>
+          {/* Category sections */}
+          {AWS_CATEGORIES.map((category) => {
+            const categoryResources = awsResources.filter((r) =>
+              category.types.includes(r.type)
+            );
+            if (categoryResources.length === 0) return null;
 
-          {/* Resource List */}
-          <div className="divide-y divide-gray-200">
-            {filteredResources.map((resource) => (
-              <div key={resource.id} className="px-6 py-3.5">
-                <div
-                  className="grid items-center gap-x-4"
-                  style={{ gridTemplateColumns: "1.25rem 2rem 1fr 9rem 6rem 1.75rem" }}
-                >
-                  {/* Col 1: checkbox or spacer */}
-                  {SERVICE_TYPES.includes(resource.type) ? (
-                    <div />
-                  ) : (
-                    <input
-                      type="checkbox"
-                      checked={selectedResources.includes(resource.id)}
-                      onChange={() => handleSelectResource(resource.id)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                  )}
-
-                  {/* Col 2: emoji icon */}
-                  <span className="text-xl leading-none text-center">
-                    {getResourceIcon(resource.type)}
+            return (
+              <div key={category.name}>
+                {/* Category header */}
+                <div className="px-6 py-2 bg-gray-50 border-b border-gray-200 flex items-center space-x-2">
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {category.name}
                   </span>
-
-                  {/* Col 3: name + subtitle */}
-                  <div className="min-w-0">
-                    <h4 className="text-sm font-medium text-gray-900 truncate">
-                      {resource.type === "cache" ? "Cache" : resource.name}
-                    </h4>
-                    <p className="text-xs text-gray-500 capitalize truncate">
-                      {resource.type === "mailpit"
-                        ? "Mailpit"
-                        : resource.type === "cache"
-                        ? "Redis"
-                        : resource.type === "postgres"
-                        ? "PostgreSQL • pgAdmin"
-                        : resource.type === "keycloak"
-                        ? "Keycloak • Identity Provider"
-                        : `${resource.type} • ${resource.project}`}
-                    </p>
-                  </div>
-
-                  {/* Col 4: status badge — fixed column keeps all badges aligned */}
-                  <div>
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(resource.status)}`}
-                    >
-                      {getStatusIcon(resource.status)}
-                      <span className="ml-1 capitalize">{resource.status}</span>
-                    </span>
-                  </div>
-
-                  {/* Col 5: action button — always rendered so col 6 stays aligned */}
-                  <div className="flex justify-center">
-                    {resource.status === "active" && (
-                      <>
-                        {resource.type === "s3" && onViewS3 && (
-                          <button
-                            onClick={() => onViewS3(resource.name)}
-                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                            title="Open S3 Bucket"
-                          >
-                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            Open
-                          </button>
-                        )}
-                        {resource.type === "dynamodb" && onViewDynamoDB && (
-                          <button
-                            onClick={() => onViewDynamoDB(resource.name)}
-                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                            title="Open DynamoDB Table"
-                          >
-                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            Open
-                          </button>
-                        )}
-                        {resource.type === "cache" && onViewCache && (
-                          <button
-                            onClick={onViewCache}
-                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                            title="Open Redis Cache"
-                          >
-                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            Open
-                          </button>
-                        )}
-                        {resource.type === "mailpit" && onViewMailpit && (
-                          <button
-                            onClick={onViewMailpit}
-                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                            title="Open Mailpit Inbox"
-                          >
-                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            Open
-                          </button>
-                        )}
-                        {resource.type === "secretsmanager" && onViewSecretsManager && (
-                          <button
-                            onClick={onViewSecretsManager}
-                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                            title="Open Secrets Manager"
-                          >
-                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            Open
-                          </button>
-                        )}
-                        {resource.type === "postgres" && (
-                          <Link
-                            href="/postgres"
-                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                            title="Open PostgreSQL info"
-                          >
-                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            Open
-                          </Link>
-                        )}
-                        {resource.type === "keycloak" && (
-                          <Link
-                            href="/keycloak"
-                            className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                            title="Open Keycloak info"
-                          >
-                            <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                            Open
-                          </Link>
-                        )}
-                      </>
-                    )}
-                  </div>
-
-                  {/* Col 6: details toggle */}
-                  <div className="flex justify-center">
-                    <button
-                      onClick={() =>
-                        setShowDetails(showDetails === resource.id ? null : resource.id)
-                      }
-                      className={`text-gray-400 hover:text-gray-600 transition-colors ${showDetails === resource.id ? "text-gray-600" : ""}`}
-                      title="Show Details"
-                    >
-                      <EyeIcon className="h-4 w-4" />
-                    </button>
-                  </div>
+                  <span className="text-xs text-gray-400">({categoryResources.length})</span>
                 </div>
 
-                {/* Resource Details */}
-                {showDetails === resource.id && (
-                  <div className="mt-4 pl-8 border-l-2 border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <dt className="font-medium text-gray-500">Resource ID</dt>
-                        <dd className="text-gray-900 font-mono">{resource.id}</dd>
-                      </div>
-                      <div>
-                        <dt className="font-medium text-gray-500">Created</dt>
-                        <dd className="text-gray-900">
-                          {new Date(resource.createdAt).toLocaleString()}
-                        </dd>
-                      </div>
+                {/* Column labels — only on first category */}
+                <div
+                  className="grid items-center gap-x-4 px-6 py-2 bg-white border-b border-gray-100"
+                  style={{ gridTemplateColumns: "1.25rem 2.5rem 1fr 9rem 6rem 1.75rem" }}
+                >
+                  <div />
+                  <div />
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Resource</span>
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Status</span>
+                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide text-center">Action</span>
+                  <div />
+                </div>
 
-                      {resource.type === "mailpit" && resource.details && (
-                        <>
-                          <div>
-                            <dt className="font-medium text-gray-500">Total Emails</dt>
-                            <dd className="text-gray-900">{resource.details.total}</dd>
-                          </div>
-                          <div>
-                            <dt className="font-medium text-gray-500">Unread</dt>
-                            <dd className={resource.details.unread > 0 ? "text-red-600 font-medium" : "text-gray-900"}>
-                              {resource.details.unread}
-                            </dd>
-                          </div>
-                          <div>
-                            <dt className="font-medium text-gray-500">SMTP</dt>
-                            <dd className="text-gray-900 font-mono">localhost:1025</dd>
-                          </div>
-                          <div>
-                            <dt className="font-medium text-gray-500">Web UI</dt>
-                            <dd className="text-gray-900 font-mono">localhost:8025</dd>
-                          </div>
-                        </>
-                      )}
+                <div className="divide-y divide-gray-100">
+                  {categoryResources.map((resource) => (
+                    <div key={resource.id} className="px-6 py-3.5">
+                      <div
+                        className="grid items-center gap-x-4"
+                        style={{ gridTemplateColumns: "1.25rem 2.5rem 1fr 9rem 6rem 1.75rem" }}
+                      >
+                        {/* Checkbox */}
+                        <input
+                          type="checkbox"
+                          checked={selectedResources.includes(resource.id)}
+                          onChange={() => handleSelectResource(resource.id)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
 
-                      {resource.type === "secretsmanager" && resource.details && (
-                        <>
-                          <div>
-                            <dt className="font-medium text-gray-500">ARN</dt>
-                            <dd className="text-gray-900 font-mono text-sm break-all">
-                              <div className="flex items-center space-x-2">
-                                <code className="flex-1 min-w-0">
-                                  {resource.details.arn}
-                                </code>
+                        {/* AWS icon */}
+                        <div className="flex items-center justify-center">
+                          <Icon
+                            icon={RESOURCE_ICON[resource.type] || "logos:aws"}
+                            className="w-6 h-6"
+                          />
+                        </div>
+
+                        {/* Name + type */}
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-medium text-gray-900 truncate">
+                            {resource.name}
+                          </h4>
+                          <p className="text-xs text-gray-500 truncate">
+                            {RESOURCE_LABEL[resource.type] || resource.type} · {resource.project}
+                          </p>
+                        </div>
+
+                        {/* Status badge */}
+                        <div>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(resource.status)}`}
+                          >
+                            {getStatusIcon(resource.status)}
+                            <span className="ml-1 capitalize">{resource.status}</span>
+                          </span>
+                        </div>
+
+                        {/* Action button */}
+                        <div className="flex justify-center">
+                          {resource.status === "active" && (
+                            <>
+                              {resource.type === "s3" && onViewS3 && (
                                 <button
-                                  onClick={() =>
-                                    resource.details?.arn &&
-                                    copyArnToClipboard(resource.details.arn)
-                                  }
-                                  className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                                  title="Copy ARN"
+                                  onClick={() => onViewS3(resource.name)}
+                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                                  title="Browse S3 Bucket"
                                 >
-                                  <ClipboardDocumentIcon className="h-4 w-4" />
+                                  <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  Open
                                 </button>
-                              </div>
-                              {copiedArn === resource.details.arn && (
-                                <p className="text-xs text-green-600 mt-1">
-                                  ✓ Copied to clipboard
-                                </p>
                               )}
-                            </dd>
-                          </div>
-                          {resource.details.description && (
-                            <div>
-                              <dt className="font-medium text-gray-500">Description</dt>
-                              <dd className="text-gray-900">{resource.details.description}</dd>
-                            </div>
+                              {resource.type === "dynamodb" && onViewDynamoDB && (
+                                <button
+                                  onClick={() => onViewDynamoDB(resource.name)}
+                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                                  title="Browse DynamoDB Table"
+                                >
+                                  <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  Open
+                                </button>
+                              )}
+                              {resource.type === "secretsmanager" && onViewSecretsManager && (
+                                <button
+                                  onClick={onViewSecretsManager}
+                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                                  title="Browse Secrets Manager"
+                                >
+                                  <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  Open
+                                </button>
+                              )}
+                            </>
                           )}
-                          <div>
-                            <dt className="font-medium text-gray-500">Last Changed</dt>
-                            <dd className="text-gray-900">
-                              {new Date(resource.details.lastChangedDate).toLocaleString()}
-                            </dd>
+                        </div>
+
+                        {/* Details toggle */}
+                        <div className="flex justify-center">
+                          <button
+                            onClick={() =>
+                              setShowDetails(showDetails === resource.id ? null : resource.id)
+                            }
+                            className={`text-gray-400 hover:text-gray-600 transition-colors ${showDetails === resource.id ? "text-gray-600" : ""}`}
+                            title="Show Details"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Resource Details */}
+                      {showDetails === resource.id && (
+                        <div className="mt-4 pl-8 border-l-2 border-gray-200">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <dt className="font-medium text-gray-500">Resource ID</dt>
+                              <dd className="text-gray-900 font-mono">{resource.id}</dd>
+                            </div>
+                            <div>
+                              <dt className="font-medium text-gray-500">Created</dt>
+                              <dd className="text-gray-900">
+                                {new Date(resource.createdAt).toLocaleString()}
+                              </dd>
+                            </div>
+
+                            {resource.type === "secretsmanager" && resource.details && (
+                              <>
+                                <div>
+                                  <dt className="font-medium text-gray-500">ARN</dt>
+                                  <dd className="text-gray-900 font-mono text-sm break-all">
+                                    <div className="flex items-center space-x-2">
+                                      <code className="flex-1 min-w-0">
+                                        {resource.details.arn}
+                                      </code>
+                                      <button
+                                        onClick={() =>
+                                          resource.details?.arn &&
+                                          copyArnToClipboard(resource.details.arn)
+                                        }
+                                        className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                                        title="Copy ARN"
+                                      >
+                                        <ClipboardDocumentIcon className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                    {copiedArn === resource.details.arn && (
+                                      <p className="text-xs text-green-600 mt-1">
+                                        ✓ Copied to clipboard
+                                      </p>
+                                    )}
+                                  </dd>
+                                </div>
+                                {resource.details.description && (
+                                  <div>
+                                    <dt className="font-medium text-gray-500">Description</dt>
+                                    <dd className="text-gray-900">{resource.details.description}</dd>
+                                  </div>
+                                )}
+                                <div>
+                                  <dt className="font-medium text-gray-500">Last Changed</dt>
+                                  <dd className="text-gray-900">
+                                    {new Date(resource.details.lastChangedDate).toLocaleString()}
+                                  </dd>
+                                </div>
+                              </>
+                            )}
+
+                            {resource.type !== "secretsmanager" &&
+                              resource.details &&
+                              Object.entries(resource.details).map(([key, value]) => (
+                                <div key={key}>
+                                  <dt className="font-medium text-gray-500 capitalize">
+                                    {key.replace(/([A-Z])/g, " $1")}
+                                  </dt>
+                                  <dd className="text-gray-900">{String(value)}</dd>
+                                </div>
+                              ))}
                           </div>
-                        </>
+                        </div>
                       )}
-
-                      {resource.type !== "secretsmanager" &&
-                        resource.details &&
-                        Object.entries(resource.details).map(([key, value]) => (
-                          <div key={key}>
-                            <dt className="font-medium text-gray-500 capitalize">
-                              {key.replace(/([A-Z])/g, " $1")}
-                            </dt>
-                            <dd className="text-gray-900">{String(value)}</dd>
-                          </div>
-                        ))}
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
 
-          {/* Select All */}
-          {selectableResources.length > 0 && (
+          {/* Select All footer */}
+          {awsResources.length > 0 && (
             <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
               <div className="flex items-center space-x-3">
                 <input
                   type="checkbox"
-                  checked={selectedResources.length === selectableResources.length && selectableResources.length > 0}
+                  checked={selectedResources.length === awsResources.length && awsResources.length > 0}
                   onChange={handleSelectAll}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <span className="text-sm text-gray-700">
-                  Select all ({selectableResources.length} resources)
+                  Select all ({awsResources.length} resource{awsResources.length !== 1 ? "s" : ""})
                 </span>
               </div>
             </div>

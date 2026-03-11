@@ -4,10 +4,13 @@ import MailpitModal from "@/components/MailpitModal";
 import {
   ArrowTopRightOnSquareIcon,
   InboxIcon,
+  PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 import DocPageNav from "@/components/DocPageNav";
 import { useState } from "react";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
+import { mailpitApi } from "@/services/api";
+import { toast } from "react-hot-toast";
 
 const MAILPIT_UI_URL = "https://mailpit.localcloudkit.com:3030";
 const MAILPIT_UI_DIRECT = "http://localhost:8025";
@@ -157,17 +160,42 @@ export default function MailpitIntegrationPage() {
   const [activeFrameworkTab, setActiveFrameworkTab] = useState<
     "nodemailer" | "sendgrid" | "laravel" | "django" | "flask"
   >("nodemailer");
+  const [testForm, setTestForm] = useState({
+    from: "sender@example.com",
+    to: "test@example.com",
+    subject: "Test Email from LocalCloud Kit",
+    body: "Hello! This is a test email sent from the LocalCloud Kit documentation page.",
+  });
+  const [sending, setSending] = useState(false);
+
+  const handleSendTest = async () => {
+    setSending(true);
+    try {
+      const result = await mailpitApi.sendTest(testForm);
+      if (result.success) {
+        toast.success("Test email sent — check the Mailpit inbox");
+      } else {
+        toast.error(result.error || "Failed to send email");
+      }
+    } catch {
+      toast.error("Failed to send email");
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <DocPageNav title="Mailpit Integration" subtitle="Local email testing for development">
-        <button
-          onClick={() => setShowModal(true)}
+        <a
+          href={MAILPIT_UI_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center px-3 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 transition-colors"
         >
           <InboxIcon className="h-4 w-4 mr-1.5" />
-          Manage Inbox
-        </button>
+          Open Mailpit
+        </a>
       </DocPageNav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -181,8 +209,8 @@ export default function MailpitIntegrationPage() {
             making it safe to test email flows without any risk of sending to real addresses.
           </p>
           <p className="text-sm text-gray-600 leading-relaxed mt-2">
-            The <strong>Inbox</strong> resource card on your dashboard reflects the live Mailpit state.
-            Click <em>Manage</em> on that card — or the button above — to view messages, send test emails, and clear the inbox.
+            Access Mailpit from the <strong>Services</strong> menu or the status bar on the dashboard to view recent messages.
+            Use the <strong>Send Test Email</strong> form below to verify your SMTP setup, or open the full Mailpit UI for advanced filtering and message inspection.
           </p>
         </section>
 
@@ -291,6 +319,69 @@ export default function MailpitIntegrationPage() {
               <ThemeableCodeBlock code={frameworkExamples.flask} language="flask" />
             </div>
           )}
+        </section>
+
+        {/* Test Email */}
+        <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">Send Test Email</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Verify your SMTP setup is working by sending a test email directly to Mailpit.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">From</label>
+              <input
+                type="email"
+                value={testForm.from}
+                onChange={(e) => setTestForm({ ...testForm, from: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">To</label>
+              <input
+                type="email"
+                value={testForm.to}
+                onChange={(e) => setTestForm({ ...testForm, to: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
+            <input
+              type="text"
+              value={testForm.subject}
+              onChange={(e) => setTestForm({ ...testForm, subject: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-gray-700 mb-1">Body</label>
+            <textarea
+              rows={4}
+              value={testForm.body}
+              onChange={(e) => setTestForm({ ...testForm, body: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={handleSendTest}
+              disabled={sending}
+              className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              <PaperAirplaneIcon className="h-4 w-4 mr-1.5" />
+              {sending ? "Sending…" : "Send Test Email"}
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              <InboxIcon className="h-4 w-4 mr-1.5" />
+              View Inbox
+            </button>
+          </div>
         </section>
 
         {/* Resources */}

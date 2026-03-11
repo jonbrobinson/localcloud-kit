@@ -15,7 +15,11 @@ import {
   ServerIcon,
   Squares2X2Icon,
   UserCircleIcon,
+  CpuChipIcon,
+  GlobeAltIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import ResourceList from "./ResourceList";
@@ -48,7 +52,6 @@ export default function Dashboard() {
   const { status: localstackStatus, projectConfig: config, resources } = localstack;
   const { profile, projects, updateProfile } = usePreferences();
 
-  // Derive projectName: active project from preferences, fall back to config from API
   const projectName = profile?.active_project_name || config.projectName;
 
   const [showDynamoDBConfig, setShowDynamoDBConfig] = useState(false);
@@ -60,26 +63,29 @@ export default function Dashboard() {
   const [showMailpit, setShowMailpit] = useState(false);
   const [showRedis, setShowRedis] = useState(false);
 
-  const [selectedDynamoDBTable, setSelectedDynamoDBTable] =
-    useState<string>("");
+  const [selectedDynamoDBTable, setSelectedDynamoDBTable] = useState<string>("");
   const [selectedS3Bucket, setSelectedS3Bucket] = useState<string>("");
 
-  // Loading states for buttons
   const [createLoading, setCreateLoading] = useState(false);
   const [destroyLoading, setDestroyLoading] = useState(false);
 
   // Dropdowns
-  const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const [showResourcesMenu, setShowResourcesMenu] = useState(false);
+  const [showServicesMenu, setShowServicesMenu] = useState(false);
   const [showDocsMenu, setShowDocsMenu] = useState(false);
   const [showProjectMenu, setShowProjectMenu] = useState(false);
-  const toolsMenuRef = useRef<HTMLDivElement>(null);
+  const resourcesMenuRef = useRef<HTMLDivElement>(null);
+  const servicesMenuRef = useRef<HTMLDivElement>(null);
   const docsMenuRef = useRef<HTMLDivElement>(null);
   const projectMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (toolsMenuRef.current && !toolsMenuRef.current.contains(e.target as Node)) {
-        setShowToolsMenu(false);
+      if (resourcesMenuRef.current && !resourcesMenuRef.current.contains(e.target as Node)) {
+        setShowResourcesMenu(false);
+      }
+      if (servicesMenuRef.current && !servicesMenuRef.current.contains(e.target as Node)) {
+        setShowServicesMenu(false);
       }
       if (docsMenuRef.current && !docsMenuRef.current.contains(e.target as Node)) {
         setShowDocsMenu(false);
@@ -91,6 +97,13 @@ export default function Dashboard() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const closeAllMenus = () => {
+    setShowResourcesMenu(false);
+    setShowServicesMenu(false);
+    setShowDocsMenu(false);
+    setShowProjectMenu(false);
+  };
 
   const handleSwitchProject = async (projectId: number) => {
     try {
@@ -117,78 +130,42 @@ export default function Dashboard() {
     }
   };
 
-
   const handleCreateSingleResource = async (resourceType: string) => {
-    // Special handling for DynamoDB and S3 - show config modals instead
-    if (resourceType === "dynamodb") {
-      setShowDynamoDBConfig(true);
-      return;
-    }
-
-    if (resourceType === "s3") {
-      setShowS3Config(true);
-      return;
-    }
-
-    if (resourceType === "secretsmanager") {
-      setShowSecretsManager(true);
-      return;
-    }
+    if (resourceType === "dynamodb") { setShowDynamoDBConfig(true); return; }
+    if (resourceType === "s3") { setShowS3Config(true); return; }
+    if (resourceType === "secretsmanager") { setShowSecretsManager(true); return; }
 
     setCreateLoading(true);
     try {
-      const response = await resourceApi.createSingle(
-        projectName,
-        resourceType
-      );
+      const response = await resourceApi.createSingle(projectName, resourceType);
       if (response.success) {
         toast.success(`${resourceType} resource created successfully`);
-        setTimeout(async () => {
-          await loadInitialData();
-        }, 1000);
+        setTimeout(async () => { await loadInitialData(); }, 1000);
       } else {
-        toast.error(
-          response.error || `Failed to create ${resourceType} resource`
-        );
+        toast.error(response.error || `Failed to create ${resourceType} resource`);
       }
     } catch (error) {
       console.error(`Create ${resourceType} resource error:`, error);
-      toast.error(
-        `Failed to create ${resourceType} resource: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      toast.error(`Failed to create ${resourceType} resource: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setCreateLoading(false);
     }
   };
 
-  const handleCreateDynamoDBTable = async (
-    dynamodbConfig: DynamoDBTableConfig
-  ) => {
+  const handleCreateDynamoDBTable = async (dynamodbConfig: DynamoDBTableConfig) => {
     setCreateLoading(true);
     try {
-      const response = await resourceApi.createSingleWithConfig(
-        projectName,
-        "dynamodb",
-        { dynamodbConfig }
-      );
+      const response = await resourceApi.createSingleWithConfig(projectName, "dynamodb", { dynamodbConfig });
       if (response.success) {
         toast.success("DynamoDB table created successfully");
         setShowDynamoDBConfig(false);
-        setTimeout(async () => {
-          await loadInitialData();
-        }, 1000);
+        setTimeout(async () => { await loadInitialData(); }, 1000);
       } else {
         toast.error(response.error || "Failed to create DynamoDB table");
       }
     } catch (error) {
       console.error("Create DynamoDB table error:", error);
-      toast.error(
-        `Failed to create DynamoDB table: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      toast.error(`Failed to create DynamoDB table: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setCreateLoading(false);
     }
@@ -197,27 +174,17 @@ export default function Dashboard() {
   const handleCreateS3Bucket = async (s3Config: S3BucketConfig) => {
     setCreateLoading(true);
     try {
-      const response = await resourceApi.createSingleWithConfig(
-        projectName,
-        "s3",
-        { s3Config }
-      );
+      const response = await resourceApi.createSingleWithConfig(projectName, "s3", { s3Config });
       if (response.success) {
         toast.success("S3 bucket created successfully");
         setShowS3Config(false);
-        setTimeout(async () => {
-          await loadInitialData();
-        }, 1000);
+        setTimeout(async () => { await loadInitialData(); }, 1000);
       } else {
         toast.error(response.error || "Failed to create S3 bucket");
       }
     } catch (error) {
       console.error("Create S3 bucket error:", error);
-      toast.error(
-        `Failed to create S3 bucket: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      toast.error(`Failed to create S3 bucket: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setCreateLoading(false);
     }
@@ -226,11 +193,7 @@ export default function Dashboard() {
   const handleDestroyResources = async (resourceIds: string[]) => {
     setDestroyLoading(true);
     try {
-      const response = await resourceApi.destroy({
-        projectName: projectName,
-        resourceIds: resourceIds,
-      });
-
+      const response = await resourceApi.destroy({ projectName, resourceIds });
       if (response.success) {
         toast.success("Resources destroyed successfully");
         await loadInitialData();
@@ -239,28 +202,20 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Destroy resources error:", error);
-      toast.error(
-        `Failed to destroy resources: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      toast.error(`Failed to destroy resources: ${error instanceof Error ? error.message : "Unknown error"}`);
     } finally {
       setDestroyLoading(false);
     }
   };
 
-  if (loading) {
-    return <DashboardSkeleton />;
-  }
+  if (loading) return <DashboardSkeleton />;
 
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 to-pink-100">
         <div className="text-center">
           <div className="text-red-600 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            Failed to Load Data
-          </h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Failed to Load Data</h2>
           <p className="text-gray-600 mb-4">{error.message}</p>
           <button
             onClick={loadInitialData}
@@ -273,118 +228,108 @@ export default function Dashboard() {
     );
   }
 
+  const serviceStatusClass = (status: string) => {
+    if (status === "running") return "bg-green-100 text-green-800";
+    if (status === "stopped") return "bg-red-100 text-red-800";
+    return "bg-gray-100 text-gray-600";
+  };
+  const serviceDotClass = (status: string) => {
+    if (status === "running") return "bg-green-500";
+    if (status === "stopped") return "bg-red-500";
+    return "bg-gray-400";
+  };
+  const serviceLabel = (status: string) => {
+    if (status === "running") return "Running";
+    if (status === "stopped") return "Stopped";
+    return "Unknown";
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            {/* Logo + Title */}
+            {/* Logo */}
             <div className="flex items-center space-x-3">
-              <Image
-                src="/logo.svg"
-                alt="LocalCloud Kit"
-                width={40}
-                height={40}
-              />
+              <Image src="/logo.svg" alt="LocalCloud Kit" width={40} height={40} />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  LocalCloud Kit
-                </h1>
-                <p className="text-xs text-gray-500">
-                  Local Cloud Development Environment • v{packageJson.version}
-                </p>
+                <h1 className="text-2xl font-bold text-gray-900">LocalCloud Kit</h1>
+                <p className="text-xs text-gray-500">Local Cloud Development Environment • v{packageJson.version}</p>
               </div>
             </div>
 
             {/* Nav */}
             <div className="flex items-center space-x-3">
-              {/* Resources dropdown */}
-              <div className="relative" ref={toolsMenuRef}>
+
+              {/* Resources dropdown — AWS resources only */}
+              <div className="relative" ref={resourcesMenuRef}>
                 <button
-                  onClick={() => { setShowToolsMenu((v) => !v); setShowDocsMenu(false); }}
+                  onClick={() => { setShowResourcesMenu((v) => !v); setShowServicesMenu(false); setShowDocsMenu(false); }}
                   className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   <Squares2X2Icon className="h-4 w-4 mr-2" />
                   Resources
-                  <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showToolsMenu ? "rotate-180" : ""}`} />
+                  <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showResourcesMenu ? "rotate-180" : ""}`} />
                 </button>
-                {showToolsMenu && (
-                  <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
-                    {/* AWS */}
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">AWS</p>
+                {showResourcesMenu && (
+                  <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                    {/* Storage */}
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Storage</p>
                     <button
-                      onClick={() => { setShowDynamoDB(true); setShowToolsMenu(false); }}
+                      onClick={() => { setShowBuckets(true); closeAllMenus(); }}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      DynamoDB Tables
-                    </button>
-                    <button
-                      onClick={() => { setShowBuckets(true); setShowToolsMenu(false); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <FolderIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />
                       S3 Buckets
                     </button>
+
+                    {/* Database */}
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Database</p>
                     <button
-                      onClick={() => { setShowSecretsManager(true); setShowToolsMenu(false); }}
+                      onClick={() => { setShowDynamoDB(true); closeAllMenus(); }}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />
+                      DynamoDB Tables
+                    </button>
+
+                    {/* Compute */}
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Compute</p>
+                    <span className="flex items-center w-full px-4 py-2 text-sm text-gray-400 cursor-default">
+                      <CpuChipIcon className="h-4 w-4 mr-3 flex-shrink-0" />
+                      Lambda <span className="ml-auto text-xs">coming soon</span>
+                    </span>
+
+                    {/* Networking */}
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Networking</p>
+                    <span className="flex items-center w-full px-4 py-2 text-sm text-gray-400 cursor-default">
+                      <GlobeAltIcon className="h-4 w-4 mr-3 flex-shrink-0" />
+                      API Gateway <span className="ml-auto text-xs">coming soon</span>
+                    </span>
+
+                    {/* Security & Identity */}
+                    <div className="border-t border-gray-100 mt-1" />
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Security & Identity</p>
+                    <button
+                      onClick={() => { setShowSecretsManager(true); closeAllMenus(); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                       Secrets Manager
                     </button>
-
-                    {/* Databases */}
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Databases</p>
-                    <Link
-                      href="/postgres"
-                      onClick={() => setShowToolsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      PostgreSQL
-                    </Link>
-
-                    {/* Identity */}
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Identity</p>
-                    <Link
-                      href="/keycloak"
-                      onClick={() => setShowToolsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Keycloak
-                    </Link>
-
-                    {/* Cache */}
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Cache</p>
-                    <button
-                      onClick={() => { setShowRedis(true); setShowToolsMenu(false); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Redis Cache
-                    </button>
-
-                    {/* Inbox */}
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Inbox</p>
-                    <button
-                      onClick={() => { setShowMailpit(true); setShowToolsMenu(false); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Mailpit
-                    </button>
+                    <span className="flex items-center w-full px-4 py-2 text-sm text-gray-400 cursor-default">
+                      <ShieldCheckIcon className="h-4 w-4 mr-3 flex-shrink-0" />
+                      IAM <span className="ml-auto text-xs">coming soon</span>
+                    </span>
 
                     {/* Logs */}
                     <div className="border-t border-gray-100 mt-1" />
                     <button
-                      onClick={() => { setShowLogs(true); setShowToolsMenu(false); }}
+                      onClick={() => { setShowLogs(true); closeAllMenus(); }}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />
@@ -394,10 +339,57 @@ export default function Dashboard() {
                 )}
               </div>
 
+              {/* Services dropdown — platform services */}
+              <div className="relative" ref={servicesMenuRef}>
+                <button
+                  onClick={() => { setShowServicesMenu((v) => !v); setShowResourcesMenu(false); setShowDocsMenu(false); }}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  <ServerIcon className="h-4 w-4 mr-2" />
+                  Services
+                  <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showServicesMenu ? "rotate-180" : ""}`} />
+                </button>
+                {showServicesMenu && (
+                  <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                    {/* Alphabetical: Keycloak, Mailpit, PostgreSQL, Redis */}
+                    <Link
+                      href="/keycloak"
+                      onClick={() => closeAllMenus()}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Keycloak
+                    </Link>
+                    <button
+                      onClick={() => { setShowMailpit(true); closeAllMenus(); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Mailpit
+                    </button>
+                    <Link
+                      href="/postgres"
+                      onClick={() => closeAllMenus()}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      PostgreSQL
+                    </Link>
+                    <button
+                      onClick={() => { setShowRedis(true); closeAllMenus(); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Redis Cache
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* Docs dropdown */}
               <div className="relative" ref={docsMenuRef}>
                 <button
-                  onClick={() => { setShowDocsMenu((v) => !v); setShowToolsMenu(false); }}
+                  onClick={() => { setShowDocsMenu((v) => !v); setShowResourcesMenu(false); setShowServicesMenu(false); }}
                   className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   <BookOpenIcon className="h-4 w-4 mr-2" />
@@ -406,7 +398,7 @@ export default function Dashboard() {
                 </button>
                 {showDocsMenu && (
                   <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
-                    {/* LocalStack */}
+                    {/* Infrastructure */}
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Infrastructure</p>
                     <Link
                       href="/localstack"
@@ -421,40 +413,40 @@ export default function Dashboard() {
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">AWS Resources</p>
                     <Link
-                      href="/s3"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <FolderIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      S3 Buckets
-                    </Link>
-                    <Link
                       href="/dynamodb"
                       onClick={() => setShowDocsMenu(false)}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />
                       DynamoDB
+                    </Link>
+                    <Link
+                      href="/s3"
+                      onClick={() => setShowDocsMenu(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />
+                      S3 Buckets
                     </Link>
                     <Link
                       href="/secrets"
                       onClick={() => setShowDocsMenu(false)}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                       Secrets Manager
                     </Link>
 
-                    {/* Services */}
+                    {/* Platform Services */}
                     <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Services</p>
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Platform Services</p>
                     <Link
-                      href="/redis"
+                      href="/keycloak"
                       onClick={() => setShowDocsMenu(false)}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Redis Cache
+                      <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Keycloak
                     </Link>
                     <Link
                       href="/mailpit"
@@ -462,7 +454,7 @@ export default function Dashboard() {
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Inbox
+                      Mailpit
                     </Link>
                     <Link
                       href="/postgres"
@@ -473,12 +465,12 @@ export default function Dashboard() {
                       PostgreSQL
                     </Link>
                     <Link
-                      href="/keycloak"
+                      href="/redis"
                       onClick={() => setShowDocsMenu(false)}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                      <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Keycloak
+                      <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      Redis Cache
                     </Link>
                   </div>
                 )}
@@ -487,7 +479,7 @@ export default function Dashboard() {
               {/* Project Switcher */}
               <div className="relative" ref={projectMenuRef}>
                 <button
-                  onClick={() => { setShowProjectMenu((v) => !v); setShowToolsMenu(false); setShowDocsMenu(false); }}
+                  onClick={() => { setShowProjectMenu((v) => !v); setShowResourcesMenu(false); setShowServicesMenu(false); setShowDocsMenu(false); }}
                   className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   <span className="h-2 w-2 rounded-full bg-blue-500 mr-2 flex-shrink-0" />
@@ -537,17 +529,33 @@ export default function Dashboard() {
               >
                 <UserCircleIcon className="h-6 w-6" />
               </Link>
-
             </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Services status bar */}
-        <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center space-x-6">
+
+        {/* Services status bar — alphabetical: Keycloak, LocalStack, Mailpit, PostgreSQL, Redis */}
+        <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center flex-wrap gap-y-2 gap-x-0">
+
+          {/* Keycloak */}
+          <Link
+            href="/keycloak"
+            className="flex items-center space-x-2 hover:opacity-75 transition-opacity px-3"
+            title="Keycloak — click to view admin info"
+          >
+            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(keycloak.status)}`} />
+            <span className="text-sm font-medium text-gray-700">Keycloak</span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(keycloak.status)}`}>
+              {serviceLabel(keycloak.status)}
+            </span>
+          </Link>
+
+          <div className="h-4 w-px bg-gray-200" />
+
           {/* LocalStack */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 px-3">
             <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
               localstackStatus.health === "healthy" ? "bg-green-500" :
               localstackStatus.health === "unhealthy" ? "bg-red-500" : "bg-gray-400"
@@ -567,32 +575,10 @@ export default function Dashboard() {
 
           <div className="h-4 w-px bg-gray-200" />
 
-          {/* Redis */}
-          <button
-            onClick={() => setShowRedis(true)}
-            className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
-            title="Open Redis Cache"
-          >
-            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
-              redis.status === "running" ? "bg-green-500" :
-              redis.status === "stopped" ? "bg-red-500" : "bg-gray-400"
-            }`} />
-            <span className="text-sm font-medium text-gray-700">Redis</span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              redis.status === "running" ? "bg-green-100 text-green-800" :
-              redis.status === "stopped" ? "bg-red-100 text-red-800" :
-              "bg-gray-100 text-gray-600"
-            }`}>
-              {redis.status === "running" ? "Running" : redis.status === "stopped" ? "Stopped" : "Unknown"}
-            </span>
-          </button>
-
-          <div className="h-4 w-px bg-gray-200" />
-
           {/* Mailpit */}
           <button
             onClick={() => setShowMailpit(true)}
-            className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
+            className="flex items-center space-x-2 hover:opacity-75 transition-opacity px-3"
             title="Open Mailpit Inbox"
           >
             <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
@@ -616,56 +602,42 @@ export default function Dashboard() {
           {/* PostgreSQL */}
           <Link
             href="/postgres"
-            className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
+            className="flex items-center space-x-2 hover:opacity-75 transition-opacity px-3"
             title="PostgreSQL — click to view connection info"
           >
-            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
-              postgres.status === "running" ? "bg-green-500" :
-              postgres.status === "stopped" ? "bg-red-500" : "bg-gray-400"
-            }`} />
+            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(postgres.status)}`} />
             <span className="text-sm font-medium text-gray-700">PostgreSQL</span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              postgres.status === "running" ? "bg-green-100 text-green-800" :
-              postgres.status === "stopped" ? "bg-red-100 text-red-800" :
-              "bg-gray-100 text-gray-600"
-            }`}>
-              {postgres.status === "running" ? "Running" : postgres.status === "stopped" ? "Stopped" : "Unknown"}
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(postgres.status)}`}>
+              {serviceLabel(postgres.status)}
             </span>
           </Link>
 
           <div className="h-4 w-px bg-gray-200" />
 
-          {/* Keycloak */}
-          <Link
-            href="/keycloak"
-            className="flex items-center space-x-2 hover:opacity-75 transition-opacity"
-            title="Keycloak — click to view admin info"
+          {/* Redis */}
+          <button
+            onClick={() => setShowRedis(true)}
+            className="flex items-center space-x-2 hover:opacity-75 transition-opacity px-3"
+            title="Open Redis Cache"
           >
-            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
-              keycloak.status === "running" ? "bg-green-500" :
-              keycloak.status === "stopped" ? "bg-red-500" : "bg-gray-400"
-            }`} />
-            <span className="text-sm font-medium text-gray-700">Keycloak</span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              keycloak.status === "running" ? "bg-green-100 text-green-800" :
-              keycloak.status === "stopped" ? "bg-red-100 text-red-800" :
-              "bg-gray-100 text-gray-600"
-            }`}>
-              {keycloak.status === "running" ? "Running" : keycloak.status === "stopped" ? "Stopped" : "Unknown"}
+            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(redis.status)}`} />
+            <span className="text-sm font-medium text-gray-700">Redis</span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(redis.status)}`}>
+              {serviceLabel(redis.status)}
             </span>
-          </Link>
+          </button>
 
           {!localstackStatus.running && (
             <>
               <div className="h-4 w-px bg-gray-200" />
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500 px-3">
                 Run <code className="bg-gray-100 px-1 rounded">docker compose up -d</code> to start
               </span>
             </>
           )}
         </div>
 
-        {/* Resource Management */}
+        {/* AWS Resource Management */}
         {localstackStatus.running && (
           <div className="mb-8">
             <ResourceList
@@ -687,11 +659,7 @@ export default function Dashboard() {
                 setSelectedDynamoDBTable(tableName);
                 setShowDynamoDB(true);
               }}
-              onViewCache={() => setShowRedis(true)}
-              onViewSecretsManager={() => {
-                setShowSecretsManager(true);
-              }}
-              onViewMailpit={() => setShowMailpit(true)}
+              onViewSecretsManager={() => setShowSecretsManager(true)}
             />
           </div>
         )}
@@ -733,10 +701,7 @@ export default function Dashboard() {
       {showBuckets && (
         <BucketViewer
           isOpen={showBuckets}
-          onClose={() => {
-            setShowBuckets(false);
-            setSelectedS3Bucket("");
-          }}
+          onClose={() => { setShowBuckets(false); setSelectedS3Bucket(""); }}
           projectName={projectName}
           selectedBucketName={selectedS3Bucket}
         />
@@ -745,10 +710,7 @@ export default function Dashboard() {
       {showDynamoDB && (
         <DynamoDBViewer
           isOpen={showDynamoDB}
-          onClose={() => {
-            setShowDynamoDB(false);
-            setSelectedDynamoDBTable("");
-          }}
+          onClose={() => { setShowDynamoDB(false); setSelectedDynamoDBTable(""); }}
           projectName={projectName}
           selectedTableName={selectedDynamoDBTable}
         />
@@ -757,9 +719,7 @@ export default function Dashboard() {
       {showSecretsManager && (
         <SecretsManagerViewer
           isOpen={showSecretsManager}
-          onClose={() => {
-            setShowSecretsManager(false);
-          }}
+          onClose={() => setShowSecretsManager(false)}
           projectName={projectName}
         />
       )}
