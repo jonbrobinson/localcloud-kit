@@ -4,6 +4,12 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.11.5] - 2026-03-11
+
+### Changed
+- **Cache page**: Redesign — DocPageNav, Connection dropdown in header, standardized Key/Value labels, equal-height Operations and All Keys panels, Set pre-selected on load, Framer Motion transitions when switching operations
+- **Cache page**: Title "Cache", subtitle "Redis"; Connection details in card-style dropdown; status moved to Operations header
+
 ## [0.11.4] - 2026-03-11
 
 ### Changed
