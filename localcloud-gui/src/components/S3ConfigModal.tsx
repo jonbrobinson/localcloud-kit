@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { XMarkIcon, FolderIcon } from "@heroicons/react/24/outline";
 import { S3BucketConfig } from "@/types";
-import SavedConfigPicker from "./SavedConfigPicker";
+import { usePreferences } from "@/context/PreferencesContext";
+import { toast } from "react-hot-toast";
 
 interface S3ConfigModalProps {
   isOpen: boolean;
@@ -20,10 +21,15 @@ export default function S3ConfigModal({
   projectName,
   loading = false,
 }: S3ConfigModalProps) {
+  const { profile, savedConfigs, saveConfig } = usePreferences();
   const [bucketName, setBucketName] = useState(`${projectName}-bucket`);
   const [region, setRegion] = useState("us-east-1");
   const [versioning, setVersioning] = useState(false);
   const [encryption, setEncryption] = useState(false);
+
+  // Save-as-config inline state
+  const [saveMode, setSaveMode] = useState<"none" | "save">("none");
+  const [configName, setConfigName] = useState("");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -38,6 +44,10 @@ export default function S3ConfigModal({
 
   if (!isOpen) return null;
 
+  const projectConfigs = savedConfigs.filter(
+    (c) => c.resource_type === "s3" && c.project_id === profile?.active_project_id
+  );
+
   const loadSavedConfig = (config: S3BucketConfig) => {
     setBucketName(config.bucketName || "");
     setRegion(config.region || "us-east-1");
@@ -45,16 +55,19 @@ export default function S3ConfigModal({
     setEncryption(config.encryption || false);
   };
 
-  const currentConfig: S3BucketConfig = { bucketName, region, versioning, encryption };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const config: S3BucketConfig = {
-      bucketName,
-      region,
-      versioning,
-      encryption,
-    };
+    const config: S3BucketConfig = { bucketName, region, versioning, encryption };
+
+    if (saveMode === "save" && configName.trim()) {
+      try {
+        await saveConfig(configName.trim(), "s3", config);
+        toast.success(`Config "${configName.trim()}" saved`);
+      } catch {
+        toast.error("Failed to save config — bucket will still be created");
+      }
+    }
+
     onSubmit(config);
   };
 
@@ -74,7 +87,7 @@ export default function S3ConfigModal({
               <FolderIcon className="h-5 w-5 text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">S3 Bucket Configuration</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Create S3 Bucket</h2>
               <p className="text-xs text-gray-500">Configure bucket settings</p>
             </div>
           </div>
@@ -88,12 +101,28 @@ export default function S3ConfigModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <SavedConfigPicker
-            resourceType="s3"
-            onLoad={loadSavedConfig}
-            currentConfig={currentConfig}
-            configLabel="Bucket"
-          />
+
+          {/* Saved config pills — load only */}
+          {profile?.active_project_id && projectConfigs.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Load saved config</p>
+              <div className="flex flex-wrap gap-2">
+                {projectConfigs.map((cfg) => (
+                  <button
+                    key={cfg.id}
+                    type="button"
+                    onClick={() => {
+                      loadSavedConfig(cfg.config as S3BucketConfig);
+                      toast.success(`Loaded "${cfg.name}"`);
+                    }}
+                    className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:border-blue-400 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                  >
+                    {cfg.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Bucket Name */}
           <div>
@@ -109,8 +138,7 @@ export default function S3ConfigModal({
               required
             />
             <p className="text-xs text-gray-500 mt-1">
-              Bucket names must be globally unique and follow S3 naming
-              conventions
+              Must be globally unique and follow S3 naming conventions
             </p>
           </div>
 
@@ -124,58 +152,81 @@ export default function S3ConfigModal({
               onChange={(e) => setRegion(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
             >
-              <option value="us-east-1">
-                US East (N. Virginia) - us-east-1
-              </option>
-              <option value="us-west-2">US West (Oregon) - us-west-2</option>
-              <option value="eu-west-1">Europe (Ireland) - eu-west-1</option>
-              <option value="ap-southeast-1">
-                Asia Pacific (Singapore) - ap-southeast-1
-              </option>
+              <option value="us-east-1">US East (N. Virginia) — us-east-1</option>
+              <option value="us-west-2">US West (Oregon) — us-west-2</option>
+              <option value="eu-west-1">Europe (Ireland) — eu-west-1</option>
+              <option value="ap-southeast-1">Asia Pacific (Singapore) — ap-southeast-1</option>
             </select>
           </div>
 
           {/* Advanced Options */}
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Advanced Options
-            </h3>
+          <div className="border-t pt-4 space-y-3">
+            <h3 className="text-sm font-semibold text-gray-700">Advanced Options</h3>
+            <label className="flex items-center space-x-3 text-gray-900">
+              <input
+                type="checkbox"
+                checked={versioning}
+                onChange={(e) => setVersioning(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <div>
+                <span className="text-sm font-medium">Enable Versioning</span>
+                <p className="text-xs text-gray-500">Keep multiple versions of objects</p>
+              </div>
+            </label>
+            <label className="flex items-center space-x-3 text-gray-900">
+              <input
+                type="checkbox"
+                checked={encryption}
+                onChange={(e) => setEncryption(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <div>
+                <span className="text-sm font-medium">Enable Encryption</span>
+                <p className="text-xs text-gray-500">Encrypt objects at rest using AES-256</p>
+              </div>
+            </label>
+          </div>
 
-            <div className="space-y-4">
-              <label className="flex items-center space-x-3 text-gray-900">
-                <input
-                  type="checkbox"
-                  checked={versioning}
-                  onChange={(e) => setVersioning(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <div>
-                  <span className="text-sm font-medium">Enable Versioning</span>
-                  <p className="text-xs text-gray-500">
-                    Keep multiple versions of objects in the bucket
-                  </p>
-                </div>
-              </label>
-
-              <label className="flex items-center space-x-3 text-gray-900">
-                <input
-                  type="checkbox"
-                  checked={encryption}
-                  onChange={(e) => setEncryption(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <div>
-                  <span className="text-sm font-medium">Enable Encryption</span>
-                  <p className="text-xs text-gray-500">
-                    Encrypt objects at rest using AES-256
-                  </p>
-                </div>
-              </label>
-            </div>
+          {/* Save-as-config radio */}
+          <div className="border-t pt-4 space-y-3">
+            <label className="flex items-start space-x-3 cursor-pointer">
+              <input
+                type="radio"
+                name="saveMode"
+                checked={saveMode === "none"}
+                onChange={() => setSaveMode("none")}
+                className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Just create bucket</span>
+            </label>
+            <label className="flex items-start space-x-3 cursor-pointer">
+              <input
+                type="radio"
+                name="saveMode"
+                checked={saveMode === "save"}
+                onChange={() => setSaveMode("save")}
+                className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300"
+              />
+              <div className="flex-1">
+                <span className="text-sm text-gray-700">Create and save config</span>
+                {saveMode === "save" && (
+                  <input
+                    type="text"
+                    value={configName}
+                    onChange={(e) => setConfigName(e.target.value)}
+                    placeholder="Config name (e.g. my-app-assets)"
+                    className="mt-2 w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                    autoFocus
+                    required={saveMode === "save"}
+                  />
+                )}
+              </div>
+            </label>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end space-x-3 pt-6 border-t">
+          <div className="flex justify-end space-x-3 pt-2">
             <button
               type="button"
               onClick={onClose}
@@ -187,9 +238,9 @@ export default function S3ConfigModal({
             <button
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-              disabled={loading}
+              disabled={loading || (saveMode === "save" && !configName.trim())}
             >
-              {loading ? "Creating..." : "Create Bucket"}
+              {loading ? "Creating..." : saveMode === "save" ? "Create & Save Config" : "Create Bucket"}
             </button>
           </div>
         </form>
@@ -197,5 +248,3 @@ export default function S3ConfigModal({
     </div>
   );
 }
-
- 
