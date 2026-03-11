@@ -90,7 +90,10 @@ Direct localhost (no TLS — always available):
 
 ### Main Dashboard
 
-The main dashboard provides an overview of all services and resources with real-time status indicators.
+The dashboard is divided into two distinct areas:
+
+- **Services Status Bar** — health indicators for all platform services (Keycloak, LocalStack, Mailpit, PostgreSQL, Redis), listed alphabetically. Click any service to open its management panel or documentation.
+- **AWS Resources** — a categorized view of your LocalStack resources (Storage, Database, Compute, Networking, Security & Identity), with AWS service icons, add/destroy actions, and inline resource inspection.
 
 ![Main Dashboard](docs/screenshots/01-main-dashboard.png)
 
@@ -170,7 +173,17 @@ localcloud-kit/
 
 ## 🎯 Features
 
-**Latest Release:** v0.8.0 adds Mailpit email testing (local SMTP + inbox UI), Redis cache modal, a restructured Resources navigation with labelled sections (AWS, Cache, Inbox), a comprehensive modal UX overhaul (scroll lock, Escape key, backdrop dismiss) across all viewers, DynamoDB add-item fixes (focus close, scroll, number validation), and expanded SDK connection docs with Secrets Manager examples. [View detailed changelog →](CHANGELOG.md)
+**Latest Release:** see [CHANGELOG.md](CHANGELOG.md) for the full history.
+
+### Navigation
+
+The header contains three primary dropdowns:
+
+| Dropdown | Contents |
+|----------|----------|
+| **Resources** | AWS resources organized by category (Storage, Database, Compute, Networking, Security & Identity) — things you create and destroy in LocalStack |
+| **Services** | Platform services (Keycloak, Mailpit, PostgreSQL, Redis) — always-running infrastructure managed via their own admin UIs |
+| **Docs** | Reference documentation for all services and AWS resources |
 
 ### AWS Service Emulation
 
@@ -209,10 +222,10 @@ localcloud-kit/
 #### Mailpit Email Testing
 
 - **Local SMTP Server**: Catch all outbound emails without sending to real addresses
-- **Inbox UI**: Browse, read, and inspect emails directly from the dashboard
-- **Send Test Emails**: Fire test emails from the GUI to verify templates and flows
-- **Email Details**: View headers, body, recipient info, and timestamps
-- **Inbox Management**: Clear all messages or delete individually
+- **Dashboard Inbox**: Click Mailpit in the status bar for a read-only recent messages preview with unread badge
+- **Quick Test Button**: Send a preset test email in one click from the dashboard modal
+- **Full Test Compose**: Complete compose form on the Mailpit documentation page
+- **Admin UI**: Link through to the full Mailpit web interface for advanced filtering and message inspection
 
 ### Development Tools
 
