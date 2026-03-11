@@ -11,13 +11,13 @@ import {
   PlusCircleIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { cacheApi } from "@/services/api";
 import DocPageNav from "@/components/DocPageNav";
 import ServiceStatusBadge from "@/components/ServiceStatusBadge";
 import Link from "next/link";
 
-const formVariants = {
+const formVariants: Variants = {
   hidden: { opacity: 0, y: -8 },
   visible: {
     opacity: 1,
