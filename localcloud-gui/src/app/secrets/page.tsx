@@ -1,16 +1,65 @@
 "use client";
 
 import {
-  ArrowLeftIcon,
   ArrowTopRightOnSquareIcon,
   KeyIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import DocPageNav from "@/components/DocPageNav";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
+import { usePreferences } from "@/context/PreferencesContext";
+
+const PAGE_TABS = ["typescript", "node", "python", "cli"] as const;
+type PageTab = (typeof PAGE_TABS)[number];
 
 const sdkExamples = {
+  typescript: `// npm install @aws-sdk/client-secrets-manager
+import {
+  SecretsManagerClient,
+  CreateSecretCommand,
+  GetSecretValueCommand,
+  UpdateSecretCommand,
+  DeleteSecretCommand,
+  ListSecretsCommand,
+  SecretListEntry,
+} from "@aws-sdk/client-secrets-manager";
+
+const sm = new SecretsManagerClient({
+  region: "us-east-1",
+  endpoint: "http://localhost:4566",
+  credentials: { accessKeyId: "test", secretAccessKey: "test" },
+});
+
+// Create a secret
+await sm.send(new CreateSecretCommand({
+  Name: "my-app/database-password",
+  SecretString: JSON.stringify({ password: "s3cr3t!" }),
+  Description: "Database password for my-app",
+}));
+
+// Get a secret value
+const { SecretString } = await sm.send(new GetSecretValueCommand({
+  SecretId: "my-app/database-password",
+}));
+const secret = JSON.parse(SecretString!) as { password: string };
+console.log(secret.password);
+
+// Update a secret
+await sm.send(new UpdateSecretCommand({
+  SecretId: "my-app/database-password",
+  SecretString: JSON.stringify({ password: "new-s3cr3t!" }),
+}));
+
+// List secrets
+const { SecretList } = await sm.send(new ListSecretsCommand({}));
+(SecretList ?? []).forEach((s: SecretListEntry) => console.log(s.Name, s.ARN));
+
+// Delete a secret (ForceDeleteWithoutRecovery skips the 30-day window)
+await sm.send(new DeleteSecretCommand({
+  SecretId: "my-app/database-password",
+  ForceDeleteWithoutRecovery: true,
+}));`,
   node: `// npm install @aws-sdk/client-secrets-manager
 import {
   SecretsManagerClient,
@@ -150,39 +199,32 @@ const externalResources = [
 ];
 
 export default function SecretsDocPage() {
-  const [activeTab, setActiveTab] = useState<"node" | "python" | "cli">("node");
+  const { profile, updateProfile } = usePreferences();
+  const [activeTab, setActiveTab] = useState<PageTab>("typescript");
+
+  useEffect(() => {
+    if (profile?.preferred_language) {
+      const lang = profile.preferred_language as PageTab;
+      setActiveTab(PAGE_TABS.includes(lang) ? lang : "typescript");
+    }
+  }, [profile?.preferred_language]);
+
+  const handleTabChange = (tab: PageTab) => {
+    setActiveTab(tab);
+    updateProfile({ preferred_language: tab }).catch(() => {});
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeftIcon className="h-4 w-4 mr-1.5" />
-                Dashboard
-              </Link>
-              <div className="flex items-center space-x-3">
-                <Image src="/logo.svg" alt="LocalCloud Kit" width={36} height={36} />
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">Secrets Manager</h1>
-                  <p className="text-xs text-gray-500">Local secret storage via LocalStack</p>
-                </div>
-              </div>
-            </div>
-            <Link
-              href="/"
-              className="flex items-center px-3 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 transition-colors"
-            >
-              <KeyIcon className="h-4 w-4 mr-1.5" />
-              Manage Secrets
-            </Link>
-          </div>
-        </div>
-      </header>
+      <DocPageNav title="Secrets Manager" subtitle="Local secret storage via LocalStack">
+        <Link
+          href="/"
+          className="flex items-center px-3 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 transition-colors"
+        >
+          <KeyIcon className="h-4 w-4 mr-1.5" />
+          Manage Secrets
+        </Link>
+      </DocPageNav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
@@ -246,13 +288,14 @@ export default function SecretsDocPage() {
           </p>
           <div className="flex space-x-1 mb-4 border-b border-gray-200">
             {([
+              { key: "typescript" as const, label: "TypeScript" },
               { key: "node" as const, label: "Node.js" },
               { key: "python" as const, label: "Python" },
               { key: "cli" as const, label: "AWS CLI" },
             ]).map(({ key, label }) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key)}
+                onClick={() => handleTabChange(key)}
                 className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
                   activeTab === key
                     ? "border-blue-600 text-blue-600"
@@ -263,6 +306,9 @@ export default function SecretsDocPage() {
               </button>
             ))}
           </div>
+          {activeTab === "typescript" && (
+            <ThemeableCodeBlock code={sdkExamples.typescript} language="typescript" />
+          )}
           {activeTab === "node" && (
             <ThemeableCodeBlock code={sdkExamples.node} language="node" />
           )}
