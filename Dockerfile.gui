@@ -8,7 +8,7 @@ WORKDIR /app
 COPY localcloud-gui/package*.json ./
 
 # Install all dependencies (including dev dependencies)
-RUN npm ci
+RUN npm ci --loglevel=error
 
 # Copy the rest of the application
 COPY localcloud-gui/ ./
