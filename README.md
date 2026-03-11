@@ -4,21 +4,37 @@
 
 Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Secrets Manager, Redis cache, and email testing with Mailpit.
 
-[![Version](https://img.shields.io/badge/version-0.11.2-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.11.2)
+[![Version](https://img.shields.io/badge/version-0.11.3-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.11.3)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 [![Docker](https://img.shields.io/badge/Docker-Containerized-0db7ed?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Emulation-1a1a2e?style=for-the-badge&logo=amazon-aws&logoColor=ff9900)](https://localstack.cloud/)
 [![Redis](https://img.shields.io/badge/Redis-7.x-dc382d?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
 [![Mailpit](https://img.shields.io/badge/Mailpit-Email%20Testing-e8622a?style=for-the-badge&logo=maildotru&logoColor=white)](https://mailpit.axllent.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Keycloak](https://img.shields.io/badge/Keycloak-Identity-7F4F24?style=for-the-badge&logo=keycloak&logoColor=white)](https://www.keycloak.org/)
+
+## Table of Contents
+
+- [Quick Start](#-quick-start)
+- [Screenshots](#-screenshots)
+- [Project Structure](#-project-structure)
+- [Features](#-features)
+- [LocalStack Version](#-localstack-version)
+- [Usage](#-usage)
+- [Configuration](#-configuration)
+- [Common Commands](#-common-commands)
+- [Documentation](#-documentation)
+- [Contributing](#-contributing)
+- [Support](#-support)
+- [Troubleshooting](#-troubleshooting)
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-**Only one thing required:**
-
-- ✅ **Docker & Docker Compose** - [Install Docker](https://docs.docker.com/get-docker/)
+- ✅ **Docker & Docker Compose** — [Install Docker](https://docs.docker.com/get-docker/)
+- **AWS CLI** — Optional, for shell automation
 
 Everything else is handled automatically!
 
@@ -39,15 +55,7 @@ Everything else is handled automatically!
 - Generates a single trusted certificate covering all LocalCloud Kit subdomains: `app-local`, `mailpit`, `pgadmin`, and `keycloak`
 - Adds all four subdomains (`app-local`, `mailpit`, `pgadmin`, `keycloak`) to `/etc/hosts` (requires sudo password)
 
-**No manual installation needed** - the script handles everything automatically!
-
-**Individual scripts available for one-off operations:**
-
-- `./scripts/setup-mkcert.sh` - Generate certificates only
-- `./scripts/install-ca.sh` - Install CA certificate only
-- `./scripts/setup-hosts.sh` - Add all four subdomains (`app-local`, `mailpit`, `pgadmin`, `keycloak`) to /etc/hosts
-- `./scripts/cleanup-hosts.sh` - Remove LocalCloud Kit domains from /etc/hosts (with confirmation)
-- `./scripts/verify-setup.sh` - Verify setup and certificate configuration
+**No manual installation needed** — the script handles everything automatically. See [docs/SETUP_SCRIPTS.md](docs/SETUP_SCRIPTS.md) for individual scripts.
 
 #### Step 2: Start the Application
 
@@ -82,9 +90,21 @@ Direct localhost (no TLS — always available):
 - **pgAdmin**: http://localhost:5050 (direct, no cert required)
 - **Keycloak**: http://localhost:8080 (direct, no cert required)
 
-> **Note**: Run `./scripts/setup.sh` once to add all subdomains to `/etc/hosts` and generate the TLS certificate.
+| Service | URL | Description |
+|---------|-----|--------------|
+| Web GUI | https://app-local.localcloudkit.com:3030 | Main application |
+| API | https://app-local.localcloudkit.com:3030/api | REST API |
+| LocalStack | http://localhost:4566 | AWS emulation |
+| Redis | localhost:6380 | Cache (no password) |
+| Mailpit UI | https://mailpit.localcloudkit.com:3030 | Email inbox |
+| Mailpit SMTP | localhost:1025 | SMTP endpoint |
+| pgAdmin | https://pgadmin.localcloudkit.com:3030 | PostgreSQL UI |
+| PostgreSQL | localhost:5432 | Direct DB |
+| Keycloak | https://keycloak.localcloudkit.com:3030 | Identity & access |
 
-**📖 For detailed getting started instructions, see [GETTING_STARTED.md](GETTING_STARTED.md)**
+> **Note**: Run `./scripts/setup.sh` once to add subdomains to `/etc/hosts` and generate the TLS certificate.
+
+**📖 For detailed setup, see [GETTING_STARTED.md](GETTING_STARTED.md)**
 
 ## 📸 Screenshots
 
@@ -137,43 +157,11 @@ Scan and query items, add new entries, and manage table contents from the dashbo
 
 ## 🏗️ Project Structure
 
-```
-localcloud-kit/
-├── 📁 localcloud-gui/          # Next.js Web GUI
-│   ├── 📁 src/
-│   │   ├── 📁 components/      # React components
-│   │   ├── 📁 services/        # API services
-│   │   └── 📁 types/           # TypeScript types
-│   └── 📄 README.md            # Web GUI documentation
-├── 📁 localcloud-api/          # Express API Server
-│   ├── 📄 server.js            # API server
-│   ├── 📁 logs/                # Application logs
-│   └── 📄 README.md            # API documentation
-├── 📁 scripts/                 # Automation scripts
-│   └── 📁 shell/               # Shell-based automation
-│       ├── 📄 create_secret.sh # Secrets Manager creation
-│       ├── 📄 delete_secret.sh # Secrets Manager deletion
-│       ├── 📄 get_secret.sh    # Secrets Manager retrieval
-│       └── 📄 list_secrets.sh  # Secrets Manager listing
-├── 📁 samples/                 # Sample files for testing
-│   ├── 📄 sample.py            # Python example
-│   ├── 📄 sample.js            # JavaScript example
-│   ├── 📄 sample.ts            # TypeScript example
-│   ├── 📄 sample.json          # JSON example
-│   ├── 📄 sample.csv           # CSV example
-│   ├── 📄 Sample.java          # Java example
-│   ├── 📄 sample.docx          # Word document example
-│   └── 📄 README.md            # Samples documentation
-├── 📄 docker-compose.yml       # Docker Compose configuration
-├── 📄 Dockerfile.gui           # GUI container build
-├── 📄 Dockerfile.api           # API container build
-├── 📄 nginx.conf               # Reverse proxy configuration
-└── 📄 README.md                # This file
-```
+See [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) for the full project layout.
 
 ## 🎯 Features
 
-**Latest Release:** see [CHANGELOG.md](CHANGELOG.md) for the full history.
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ### Navigation
 
@@ -264,83 +252,32 @@ The header contains three primary dropdowns:
 - **Comprehensive Documentation**: Detailed guides and SDK examples
 - **Sample Files**: Pre-configured examples for testing features
 
-## 🛠️ Prerequisites
+## 📌 LocalStack Version
 
-- **Docker & Docker Compose**: For containerized services
-- **AWS CLI**: For shell automation (optional, for local development)
+Uses `latest` by default. Last tested: 4.14.0. See [docs/LOCALSTACK.md](docs/LOCALSTACK.md) for version pinning and the March 2026 image change.
 
-## 📌 LocalStack Version Compatibility
-
-LocalCloud Kit uses the latest LocalStack version by default:
-
-- **Default Version**: `latest` (automatically pulls newest LocalStack release)
-- **Last Tested**: 4.14.0 (March 11, 2026)
-- **Compatibility**: Maintained and updated as LocalStack evolves
-
-> 📌 **LocalStack image change (March 23, 2026)**: LocalStack is consolidating Community and Pro into a single image. The **Community edition remains free** — all services LocalCloud Kit uses (S3, DynamoDB, Secrets Manager, IAM) are included at no cost. After March 23, you'll need a free account and `LOCALSTACK_AUTH_TOKEN` set in your `.env` to pull the `latest` tag. [Sign up free →](https://app.localstack.cloud/sign-up). To avoid this entirely, use `make start-legacy` to pin to `4.14` (no auth required for pre-consolidation versions).
-
-### Using Specific LocalStack Versions
-
-The default configuration uses `latest`, but you can pin to a specific version if needed:
+<details>
+<summary><b>Start commands</b></summary>
 
 ```bash
-# Start with latest (default)
-make start
-
-# Start with LocalStack 4.14 — community legacy, no auth token required
-make start-legacy
-
-# Start with any specific version
-make start LOCALSTACK_VERSION=4.14.0
-
-# Using environment variable directly
-LOCALSTACK_VERSION=4.14.0 docker compose up
-
-# Using a .env file
-cp env.example .env
-# Edit LOCALSTACK_VERSION in .env, then:
-docker compose up
+make start                                    # Default (latest)
+make start-legacy                             # Pin to 4.14 (no auth)
+make start LOCALSTACK_VERSION=4.14.0          # Any version
+docker compose up --build                     # Alternative
+docker compose up -d localstack api nginx     # Dev mode (GUI: cd localcloud-gui && npm run dev)
 ```
 
-### Version Strategy
-
-The `docker-compose.yml` uses `${LOCALSTACK_VERSION:-latest}` which means:
-
-- Uses `latest` by default (automatically pulls newest LocalStack release)
-- Ensures you always have the latest features and bug fixes
-- Respects `LOCALSTACK_VERSION` environment variable for version pinning
-- Flexibility to pin to specific versions when reproducibility is needed
-
-**Why `latest`?**
-
-- LocalCloud Kit is maintained to stay compatible with LocalStack updates
-- Breaking changes are documented in the README when they occur
-- Gives users the latest features and improvements automatically
-- Can still pin to specific versions via environment variables if needed
-
-> ⚠️ **Note**: If you encounter compatibility issues with a new LocalStack version, pin to a known working version (e.g., `4.14.0`) using the methods above, and report the issue in [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues).
+</details>
 
 ## 📖 Usage
 
 ### Start Services
 
 ```bash
-# Start with LocalStack latest (default)
 make start
-
-# Start with LocalStack 4.14 — community legacy, no auth token required
-make start-legacy
-
-# Start with any specific LocalStack version
-make start LOCALSTACK_VERSION=4.14.0
-
-# Alternative: Docker Compose directly
-docker compose up --build
-
-# Development mode (GUI outside Docker)
-docker compose up -d localstack api nginx
-cd localcloud-gui && npm install && npm run dev
 ```
+
+See [docs/LOCALSTACK.md](docs/LOCALSTACK.md) for `make start-legacy`, version pinning, and development mode.
 
 ### Create Resources
 
@@ -407,39 +344,12 @@ Then view files in the GUI with full syntax highlighting support.
 
 ## 🔧 Configuration
 
-### Service URLs
+- **Project Name**: Resource naming conventions
+- **Environment**: dev/uat/prod isolation
+- **AWS Region**: Default `us-east-1`
+- **Hot Reload**: Enabled for GUI and API
 
-| Service       | URL                                          | Description                       |
-| ------------- | -------------------------------------------- | --------------------------------- |
-| Web GUI       | https://app-local.localcloudkit.com:3030     | Main application interface        |
-| API Server    | https://app-local.localcloudkit.com:3030/api | REST API endpoints                |
-| LocalStack    | http://localhost:4566                        | AWS services emulation            |
-| Redis Cache   | localhost:6380                               | Redis cache (no password)         |
-| Mailpit UI    | https://mailpit.localcloudkit.com:3030       | Email inbox and SMTP testing      |
-| Mailpit SMTP  | localhost:1025                               | SMTP endpoint for sending email   |
-| pgAdmin       | https://pgadmin.localcloudkit.com:3030       | PostgreSQL database UI            |
-| pgAdmin       | http://localhost:5050                        | pgAdmin direct (no cert required) |
-| PostgreSQL    | localhost:5432                               | Direct DB connection              |
-| Keycloak      | https://keycloak.localcloudkit.com:3030      | Identity & access management      |
-| Keycloak      | http://localhost:8080                        | Keycloak direct (no cert required)|
-
-> **Note**: Within Docker network, services use internal hostnames (e.g., `localstack:4566`, `redis:6379`)
-
-### Environment Configuration
-
-- **Project Name**: Used for resource naming conventions
-- **Environment**: Supports dev/uat/prod isolation
-- **AWS Region**: Default is `us-east-1`
-- **Hot Reload**: Enabled for both GUI and API during development
-
-### Customization
-
-Edit `docker-compose.yml` to customize:
-
-- Port mappings
-- Environment variables
-- Resource limits
-- Volume mounts
+Edit `docker-compose.yml` for port mappings, environment variables, resource limits, and volume mounts. Within Docker, services use internal hostnames (e.g., `localstack:4566`, `localcloud-redis:6379`).
 
 ## 🚀 Common Commands
 
@@ -477,153 +387,49 @@ docker compose up -d --scale api=3 # Scale services
 
 ### Getting Started
 
-- **[Getting Started Guide](GETTING_STARTED.md)** - Complete setup and first-time installation (includes quick start, customization, and workflows)
-- **[Docker Guide](docs/DOCKER.md)** - Container deployment and management
-- **[Connection Guide](docs/CONNECT.md)** - AWS SDK integration examples (JS, Python, Go, Java)
-
-### Setup & Configuration Scripts
-
-LocalCloud Kit includes several setup and maintenance scripts:
-
-**Setup Scripts:**
-
-- `./scripts/setup.sh` - **Master setup script** - Runs all setup steps automatically
-  - Installs mkcert (if needed)
-  - Installs mkcert CA certificate
-  - Generates SSL certificates covering all four subdomains
-  - Adds all four subdomains to /etc/hosts
-- `./scripts/setup-mkcert.sh` - Generate SSL certificates only
-- `./scripts/install-ca.sh` - Install mkcert CA certificate to system trust store
-- `./scripts/setup-hosts.sh` - Add all four subdomains (`app-local`, `mailpit`, `pgadmin`, `keycloak`) to /etc/hosts
-- `./scripts/verify-setup.sh` - Verify setup configuration
-  - Checks certificate files exist and are valid
-  - Verifies certificate SANs cover all four subdomains (`mailpit`, `pgadmin`, `keycloak`)
-  - Checks `/etc/hosts` entries for all four subdomains
-  - Verifies mkcert CA is installed
-  - Tests HTTPS connectivity for app and Mailpit
-  - Provides troubleshooting guidance
-
-**Cleanup Scripts:**
-
-- `./scripts/cleanup-hosts.sh` - **Interactive cleanup** of LocalCloud Kit domain entries
-  - Detects all LocalCloud Kit domains in /etc/hosts (including previous versions)
-  - Shows found entries before removal
-  - **Interactive confirmation** - choose which domains to remove or keep
-  - Creates backup before making changes
-  - Supports cleaning up old domains like `localcloudkit.local`
-  - Safe to run - requires confirmation for each domain
-
-**Example cleanup usage:**
-
-```bash
-# Clean up old domain entries (interactive)
-sudo ./scripts/cleanup-hosts.sh
-
-# The script will:
-# 1. Scan /etc/hosts for all LocalCloud Kit domains
-#    - Detects: localcloudkit.local (old domain)
-#    - Detects: app-local.localcloudkit.com (current domain)
-# 2. Show all found entries before making changes
-# 3. Ask for each domain individually: "Remove entries for [domain]? (y/N)"
-#    - You can choose to keep or remove each domain
-# 4. Show summary of what will be removed (red) and kept (green)
-# 5. Final confirmation before making any changes
-# 6. Create backup automatically
-# 7. Remove only selected domains
-# 8. Verify removal was successful
-```
-
-**Cleanup script features:**
-
-- ✅ **Safe**: Creates backup before any changes
-- ✅ **Interactive**: Choose which domains to remove or keep
-- ✅ **Selective**: Remove old domains while keeping current one
-- ✅ **Verification**: Confirms successful removal
-- ✅ **Cancellable**: Can cancel at any confirmation prompt
+- **[GETTING_STARTED.md](GETTING_STARTED.md)** — Complete setup and first-time installation
+- **[docs/SETUP_SCRIPTS.md](docs/SETUP_SCRIPTS.md)** — Setup and cleanup scripts
+- **[docs/DOCKER.md](docs/DOCKER.md)** — Container deployment
+- **[docs/CONNECT.md](docs/CONNECT.md)** — AWS SDK integration (JS, Python, Go, Java)
 
 ### Certificate & Security
 
-- **[mkcert Setup Guide](docs/MKCERT_SETUP.md)** - Certificate generation and installation
-- **[Certificate Troubleshooting](docs/CERTIFICATE_TROUBLESHOOTING.md)** - Fix certificate issues
-- **[Local Development Workflow](docs/LOCAL_WORKFLOW.md)** - Daily development workflow
+- **[docs/MKCERT_SETUP.md](docs/MKCERT_SETUP.md)** — Certificate generation
+- **[docs/CERTIFICATE_TROUBLESHOOTING.md](docs/CERTIFICATE_TROUBLESHOOTING.md)** — Fix certificate issues
+- **[docs/LOCAL_WORKFLOW.md](docs/LOCAL_WORKFLOW.md)** — Daily development workflow
 
-### Service Documentation
+### Services
 
-- **[Mailpit Email Testing](docs/MAILPIT.md)** - Email testing guide with SMTP configuration and API examples
-- **[Redis Cache Management](docs/REDIS.md)** - Complete Redis cache guide with API endpoints and examples
-- **[Secrets Manager Integration](docs/SECRETS.md)** - Full Secrets Manager documentation with SDK examples
+- **[docs/MAILPIT.md](docs/MAILPIT.md)** — Email testing
+- **[docs/REDIS.md](docs/REDIS.md)** — Redis cache
+- **[docs/SECRETS.md](docs/SECRETS.md)** — Secrets Manager
+- **[docs/KEYCLOAK.md](docs/KEYCLOAK.md)** — Identity & access
+- **[docs/PGADMIN.md](docs/PGADMIN.md)** — PostgreSQL UI
 
-### Component Documentation
+### Components
 
-- **[API Documentation](localcloud-api/README.md)** - Backend API server reference
-- **[GUI Documentation](localcloud-gui/README.md)** - Frontend application guide
-- **[Shell Scripts](scripts/shell/README.md)** - Automation scripts documentation
-- **[Samples](samples/README.md)** - Sample files for testing
+- **[localcloud-api/README.md](localcloud-api/README.md)** — API reference
+- **[localcloud-gui/README.md](localcloud-gui/README.md)** — Frontend guide
+- **[scripts/shell/README.md](scripts/shell/README.md)** — Shell automation
+- **[samples/README.md](samples/README.md)** — Sample files
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
-### Development Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/jonbrobinson/localcloud-kit.git
-cd localcloud-kit
-
-# Start development environment
-make start                  # Start all services with Docker
-# or
-docker compose up --build   # Alternative: Docker Compose directly
-
-# View available commands
-make help                   # Show all available Makefile commands
-
-# Common development commands
-make logs                   # View all service logs
-make status                 # Check service health
-make restart                # Restart all services
-
-# GUI-only development (for frontend work)
-make gui-start              # Start only GUI, API, and nginx
-cd localcloud-gui && npm run dev  # Or run GUI locally outside Docker
-```
+**Development setup:** `git clone` → `make start` → `make help` for commands. For GUI-only work: `make gui-start` or `cd localcloud-gui && npm run dev`.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE).
 
 ## 🆘 Support
 
-- **Documentation**: [README.md](README.md)
-- **Issues**: [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/jonbrobinson/localcloud-kit/discussions)
-- **Repository**: [GitHub Repository](https://github.com/jonbrobinson/localcloud-kit)
+- **Issues**: [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues) — bug reports, feature requests
+- **Discussions**: [GitHub Discussions](https://github.com/jonbrobinson/localcloud-kit/discussions) — questions, community
+- **Docs**: [GETTING_STARTED.md](GETTING_STARTED.md), [docs/](docs/)
 
-## 🔗 Links
-
-- [GitHub Repository](https://github.com/jonbrobinson/localcloud-kit)
-- [LocalStack Documentation](https://docs.localstack.cloud/)
-- [AWS Documentation](https://docs.aws.amazon.com/)
-- [Docker Documentation](https://docs.docker.com/)
-
----
-
-## 📞 Contact
-
-**LocalCloud Kit** - Open Source Project
-
-- **GitHub**: https://github.com/jonbrobinson/localcloud-kit
-- **Issues**: [GitHub Issues](https://github.com/jonbrobinson/localcloud-kit/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/jonbrobinson/localcloud-kit/discussions)
-- **Documentation**: [README.md](README.md)
-
-### Getting Help
-
-- **Report Issues**: Use GitHub Issues for bug reports and feature requests
-- **Ask Questions**: Use GitHub Discussions for questions and community support
-- **Contribute**: Pull requests and contributions are welcome
-- **Documentation**: Check the README and inline documentation
+**Links:** [Repository](https://github.com/jonbrobinson/localcloud-kit) · [LocalStack](https://docs.localstack.cloud/) · [AWS](https://docs.aws.amazon.com/) · [Docker](https://docs.docker.com/)
 
 ---
 
@@ -631,154 +437,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🛠️ Troubleshooting
 
-### Connection Errors - "502 Bad Gateway" or "Failed to fetch"
+See **[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** for:
 
-If you're seeing connection errors when accessing the GUI:
+- Connection errors (502 Bad Gateway, failed to fetch)
+- Certificate and domain issues
+- Docker "no space left on device" and cleanup
 
-**Check if services are running:**
-
-```bash
-docker compose ps                    # Check container status
-docker compose up -d                 # Start if not running
-```
-
-**Verify services are healthy:**
-
-```bash
-curl -k https://app-local.localcloudkit.com:3030/api/health           # Check API
-curl http://localhost:4566/_localstack/health   # Check LocalStack
-```
-
-**Common solutions:**
-
-- **502 Bad Gateway**: API server isn't running → `docker compose up -d`
-- **Can't connect to LocalStack**: Wait for startup or restart → `docker compose restart localstack`
-- **Certificate errors / "Not Secure"**: Run `./scripts/setup-mkcert.sh` to regenerate (covers all four subdomains)
-- **Subdomain cert not trusted** (Mailpit, pgAdmin, Keycloak): See [Certificate Troubleshooting](docs/CERTIFICATE_TROUBLESHOOTING.md) — cert may be missing SANs
-- **Domain not resolving**: Run `sudo ./scripts/setup-hosts.sh` (adds all four subdomains: `app-local`, `mailpit`, `pgadmin`, `keycloak`)
-- **Changes after `git pull` not showing**: Use `make restart` not `make start` — running containers must be stopped and recreated
-- **Clean up old domain entries**: Run `sudo ./scripts/cleanup-hosts.sh` to remove previous LocalCloud Kit domains (interactive, with confirmation)
-
-**Development mode (GUI outside Docker):**
-
-```bash
-docker compose up -d localstack api nginx
-cd localcloud-gui && npm install && npm run dev
-# GUI available at http://localhost:3000
-```
-
-### Docker Build Failures - "No Space Left on Device"
-
-If you encounter build failures with errors like:
-
-```
-failed to copy files: userspace copy failed: write /app/node_modules/...: no space left on device
-```
-
-This indicates that Docker has run out of disk space. This commonly happens when:
-
-- **Multiple Docker builds** accumulate over time
-- **Large node_modules** directories from previous builds
-- **Unused Docker images, containers, and volumes** taking up space
-- **Build cache** growing too large
-
-#### Quick Fix - Clean Up Docker
-
-**Using LocalCloud Kit Commands (Recommended):**
-
-```bash
-# Reset Docker environment (stops services + cleans volumes)
-make reset
-
-# Full environment reset (clean resources + stop services + clean all Docker resources)
-make reset-env
-
-# Clean Docker volumes only (removes all persistent data)
-make clean-volumes
-
-# Clean all Docker resources (containers, images, volumes)
-make clean-all
-```
-
-**Using Docker Commands Directly:**
-
-```bash
-# Check Docker disk usage
-docker system df
-
-# Clean up everything (WARNING: This removes ALL unused Docker data)
-docker system prune -a --volumes -f
-
-# Alternative: Clean up specific components
-docker image prune -a -f    # Remove unused images
-docker container prune -f   # Remove stopped containers
-docker volume prune -f      # Remove unused volumes
-docker builder prune -a -f  # Remove build cache
-```
-
-#### Prevention - Regular Maintenance
-
-Add these commands to your regular maintenance routine:
-
-**Using LocalCloud Kit Commands:**
-
-```bash
-# Weekly reset (stops services + cleans volumes)
-make reset
-
-# Monthly deep cleanup (removes everything unused)
-make reset-env
-
-# Check space usage
-docker system df
-```
-
-**Using Docker Commands Directly:**
-
-```bash
-# Weekly cleanup (keeps recent images)
-docker system prune -f
-
-# Monthly deep cleanup (removes everything unused)
-docker system prune -a --volumes -f
-
-# Check space usage
-docker system df
-```
-
-#### What Causes This Issue
-
-This issue is particularly common with this repository because:
-
-1. **Large Dependencies**: Next.js and Node.js applications have large `node_modules` directories
-2. **Multiple Builds**: Each `docker compose up --build` creates new layers
-3. **Development Workflow**: Frequent rebuilds during development accumulate layers
-4. **LocalStack Images**: The LocalStack Docker image is quite large (~1GB+)
-5. **Build Cache**: Docker build cache can grow significantly over time
-
-#### Monitoring Disk Usage
-
-```bash
-# Check current Docker disk usage
-docker system df
-
-# Expected output format:
-# TYPE            TOTAL     ACTIVE     SIZE      RECLAIMABLE
-# Images          10        3          2.1GB     1.5GB (71%)
-# Containers      5         1          0.1GB     0.1GB (100%)
-# Local Volumes   3         1          0.5GB     0.3GB (60%)
-# Build Cache     0         0          0B        0B
-```
-
-If **RECLAIMABLE** space is high (>50%), consider running cleanup commands.
-
-#### Alternative Solutions
-
-If you frequently run into space issues:
-
-1. **Use .dockerignore**: Ensure your `.dockerignore` file excludes unnecessary files
-2. **Multi-stage builds**: Optimize Dockerfiles to reduce image size
-3. **Regular cleanup**: Set up automated cleanup scripts
-4. **Separate development**: Use different Docker contexts for different projects
-
----
+**Quick fixes:** `docker compose up -d` · `make restart` · `sudo ./scripts/setup-hosts.sh` · `sudo ./scripts/cleanup-hosts.sh`
