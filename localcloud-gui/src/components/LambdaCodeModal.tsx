@@ -112,9 +112,9 @@ export default function LambdaCodeModal({
         ) : (
           <div className="flex flex-1 min-h-0">
             <div className="w-48 border-r border-gray-200 overflow-y-auto bg-gray-50 shrink-0">
-              {files.map((f) => (
+              {files.map((f, idx) => (
                 <button
-                  key={f.name}
+                  key={`${f.name}-${idx}`}
                   onClick={() => setSelectedFile(f.name)}
                   className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 truncate ${
                     selectedFile === f.name ? "bg-indigo-50 text-indigo-700 font-medium" : "text-gray-700 hover:bg-gray-100"

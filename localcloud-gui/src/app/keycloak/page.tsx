@@ -283,8 +283,8 @@ export default function KeycloakPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
-                {resources.map((r) => (
-                  <tr key={r.name}>
+                {resources.map((r, idx) => (
+                  <tr key={`${r.name}-${r.url}-${idx}`}>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <a
                         href={r.url}
