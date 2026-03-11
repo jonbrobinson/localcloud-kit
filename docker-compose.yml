@@ -21,7 +21,7 @@ services:
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=s3,dynamodb,lambda,apigateway,iam,secretsmanager
+      - SERVICES=s3,dynamodb,lambda,apigateway,iam,secretsmanager,ssm
       - DEBUG=1
       - DATA_DIR=/tmp/localstack/data
       - DOCKER_HOST=unix:///var/run/docker.sock

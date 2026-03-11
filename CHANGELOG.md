@@ -5,6 +5,11 @@ All notable changes to LocalCloud Kit will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- **API Gateway create**: Pass config to create_single_resource.sh; capture API ID from create-rest-api output for correct destroy; escape JSON config for shell
+- **SSM create**: Add ssmConfig handling in resources.js createSingleResource (was missing)
+- **SSM list**: Add list_ssm_parameters to list_resources.sh so SSM parameters appear in dashboard
+- **SSM destroy**: Add SSM parameter deletion to destroy_resources.sh (specific and bulk)
+- **LocalStack**: Enable SSM service in docker-compose SERVICES
 - **Docker**: Add `.dockerignore` to exclude `node_modules` and build artifacts — prevents host `node_modules` from being copied into Docker builds so `npm ci` runs fresh
 - **API**: Replace Express 4 `:name(*)` route syntax with Express 5–compatible `*name` splat in SSM and S3 routes — fixes path-to-regexp v8 TypeError with parameter names containing slashes
 
