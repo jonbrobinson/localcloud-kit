@@ -11,11 +11,11 @@
   "dependencies": {
     "@heroicons/react": "^2.0.18",
     "@iconify/react": "^6.0.2",
-    "axios": "^1.6.0",
+    "axios": "^1.13.6",
     "framer-motion": "^12.35.2",
     "highlight.js": "^11.9.0",
     "marked": "^12.0.1",
-    "next": "15.3.4",
+    "next": "15.5.12",
     "papaparse": "^5.4.1",
     "react": "^18",
     "react-dom": "^18",
@@ -28,9 +28,9 @@
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.14",
     "eslint": "^9",
-    "eslint-config-next": "15.3.4",
+    "eslint-config-next": "15.5.12",
     "postcss": "^8.4.24",
-    "tailwindcss": "^3.3.0",
+    "tailwindcss": "^3.4.19",
     "typescript": "^5"
   }
 }
