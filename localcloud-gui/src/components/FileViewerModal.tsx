@@ -536,7 +536,7 @@ export default function FileViewerModal({
                   <div
                     className="prose max-w-none"
                     dangerouslySetInnerHTML={{
-                      __html: marked.parse(fileContent.content),
+                      __html: marked.parse(fileContent.content) as string,
                     }}
                   />
                 )}
