@@ -1,0 +1,13 @@
+# Dependencies - prevent host node_modules from being copied into Docker builds
+# This ensures npm ci runs fresh and doesn't use cached/stale host modules
+node_modules
+**/node_modules
+
+# Build outputs
+.next
+dist
+build
+
+# Git
+.git
+.gitignore
