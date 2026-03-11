@@ -4,6 +4,18 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **docs/screenshots/07-create-secret.png**: Create Secret modal screenshot for Secrets Manager flow
+
+### Changed
+- **docs/screenshots**: Replaced all screenshots with new flow captures (dashboard, S3, DynamoDB, Secrets Manager)
+- **README**: Updated screenshot descriptions to match current UI; added Secrets Manager section
+
+### Fixed
+- **Dashboard**: Single-shell loading, status bar, Services categories
+- **DashboardSkeleton**: Match layout, real logo and service names
+- **DynamoDBAddItemModal**: Consistent dropdown styling with ChevronDownIcon
+
 ## [0.11.0] - 2026-03-11
 
 ### Added
