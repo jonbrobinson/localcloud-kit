@@ -4,6 +4,11 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.11.4] - 2026-03-11
+
+### Changed
+- **docs/screenshots/01-main-dashboard.png**: Updated main dashboard screenshot with current UI (2 resources, service status bar)
+
 ## [0.11.3] - 2026-03-11
 
 ### Added
