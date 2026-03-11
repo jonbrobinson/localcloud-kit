@@ -65,15 +65,18 @@ export default function DocPageNav({ title, subtitle, children }: DocPageNavProp
           </div>
 
           {/* Right: custom actions + Docs dropdown + Profile */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-1">
             {/* Custom action slot (e.g. "Manage Buckets" button) */}
             {children}
+
+            {/* Divider before nav items */}
+            <div className="h-5 w-px bg-gray-200 mx-1" />
 
             {/* Docs dropdown */}
             <div className="relative" ref={docsMenuRef}>
               <button
                 onClick={() => setShowDocsMenu((v) => !v)}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <BookOpenIcon className="h-4 w-4 mr-2" />
                 Docs
@@ -170,7 +173,7 @@ export default function DocPageNav({ title, subtitle, children }: DocPageNavProp
             {/* Profile icon */}
             <Link
               href="/profile"
-              className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
               title="Profile & Preferences"
             >
               <UserCircleIcon className="h-6 w-6" />

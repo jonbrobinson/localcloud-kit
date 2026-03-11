@@ -8,7 +8,7 @@ export default function Home() {
     <main>
       <Dashboard />
       <Toaster
-        position="top-right"
+        position="bottom-right"
         toastOptions={{
           duration: 4000,
           style: {
