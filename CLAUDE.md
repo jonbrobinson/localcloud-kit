@@ -51,11 +51,21 @@ samples/            # Sample files for S3/DynamoDB testing
 
 - **S3** — bucket management, multipart uploads (up to 100MB), nested folders
 - **DynamoDB** — tables, CRUD, GSI, query/scan
-- **Lambda** — function management
-- **API Gateway** — REST endpoint creation
+- **Lambda** — function management, runtime/handler config, placeholder zip creation; upload real code via `update-function-code`
+- **API Gateway** — REST endpoint creation with name and description
 - **IAM** — identity & access management
 - **Secrets Manager** — secret storage, encryption, ARN management
+- **SSM Parameter Store** — parameter management (String, StringList, SecureString)
 - **Redis** — local cache (not AWS, but integrated into the GUI)
+
+### Saved Configs
+
+All AWS resource creation modals (S3, DynamoDB, Lambda, API Gateway, Secrets Manager, SSM) support **saved configs**:
+- Users can toggle "Save as config for future use" and give the config a name
+- Saved configs are stored per-project via `savedConfigsApi` and surfaced as clickable pills in the modal
+- Clicking a pill loads its values into the form
+- Config data flows: modal → `usePreferences().saveConfig()` → `savedConfigsApi.create()` → backend → SQLite
+- Resource types for saved configs: `s3`, `dynamodb`, `lambda`, `apigateway`, `secretsmanager`, `ssm`
 
 ---
 

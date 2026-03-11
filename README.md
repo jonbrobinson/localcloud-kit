@@ -2,7 +2,7 @@
 
 > **Local Cloud Development Environment**
 
-Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Secrets Manager, Redis cache, and email testing with Mailpit.
+Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Lambda, API Gateway, SSM Parameter Store, Secrets Manager, Redis cache, and email testing with Mailpit.
 
 [![Version](https://img.shields.io/badge/version-0.11.5-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.11.5)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -192,6 +192,30 @@ The header contains three primary dropdowns:
 - **Query & Scan**: Advanced querying with GSI support
 - **Schema Validation**: Interactive forms for adding items with type checking
 
+#### Lambda Functions
+
+- **Function Management**: Create, list, and delete Lambda functions
+- **Runtime Selection**: Python 3.9–3.12, Node.js 18/20, Java 17/21, Go, .NET 8
+- **Handler Configuration**: Set entry point via modal or AWS CLI
+- **Function Invocation**: Invoke functions with custom payloads
+- **SDK Integration**: Full AWS SDK v2/v3 and boto3 support
+
+#### API Gateway
+
+- **REST API Creation**: Create and manage REST API stubs
+- **Resource & Method Definition**: Add paths, HTTP methods, and integrations via SDK or CLI
+- **Mock & Lambda Integrations**: Connect to Lambda functions or use mock responses
+- **Stage Deployments**: Deploy APIs to named stages (dev, staging, prod)
+- **Invoke URL**: Accessible at `http://localhost:4566/restapis/{id}/{stage}/_user_request_/{path}`
+
+#### Parameter Store
+
+- **Hierarchical Parameters**: Organise with `/`-delimited path namespaces
+- **Three Types**: String (plain text), StringList (comma-separated), SecureString (encrypted)
+- **Path-based Retrieval**: Fetch all parameters under a path with `get-parameters-by-path`
+- **Config Loading**: Use as a drop-in configuration store for local app development
+- **SDK Integration**: Full AWS SDK v2/v3 and boto3 support
+
 #### Secrets Manager
 
 - **Secure Storage**: Store and manage secrets with encryption support
@@ -287,7 +311,10 @@ See [docs/LOCALSTACK.md](docs/LOCALSTACK.md) for `make start-legacy`, version pi
 2. Click individual resource buttons:
    - 🪣 **S3 Bucket** - Create storage buckets
    - 🗄️ **DynamoDB Table** - Create NoSQL tables
-   - 🔑 **Secrets Manager** - Store secrets
+   - ⚡ **Lambda Function** - Deploy serverless functions
+   - 🌐 **API Gateway** - Create REST APIs
+   - 🔒 **Parameter Store** - Store configuration and secrets
+   - 🔑 **Secrets Manager** - Store sensitive secrets
 3. Or use the batch creation modal for multiple resources
 
 #### Via Shell Scripts
@@ -398,11 +425,17 @@ docker compose up -d --scale api=3 # Scale services
 - **[docs/CERTIFICATE_TROUBLESHOOTING.md](docs/CERTIFICATE_TROUBLESHOOTING.md)** — Fix certificate issues
 - **[docs/LOCAL_WORKFLOW.md](docs/LOCAL_WORKFLOW.md)** — Daily development workflow
 
-### Services
+### AWS Services
+
+- **[docs/LAMBDA.md](docs/LAMBDA.md)** — Lambda functions
+- **[docs/API_GATEWAY.md](docs/API_GATEWAY.md)** — API Gateway
+- **[docs/SSM.md](docs/SSM.md)** — SSM Parameter Store
+- **[docs/SECRETS.md](docs/SECRETS.md)** — Secrets Manager
+
+### Platform Services
 
 - **[docs/MAILPIT.md](docs/MAILPIT.md)** — Email testing
 - **[docs/REDIS.md](docs/REDIS.md)** — Redis cache
-- **[docs/SECRETS.md](docs/SECRETS.md)** — Secrets Manager
 - **[docs/KEYCLOAK.md](docs/KEYCLOAK.md)** — Identity & access
 - **[docs/PGADMIN.md](docs/PGADMIN.md)** — PostgreSQL UI
 

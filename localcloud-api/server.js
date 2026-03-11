@@ -21,6 +21,9 @@ import mailpitRouter from "./routes/mailpit.js";
 import secretsRouter from "./routes/secrets.js";
 import postgresRouter from "./routes/postgres.js";
 import keycloakRouter from "./routes/keycloak.js";
+import lambdaRouter from "./routes/lambda.js";
+import apigatewayRouter from "./routes/apigateway.js";
+import ssmRouter from "./routes/ssm.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -60,6 +63,9 @@ app.use(mailpitRouter);
 app.use(secretsRouter);
 app.use(postgresRouter);
 app.use(keycloakRouter);
+app.use(lambdaRouter);
+app.use(apigatewayRouter);
+app.use(ssmRouter);
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {
