@@ -15,9 +15,6 @@ import {
   ServerIcon,
   Squares2X2Icon,
   UserCircleIcon,
-  CpuChipIcon,
-  GlobeAltIcon,
-  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { Icon } from "@iconify/react";
 import { useEffect, useRef, useState } from "react";
@@ -35,6 +32,7 @@ import MailpitModal from "./MailpitModal";
 import RedisModal from "./RedisModal";
 import DashboardSkeleton from "./DashboardSkeleton";
 import S3ConfigModal from "./S3ConfigModal";
+import SecretsConfigModal from "./SecretsConfigModal";
 import SecretsManagerViewer from "./SecretsManagerViewer";
 
 export default function Dashboard() {
@@ -56,6 +54,7 @@ export default function Dashboard() {
 
   const [showDynamoDBConfig, setShowDynamoDBConfig] = useState(false);
   const [showS3Config, setShowS3Config] = useState(false);
+  const [showSecretsConfig, setShowSecretsConfig] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const [showBuckets, setShowBuckets] = useState(false);
   const [showDynamoDB, setShowDynamoDB] = useState(false);
@@ -139,7 +138,7 @@ export default function Dashboard() {
   const handleCreateSingleResource = async (resourceType: string) => {
     if (resourceType === "dynamodb") { setShowDynamoDBConfig(true); return; }
     if (resourceType === "s3") { setShowS3Config(true); return; }
-    if (resourceType === "secretsmanager") { setShowSecretsManager(true); return; }
+    if (resourceType === "secretsmanager") { setShowSecretsConfig(true); return; }
 
     setCreateLoading(true);
     try {
@@ -193,6 +192,27 @@ export default function Dashboard() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const apiMessage = (error as any)?.response?.data?.error;
       toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create S3 bucket"));
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleCreateSecret = async (secretsmanagerConfig: import("@/types").SecretsManagerConfig) => {
+    setCreateLoading(true);
+    try {
+      const response = await resourceApi.createSingleWithConfig(projectName, "secretsmanager", { secretsmanagerConfig });
+      if (response.success) {
+        toast.success("Secret created successfully");
+        setShowSecretsConfig(false);
+        setTimeout(async () => { await loadInitialData(); }, 1000);
+      } else {
+        toast.error(response.error || "Failed to create secret");
+      }
+    } catch (error) {
+      console.error("Create secret error:", error);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const apiMessage = (error as any)?.response?.data?.error;
+      toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create secret"));
     } finally {
       setCreateLoading(false);
     }
@@ -303,36 +323,16 @@ export default function Dashboard() {
                       DynamoDB Tables
                     </button>
 
-                    {/* Compute */}
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Compute</p>
-                    <span className="flex items-center w-full px-4 py-2 text-sm text-gray-400 cursor-default">
-                      <CpuChipIcon className="h-4 w-4 mr-3 flex-shrink-0" />
-                      Lambda <span className="ml-auto text-xs">coming soon</span>
-                    </span>
-
-                    {/* Networking */}
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Networking</p>
-                    <span className="flex items-center w-full px-4 py-2 text-sm text-gray-400 cursor-default">
-                      <GlobeAltIcon className="h-4 w-4 mr-3 flex-shrink-0" />
-                      API Gateway <span className="ml-auto text-xs">coming soon</span>
-                    </span>
-
                     {/* Security & Identity */}
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Security & Identity</p>
                     <button
-                      onClick={() => { setShowSecretsManager(true); closeAllMenus(); }}
+                      onClick={() => { setShowSecretsConfig(true); closeAllMenus(); }}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                       Secrets Manager
                     </button>
-                    <span className="flex items-center w-full px-4 py-2 text-sm text-gray-400 cursor-default">
-                      <ShieldCheckIcon className="h-4 w-4 mr-3 flex-shrink-0" />
-                      IAM <span className="ml-auto text-xs">coming soon</span>
-                    </span>
 
                   </div>
                 )}
@@ -721,6 +721,16 @@ export default function Dashboard() {
           isOpen={showS3Config}
           onClose={() => setShowS3Config(false)}
           onSubmit={handleCreateS3Bucket}
+          projectName={projectName}
+          loading={createLoading}
+        />
+      )}
+
+      {showSecretsConfig && (
+        <SecretsConfigModal
+          isOpen={showSecretsConfig}
+          onClose={() => setShowSecretsConfig(false)}
+          onSubmit={handleCreateSecret}
           projectName={projectName}
           loading={createLoading}
         />
