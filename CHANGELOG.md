@@ -4,6 +4,19 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.11.3] - 2026-03-11
+
+### Added
+- **docs/LOCALSTACK.md**: LocalStack version strategy, pinning, March 2026 image change
+- **docs/TROUBLESHOOTING.md**: Connection errors, certificate issues, Docker disk space cleanup
+- **docs/SETUP_SCRIPTS.md**: Setup and cleanup script reference
+- **README**: Table of contents, PostgreSQL and Keycloak badges
+
+### Changed
+- **README**: Major overhaul — merged Prerequisites/Support/Contact, consolidated start commands, moved long sections to docs, added Service URLs table in Quick Start, collapsible LocalStack section
+- **docs/screenshots/01-main-dashboard.png**: Restored main dashboard screenshot (was Create Secret modal)
+- **docs/PROJECT_STRUCTURE.md**: Added LOCALSTACK, TROUBLESHOOTING, SETUP_SCRIPTS to docs list
+
 ## [0.11.2] - 2026-03-11
 
 ### Added
