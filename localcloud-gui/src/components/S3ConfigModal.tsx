@@ -23,6 +23,7 @@ export default function S3ConfigModal({
 }: S3ConfigModalProps) {
   const { profile, savedConfigs, saveConfig } = usePreferences();
   const [bucketName, setBucketName] = useState(`${projectName}-bucket`);
+  const [bucketNameError, setBucketNameError] = useState("");
   const [region, setRegion] = useState("us-east-1");
   const [versioning, setVersioning] = useState(false);
   const [encryption, setEncryption] = useState(false);
@@ -48,8 +49,33 @@ export default function S3ConfigModal({
     (c) => c.resource_type === "s3" && c.project_id === profile?.active_project_id
   );
 
+  const sanitizeBucketName = (raw: string) =>
+    raw
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 63);
+
+  const validateBucketName = (name: string): string => {
+    if (name.length < 3) return "Bucket name must be at least 3 characters.";
+    if (name.length > 63) return "Bucket name must be 63 characters or fewer.";
+    if (!/^[a-z0-9]/.test(name)) return "Must start with a lowercase letter or number.";
+    if (!/[a-z0-9]$/.test(name)) return "Must end with a lowercase letter or number.";
+    if (!/^[a-z0-9-]+$/.test(name)) return "Only lowercase letters, numbers, and hyphens are allowed.";
+    return "";
+  };
+
+  const handleBucketNameChange = (raw: string) => {
+    const sanitized = sanitizeBucketName(raw);
+    setBucketName(sanitized);
+    setBucketNameError(validateBucketName(sanitized));
+  };
+
   const loadSavedConfig = (config: S3BucketConfig) => {
-    setBucketName(config.bucketName || "");
+    const name = sanitizeBucketName(config.bucketName || "");
+    setBucketName(name);
+    setBucketNameError(validateBucketName(name));
     setRegion(config.region || "us-east-1");
     setVersioning(config.versioning || false);
     setEncryption(config.encryption || false);
@@ -57,6 +83,8 @@ export default function S3ConfigModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const err = validateBucketName(bucketName);
+    if (err) { setBucketNameError(err); return; }
     const config: S3BucketConfig = { bucketName, region, versioning, encryption };
 
     if (saveMode === "save" && configName.trim()) {
@@ -132,14 +160,22 @@ export default function S3ConfigModal({
             <input
               type="text"
               value={bucketName}
-              onChange={(e) => setBucketName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+              onChange={(e) => handleBucketNameChange(e.target.value)}
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-blue-500 text-gray-900 ${
+                bucketNameError
+                  ? "border-red-400 focus:ring-red-400"
+                  : "border-gray-300 focus:ring-blue-500"
+              }`}
               placeholder="my-bucket-name"
               required
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Must be globally unique and follow S3 naming conventions
-            </p>
+            {bucketNameError ? (
+              <p className="text-xs text-red-600 mt-1">{bucketNameError}</p>
+            ) : (
+              <p className="text-xs text-gray-500 mt-1">
+                Lowercase letters, numbers, and hyphens only (3–63 chars). Spaces are auto-converted to hyphens.
+              </p>
+            )}
           </div>
 
           {/* Region */}
@@ -238,7 +274,7 @@ export default function S3ConfigModal({
             <button
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-              disabled={loading || (saveMode === "save" && !configName.trim())}
+              disabled={loading || !!bucketNameError || (saveMode === "save" && !configName.trim())}
             >
               {loading ? "Creating..." : saveMode === "save" ? "Create & Save Config" : "Create Bucket"}
             </button>
