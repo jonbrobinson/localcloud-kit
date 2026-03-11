@@ -40,7 +40,7 @@ samples/            # Sample files for S3/DynamoDB testing
 
 ### Tech Stack
 
-- **Frontend**: Next.js 15, React 18, TypeScript 5, Tailwind CSS
+- **Frontend**: Next.js 15, React 18, TypeScript 5, Tailwind CSS, @iconify/react (AWS service icons)
 - **Backend**: Express.js 4, Node.js 22, Winston logging, Socket.IO, aws-sdk v2
 - **Infrastructure**: Docker Compose, Traefik v3, Nginx (alpine), Redis 7
 - **AWS Emulation**: LocalStack (S3, DynamoDB, Lambda, API Gateway, IAM, Secrets Manager)
@@ -233,6 +233,39 @@ refactor(nav): extract shared DocPageNav component
 
 chore(deps): upgrade next.js to 15.2
 ```
+
+---
+
+## Dashboard UI Architecture
+
+The dashboard (`localcloud-gui/src/components/Dashboard.tsx`) is organized around a clear two-category model:
+
+### Two Categories of Things
+
+| Category | Examples | Managed via | Can destroy? |
+|----------|----------|-------------|--------------|
+| **Platform Services** | Keycloak, Mailpit, PostgreSQL, Redis | Their own admin UIs (pgAdmin, Keycloak console, Mailpit UI) | No — Docker Compose lifecycle |
+| **AWS Resources** | S3, DynamoDB, Secrets Manager, Lambda, API Gateway, IAM | Dashboard modals and resource list | Yes — individually, per project |
+
+### Navigation Structure
+
+- **Resources** dropdown — AWS resources grouped by service category (Storage, Database, Compute, Networking, Security & Identity). Uses Iconify AWS logos (`logos:aws-s3`, `logos:aws-dynamodb`, etc.).
+- **Services** dropdown — Platform services only (Keycloak, Mailpit, PostgreSQL, Redis), listed alphabetically.
+- **Docs** dropdown — Documentation pages for all resources and services, grouped as Infrastructure / AWS Resources / Platform Services.
+
+### Status Bar
+
+Shows health of all platform services in alphabetical order: **Keycloak | LocalStack | Mailpit | PostgreSQL | Redis**. Clicking a service opens its management modal or links to its doc page.
+
+### ResourceList Component
+
+`localcloud-gui/src/components/ResourceList.tsx` — shows **AWS resources only** (no platform services). Resources are grouped by AWS category with official AWS SVG icons via `@iconify/react`. Supports add, destroy, and inline preview per resource type.
+
+### Mailpit UX
+
+- **Status bar** — click to open `MailpitModal` (read-only inbox preview + unread badge)
+- **MailpitModal** — shows recent messages (read-only), stats bar, one-click "Send Test" button, links to Mailpit UI and docs
+- **`/mailpit` doc page** — full test email compose form (from, to, subject, body), SMTP settings, framework integration examples
 
 ---
 
