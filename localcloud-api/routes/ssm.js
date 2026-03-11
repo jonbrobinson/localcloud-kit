@@ -42,10 +42,10 @@ router.post("/ssm/parameters", async (req, res) => {
   }
 });
 
-// Get a parameter value
-router.get("/ssm/parameters/:name(*)", async (req, res) => {
+// Get a parameter value (use *name for path-to-regexp v8; name can contain slashes)
+router.get("/ssm/parameters/*name", async (req, res) => {
   try {
-    const { name } = req.params;
+    const name = Array.isArray(req.params.name) ? req.params.name.join("/") : (req.params.name || "");
     const { withDecryption = "false" } = req.query;
     const { stdout, stderr } = await execAsync(
       `/bin/sh /app/scripts/shell/get_parameter.sh "${name}" ${withDecryption}`,
@@ -65,9 +65,9 @@ router.get("/ssm/parameters/:name(*)", async (req, res) => {
 });
 
 // Update a parameter
-router.put("/ssm/parameters/:name(*)", async (req, res) => {
+router.put("/ssm/parameters/*name", async (req, res) => {
   try {
-    const { name } = req.params;
+    const name = Array.isArray(req.params.name) ? req.params.name.join("/") : (req.params.name || "");
     const { value, type = "String", description = "" } = req.body;
 
     if (!value) {
@@ -88,9 +88,9 @@ router.put("/ssm/parameters/:name(*)", async (req, res) => {
 });
 
 // Delete a parameter
-router.delete("/ssm/parameters/:name(*)", async (req, res) => {
+router.delete("/ssm/parameters/*name", async (req, res) => {
   try {
-    const { name } = req.params;
+    const name = Array.isArray(req.params.name) ? req.params.name.join("/") : (req.params.name || "");
     const { stdout, stderr } = await execAsync(
       `/bin/sh /app/scripts/shell/delete_parameter.sh "${name}"`,
       { env: awsEnv() }
