@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import hljs from "highlight.js";
 import { highlightThemes, HighlightTheme } from "./highlightThemes";
 import { usePreferences } from "@/context/PreferencesContext";
+import type { HighlightTheme as ProfileHighlightTheme } from "@/types";
 import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
 
@@ -21,6 +22,8 @@ const languageMap: Record<string, string> = {
   javascript: "javascript",
   python: "python",
   cli: "bash",
+  bash: "bash",
+  shell: "bash",
   nodemailer: "javascript",
   sendgrid: "javascript",
   laravel: "php",
@@ -39,7 +42,7 @@ export default function ThemeableCodeBlock({
   language,
   showThemeSelector = true,
 }: ThemeableCodeBlockProps) {
-  const { profile } = usePreferences();
+  const { profile, updateProfile } = usePreferences();
   const defaultTheme = (profile?.highlight_theme as HighlightTheme) || "github";
   const [selectedTheme, setSelectedTheme] = useState<HighlightTheme>(defaultTheme);
 
@@ -95,9 +98,11 @@ export default function ThemeableCodeBlock({
             <select
               id="samples-theme-select"
               value={selectedTheme}
-              onChange={(e) =>
-                setSelectedTheme(e.target.value as HighlightTheme)
-              }
+              onChange={(e) => {
+                const theme = e.target.value as HighlightTheme;
+                setSelectedTheme(theme);
+                updateProfile({ highlight_theme: theme as ProfileHighlightTheme }).catch(() => {});
+              }}
               className="text-sm border border-gray-300 rounded px-2 py-1 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {Object.keys(highlightThemes).map((key) => (

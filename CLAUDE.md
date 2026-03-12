@@ -293,6 +293,58 @@ Shows health of all platform services in alphabetical order: **Keycloak | LocalS
 
 ---
 
+## Syntax Highlighting on Doc Pages
+
+All doc pages use `ThemeableCodeBlock` (`localcloud-gui/src/components/ThemeableCodeBlock.tsx`) for syntax-highlighted code examples.
+
+### How it works
+
+- **Highlighting engine**: `highlight.js` via `hljs.highlight(code, { language })` — runs client-side only (`"use client"`)
+- **Theme CSS**: Injected into `<head>` as a `<link>` tag pointing to `/public/hljs-themes/<file>.css`; available themes are declared in `highlightThemes.ts`
+- **Language mapping**: The `languageMap` object inside `ThemeableCodeBlock` translates the `language` prop (e.g. `"cli"`, `"node"`, `"bash"`) into an `hljs` language identifier. **Always add a mapping for every language string you pass as a prop.** Missing entries fall through to `"text"` (no highlighting).
+
+### Profile preferences
+
+Two fields in the user profile drive this component's behaviour:
+
+| Field | Purpose |
+|---|---|
+| `preferred_language` | Which SDK tab is active (e.g. `"typescript"`, `"node"`, `"python"`, `"cli"`) |
+| `highlight_theme` | Which syntax theme to render (e.g. `"github"`, `"atom-one-dark"`) |
+
+**Reading preferences** — initialise the active tab from `profile.preferred_language` inside a `useEffect` that watches that field:
+
+```typescript
+const { profile, updateProfile } = usePreferences();
+const [activeTab, setActiveTab] = useState<PageTab>("typescript");
+
+useEffect(() => {
+  if (profile?.preferred_language) {
+    const lang = profile.preferred_language as PageTab;
+    setActiveTab(PAGE_TABS.includes(lang) ? lang : "typescript");
+  }
+}, [profile?.preferred_language]);
+```
+
+**Saving preferences** — call `updateProfile` whenever the user switches tabs or changes the theme. The `ThemeableCodeBlock` component already saves `highlight_theme` automatically when the theme selector changes. For the language tab, the page-level handler must persist it:
+
+```typescript
+const handleTabChange = (tab: PageTab) => {
+  setActiveTab(tab);
+  updateProfile({ preferred_language: tab }).catch(() => {});
+};
+```
+
+### Rules
+
+- **Always** use the `language` prop values that exist in `languageMap` (`"typescript"`, `"javascript"`, `"python"`, `"bash"`, `"cli"`) — do **not** invent new strings without adding them to the map first
+- Pass `language="bash"` or `language="cli"` (both work) for shell/CLI examples
+- For Node.js examples pass `language="javascript"` (not `"node"`)
+- The `showThemeSelector` prop defaults to `true`; pass `showThemeSelector={false}` for inline snippets that don't need a theme picker
+- When a doc page has **multiple independent code sections** (e.g. "Roles" and "Session Credentials"), drive all tab bars from a **single shared** `activeTab` state so switching language in one section updates all others automatically
+
+---
+
 ## Code Conventions
 
 - **API routes** follow `/api/<resource>` pattern in `server.js`
