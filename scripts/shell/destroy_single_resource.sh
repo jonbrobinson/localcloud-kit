@@ -133,6 +133,26 @@ destroy_ssm_parameter() {
   echo "{\"success\": true, \"message\": \"SSM parameter $PARAM_NAME destroyed successfully\"}"
 }
 
+destroy_iam_role() {
+  if [ -n "$RESOURCE_NAME" ]; then
+    ROLE_NAME="$RESOURCE_NAME"
+  else
+    ROLE_NAME="${NAME_PREFIX}-role"
+  fi
+
+  log "Detaching policies from IAM role: $ROLE_NAME"
+  POLICIES=$($AWS_CMD iam list-attached-role-policies --role-name "$ROLE_NAME" --query "AttachedPolicies[].PolicyArn" --output text 2>/dev/null) || POLICIES=""
+  for ARN in $POLICIES; do
+    $AWS_CMD iam detach-role-policy --role-name "$ROLE_NAME" --policy-arn "$ARN" 2>/dev/null || true
+  done
+
+  log "Destroying IAM role: $ROLE_NAME"
+  $AWS_CMD iam delete-role --role-name "$ROLE_NAME" 2>/dev/null || true
+  log "Deleted IAM role: $ROLE_NAME"
+
+  echo "{\"success\": true, \"message\": \"IAM role $ROLE_NAME destroyed successfully\"}"
+}
+
 main() {
   command -v aws >/dev/null 2>&1 || { echo "AWS CLI is not installed. Please install it first." >&2; exit 1; }
   
@@ -162,9 +182,12 @@ main() {
     ssm)
       destroy_ssm_parameter
       ;;
+    iam)
+      destroy_iam_role
+      ;;
     *)
       echo "Unknown resource type: $RESOURCE_TYPE" >&2
-      echo "Supported types: s3, dynamodb, lambda, apigateway, secretsmanager, ssm" >&2
+      echo "Supported types: s3, dynamodb, lambda, apigateway, secretsmanager, ssm, iam" >&2
       exit 1
       ;;
   esac
