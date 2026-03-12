@@ -224,11 +224,11 @@ export default function LambdaDocPage() {
       <DocPageNav title="Lambda" subtitle="Serverless functions via LocalStack">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
-          href="/"
+          href="/manage/lambda"
           className="flex items-center px-3 py-1.5 text-sm font-medium text-orange-700 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
         >
           <BoltIcon className="h-4 w-4 mr-1.5" />
-          Manage Functions
+          Open Manager
         </Link>
       </DocPageNav>
 

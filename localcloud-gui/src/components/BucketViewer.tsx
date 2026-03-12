@@ -12,7 +12,9 @@ import {
   ArrowPathIcon,
   ChevronUpIcon,
   ChevronDownIcon,
+  ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
+import Link from "next/link";
 import { s3Api, resourceApi } from "@/services/api";
 import { S3BucketConfig } from "@/types";
 import FileViewerModal from "./FileViewerModal";
@@ -457,6 +459,13 @@ export default function BucketViewer({
                   Refresh
                 </button>
               )}
+              <Link
+                href="/manage/s3"
+                className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+              >
+                <span>Open Manager</span>
+                <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+              </Link>
               {selectedBucket && (
                 <button
                   onClick={() => setUploadModalOpen(true)}

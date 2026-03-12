@@ -236,11 +236,11 @@ export default function SSMDocPage() {
       <DocPageNav title="Parameter Store" subtitle="SSM configuration management via LocalStack">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
-          href="/"
+          href="/manage/ssm"
           className="flex items-center px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 rounded-lg hover:bg-teal-100 transition-colors"
         >
           <AdjustmentsHorizontalIcon className="h-4 w-4 mr-1.5" />
-          Manage Parameters
+          Open Manager
         </Link>
       </DocPageNav>
 

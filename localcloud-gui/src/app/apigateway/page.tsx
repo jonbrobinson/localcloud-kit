@@ -289,11 +289,11 @@ export default function APIGatewayDocPage() {
       <DocPageNav title="API Gateway" subtitle="REST API management via LocalStack">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
-          href="/"
+          href="/manage/apigateway"
           className="flex items-center px-3 py-1.5 text-sm font-medium text-pink-700 bg-pink-50 rounded-lg hover:bg-pink-100 transition-colors"
         >
           <GlobeAltIcon className="h-4 w-4 mr-1.5" />
-          Manage APIs
+          Open Manager
         </Link>
       </DocPageNav>
 

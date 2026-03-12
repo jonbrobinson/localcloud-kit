@@ -26,7 +26,7 @@ interface ResourceListProps {
   loading?: boolean;
   onViewS3?: (bucketName: string) => void;
   onViewDynamoDB?: (tableName: string) => void;
-  onViewSecretsManager?: () => void;
+  onViewSecretsManager?: (secretName: string) => void;
   onEditSSM?: (parameterName: string) => void;
   onViewLambdaCode?: (functionName: string) => void;
   onConfigureAPIGateway?: (apiId: string, apiName: string) => void;
@@ -441,12 +441,12 @@ export default function ResourceList({
                               )}
                               {resource.type === "secretsmanager" && onViewSecretsManager && (
                                 <button
-                                  onClick={onViewSecretsManager}
+                                  onClick={() => onViewSecretsManager(resource.name)}
                                   className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                                  title="Browse Secrets Manager"
+                                  title="View secret"
                                 >
                                   <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                                  Open
+                                  View
                                 </button>
                               )}
                               {resource.type === "ssm" && onEditSSM && (
