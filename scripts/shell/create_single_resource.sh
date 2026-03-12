@@ -370,17 +370,34 @@ create_lambda_function() {
 
   log "Creating Lambda function: $FUNCTION_NAME (runtime=$RUNTIME, handler=$HANDLER)"
 
-  # Create a minimal placeholder zip in a temp dir
+  # Create a minimal placeholder zip using Python (no zip binary required; works in Alpine)
   TMPDIR_LAMBDA=$(mktemp -d)
-  echo 'def lambda_handler(event, context): return {"statusCode": 200}' > "$TMPDIR_LAMBDA/lambda_function.py"
-  (cd "$TMPDIR_LAMBDA" && zip -q function.zip lambda_function.py)
+  PLACEHOLDER_ZIP="$TMPDIR_LAMBDA/function.zip"
+  python3 -c "
+import zipfile
+import sys
+code = '''def lambda_handler(event, context):
+    return {\"statusCode\": 200, \"body\": \"Hello from placeholder\"}
+'''
+with zipfile.ZipFile(sys.argv[1], 'w', zipfile.ZIP_DEFLATED) as z:
+    z.writestr('lambda_function.py', code)
+" "$PLACEHOLDER_ZIP" 2>/dev/null || {
+    # Fallback: try zip if available (e.g. some environments have zip but not python3)
+    echo 'def lambda_handler(event, context): return {"statusCode": 200}' > "$TMPDIR_LAMBDA/lambda_function.py"
+    (cd "$TMPDIR_LAMBDA" && zip -q -r function.zip lambda_function.py) 2>/dev/null || true
+  }
+  if [ ! -f "$PLACEHOLDER_ZIP" ] || [ ! -s "$PLACEHOLDER_ZIP" ]; then
+    echo "ERROR: Failed to create placeholder deployment package. Install python3 or zip." >&2
+    rm -rf "$TMPDIR_LAMBDA"
+    exit 1
+  fi
 
   CREATE_CMD="$AWS_CMD lambda create-function \
     --function-name \"$FUNCTION_NAME\" \
     --runtime \"$RUNTIME\" \
     --role arn:aws:iam::000000000000:role/service-role/irrelevant \
     --handler \"$HANDLER\" \
-    --zip-file fileb://$TMPDIR_LAMBDA/function.zip"
+    --zip-file fileb://$PLACEHOLDER_ZIP"
 
   if [ -n "$DESCRIPTION" ] && [ "$DESCRIPTION" != "null" ]; then
     CREATE_CMD="$CREATE_CMD --description \"$DESCRIPTION\""
