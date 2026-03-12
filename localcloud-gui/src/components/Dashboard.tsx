@@ -2,7 +2,7 @@
 
 import { usePreferences } from "@/context/PreferencesContext";
 import { useServicesData } from "@/hooks/useServicesData";
-import { projectsApi, resourceApi } from "@/services/api";
+import { resourceApi } from "@/services/api";
 import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayConfig, SSMParameterConfig } from "@/types";
 import {
   Bars3Icon,
@@ -57,7 +57,7 @@ export default function Dashboard() {
   } = useServicesData();
 
   const { status: localstackStatus, projectConfig: config, resources } = localstack;
-  const { profile, projects, updateProfile } = usePreferences();
+  const { profile, projects, updateProfile, createProject } = usePreferences();
 
   const projectName = profile?.active_project_name || config.projectName;
 
@@ -142,6 +142,11 @@ export default function Dashboard() {
     setShowMobileMenu(false);
   };
 
+  const toggleMenu = (setter: (v: boolean) => void, current: boolean) => {
+    closeAllMenus();
+    setter(!current);
+  };
+
   const handleSwitchProject = async (projectId: number) => {
     try {
       await updateProfile({ active_project_id: projectId });
@@ -157,7 +162,7 @@ export default function Dashboard() {
     if (!label) return;
     const name = label.toLowerCase().replace(/[^a-z0-9-]/g, "-");
     try {
-      const project = await projectsApi.create(name, label);
+      const project = await createProject(name, label);
       await updateProfile({ active_project_id: project.id });
       setShowProjectMenu(false);
       await loadInitialData();
@@ -419,7 +424,7 @@ export default function Dashboard() {
               {/* Resources dropdown — AWS resources only */}
               <div className="relative" ref={resourcesMenuRef}>
                 <button
-                  onClick={() => { setShowResourcesMenu((v) => !v); setShowServicesMenu(false); setShowDocsMenu(false); setShowProjectMenu(false); setShowProfileMenu(false); }}
+                  onClick={() => toggleMenu(setShowResourcesMenu, showResourcesMenu)}
                   className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <Squares2X2Icon className="h-4 w-4 mr-2" />
@@ -496,7 +501,7 @@ export default function Dashboard() {
               {/* Services dropdown — platform services */}
               <div className="relative" ref={servicesMenuRef}>
                 <button
-                  onClick={() => { setShowServicesMenu((v) => !v); setShowResourcesMenu(false); setShowDocsMenu(false); setShowProjectMenu(false); setShowProfileMenu(false); }}
+                  onClick={() => toggleMenu(setShowServicesMenu, showServicesMenu)}
                   className="relative flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <ServerIcon className="h-4 w-4 mr-2" />
@@ -545,7 +550,7 @@ export default function Dashboard() {
               {/* Docs dropdown */}
               <div className="relative" ref={docsMenuRef}>
                 <button
-                  onClick={() => { setShowDocsMenu((v) => !v); setShowResourcesMenu(false); setShowServicesMenu(false); setShowProjectMenu(false); setShowProfileMenu(false); }}
+                  onClick={() => toggleMenu(setShowDocsMenu, showDocsMenu)}
                   className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <BookOpenIcon className="h-4 w-4 mr-2" />
@@ -662,7 +667,7 @@ export default function Dashboard() {
               {/* Project Switcher */}
               <div className="relative" ref={projectMenuRef}>
                 <button
-                  onClick={() => { setShowProjectMenu((v) => !v); setShowResourcesMenu(false); setShowServicesMenu(false); setShowDocsMenu(false); setShowProfileMenu(false); }}
+                  onClick={() => toggleMenu(setShowProjectMenu, showProjectMenu)}
                   className="flex items-center gap-1.5 px-2 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-xs font-semibold">
@@ -709,7 +714,7 @@ export default function Dashboard() {
               {/* Profile dropdown */}
               <div className="relative" ref={profileMenuRef}>
                 <button
-                  onClick={() => { setShowProfileMenu((v) => !v); setShowResourcesMenu(false); setShowServicesMenu(false); setShowDocsMenu(false); setShowProjectMenu(false); dismissVersionDot(); }}
+                  onClick={() => { toggleMenu(setShowProfileMenu, showProfileMenu); dismissVersionDot(); }}
                   className="relative p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                   title="Profile & Settings"
                 >
