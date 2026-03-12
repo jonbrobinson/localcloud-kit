@@ -6,6 +6,9 @@ import cron from "node-cron";
 
 import { setIo, addLog } from "./lib/context.js";
 import { internalEndpoint } from "./lib/aws.js";
+import { listResources } from "./lib/resources.js";
+import { getCachedResources, setCachedResources } from "./lib/resourceCache.js";
+import db from "./db.js";
 
 import healthRouter from "./routes/health.js";
 import localstackRouter, { checkLocalStackStatus } from "./routes/localstack.js";
@@ -78,6 +81,26 @@ io.on("connection", (socket) => {
 // Scheduled tasks
 cron.schedule("*/30 * * * * *", () => {
   checkLocalStackStatus();
+});
+
+// Background resource cache refresh — runs every 30 seconds server-side
+// so dashboard requests always hit a warm cache
+cron.schedule("*/30 * * * * *", async () => {
+  try {
+    const profileRow = db
+      .prepare(
+        `SELECT p.name AS projectName
+         FROM user_profile u
+         LEFT JOIN projects p ON u.active_project_id = p.id
+         WHERE u.id = 1`
+      )
+      .get();
+    const projectName = profileRow?.projectName || "default";
+    const resources = await listResources(projectName);
+    setCachedResources(projectName, resources);
+  } catch (err) {
+    addLog("warn", `Resource cache background refresh failed: ${err.message}`, "api");
+  }
 });
 
 // Initial status check

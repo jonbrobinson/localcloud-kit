@@ -4,6 +4,7 @@ import path from "path";
 import { execAsync, userEndpoint, awsRegion } from "../lib/aws.js";
 import { state, addLog } from "../lib/context.js";
 import { listResources } from "../lib/resources.js";
+import { getCachedResources, setCachedResources } from "../lib/resourceCache.js";
 import db from "../db.js";
 
 const router = express.Router();
@@ -41,7 +42,30 @@ router.get("/dashboard", async (req, res) => {
 
     const MAILPIT_URL = process.env.MAILPIT_INTERNAL_URL || "http://mailpit:8025";
 
-    const [mailpitResult, resources, cacheResult] = await Promise.all([
+    const cached = getCachedResources(projectConfig.projectName);
+
+    // Fire background refresh — does not block the response
+    const refreshCache = () =>
+      listResources(projectConfig.projectName)
+        .then((fresh) => setCachedResources(projectConfig.projectName, fresh))
+        .catch((err) =>
+          addLog("warn", `Background resource cache refresh failed: ${err.message}`, "api")
+        );
+
+    // Use cached resources immediately; fall back to a blocking fetch on cold start
+    let resources;
+    let fromCache = false;
+    if (cached) {
+      resources = cached.resources;
+      fromCache = true;
+      // Kick off background refresh without awaiting
+      refreshCache();
+    } else {
+      resources = await listResources(projectConfig.projectName);
+      setCachedResources(projectConfig.projectName, resources);
+    }
+
+    const [mailpitResult, cacheResult] = await Promise.all([
       axios
         .get(`${MAILPIT_URL}/api/v1/info`, { timeout: 3000 })
         .then((r) => ({
@@ -50,7 +74,6 @@ router.get("/dashboard", async (req, res) => {
           status: "healthy",
         }))
         .catch(() => ({ total: 0, unread: 0, status: "unavailable" })),
-      listResources(projectConfig.projectName),
       execAsync(`/bin/sh ${path.join("/app/scripts/shell", "list_cache.sh")}`)
         .then(({ stdout }) => JSON.parse(stdout))
         .catch(() => ({ status: "unknown", info: null })),
@@ -91,6 +114,10 @@ router.get("/dashboard", async (req, res) => {
         mailpit: mailpitResult,
         resources: resourcesWithExtras,
         redis: { status: redisStatus, info: cacheResult.info },
+        resourceCache: {
+          fromCache,
+          cachedAt: fromCache ? cached.fetchedAt : new Date().toISOString(),
+        },
       },
     });
   } catch (err) {
