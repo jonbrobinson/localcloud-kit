@@ -11,7 +11,9 @@ import {
   KeyIcon,
   TagIcon,
   DocumentTextIcon,
+  ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
+import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { resourceApi } from "@/services/api";
@@ -343,6 +345,13 @@ export default function SecretsManagerViewer({
             </div>
           </div>
           <div className="flex items-center space-x-2">
+            <Link
+              href="/manage/secrets"
+              className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+            >
+              <span>Open Manager</span>
+              <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+            </Link>
             <button
               onClick={() => setShowCreateModal(true)}
               className="flex items-center space-x-2 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700"
