@@ -601,6 +601,72 @@ create_ssm_parameter() {
 EOF
 }
 
+create_iam_role() {
+  if [ -n "$RESOURCE_CONFIG" ]; then
+    ROLE_NAME=$(echo "$RESOURCE_CONFIG" | jq -r '.roleName // empty')
+    DESCRIPTION=$(echo "$RESOURCE_CONFIG" | jq -r '.description // empty')
+    TRUST_SERVICE=$(echo "$RESOURCE_CONFIG" | jq -r '.trustService // "lambda"')
+    PATH_PREFIX=$(echo "$RESOURCE_CONFIG" | jq -r '.path // "/"')
+
+    if [ -z "$ROLE_NAME" ]; then
+      ROLE_NAME="${NAME_PREFIX}-role"
+    fi
+  else
+    ROLE_NAME="${NAME_PREFIX}-role"
+    DESCRIPTION="Default IAM role created by LocalCloud Kit"
+    TRUST_SERVICE="lambda"
+    PATH_PREFIX="/"
+  fi
+
+  # Build trust policy document for the given service principal
+  TRUST_POLICY=$(cat <<TRUST
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "${TRUST_SERVICE}.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+TRUST
+)
+
+  CMD="$AWS_CMD iam create-role --role-name \"$ROLE_NAME\" --assume-role-policy-document '$TRUST_POLICY'"
+  if [ -n "$DESCRIPTION" ] && [ "$DESCRIPTION" != "null" ]; then
+    CMD="$CMD --description \"$DESCRIPTION\""
+  fi
+  if [ -n "$PATH_PREFIX" ] && [ "$PATH_PREFIX" != "null" ] && [ "$PATH_PREFIX" != "/" ]; then
+    CMD="$CMD --path \"$PATH_PREFIX\""
+  fi
+
+  eval $CMD 2>/dev/null || true
+  log "Created IAM role: $ROLE_NAME"
+
+  ARN="arn:aws:iam::000000000000:role${PATH_PREFIX}${ROLE_NAME}"
+
+  cat <<EOF
+{
+  "id": "iam-$ROLE_NAME",
+  "name": "$ROLE_NAME",
+  "type": "iam",
+  "status": "active",
+  "project": "$PROJECT_NAME",
+  "createdAt": "$NOW",
+  "details": {
+    "roleName": "$ROLE_NAME",
+    "arn": "$ARN",
+    "trustService": "$TRUST_SERVICE",
+    "path": "$PATH_PREFIX",
+    "description": "$DESCRIPTION"
+  }
+}
+EOF
+}
+
 main() {
   command -v aws >/dev/null 2>&1 || { echo "AWS CLI is not installed. Please install it first." >&2; exit 1; }
   command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Please install it first." >&2; exit 1; }
@@ -631,9 +697,12 @@ main() {
     ssm)
       create_ssm_parameter
       ;;
+    iam)
+      create_iam_role
+      ;;
     *)
       echo "Unknown resource type: $RESOURCE_TYPE" >&2
-      echo "Supported types: s3, dynamodb, lambda, apigateway, secretsmanager, ssm" >&2
+      echo "Supported types: s3, dynamodb, lambda, apigateway, secretsmanager, ssm, iam" >&2
       exit 1
       ;;
   esac
