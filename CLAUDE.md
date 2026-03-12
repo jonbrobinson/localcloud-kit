@@ -190,17 +190,51 @@ Entries go under `## [Unreleased]` at the top of the file. Use these subsections
 
 ---
 
-## Pre-Commit Build Check
+## Pre-Commit Checklist
 
-**Run the GUI build before committing any changes that touch `localcloud-gui/`.**
+Run through every applicable item below before committing. The checklist is ordered: build first, then docs, then changelog.
+
+### 1 — GUI Build (required for any `localcloud-gui/` change)
 
 ```bash
 cd localcloud-gui && npm run build
 ```
 
-- The build must pass with **no type errors** before committing — fix any errors first
+- Must pass with **no type errors** — fix all errors before committing
 - Warnings are acceptable; type errors and compile failures are not
-- For backend-only or shell-script-only changes the build is not required, but run it when in doubt
+- Skip only for backend-only or shell-script-only changes (run it when in doubt)
+
+### 2 — Documentation Update
+
+Update the matching `docs/` markdown file **whenever** you change behaviour, add endpoints, rename things, or add a new service. The rule is: **if the code changed, the docs change too.**
+
+| Change type | Files to update |
+|---|---|
+| New AWS service or platform service | `docs/<SERVICE>.md` (create if missing), `README.md` features list |
+| New or changed API endpoint | `docs/<SERVICE>.md` — endpoint reference table |
+| New GUI page or major UI change | `docs/<SERVICE>.md` — usage section |
+| Changed port, hostname, or env var | `docs/<SERVICE>.md`, `README.md` configuration section, `CLAUDE.md` if it references the value |
+| New or changed shell script | `docs/SETUP_SCRIPTS.md` — script inventory |
+| New Docker service | `docker-compose.yml` comment block + `docs/DOCKER.md` |
+| Changed Makefile target | `README.md` common commands section |
+
+Docs live in `docs/` as plain markdown. Keep them concise: overview, connection settings or config, common operations, troubleshooting tips. Do **not** duplicate the SDK examples from the GUI doc pages verbatim — link to the relevant `/route` instead.
+
+### 3 — README Update
+
+Update `README.md` when any of the following change:
+
+- **Features list** — add a bullet for a new service or major capability
+- **Services table** — ports, image names, or purpose text
+- **Common commands** — new or renamed `make` targets
+- **Documentation section** — links to new `docs/` pages
+- **Version badge** — bump when the version in `docker-compose.yml` / `package.json` changes
+
+The README is user-facing. Write in plain, direct language. Do not include internal implementation details.
+
+### 4 — Changelog Update (PR step only)
+
+`CHANGELOG.md` is updated **once per PR**, as the last commit before opening the PR — never mid-feature. See the [Changelog Standards](#changelog-standards) section for the full format and rules.
 
 ---
 
