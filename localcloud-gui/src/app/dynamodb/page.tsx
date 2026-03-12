@@ -199,11 +199,11 @@ export default function DynamoDBDocPage() {
       <DocPageNav title="DynamoDB Tables" subtitle="Local NoSQL database via LocalStack">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
-          href="/"
+          href="/manage/dynamodb"
           className="flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
         >
           <CircleStackIcon className="h-4 w-4 mr-1.5" />
-          Manage Tables
+          Open Manager
         </Link>
       </DocPageNav>
 

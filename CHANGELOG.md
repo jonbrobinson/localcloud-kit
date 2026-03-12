@@ -5,8 +5,12 @@ All notable changes to LocalCloud Kit will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Manage pages**: Dedicated `/manage/[service]` pages for all AWS services — S3, DynamoDB, Secrets Manager, Lambda, API Gateway, IAM, and SSM Parameter Store — each with full CRUD, list view, inline detail/edit, and delete confirmation
+- **SecretsDetailModal**: Clicking a secret in the resource list now opens a focused single-secret modal showing name, ARN, masked value with reveal toggle, inline edit (value + description), and delete with confirmation; includes "Open in Secrets Manager →" link to the full manage page
+- **Manage links**: "Open Manager →" links added to all existing service viewer modals (BucketViewer, DynamoDBViewer, SecretsManagerViewer, LambdaCodeModal, SSMEditModal, APIGatewayConfigViewer) and to the Resources dropdown in the Dashboard
 
 ### Fixed
+- **SecretsDetailModal**: Clicking a secret from the resource list previously opened all secrets; now correctly opens only the clicked secret
 
 ## [0.12.0] - 2026-03-09
 

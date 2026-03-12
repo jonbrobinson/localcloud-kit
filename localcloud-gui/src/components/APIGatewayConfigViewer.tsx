@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { XMarkIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon, PlusIcon, ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
 import { Icon } from "@iconify/react";
 
 interface APIGatewayConfigViewerProps {
@@ -69,13 +70,22 @@ export default function APIGatewayConfigViewer({
               <p className="text-xs text-gray-500">{apiName}</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-            aria-label="Close"
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
+          <div className="flex items-center space-x-2">
+            <Link
+              href="/manage/apigateway"
+              className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+            >
+              <span>Open Manager</span>
+              <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+            </Link>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              aria-label="Close"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleConfigure} className="p-6 space-y-4">

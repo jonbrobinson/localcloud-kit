@@ -35,7 +35,7 @@ import { ResourcesPanelSkeleton, ServicesBarSkeleton } from "./DashboardSkeleton
 import { motion, AnimatePresence } from "framer-motion";
 import S3ConfigModal from "./S3ConfigModal";
 import SecretsConfigModal from "./SecretsConfigModal";
-import SecretsManagerViewer from "./SecretsManagerViewer";
+import SecretsDetailModal from "./SecretsDetailModal";
 import LambdaConfigModal from "./LambdaConfigModal";
 import APIGatewayConfigModal from "./APIGatewayConfigModal";
 import APIGatewayConfigViewer from "./APIGatewayConfigViewer";
@@ -78,6 +78,7 @@ export default function Dashboard() {
   const [showBuckets, setShowBuckets] = useState(false);
   const [showDynamoDB, setShowDynamoDB] = useState(false);
   const [showSecretsManager, setShowSecretsManager] = useState(false);
+  const [selectedSecretName, setSelectedSecretName] = useState<string>("");
   const [showMailpit, setShowMailpit] = useState(false);
   const [showRedis, setShowRedis] = useState(false);
 
@@ -461,67 +462,95 @@ export default function Dashboard() {
                   <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showResourcesMenu ? "rotate-180" : ""}`} />
                 </button>
                 {showResourcesMenu && (
-                  <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                  <div className="absolute right-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
                     {/* Storage */}
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Storage</p>
-                    <button
-                      onClick={() => { setShowBuckets(true); closeAllMenus(); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      S3 Buckets
-                    </button>
+                    <div className="flex items-center justify-between px-2">
+                      <button
+                        onClick={() => { setShowBuckets(true); closeAllMenus(); }}
+                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      >
+                        <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        S3 Buckets
+                      </button>
+                      <Link href="/manage/s3" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                    </div>
 
                     {/* Database */}
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Database</p>
-                    <button
-                      onClick={() => { setShowDynamoDB(true); closeAllMenus(); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      DynamoDB Tables
-                    </button>
+                    <div className="flex items-center justify-between px-2">
+                      <button
+                        onClick={() => { setShowDynamoDB(true); closeAllMenus(); }}
+                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      >
+                        <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        DynamoDB
+                      </button>
+                      <Link href="/manage/dynamodb" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                    </div>
 
                     {/* Compute */}
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Compute</p>
-                    <button
-                      onClick={() => { setShowLambdaConfig(true); closeAllMenus(); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      Lambda Functions
-                    </button>
+                    <div className="flex items-center justify-between px-2">
+                      <button
+                        onClick={() => { setShowLambdaConfig(true); closeAllMenus(); }}
+                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      >
+                        <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        Lambda
+                      </button>
+                      <Link href="/manage/lambda" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                    </div>
 
                     {/* Networking */}
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Networking</p>
-                    <button
-                      onClick={() => { setShowAPIGatewayConfig(true); closeAllMenus(); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      API Gateway
-                    </button>
+                    <div className="flex items-center justify-between px-2">
+                      <button
+                        onClick={() => { setShowAPIGatewayConfig(true); closeAllMenus(); }}
+                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      >
+                        <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        API Gateway
+                      </button>
+                      <Link href="/manage/apigateway" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                    </div>
 
                     {/* Security & Identity */}
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Security & Identity</p>
-                    <button
-                      onClick={() => { setShowSecretsConfig(true); closeAllMenus(); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      Secrets Manager
-                    </button>
-                    <button
-                      onClick={() => { setShowSSMConfig(true); closeAllMenus(); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      Parameter Store
-                    </button>
+                    <div className="flex items-center justify-between px-2">
+                      <button
+                        onClick={() => { setShowSecretsConfig(true); closeAllMenus(); }}
+                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      >
+                        <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        Secrets Manager
+                      </button>
+                      <Link href="/manage/secrets" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                    </div>
+                    <div className="flex items-center justify-between px-2">
+                      <button
+                        onClick={() => { setShowSSMConfig(true); closeAllMenus(); }}
+                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      >
+                        <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        Parameter Store
+                      </button>
+                      <Link href="/manage/ssm" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                    </div>
+                    <div className="flex items-center justify-between px-2">
+                      <button
+                        onClick={() => { setShowIAMConfig(true); closeAllMenus(); }}
+                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      >
+                        <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        IAM Roles
+                      </button>
+                      <Link href="/manage/iam" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                    </div>
 
                   </div>
                 )}
@@ -1033,7 +1062,10 @@ export default function Dashboard() {
                 setSelectedDynamoDBTable(tableName);
                 setShowDynamoDB(true);
               }}
-              onViewSecretsManager={() => setShowSecretsManager(true)}
+              onViewSecretsManager={(name) => {
+                setSelectedSecretName(name);
+                setShowSecretsManager(true);
+              }}
               onEditSSM={(name) => {
                 setEditingSSMParameter(name);
                 setShowSSMEdit(true);
@@ -1130,11 +1162,13 @@ export default function Dashboard() {
         />
       )}
 
-      {showSecretsManager && (
-        <SecretsManagerViewer
+      {showSecretsManager && selectedSecretName && (
+        <SecretsDetailModal
           isOpen={showSecretsManager}
-          onClose={() => setShowSecretsManager(false)}
+          onClose={() => { setShowSecretsManager(false); setSelectedSecretName(""); }}
+          secretName={selectedSecretName}
           projectName={projectName}
+          onDeleted={loadInitialData}
         />
       )}
 
