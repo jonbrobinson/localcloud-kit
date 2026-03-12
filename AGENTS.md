@@ -346,6 +346,7 @@ Shows health of all platform services in alphabetical order: **Keycloak | LocalS
 - **MailpitModal** — shows recent messages (read-only), stats bar, one-click "Send Test" button, links to Mailpit UI and docs
 - **`/mailpit` doc page** — full test email compose form (from, to, subject, body), SMTP settings, framework integration examples
 
+
 ---
 
 ## Syntax Highlighting on Doc Pages
