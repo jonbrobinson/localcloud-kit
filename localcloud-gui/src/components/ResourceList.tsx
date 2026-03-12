@@ -30,6 +30,7 @@ interface ResourceListProps {
   onEditSSM?: (parameterName: string) => void;
   onViewLambdaCode?: (functionName: string) => void;
   onConfigureAPIGateway?: (apiId: string, apiName: string) => void;
+  onViewIAMRole?: (roleName: string) => void;
   onRefresh?: () => void;
   onAddS3?: () => void;
   onAddDynamoDB?: () => void;
@@ -37,6 +38,7 @@ interface ResourceListProps {
   onAddLambda?: () => void;
   onAddAPIGateway?: () => void;
   onAddSSM?: () => void;
+  onAddIAM?: () => void;
   refreshLoading?: boolean;
   addLoading?: boolean;
 }
@@ -83,6 +85,7 @@ export default function ResourceList({
   onEditSSM,
   onViewLambdaCode,
   onConfigureAPIGateway,
+  onViewIAMRole,
   onRefresh,
   onAddS3,
   onAddDynamoDB,
@@ -90,6 +93,7 @@ export default function ResourceList({
   onAddLambda,
   onAddAPIGateway,
   onAddSSM,
+  onAddIAM,
   refreshLoading = false,
   addLoading = false,
 }: ResourceListProps) {
@@ -179,7 +183,7 @@ export default function ResourceList({
 
   const getApiId = (r: Resource) => r.details?.apiId || r.id.replace(/^apigateway-/, "");
 
-  const hasAddActions = onAddS3 || onAddDynamoDB || onAddSecrets || onAddLambda || onAddAPIGateway || onAddSSM;
+  const hasAddActions = onAddS3 || onAddDynamoDB || onAddSecrets || onAddLambda || onAddAPIGateway || onAddSSM || onAddIAM;
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -281,7 +285,7 @@ export default function ResourceList({
                         </button>
                       </>
                     )}
-                    {(onAddSecrets || onAddSSM) && (
+                    {(onAddSecrets || onAddSSM || onAddIAM) && (
                       <>
                         <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Security & Identity</p>
                         {onAddSecrets && (
@@ -300,6 +304,15 @@ export default function ResourceList({
                           >
                             <Icon icon="logos:aws-systems-manager" className="w-5 h-5 mr-3 flex-shrink-0" />
                             Parameter Store
+                          </button>
+                        )}
+                        {onAddIAM && (
+                          <button
+                            onClick={() => { onAddIAM(); setShowAddMenu(false); }}
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            <Icon icon="logos:aws-iam" className="w-5 h-5 mr-3 flex-shrink-0" />
+                            IAM Role
                           </button>
                         )}
                       </>
@@ -456,6 +469,16 @@ export default function ResourceList({
                                   Code
                                 </button>
                               )}
+                              {resource.type === "iam" && onViewIAMRole && (
+                                <button
+                                  onClick={() => onViewIAMRole(resource.name)}
+                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                                  title="View role policies"
+                                >
+                                  <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  Policies
+                                </button>
+                              )}
                               {resource.type === "apigateway" && onConfigureAPIGateway && (
                                 <button
                                   onClick={() => onConfigureAPIGateway(getApiId(resource), resource.name)}
@@ -541,7 +564,50 @@ export default function ResourceList({
                               </>
                             )}
 
-                            {resource.type !== "secretsmanager" &&
+                            {resource.type === "iam" && resource.details && (
+                              <>
+                                {resource.details.arn && (
+                                  <div>
+                                    <dt className="font-medium text-gray-500">ARN</dt>
+                                    <dd className="text-gray-900 font-mono text-sm break-all">
+                                      <div className="flex items-center space-x-2">
+                                        <code className="flex-1 min-w-0">{resource.details.arn}</code>
+                                        <button
+                                          onClick={() => resource.details?.arn && copyArnToClipboard(resource.details.arn)}
+                                          className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                                          title="Copy ARN"
+                                        >
+                                          <ClipboardDocumentIcon className="h-4 w-4" />
+                                        </button>
+                                      </div>
+                                      {copiedArn === resource.details.arn && (
+                                        <p className="text-xs text-green-600 mt-1">✓ Copied to clipboard</p>
+                                      )}
+                                    </dd>
+                                  </div>
+                                )}
+                                {resource.details.trustService && (
+                                  <div>
+                                    <dt className="font-medium text-gray-500">Trusted Service</dt>
+                                    <dd className="text-gray-900 font-mono text-sm">{resource.details.trustService}.amazonaws.com</dd>
+                                  </div>
+                                )}
+                                {resource.details.description && (
+                                  <div>
+                                    <dt className="font-medium text-gray-500">Description</dt>
+                                    <dd className="text-gray-900">{resource.details.description}</dd>
+                                  </div>
+                                )}
+                                {resource.details.path && (
+                                  <div>
+                                    <dt className="font-medium text-gray-500">Path</dt>
+                                    <dd className="text-gray-900 font-mono text-sm">{resource.details.path}</dd>
+                                  </div>
+                                )}
+                              </>
+                            )}
+
+                            {resource.type !== "secretsmanager" && resource.type !== "iam" &&
                               resource.details &&
                               Object.entries(resource.details).map(([key, value], detailIdx) => (
                                 <div key={`${resource.id}-detail-${key}-${detailIdx}`}>

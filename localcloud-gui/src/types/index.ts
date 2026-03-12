@@ -93,6 +93,13 @@ export interface SSMParameterConfig {
   description?: string;
 }
 
+export interface IAMRoleConfig {
+  roleName: string;
+  trustService: string;
+  description?: string;
+  path?: string;
+}
+
 export interface ResourceTemplate {
   id: string;
   name: string;
@@ -152,13 +159,14 @@ export interface CreateResourceRequest {
 
 export interface CreateSingleResourceRequest {
   projectName: string;
-  resourceType: "s3" | "dynamodb" | "lambda" | "apigateway" | "secretsmanager" | "ssm";
+  resourceType: "s3" | "dynamodb" | "lambda" | "apigateway" | "secretsmanager" | "ssm" | "iam";
   dynamodbConfig?: DynamoDBTableConfig;
   s3Config?: S3BucketConfig;
   secretsmanagerConfig?: SecretsManagerConfig;
   lambdaConfig?: LambdaFunctionConfig;
   apigatewayConfig?: APIGatewayConfig;
   ssmConfig?: SSMParameterConfig;
+  iamConfig?: IAMRoleConfig;
 }
 
 export interface DestroyResourceRequest {
