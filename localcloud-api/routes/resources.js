@@ -6,6 +6,7 @@ import {
   destroySingleResource,
   listResources,
 } from "../lib/resources.js";
+import { invalidateResourceCache } from "../lib/resourceCache.js";
 
 const router = express.Router();
 
@@ -17,6 +18,9 @@ router.get("/resources/list", async (req, res) => {
 
 router.post("/resources/create", async (req, res) => {
   const result = await createResources(req.body);
+  if (result.success !== false) {
+    invalidateResourceCache(req.body.projectName);
+  }
   res.json(result);
 });
 
@@ -32,6 +36,7 @@ router.post("/resources/create-single", async (req, res) => {
     }
 
     const result = await createSingleResource(projectName, resourceType, config);
+    invalidateResourceCache(projectName);
     res.json({
       success: true,
       message: `${resourceType} resource created successfully`,
@@ -44,6 +49,9 @@ router.post("/resources/create-single", async (req, res) => {
 
 router.post("/resources/destroy", async (req, res) => {
   const result = await destroyResources(req.body);
+  if (result.success !== false) {
+    invalidateResourceCache(req.body.projectName);
+  }
   res.json(result);
 });
 
@@ -59,6 +67,7 @@ router.post("/resources/destroy-single", async (req, res) => {
     }
 
     const result = await destroySingleResource(projectName, resourceType, resourceName);
+    invalidateResourceCache(projectName);
     res.json(result);
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
