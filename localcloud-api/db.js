@@ -39,6 +39,12 @@ db.exec(`
     created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS resource_cache (
+    project_name  TEXT PRIMARY KEY,
+    resources_json TEXT NOT NULL DEFAULT '[]',
+    fetched_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 // Seed default project
