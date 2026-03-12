@@ -227,7 +227,7 @@ change too.**
 | New AWS service or platform service | `docs/<SERVICE>.md` (create if missing), `README.md` features list |
 | New or changed API endpoint | `docs/<SERVICE>.md` — endpoint reference table |
 | New GUI page or major UI change | `docs/<SERVICE>.md` — usage section |
-| Changed port, hostname, or env var | `docs/<SERVICE>.md`, `README.md` configuration section, `AGENTS.md` if it references the value |
+| Changed port, hostname, or env var | `docs/<SERVICE>.md`, `README.md` configuration section, `CLAUDE.md` and `AGENTS.md` if they reference the value |
 | New or changed shell script | `docs/SETUP_SCRIPTS.md` — script inventory |
 | New Docker service | `docker-compose.yml` comment block + `docs/DOCKER.md` |
 | Changed Makefile target | `README.md` common commands section |
@@ -294,6 +294,7 @@ requirement — never deviate from it.**
 - **Scope**: optional, lowercase, describes the area changed — e.g. `feat(iam)`, `fix(api)`, `docs(redis)`
 - **Body**: wrap at 100 characters; explain *why*, not *what*
 - **Breaking changes**: add `BREAKING CHANGE:` in the footer, or append `!` after the type: `feat(api)!:`
+- **The session URL** goes in the footer on its own line (already required by other instructions)
 
 ### Examples
 
@@ -338,6 +339,13 @@ Shows health of all platform services in alphabetical order: **Keycloak | LocalS
 ### ResourceList Component
 
 `localcloud-gui/src/components/ResourceList.tsx` — shows **AWS resources only** (no platform services). Resources are grouped by AWS category with official AWS SVG icons via `@iconify/react`. Supports add, destroy, and inline preview per resource type.
+
+### Mailpit UX
+
+- **Status bar** — click to open `MailpitModal` (read-only inbox preview + unread badge)
+- **MailpitModal** — shows recent messages (read-only), stats bar, one-click "Send Test" button, links to Mailpit UI and docs
+- **`/mailpit` doc page** — full test email compose form (from, to, subject, body), SMTP settings, framework integration examples
+
 
 ---
 

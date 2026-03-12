@@ -53,7 +53,8 @@ samples/            # Sample files for S3/DynamoDB testing
 - **DynamoDB** — tables, CRUD, GSI, query/scan
 - **Lambda** — function management, runtime/handler config, placeholder zip creation; upload real code via `update-function-code`
 - **API Gateway** — REST endpoint creation with name and description
-- **IAM** — identity & access management
+- **IAM** — identity & access management, roles, policies
+- **STS** — temporary session credentials (GetSessionToken, AssumeRole, GetCallerIdentity)
 - **Secrets Manager** — secret storage, encryption, ARN management
 - **SSM Parameter Store** — parameter management (String, StringList, SecureString)
 - **Redis** — local cache (not AWS, but integrated into the GUI)
@@ -117,11 +118,12 @@ When adding a new service (e.g., MailHog):
 1. **docker-compose.yml** — add the service block with the image, ports, network, and restart policy
 2. **traefik/dynamic.yml** — add a router and service entry if it needs HTTPS routing through Traefik
 3. **nginx.conf** — add an upstream and location block if it routes through Nginx
-4. **localcloud-api/server.js** — add API proxy/health-check endpoints as needed
+4. **localcloud-api/routes/** — add an API route file; register it in `server.js`
 5. **localcloud-gui/src/** — add GUI pages/components for managing the service
 6. **docs/** — add a markdown doc describing the service and its usage
 7. **Makefile** — add convenience targets if applicable
 8. **README.md / CHANGELOG.md** — update to document the new service
+9. **Dashboard.tsx** — add to Resources, Services, and Docs dropdowns as appropriate
 
 ---
 
@@ -213,7 +215,7 @@ Update the matching `docs/` markdown file **whenever** you change behaviour, add
 | New AWS service or platform service | `docs/<SERVICE>.md` (create if missing), `README.md` features list |
 | New or changed API endpoint | `docs/<SERVICE>.md` — endpoint reference table |
 | New GUI page or major UI change | `docs/<SERVICE>.md` — usage section |
-| Changed port, hostname, or env var | `docs/<SERVICE>.md`, `README.md` configuration section, `CLAUDE.md` if it references the value |
+| Changed port, hostname, or env var | `docs/<SERVICE>.md`, `README.md` configuration section, `CLAUDE.md` and `AGENTS.md` if they reference the value |
 | New or changed shell script | `docs/SETUP_SCRIPTS.md` — script inventory |
 | New Docker service | `docker-compose.yml` comment block + `docs/DOCKER.md` |
 | Changed Makefile target | `README.md` common commands section |
@@ -381,7 +383,7 @@ const handleTabChange = (tab: PageTab) => {
 
 ## Code Conventions
 
-- **API routes** follow `/api/<resource>` pattern in `server.js`
+- **API routes** follow `/api/<resource>` pattern; route files live in `localcloud-api/routes/`, registered in `server.js`
 - **GUI pages** use Next.js App Router under `localcloud-gui/src/app/`
 - **Shell scripts** are POSIX-compatible and live in `scripts/shell/`
 - **Logging** uses Winston on the backend; errors go to `logs/error.log`
@@ -390,7 +392,9 @@ const handleTabChange = (tab: PageTab) => {
 
 ---
 
-## Current Feature Branch
+## Git Branch Convention
 
-- Branch: `claude/add-mailhog-integration-3TJ5B`
-- Task: Add MailHog email testing integration
+- All agent work happens on branches prefixed `claude/` followed by a short description and a unique session ID suffix
+- Example: `claude/add-iam-roles-localstack-OWviN`
+- **Never push to `main` directly**
+- Always push with `git push -u origin <branch-name>`
