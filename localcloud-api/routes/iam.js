@@ -211,4 +211,72 @@ router.get("/iam/policies", async (req, res) => {
   }
 });
 
+// ── STS Session Credentials ──────────────────────────────────────────────────
+
+// Get temporary session credentials (sts:GetSessionToken)
+router.post("/iam/sessions/token", async (req, res) => {
+  try {
+    const { durationSeconds = 3600, serialNumber, tokenCode } = req.body;
+
+    let cmd = `aws --endpoint-url=${internalEndpoint} --region=${awsRegion} sts get-session-token --duration-seconds ${durationSeconds} --output json`;
+    if (serialNumber) cmd += ` --serial-number "${serialNumber}"`;
+    if (tokenCode) cmd += ` --token-code "${tokenCode}"`;
+
+    const { stdout, stderr } = await execAsync(cmd, { env: awsEnv() });
+    if (stderr) addLog("warn", `STS get-session-token warning: ${stderr}`, "automation");
+
+    const data = JSON.parse(stdout);
+    addLog("success", "STS session token generated", "automation");
+    res.json({ success: true, data: data.Credentials });
+  } catch (error) {
+    addLog("error", `Failed to get session token: ${error.message}`, "automation");
+    res.status(500).json({ success: false, error: "Failed to get session token", message: error.message });
+  }
+});
+
+// Assume a role and get temporary credentials (sts:AssumeRole)
+router.post("/iam/sessions/assume-role", async (req, res) => {
+  try {
+    const { roleArn, sessionName, durationSeconds = 3600, externalId, policy } = req.body;
+
+    if (!roleArn || !sessionName) {
+      return res.status(400).json({ success: false, error: "roleArn and sessionName are required" });
+    }
+
+    let cmd = `aws --endpoint-url=${internalEndpoint} --region=${awsRegion} sts assume-role --role-arn "${roleArn}" --role-session-name "${sessionName}" --duration-seconds ${durationSeconds} --output json`;
+    if (externalId) cmd += ` --external-id "${externalId}"`;
+    if (policy) {
+      const policyStr = typeof policy === "string" ? policy : JSON.stringify(policy);
+      cmd += ` --policy '${policyStr.replace(/'/g, "'\"'\"'")}'`;
+    }
+
+    const { stdout, stderr } = await execAsync(cmd, { env: awsEnv() });
+    if (stderr) addLog("warn", `STS assume-role warning: ${stderr}`, "automation");
+
+    const data = JSON.parse(stdout);
+    addLog("success", `STS assumed role ${roleArn} as session "${sessionName}"`, "automation");
+    res.json({ success: true, data: { credentials: data.Credentials, assumedRoleUser: data.AssumedRoleUser } });
+  } catch (error) {
+    addLog("error", `Failed to assume role: ${error.message}`, "automation");
+    res.status(500).json({ success: false, error: "Failed to assume role", message: error.message });
+  }
+});
+
+// Get caller identity (sts:GetCallerIdentity)
+router.get("/iam/sessions/identity", async (req, res) => {
+  try {
+    const { stdout, stderr } = await execAsync(
+      `aws --endpoint-url=${internalEndpoint} --region=${awsRegion} sts get-caller-identity --output json`,
+      { env: awsEnv() }
+    );
+    if (stderr) addLog("warn", `STS get-caller-identity warning: ${stderr}`, "automation");
+
+    const data = JSON.parse(stdout);
+    res.json({ success: true, data });
+  } catch (error) {
+    addLog("error", `Failed to get caller identity: ${error.message}`, "automation");
+    res.status(500).json({ success: false, error: "Failed to get caller identity", message: error.message });
+  }
+});
+
 export default router;

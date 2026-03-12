@@ -650,6 +650,14 @@ export default function Dashboard() {
                       <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                       Parameter Store
                     </Link>
+                    <Link
+                      href="/iam"
+                      onClick={() => setShowDocsMenu(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />
+                      IAM &amp; STS
+                    </Link>
 
                     {/* Platform Services */}
                     <div className="border-t border-gray-100 mt-1" />
@@ -878,6 +886,9 @@ export default function Dashboard() {
                 </Link>
                 <Link href="/ssm" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Parameter Store
+                </Link>
+                <Link href="/iam" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />IAM &amp; STS
                 </Link>
                 <Link href="/mailpit" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />Mailpit
