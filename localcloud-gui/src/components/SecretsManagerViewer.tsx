@@ -20,6 +20,7 @@ import SecretsConfigModal from "./SecretsConfigModal";
 
 interface Secret {
   Name: string;
+  ARN?: string;
   Description?: string;
   LastChangedDate?: string;
   Tags?: Array<{ Key: string; Value: string }>;
