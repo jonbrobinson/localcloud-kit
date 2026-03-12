@@ -3,7 +3,7 @@
 import { usePreferences } from "@/context/PreferencesContext";
 import { useServicesData } from "@/hooks/useServicesData";
 import { resourceApi } from "@/services/api";
-import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayConfig, SSMParameterConfig } from "@/types";
+import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayConfig, SSMParameterConfig, IAMRoleConfig } from "@/types";
 import {
   Bars3Icon,
   BookOpenIcon,
@@ -41,6 +41,7 @@ import APIGatewayConfigModal from "./APIGatewayConfigModal";
 import APIGatewayConfigViewer from "./APIGatewayConfigViewer";
 import SSMConfigModal from "./SSMConfigModal";
 import SSMEditModal from "./SSMEditModal";
+import IAMConfigModal from "./IAMConfigModal";
 import LambdaCodeModal from "./LambdaCodeModal";
 
 export default function Dashboard() {
@@ -67,6 +68,8 @@ export default function Dashboard() {
   const [showAPIGatewayConfig, setShowAPIGatewayConfig] = useState(false);
   const [showSSMConfig, setShowSSMConfig] = useState(false);
   const [showSSMEdit, setShowSSMEdit] = useState(false);
+  const [showIAMConfig, setShowIAMConfig] = useState(false);
+  const [viewingIAMRole, setViewingIAMRole] = useState<string>("");
   const [editingSSMParameter, setEditingSSMParameter] = useState<string>("");
   const [showLambdaCode, setShowLambdaCode] = useState(false);
   const [viewingLambdaFunction, setViewingLambdaFunction] = useState<string>("");
@@ -315,6 +318,27 @@ export default function Dashboard() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const apiMessage = (error as any)?.response?.data?.error;
       toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create SSM parameter"));
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleCreateIAMRole = async (iamConfig: IAMRoleConfig) => {
+    setCreateLoading(true);
+    try {
+      const response = await resourceApi.createSingleWithConfig(projectName, "iam", { iamConfig });
+      if (response.success) {
+        toast.success("IAM role created successfully");
+        setShowIAMConfig(false);
+        setTimeout(async () => { await loadInitialData(); }, 1000);
+      } else {
+        toast.error(response.error || "Failed to create IAM role");
+      }
+    } catch (error) {
+      console.error("Create IAM role error:", error);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const apiMessage = (error as any)?.response?.data?.error;
+      toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create IAM role"));
     } finally {
       setCreateLoading(false);
     }
@@ -987,6 +1011,7 @@ export default function Dashboard() {
               onAddLambda={() => handleCreateSingleResource("lambda")}
               onAddAPIGateway={() => handleCreateSingleResource("apigateway")}
               onAddSSM={() => handleCreateSingleResource("ssm")}
+              onAddIAM={() => setShowIAMConfig(true)}
               refreshLoading={loading}
               addLoading={createLoading}
               onViewS3={(bucketName) => {
@@ -1007,6 +1032,7 @@ export default function Dashboard() {
                 setShowLambdaCode(true);
               }}
               onConfigureAPIGateway={(apiId, apiName) => setConfiguringAPIGateway({ apiId, apiName })}
+              onViewIAMRole={(roleName) => { setViewingIAMRole(roleName); }}
             />
           ) : (
             <div className="bg-white rounded-lg shadow border border-gray-200">
@@ -1161,6 +1187,16 @@ export default function Dashboard() {
           isOpen={showSSMConfig}
           onClose={() => setShowSSMConfig(false)}
           onSubmit={handleCreateSSMParameter}
+          projectName={projectName}
+          loading={createLoading}
+        />
+      )}
+
+      {showIAMConfig && (
+        <IAMConfigModal
+          isOpen={showIAMConfig}
+          onClose={() => setShowIAMConfig(false)}
+          onSubmit={handleCreateIAMRole}
           projectName={projectName}
           loading={createLoading}
         />
