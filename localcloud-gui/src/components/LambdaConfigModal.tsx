@@ -226,7 +226,8 @@ export default function LambdaConfigModal({
 
           {/* Note */}
           <div className="rounded-md bg-orange-50 border border-orange-200 p-3 text-xs text-orange-800">
-            LocalStack creates the function with a placeholder zip. Upload your code via the AWS CLI or SDK after creation.
+            <strong>No zip required.</strong> The function is created with a minimal placeholder. Upload your real code later with{" "}
+            <code className="bg-orange-100 px-1 rounded">update-function-code</code> (AWS CLI or SDK).
           </div>
 
           {/* Save Config Toggle */}
