@@ -119,6 +119,10 @@ export async function createSingleResource(projectName, resourceType, config = {
       command += ` --config '${escapeConfigForShell(JSON.stringify(config.ssmConfig))}'`;
     }
 
+    if (resourceType === "iam" && config.iamConfig) {
+      command += ` --config '${escapeConfigForShell(JSON.stringify(config.iamConfig))}'`;
+    }
+
     console.log("[DEBUG] Running command:", command);
 
     const { stdout, stderr } = await execAsync(command, {

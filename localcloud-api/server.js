@@ -27,6 +27,7 @@ import keycloakRouter from "./routes/keycloak.js";
 import lambdaRouter from "./routes/lambda.js";
 import apigatewayRouter from "./routes/apigateway.js";
 import ssmRouter from "./routes/ssm.js";
+import iamRouter from "./routes/iam.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -69,6 +70,7 @@ app.use(keycloakRouter);
 app.use(lambdaRouter);
 app.use(apigatewayRouter);
 app.use(ssmRouter);
+app.use(iamRouter);
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {
