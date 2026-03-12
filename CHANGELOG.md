@@ -11,6 +11,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **GUI**: Next.js rewrites to proxy /api to backend when running standalone dev (fixes 404/Network Error)
 
 ### Fixed
+- **Lambda create**: Build placeholder zip with Python when `zip` is unavailable (fixes "zip not found"); function is created with minimal placeholder and code can be uploaded later via `update-function-code`
+- **API image**: Add `zip` package to Dockerfile.api so Lambda placeholder fallback works in all environments
 - **GUI**: React duplicate key warnings — use unique keys for API endpoint tables (method+endpoint), ResourceList categories/details, BucketViewer objects/buckets, DynamoDBViewer rows/headers, SecretsManagerViewer secrets, LambdaCodeModal files, and external resource tables across all service pages
 - **Dashboard**: Show backend error messages in toasts when creating single resources (Lambda, API Gateway, Parameter Store) instead of generic AxiosError 500 messages
 - **API Gateway create**: Pass config to create_single_resource.sh; capture API ID from create-rest-api output for correct destroy; escape JSON config for shell
