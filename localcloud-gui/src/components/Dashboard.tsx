@@ -11,7 +11,6 @@ import {
   CircleStackIcon,
   DocumentTextIcon,
   EnvelopeIcon,
-  FolderIcon,
   KeyIcon,
   ServerIcon,
   Squares2X2Icon,
@@ -271,7 +270,9 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Create Lambda error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to create Lambda function");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const apiMessage = (error as any)?.response?.data?.error;
+      toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create Lambda function"));
     } finally {
       setCreateLoading(false);
     }
@@ -290,7 +291,9 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Create API Gateway error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to create API Gateway");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const apiMessage = (error as any)?.response?.data?.error;
+      toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create API Gateway"));
     } finally {
       setCreateLoading(false);
     }
@@ -309,7 +312,9 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Create SSM parameter error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to create SSM parameter");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const apiMessage = (error as any)?.response?.data?.error;
+      toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create SSM parameter"));
     } finally {
       setCreateLoading(false);
     }
