@@ -14,7 +14,9 @@ import {
   PlusIcon,
   TrashIcon,
   XMarkIcon,
+  ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import DynamoDBAddItemModal from "./DynamoDBAddItemModal";
 import DynamoDBConfigModal from "./DynamoDBConfigModal";
@@ -422,6 +424,13 @@ export default function DynamoDBViewer({
               <PlusIcon className="h-4 w-4 mr-1.5" />
               Create Table
             </button>
+            <Link
+              href="/manage/dynamodb"
+              className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+            >
+              <span>Open Manager</span>
+              <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+            </Link>
             <button
               onClick={onClose}
               className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"

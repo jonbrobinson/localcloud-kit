@@ -187,11 +187,11 @@ export default function S3DocPage() {
       <DocPageNav title="S3 Buckets" subtitle="Local object storage via LocalStack">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
-          href="/"
+          href="/manage/s3"
           className="flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
         >
           <FolderIcon className="h-4 w-4 mr-1.5" />
-          Manage Buckets
+          Open Manager
         </Link>
       </DocPageNav>
 

@@ -409,11 +409,11 @@ export default function IAMDocPage() {
       <DocPageNav title="IAM & STS" subtitle="Roles, policies, and session credentials via LocalStack">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
-          href="/"
+          href="/manage/iam"
           className="flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
         >
           <ShieldCheckIcon className="h-4 w-4 mr-1.5" />
-          Manage IAM
+          Open Manager
         </Link>
       </DocPageNav>
 

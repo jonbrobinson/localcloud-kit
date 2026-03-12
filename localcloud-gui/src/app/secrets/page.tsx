@@ -220,11 +220,11 @@ export default function SecretsDocPage() {
       <DocPageNav title="Secrets Manager" subtitle="Local secret storage via LocalStack">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
-          href="/"
+          href="/manage/secrets"
           className="flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
         >
           <KeyIcon className="h-4 w-4 mr-1.5" />
-          Manage Secrets
+          Open Manager
         </Link>
       </DocPageNav>
 
