@@ -286,7 +286,7 @@ export default function APIGatewayDocPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-50 to-rose-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="REST API management service via LocalStack">
+      <DocPageNav title="LocalCloud Kit" subtitle="API Gateway">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
           href="/manage/apigateway"

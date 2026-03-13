@@ -143,7 +143,7 @@ export default function KeycloakPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="Identity and access management service">
+      <DocPageNav title="LocalCloud Kit" subtitle="Keycloak">
         <ServiceStatusBadge service="keycloak" name="Keycloak" />
         <a
           href={keycloakAdminUrl}

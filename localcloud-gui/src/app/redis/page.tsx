@@ -132,7 +132,7 @@ export default function RedisDocPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="In-memory Redis caching service">
+      <DocPageNav title="LocalCloud Kit" subtitle="Redis">
         <ServiceStatusBadge service="redis" name="Redis" />
         <button
           onClick={() => setShowModal(true)}
