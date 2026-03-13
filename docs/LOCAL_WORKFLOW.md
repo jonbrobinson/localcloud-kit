@@ -182,6 +182,8 @@ From the Dashboard **Resources** panel, you can now open resource-specific viewe
 
 If no active resource exists yet for a type, create one first from **+ Add**.
 
+When creating the first AWS resource from an empty dashboard, the resources panel now keeps the same empty-state layout and shows a **building** loading state until the new resource is available. Add/remove updates also animate smoothly to reduce jarring height jumps.
+
 ### Regenerate Certificates
 
 If certificates expire or need regeneration:
