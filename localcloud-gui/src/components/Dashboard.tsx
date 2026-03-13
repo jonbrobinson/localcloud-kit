@@ -3,7 +3,8 @@
 import { usePreferences } from "@/context/PreferencesContext";
 import { useServicesData } from "@/hooks/useServicesData";
 import { resourceApi } from "@/services/api";
-import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayConfig, SSMParameterConfig, IAMRoleConfig } from "@/types";
+import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayConfig, SSMParameterConfig, IAMRoleConfig, ModalKey } from "@/types";
+import { PLATFORM_SERVICES, PLATFORM_SERVICE_KINDS, SERVICE_KIND_LABEL } from "@/constants/platformServices";
 import {
   Bars3Icon,
   BookOpenIcon,
@@ -143,6 +144,11 @@ export default function Dashboard() {
     setShowProjectMenu(false);
     setShowProfileMenu(false);
     setShowMobileMenu(false);
+  };
+
+  const handleModalOpen = (modalKey: ModalKey) => {
+    if (modalKey === "mailpit") setShowMailpit(true);
+    if (modalKey === "redis") setShowRedis(true);
   };
 
   const toggleMenu = (setter: (v: boolean) => void, current: boolean) => {
@@ -573,34 +579,50 @@ export default function Dashboard() {
                 </button>
                 {showServicesMenu && (
                   <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Identity</p>
-                    <Link href="/keycloak" onClick={() => closeAllMenus()} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                      <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Keycloak
-                    </Link>
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Email</p>
-                    <button onClick={() => { setShowMailpit(true); closeAllMenus(); }} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                      <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Mailpit Inbox
-                      {mailpit.unread > 0 && (
-                        <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-xs font-bold bg-red-500 text-white leading-none">
-                          {mailpit.unread > 99 ? "99+" : mailpit.unread}
-                        </span>
-                      )}
-                    </button>
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Database</p>
-                    <Link href="/postgres" onClick={() => closeAllMenus()} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                      <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      PostgreSQL
-                    </Link>
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Cache</p>
-                    <button onClick={() => { setShowRedis(true); closeAllMenus(); }} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                      <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Redis Cache
-                    </button>
+                    {PLATFORM_SERVICE_KINDS.map((kind, i) => {
+                      const items = PLATFORM_SERVICES.filter((s) => s.kind === kind);
+                      return (
+                        <div key={kind}>
+                          {i > 0 && <div className="border-t border-gray-100 mt-1" />}
+                          <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                            {SERVICE_KIND_LABEL[kind]}
+                          </p>
+                          {items.map((service) => {
+                            const ServiceIcon = service.icon;
+                            const itemContent = (
+                              <>
+                                <ServiceIcon className="h-4 w-4 mr-3 text-gray-400 flex-shrink-0" />
+                                {service.label}
+                                {service.id === "mailpit" && mailpit.unread > 0 && (
+                                  <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-xs font-bold bg-red-500 text-white leading-none">
+                                    {mailpit.unread > 99 ? "99+" : mailpit.unread}
+                                  </span>
+                                )}
+                              </>
+                            );
+                            const action = service.action;
+                            return action.type === "link" ? (
+                              <Link
+                                key={service.id}
+                                href={action.href}
+                                onClick={() => closeAllMenus()}
+                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                              >
+                                {itemContent}
+                              </Link>
+                            ) : (
+                              <button
+                                key={service.id}
+                                onClick={() => { handleModalOpen(action.modalKey); closeAllMenus(); }}
+                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                              >
+                                {itemContent}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -691,38 +713,21 @@ export default function Dashboard() {
                     {/* Platform Services */}
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Platform Services</p>
-                    <Link
-                      href="/keycloak"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Keycloak
-                    </Link>
-                    <Link
-                      href="/mailpit"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Mailpit
-                    </Link>
-                    <Link
-                      href="/postgres"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      PostgreSQL
-                    </Link>
-                    <Link
-                      href="/redis"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Redis Cache
-                    </Link>
+                    {PLATFORM_SERVICES.map((service) => {
+                      const ServiceIcon = service.icon;
+                      const href = service.action.type === "link" ? service.action.href : `/${service.id}`;
+                      return (
+                        <Link
+                          key={service.id}
+                          href={href}
+                          onClick={() => setShowDocsMenu(false)}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <ServiceIcon className="h-4 w-4 mr-3 text-gray-400" />
+                          {service.label}
+                        </Link>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -866,30 +871,51 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              {/* Services — categorised */}
+              {/* Services — categorised by kind */}
               <div className="pt-2 px-2 border-t border-gray-100 mt-2">
-                <p className="px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Identity</p>
-                <Link href="/keycloak" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />Keycloak
-                </Link>
-                <p className="px-2 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Email</p>
-                <button onClick={() => { setShowMailpit(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />
-                  Mailpit Inbox
-                  {mailpit.unread > 0 && (
-                    <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-xs font-bold bg-red-500 text-white">
-                      {mailpit.unread > 99 ? "99+" : mailpit.unread}
-                    </span>
-                  )}
-                </button>
-                <p className="px-2 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Database</p>
-                <Link href="/postgres" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />PostgreSQL
-                </Link>
-                <p className="px-2 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Cache</p>
-                <button onClick={() => { setShowRedis(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />Redis Cache
-                </button>
+                {PLATFORM_SERVICE_KINDS.map((kind, i) => {
+                  const items = PLATFORM_SERVICES.filter((s) => s.kind === kind);
+                  return (
+                    <div key={kind}>
+                      <p className={`px-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider ${i > 0 ? "pt-2" : "py-1"}`}>
+                        {SERVICE_KIND_LABEL[kind]}
+                      </p>
+                      {items.map((service) => {
+                        const ServiceIcon = service.icon;
+                        const itemContent = (
+                          <>
+                            <ServiceIcon className="h-4 w-4 mr-3 text-gray-400 flex-shrink-0" />
+                            {service.label}
+                            {service.id === "mailpit" && mailpit.unread > 0 && (
+                              <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-xs font-bold bg-red-500 text-white">
+                                {mailpit.unread > 99 ? "99+" : mailpit.unread}
+                              </span>
+                            )}
+                          </>
+                        );
+                        const action = service.action;
+                        return action.type === "link" ? (
+                          <Link
+                            key={service.id}
+                            href={action.href}
+                            onClick={closeAllMenus}
+                            className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            {itemContent}
+                          </Link>
+                        ) : (
+                          <button
+                            key={service.id}
+                            onClick={() => { handleModalOpen(action.modalKey); closeAllMenus(); }}
+                            className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            {itemContent}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Docs */}
@@ -919,18 +945,15 @@ export default function Dashboard() {
                 <Link href="/iam" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />IAM &amp; STS
                 </Link>
-                <Link href="/mailpit" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <EnvelopeIcon className="h-4 w-4 mr-3 text-gray-400" />Mailpit
-                </Link>
-                <Link href="/redis" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />Redis Cache
-                </Link>
-                <Link href="/keycloak" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />Keycloak
-                </Link>
-                <Link href="/postgres" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <CircleStackIcon className="h-4 w-4 mr-3 text-gray-400" />PostgreSQL
-                </Link>
+                {PLATFORM_SERVICES.map((service) => {
+                  const ServiceIcon = service.icon;
+                  const href = service.action.type === "link" ? service.action.href : `/${service.id}`;
+                  return (
+                    <Link key={service.id} href={href} onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                      <ServiceIcon className="h-4 w-4 mr-3 text-gray-400 flex-shrink-0" />{service.label}
+                    </Link>
+                  );
+                })}
               </div>
 
               {/* Account */}

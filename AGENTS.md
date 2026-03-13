@@ -197,6 +197,7 @@ Entries go under `## [Unreleased]` at the top of the file. Use these subsections
 
 - **Never** include `Co-Authored-By: Claude` or any AI attribution in commit messages or footers
 - **Never** include the `🤖 Generated with [Claude Code](https://claude.com/claude-code)` line (or any variant) in PR descriptions, commit bodies, or any other output
+- **Never** commit as `Claude <noreply@anthropic.com>` — all commits must be authored by the human owner of the repository. The correct git author for this repo is `Jonathan Robinson <jonrobinson.codes@gmail.com>`. Before committing, verify `git config user.name` and `git config user.email` match this identity.
 
 ---
 

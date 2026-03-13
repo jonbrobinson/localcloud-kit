@@ -5,6 +5,14 @@ export interface LocalStackStatus {
   uptime?: string;
 }
 
+// Categorises platform services by their relationship to the developer's app.
+// "instance-service" — always-on infrastructure the app connects to directly (Redis, PostgreSQL).
+// "admin-tool"       — developer-facing management UI (Keycloak, Mailpit, pgAdmin).
+export type ServiceKind = "instance-service" | "admin-tool";
+
+// Modal keys for platform services that open an in-app modal rather than navigating to a page.
+export type ModalKey = "mailpit" | "redis";
+
 export interface Resource {
   id: string;
   name: string;
@@ -15,11 +23,7 @@ export interface Resource {
     | "apigateway"
     | "ssm"
     | "iam"
-    | "cache"
-    | "secretsmanager"
-    | "mailpit"
-    | "postgres"
-    | "keycloak";
+    | "secretsmanager";
   status: "creating" | "active" | "deleting" | "error" | "unknown";
   environment: string;
   project: string;
