@@ -179,6 +179,7 @@ export default function ResourceList({
   const getApiId = (r: Resource) => r.details?.apiId || r.id.replace(/^apigateway-/, "");
 
   const hasAddActions = onAddS3 || onAddDynamoDB || onAddSecrets || onAddLambda || onAddAPIGateway || onAddSSM || onAddIAM;
+  const rowGridTemplate = "1.25rem 2.5rem minmax(0, 1fr) 10rem 8rem 1.75rem";
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -357,7 +358,7 @@ export default function ResourceList({
                 {/* Column labels — only on first category */}
                 <div
                   className="grid items-center gap-x-4 px-6 py-2 bg-white border-b border-gray-100"
-                  style={{ gridTemplateColumns: "1.25rem 2.5rem 1fr 9rem 6rem 1.75rem" }}
+                  style={{ gridTemplateColumns: rowGridTemplate }}
                 >
                   <div />
                   <div />
@@ -369,10 +370,10 @@ export default function ResourceList({
 
                 <div className="divide-y divide-gray-100">
                   {categoryResources.map((resource) => (
-                    <div key={resource.id} className="px-6 py-3.5">
+                    <div key={resource.id} className="px-6 py-4">
                       <div
                         className="grid items-center gap-x-4"
-                        style={{ gridTemplateColumns: "1.25rem 2.5rem 1fr 9rem 6rem 1.75rem" }}
+                        style={{ gridTemplateColumns: rowGridTemplate }}
                       >
                         {/* Checkbox */}
                         <input
@@ -392,10 +393,10 @@ export default function ResourceList({
 
                         {/* Name + type */}
                         <div className="min-w-0">
-                          <h4 className="text-sm font-medium text-gray-900 truncate">
+                          <h4 className="text-sm font-medium text-gray-900 break-words leading-5">
                             {resource.name}
                           </h4>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs text-gray-500 break-words">
                             {RESOURCE_LABEL[resource.type] || resource.type} · {resource.project}
                           </p>
                         </div>

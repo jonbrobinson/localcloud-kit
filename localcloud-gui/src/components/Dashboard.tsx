@@ -10,9 +10,11 @@ import {
   BookOpenIcon,
   ChevronDownIcon,
   DocumentTextIcon,
+  EyeIcon,
   ServerIcon,
   Squares2X2Icon,
   UserCircleIcon,
+  WrenchScrewdriverIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Icon } from "@iconify/react";
@@ -172,6 +174,44 @@ export default function Dashboard() {
     closeAllMenus();
     setter(!current);
   };
+
+  const inspectActionClass =
+    "inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors";
+  const manageActionClass =
+    "inline-flex items-center justify-center p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors";
+
+  const renderInspectManageActions = (label: string, target: InspectTargetId, manageHref: string) => (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={() => openInspectTarget(target)}
+        className={inspectActionClass}
+        title={`Quick preview ${label}`}
+        aria-label={`Quick preview ${label}`}
+      >
+        <EyeIcon className="h-4 w-4" />
+      </button>
+      <Link
+        href={manageHref}
+        onClick={closeAllMenus}
+        className={manageActionClass}
+        title={`Open ${label} manager`}
+        aria-label={`Open ${label} manager`}
+      >
+        <WrenchScrewdriverIcon className="h-4 w-4" />
+      </Link>
+    </div>
+  );
+
+  const renderInspectAction = (label: string, target: InspectTargetId) => (
+    <button
+      onClick={() => openInspectTarget(target)}
+      className={inspectActionClass}
+      title={`Quick preview ${label}`}
+      aria-label={`Quick preview ${label}`}
+    >
+      <EyeIcon className="h-4 w-4" />
+    </button>
+  );
 
   const handleSwitchProject = async (projectId: number) => {
     try {
@@ -681,150 +721,94 @@ export default function Dashboard() {
                   <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showResourcesMenu ? "rotate-180" : ""}`} />
                 </button>
                 {showResourcesMenu && (
-                  <div className="absolute right-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                  <div className="absolute right-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1.5">
                     {/* Storage */}
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Storage</p>
-                    <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
                       <button
                         onClick={() => { setShowBuckets(true); closeAllMenus(); }}
-                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
                         <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />
                         S3 Buckets
                       </button>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => openInspectTarget("s3")}
-                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
-                        >
-                          Inspect
-                        </button>
-                        <Link href="/manage/s3" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
-                      </div>
+                      {renderInspectManageActions("S3 Buckets", "s3", "/manage/s3")}
                     </div>
 
                     {/* Database */}
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Database</p>
-                    <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
                       <button
                         onClick={() => { setShowDynamoDB(true); closeAllMenus(); }}
-                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
                         <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />
                         DynamoDB
                       </button>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => openInspectTarget("dynamodb")}
-                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
-                        >
-                          Inspect
-                        </button>
-                        <Link href="/manage/dynamodb" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
-                      </div>
+                      {renderInspectManageActions("DynamoDB", "dynamodb", "/manage/dynamodb")}
                     </div>
 
                     {/* Compute */}
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Compute</p>
-                    <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
                       <button
                         onClick={() => { setShowLambdaConfig(true); closeAllMenus(); }}
-                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
                         <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />
                         Lambda
                       </button>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => openInspectTarget("lambda")}
-                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
-                        >
-                          Inspect
-                        </button>
-                        <Link href="/manage/lambda" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
-                      </div>
+                      {renderInspectManageActions("Lambda", "lambda", "/manage/lambda")}
                     </div>
 
                     {/* Networking */}
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Networking</p>
-                    <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
                       <button
                         onClick={() => { setShowAPIGatewayConfig(true); closeAllMenus(); }}
-                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
                         <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />
                         API Gateway
                       </button>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => openInspectTarget("apigateway")}
-                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
-                        >
-                          Inspect
-                        </button>
-                        <Link href="/manage/apigateway" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
-                      </div>
+                      {renderInspectManageActions("API Gateway", "apigateway", "/manage/apigateway")}
                     </div>
 
                     {/* Security & Identity */}
                     <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Security & Identity</p>
-                    <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
                       <button
                         onClick={() => { setShowSecretsConfig(true); closeAllMenus(); }}
-                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
                         <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                         Secrets Manager
                       </button>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => openInspectTarget("secretsmanager")}
-                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
-                        >
-                          Inspect
-                        </button>
-                        <Link href="/manage/secrets" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
-                      </div>
+                      {renderInspectManageActions("Secrets Manager", "secretsmanager", "/manage/secrets")}
                     </div>
-                    <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
                       <button
                         onClick={() => { setShowSSMConfig(true); closeAllMenus(); }}
-                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
                         <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                         Parameter Store
                       </button>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => openInspectTarget("ssm")}
-                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
-                        >
-                          Inspect
-                        </button>
-                        <Link href="/manage/ssm" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
-                      </div>
+                      {renderInspectManageActions("Parameter Store", "ssm", "/manage/ssm")}
                     </div>
-                    <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
                       <button
                         onClick={() => { setShowIAMConfig(true); closeAllMenus(); }}
-                        className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
                         <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />
                         IAM Roles
                       </button>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => openInspectTarget("iam")}
-                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
-                        >
-                          Inspect
-                        </button>
-                        <Link href="/manage/iam" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
-                      </div>
+                      {renderInspectManageActions("IAM Roles", "iam", "/manage/iam")}
                     </div>
 
                   </div>
@@ -847,7 +831,7 @@ export default function Dashboard() {
                   )}
                 </button>
                 {showServicesMenu && (
-                  <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                  <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
                     {PLATFORM_SERVICE_KINDS.map((kind, i) => {
                       const items = PLATFORM_SERVICES.filter((s) => s.kind === kind);
                       return (
@@ -888,12 +872,7 @@ export default function Dashboard() {
                                     {itemContent}
                                   </button>
                                 )}
-                                <button
-                                  onClick={() => openInspectTarget(service.id)}
-                                  className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
-                                >
-                                  Inspect
-                                </button>
+                                {renderInspectAction(service.label, service.id)}
                               </div>
                             );
                           })}
@@ -915,106 +894,108 @@ export default function Dashboard() {
                   <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showDocsMenu ? "rotate-180" : ""}`} />
                 </button>
                 {showDocsMenu && (
-                  <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                  <div className="absolute right-0 mt-1 w-[44rem] max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-md shadow-lg z-50 p-3">
                     <Link
                       href="/docs"
                       onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 transition-colors"
+                      className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 transition-colors"
                     >
                       <BookOpenIcon className="h-4 w-4 mr-3 text-indigo-500" />
                       Docs Hub
                     </Link>
 
-                    {/* Infrastructure */}
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Infrastructure</p>
-                    <Link
-                      href="/localstack"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />
-                      LocalStack
-                    </Link>
-
-                    {/* AWS Resources */}
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">AWS Resources</p>
-                    <Link
-                      href="/dynamodb"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      DynamoDB
-                    </Link>
-                    <Link
-                      href="/s3"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      S3 Buckets
-                    </Link>
-                    <Link
-                      href="/lambda"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      Lambda
-                    </Link>
-                    <Link
-                      href="/apigateway"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      API Gateway
-                    </Link>
-                    <Link
-                      href="/secrets"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      Secrets Manager
-                    </Link>
-                    <Link
-                      href="/ssm"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      Parameter Store
-                    </Link>
-                    <Link
-                      href="/iam"
-                      onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />
-                      IAM &amp; STS
-                    </Link>
-
-                    {/* Platform Services */}
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Platform Services</p>
-                    {PLATFORM_SERVICES.map((service) => {
-                      const ServiceIcon = service.icon;
-                      const href = service.action.type === "link" ? service.action.href : `/${service.id}`;
-                      return (
+                    <div className="mt-3 grid grid-cols-3 gap-3 max-h-[65vh] overflow-y-auto">
+                      <div className="rounded-md border border-gray-100 py-1">
+                        <p className="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Infrastructure</p>
                         <Link
-                          key={service.id}
-                          href={href}
+                          href="/localstack"
                           onClick={() => setShowDocsMenu(false)}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <ServiceIcon className="h-4 w-4 mr-3 text-gray-400" />
-                          {service.label}
+                          <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />
+                          LocalStack
                         </Link>
-                      );
-                    })}
+                      </div>
+
+                      <div className="rounded-md border border-gray-100 py-1">
+                        <p className="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">AWS Resources</p>
+                        <Link
+                          href="/dynamodb"
+                          onClick={() => setShowDocsMenu(false)}
+                          className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          DynamoDB
+                        </Link>
+                        <Link
+                          href="/s3"
+                          onClick={() => setShowDocsMenu(false)}
+                          className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          S3 Buckets
+                        </Link>
+                        <Link
+                          href="/lambda"
+                          onClick={() => setShowDocsMenu(false)}
+                          className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          Lambda
+                        </Link>
+                        <Link
+                          href="/apigateway"
+                          onClick={() => setShowDocsMenu(false)}
+                          className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          API Gateway
+                        </Link>
+                        <Link
+                          href="/secrets"
+                          onClick={() => setShowDocsMenu(false)}
+                          className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          Secrets Manager
+                        </Link>
+                        <Link
+                          href="/ssm"
+                          onClick={() => setShowDocsMenu(false)}
+                          className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          Parameter Store
+                        </Link>
+                        <Link
+                          href="/iam"
+                          onClick={() => setShowDocsMenu(false)}
+                          className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          IAM &amp; STS
+                        </Link>
+                      </div>
+
+                      <div className="rounded-md border border-gray-100 py-1">
+                        <p className="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Platform Services</p>
+                        {PLATFORM_SERVICES.map((service) => {
+                          const ServiceIcon = service.icon;
+                          const href = service.action.type === "link" ? service.action.href : `/${service.id}`;
+                          return (
+                            <Link
+                              key={service.id}
+                              href={href}
+                              onClick={() => setShowDocsMenu(false)}
+                              className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              <ServiceIcon className="h-4 w-4 mr-3 text-gray-400" />
+                              {service.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
