@@ -100,24 +100,6 @@ export default function SecretsManagerViewer({
     }
   };
 
-  const loadSecretDetails = async (secretName: string) => {
-    try {
-      const response = await fetch(
-        `/api/secrets/${encodeURIComponent(secretName)}?includeValue=false`
-      );
-      const result = await response.json();
-
-      if (result.success) {
-        setSecretDetails((prev) => ({
-          ...prev,
-          [secretName]: result.data,
-        }));
-      }
-    } catch (error) {
-      console.error("Error loading secret details:", error);
-    }
-  };
-
   const revealSecret = async (secretName: string) => {
     try {
       const response = await fetch(
@@ -147,55 +129,6 @@ export default function SecretsManagerViewer({
       newSet.delete(secretName);
       return newSet;
     });
-  };
-
-  const handleCreateSecret = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      const tags = formData.tags
-        ? Object.fromEntries(
-            formData.tags.split(",").map((tag) => {
-              const [key, value] = tag.split("=").map((s) => s.trim());
-              return [key, value];
-            })
-          )
-        : {};
-
-      const response = await fetch("/api/secrets", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          secretName: formData.secretName,
-          secretValue: formData.secretValue,
-          description: formData.description || undefined,
-          tags: Object.keys(tags).length > 0 ? tags : undefined,
-          kmsKeyId: formData.kmsKeyId || undefined,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast.success("Secret created successfully");
-        setShowCreateModal(false);
-        setFormData({
-          secretName: "",
-          secretValue: "",
-          description: "",
-          tags: "",
-          kmsKeyId: "",
-        });
-        loadSecrets();
-      } else {
-        toast.error(result.error || "Failed to create secret");
-      }
-    } catch (error) {
-      console.error("Error creating secret:", error);
-      toast.error("Failed to create secret");
-    }
   };
 
   const handleUpdateSecret = async (e: React.FormEvent) => {

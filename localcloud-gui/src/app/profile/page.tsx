@@ -1,7 +1,6 @@
 "use client";
 
 import { usePreferences } from "@/context/PreferencesContext";
-import { projectsApi, savedConfigsApi } from "@/services/api";
 import { HighlightTheme, PreferredLanguage, Project } from "@/types";
 import {
   ArrowLeftIcon,

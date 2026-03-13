@@ -8,8 +8,7 @@ import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { usePreferences } from "@/context/PreferencesContext";
 import ServiceStatusBadge from "@/components/ServiceStatusBadge";
 
-const PAGE_TABS = ["node", "python", "cli"] as const;
-type PageTab = (typeof PAGE_TABS)[number];
+type PageTab = "node" | "python" | "cli";
 
 // Maps PreferredLanguage → localstack tab (no typescript tab here — node is equivalent)
 const LANG_TO_TAB: Record<string, PageTab> = {
@@ -22,7 +21,7 @@ const LANG_TO_TAB: Record<string, PageTab> = {
 };
 
 export default function LocalStackIntegrationPage() {
-  const { status, projectConfig, loading } = useLocalStackStatus();
+  const { status, projectConfig } = useLocalStackStatus();
   const { profile } = usePreferences();
   const [activeTab, setActiveTab] = useState<PageTab>("node");
 

@@ -9,10 +9,7 @@ import {
   Bars3Icon,
   BookOpenIcon,
   ChevronDownIcon,
-  CircleStackIcon,
   DocumentTextIcon,
-  EnvelopeIcon,
-  KeyIcon,
   ServerIcon,
   Squares2X2Icon,
   UserCircleIcon,
@@ -70,7 +67,6 @@ export default function Dashboard() {
   const [showSSMConfig, setShowSSMConfig] = useState(false);
   const [showSSMEdit, setShowSSMEdit] = useState(false);
   const [showIAMConfig, setShowIAMConfig] = useState(false);
-  const [viewingIAMRole, setViewingIAMRole] = useState<string>("");
   const [editingSSMParameter, setEditingSSMParameter] = useState<string>("");
   const [showLambdaCode, setShowLambdaCode] = useState(false);
   const [viewingLambdaFunction, setViewingLambdaFunction] = useState<string>("");
@@ -1098,7 +1094,7 @@ export default function Dashboard() {
                 setShowLambdaCode(true);
               }}
               onConfigureAPIGateway={(apiId, apiName) => setConfiguringAPIGateway({ apiId, apiName })}
-              onViewIAMRole={(roleName) => { setViewingIAMRole(roleName); }}
+              onViewIAMRole={() => {}}
             />
           ) : (
             <div className="bg-white rounded-lg shadow border border-gray-200">
