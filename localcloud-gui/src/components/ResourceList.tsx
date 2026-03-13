@@ -71,6 +71,14 @@ const RESOURCE_LABEL: Record<string, string> = {
   secretsmanager: "Secrets Manager",
 };
 
+interface EmptyStateAction {
+  key: string;
+  title: string;
+  description: string;
+  icon: string;
+  onClick: () => void;
+}
+
 export default function ResourceList({
   resources,
   onDestroy,
@@ -180,6 +188,44 @@ export default function ResourceList({
 
   const hasAddActions = onAddS3 || onAddDynamoDB || onAddSecrets || onAddLambda || onAddAPIGateway || onAddSSM || onAddIAM;
   const rowGridTemplate = "1.25rem 2.5rem minmax(0, 1fr) 10rem 8rem 1.75rem";
+  const emptyStateActions: EmptyStateAction[] = [
+    onAddS3
+      ? {
+          key: "s3",
+          title: "Create S3 Bucket",
+          description: "Store objects and files",
+          icon: "logos:aws-s3",
+          onClick: onAddS3,
+        }
+      : null,
+    onAddDynamoDB
+      ? {
+          key: "dynamodb",
+          title: "Create DynamoDB Table",
+          description: "Set up a NoSQL table",
+          icon: "logos:aws-dynamodb",
+          onClick: onAddDynamoDB,
+        }
+      : null,
+    onAddLambda
+      ? {
+          key: "lambda",
+          title: "Create Lambda Function",
+          description: "Run event-driven code",
+          icon: "logos:aws-lambda",
+          onClick: onAddLambda,
+        }
+      : null,
+    onAddAPIGateway
+      ? {
+          key: "apigateway",
+          title: "Create API Gateway",
+          description: "Expose REST endpoints",
+          icon: "logos:aws-api-gateway",
+          onClick: onAddAPIGateway,
+        }
+      : null,
+  ].filter((action): action is EmptyStateAction => action !== null);
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -323,7 +369,7 @@ export default function ResourceList({
 
       {/* Empty state */}
       {awsResources.length === 0 ? (
-        <div className="px-6 py-16 text-center">
+        <div className="px-6 py-12">
           <div className="flex items-center justify-center space-x-4 mb-6 opacity-20">
             <Icon icon="logos:aws-s3" className="w-10 h-10" />
             <Icon icon="logos:aws-dynamodb" className="w-10 h-10" />
@@ -331,9 +377,32 @@ export default function ResourceList({
             <Icon icon="logos:aws-api-gateway" className="w-10 h-10" />
             <Icon icon="logos:aws-secrets-manager" className="w-10 h-10" />
           </div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-1">No AWS Resources Yet</h4>
-          <p className="text-sm text-gray-500">
-            Use the <span className="font-medium">+ Add</span> button to create your first S3 bucket, DynamoDB table, Lambda function, API Gateway, or secret.
+          <h4 className="text-sm font-semibold text-gray-900 mb-1 text-center">Create your first AWS resource</h4>
+          <p className="text-sm text-gray-500 text-center">
+            Start with S3 or DynamoDB, or pick from other resource types.
+          </p>
+
+          {emptyStateActions.length > 0 && (
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
+              {emptyStateActions.map((action) => (
+                <button
+                  key={action.key}
+                  onClick={action.onClick}
+                  disabled={addLoading}
+                  className="flex items-center p-3 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/40 transition-colors disabled:opacity-50"
+                >
+                  <Icon icon={action.icon} className="w-8 h-8 mr-3 flex-shrink-0" />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium text-gray-900">{action.title}</span>
+                    <span className="block text-xs text-gray-500">{action.description}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <p className="mt-4 text-xs text-gray-500 text-center">
+            You can also use the <span className="font-medium">+ Add</span> menu for Secrets Manager, Parameter Store, and IAM.
           </p>
         </div>
       ) : (
