@@ -11,6 +11,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Changed
 - **DocPageNav**: Dashboard link now appears to the right of the page title and subtitle in the nav header
+- **Non-dashboard headers**: Title next to the logo is now consistent as "LocalCloud Kit" and subtitles now use short service labels
 
 ### Fixed
 - **SecretsDetailModal**: Clicking a secret from the resource list previously opened all secrets; now correctly opens only the clicked secret
