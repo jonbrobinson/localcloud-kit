@@ -3,7 +3,7 @@
 import { usePreferences } from "@/context/PreferencesContext";
 import { useServicesData } from "@/hooks/useServicesData";
 import { resourceApi } from "@/services/api";
-import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayConfig, SSMParameterConfig, IAMRoleConfig, ModalKey } from "@/types";
+import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayConfig, SSMParameterConfig, IAMRoleConfig, ModalKey, Resource } from "@/types";
 import { PLATFORM_SERVICES, PLATFORM_SERVICE_KINDS, SERVICE_KIND_LABEL } from "@/constants/platformServices";
 import {
   ArrowTopRightOnSquareIcon,
@@ -44,6 +44,7 @@ import SSMConfigModal from "./SSMConfigModal";
 import SSMEditModal from "./SSMEditModal";
 import IAMConfigModal from "./IAMConfigModal";
 import LambdaCodeModal from "./LambdaCodeModal";
+import IAMRolePoliciesModal from "./IAMRolePoliciesModal";
 import QuickInspectModal, { QuickInspectAction } from "./QuickInspectModal";
 
 type InspectTargetId =
@@ -85,9 +86,11 @@ export default function Dashboard() {
   const [showSSMConfig, setShowSSMConfig] = useState(false);
   const [showSSMEdit, setShowSSMEdit] = useState(false);
   const [showIAMConfig, setShowIAMConfig] = useState(false);
+  const [showIAMRolePolicies, setShowIAMRolePolicies] = useState(false);
   const [editingSSMParameter, setEditingSSMParameter] = useState<string>("");
   const [showLambdaCode, setShowLambdaCode] = useState(false);
   const [viewingLambdaFunction, setViewingLambdaFunction] = useState<string>("");
+  const [viewingIAMRole, setViewingIAMRole] = useState<string>("");
   const [configuringAPIGateway, setConfiguringAPIGateway] = useState<{ apiId: string; apiName: string } | null>(null);
   const [showLogs, setShowLogs] = useState(false);
   const [showBuckets, setShowBuckets] = useState(false);
@@ -468,6 +471,69 @@ export default function Dashboard() {
     }
   };
 
+  const getFirstActiveResourceByType = (type: Resource["type"]) =>
+    resources.find((resource) => resource.project === projectName && resource.type === type && resource.status === "active");
+
+  const getApiIdFromResource = (resource: Resource) => resource.details?.apiId || resource.id.replace(/^apigateway-/, "");
+
+  const openLambdaViewer = (functionName?: string) => {
+    const targetName = functionName || getFirstActiveResourceByType("lambda")?.name;
+    if (!targetName) {
+      toast.error("No active Lambda functions available");
+      return;
+    }
+    setViewingLambdaFunction(targetName);
+    setShowLambdaCode(true);
+  };
+
+  const openAPIGatewayViewer = (apiId?: string, apiName?: string) => {
+    if (apiId && apiName) {
+      setConfiguringAPIGateway({ apiId, apiName });
+      return;
+    }
+
+    const resource = getFirstActiveResourceByType("apigateway");
+    if (!resource) {
+      toast.error("No active API Gateway resources available");
+      return;
+    }
+
+    setConfiguringAPIGateway({
+      apiId: getApiIdFromResource(resource),
+      apiName: resource.name,
+    });
+  };
+
+  const openSecretsViewer = (secretName?: string) => {
+    const targetName = secretName || getFirstActiveResourceByType("secretsmanager")?.name;
+    if (!targetName) {
+      toast.error("No active secrets available");
+      return;
+    }
+    setSelectedSecretName(targetName);
+    setShowSecretsManager(true);
+  };
+
+  const openSSMViewer = (parameterName?: string) => {
+    const targetName = parameterName || getFirstActiveResourceByType("ssm")?.name;
+    if (!targetName) {
+      toast.error("No active SSM parameters available");
+      return;
+    }
+    setEditingSSMParameter(targetName);
+    setShowSSMEdit(true);
+  };
+
+  const openIAMRoleViewer = (roleName?: string) => {
+    const targetName = roleName || getFirstActiveResourceByType("iam")?.name;
+    if (!targetName) {
+      toast.error("No active IAM roles available");
+      return;
+    }
+    setViewingIAMRole(targetName);
+    setShowIAMRolePolicies(true);
+  };
+
   const serviceStatusClass = (status: string) => {
     if (status === "running") return "bg-green-100 text-green-800";
     if (status === "starting") return "bg-yellow-100 text-yellow-700";
@@ -779,7 +845,10 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />
                         Lambda
                       </button>
-                      {renderResourceActions("Lambda", "lambda", "/manage/lambda")}
+                      {renderResourceActions("Lambda", "lambda", "/manage/lambda", () => {
+                        openLambdaViewer();
+                        closeAllMenus();
+                      })}
                     </div>
 
                     {/* Networking */}
@@ -793,7 +862,10 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />
                         API Gateway
                       </button>
-                      {renderResourceActions("API Gateway", "apigateway", "/manage/apigateway")}
+                      {renderResourceActions("API Gateway", "apigateway", "/manage/apigateway", () => {
+                        openAPIGatewayViewer();
+                        closeAllMenus();
+                      })}
                     </div>
 
                     {/* Security & Identity */}
@@ -807,7 +879,10 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                         Secrets Manager
                       </button>
-                      {renderResourceActions("Secrets Manager", "secretsmanager", "/manage/secrets")}
+                      {renderResourceActions("Secrets Manager", "secretsmanager", "/manage/secrets", () => {
+                        openSecretsViewer();
+                        closeAllMenus();
+                      })}
                     </div>
                     <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
                       <button
@@ -817,7 +892,10 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                         Parameter Store
                       </button>
-                      {renderResourceActions("Parameter Store", "ssm", "/manage/ssm")}
+                      {renderResourceActions("Parameter Store", "ssm", "/manage/ssm", () => {
+                        openSSMViewer();
+                        closeAllMenus();
+                      })}
                     </div>
                     <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
                       <button
@@ -827,7 +905,10 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />
                         IAM Roles
                       </button>
-                      {renderResourceActions("IAM Roles", "iam", "/manage/iam")}
+                      {renderResourceActions("IAM Roles", "iam", "/manage/iam", () => {
+                        openIAMRoleViewer();
+                        closeAllMenus();
+                      })}
                     </div>
 
                   </div>
@@ -1422,19 +1503,16 @@ export default function Dashboard() {
                 setShowDynamoDB(true);
               }}
               onViewSecretsManager={(name) => {
-                setSelectedSecretName(name);
-                setShowSecretsManager(true);
+                openSecretsViewer(name);
               }}
               onEditSSM={(name) => {
-                setEditingSSMParameter(name);
-                setShowSSMEdit(true);
+                openSSMViewer(name);
               }}
               onViewLambdaCode={(name) => {
-                setViewingLambdaFunction(name);
-                setShowLambdaCode(true);
+                openLambdaViewer(name);
               }}
-              onConfigureAPIGateway={(apiId, apiName) => setConfiguringAPIGateway({ apiId, apiName })}
-              onViewIAMRole={() => {}}
+              onConfigureAPIGateway={(apiId, apiName) => openAPIGatewayViewer(apiId, apiName)}
+              onViewIAMRole={(name) => openIAMRoleViewer(name)}
             />
           ) : (
             <div className="bg-white rounded-lg shadow border border-gray-200">
@@ -1585,6 +1663,14 @@ export default function Dashboard() {
           isOpen={showLambdaCode}
           onClose={() => { setShowLambdaCode(false); setViewingLambdaFunction(""); }}
           functionName={viewingLambdaFunction}
+        />
+      )}
+
+      {showIAMRolePolicies && viewingIAMRole && (
+        <IAMRolePoliciesModal
+          isOpen={showIAMRolePolicies}
+          onClose={() => { setShowIAMRolePolicies(false); setViewingIAMRole(""); }}
+          roleName={viewingIAMRole}
         />
       )}
 
