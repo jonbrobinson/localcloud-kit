@@ -165,7 +165,8 @@ export default function ResourceList({
     }
   };
 
-  const awsResources = resources.filter((r) => r.project === projectName);
+  const awsTypes = new Set(AWS_CATEGORIES.flatMap((c) => c.types));
+  const awsResources = resources.filter((r) => r.project === projectName && awsTypes.has(r.type));
 
   const handleSelectAll = () => {
     if (selectedResources.length === awsResources.length) {
