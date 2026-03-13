@@ -12,7 +12,7 @@ cloud services using LocalStack, managed through a Next.js web GUI and an
 Express.js API backend, all orchestrated via Docker Compose. No AWS account is
 required.
 
-- **Version**: 0.13.0
+- **Version**: 0.13.1
 - **License**: MIT
 - **Primary URL**: https://app-local.localcloudkit.com:3030
 
@@ -195,9 +195,11 @@ Entries go under `## [Unreleased]` at the top of the file. Use these subsections
 
 ## Attribution
 
-- **Never** include `Co-Authored-By: Claude` or any AI attribution in commit messages or footers
-- **Never** include the `🤖 Generated with [Claude Code](https://claude.com/claude-code)` line (or any variant) in PR descriptions, commit bodies, or any other output
-- **Never** commit as `Claude <noreply@anthropic.com>` — all commits must be authored by the human owner of the repository. The correct git author for this repo is `Jonathan Robinson <jonrobinson.codes@gmail.com>`. Before committing, verify `git config user.name` and `git config user.email` match this identity.
+- **Author**: The commit author must always be a human. No AI agent (Claude, Copilot, Cursor, or any other) may appear as the commit author.
+- **Co-author**: Use `Co-Authored-By:` only for human collaborators. Never include AI agents in author or co-author fields.
+- **No AI attribution**: Do not add `Co-Authored-By: Claude`, `Co-Authored-By: GitHub Copilot`, or any other AI attribution in commit messages or footers.
+- **No AI badges**: Do not add `🤖 Generated with [Claude Code]`, `Built with Copilot`, or similar AI-generation lines in PR descriptions, commit bodies, or other output.
+- **Default author**: The correct git author for this repo is `Jonathan Robinson <jonrobinson.codes@gmail.com>`. Before committing, verify `git config user.name` and `git config user.email` match this identity.
 
 ---
 
