@@ -16,7 +16,7 @@ export type ServiceKey =
   | "postgres"
   | "keycloak";
 
-type StatusLevel = "running" | "degraded" | "stopped" | "unknown";
+type StatusLevel = "running" | "degraded" | "starting" | "stopped" | "failed" | "unknown";
 
 interface StatusState {
   level: StatusLevel;
@@ -55,7 +55,9 @@ async function fetchStatus(service: ServiceKey): Promise<StatusState> {
       case "keycloak": {
         const s = await keycloakApi.status();
         if (s.status === "running") return { level: "running", label: "Running" };
+        if (s.status === "starting") return { level: "starting", label: "Starting" };
         if (s.status === "stopped") return { level: "stopped", label: "Stopped" };
+        if (s.status === "failed") return { level: "failed", label: "Failed" };
         return { level: "unknown", label: "Unknown" };
       }
     }
@@ -67,14 +69,18 @@ async function fetchStatus(service: ServiceKey): Promise<StatusState> {
 const dotClass: Record<StatusLevel, string> = {
   running: "bg-green-500 animate-pulse",
   degraded: "bg-yellow-500 animate-pulse",
-  stopped: "bg-red-500",
+  starting: "bg-yellow-400 animate-pulse",
+  stopped: "bg-gray-400",
+  failed: "bg-red-500",
   unknown: "bg-gray-400",
 };
 
 const badgeClass: Record<StatusLevel, string> = {
   running: "bg-green-100 text-green-800",
   degraded: "bg-yellow-100 text-yellow-800",
-  stopped: "bg-red-100 text-red-800",
+  starting: "bg-yellow-100 text-yellow-700",
+  stopped: "bg-gray-100 text-gray-600",
+  failed: "bg-red-100 text-red-800",
   unknown: "bg-gray-100 text-gray-600",
 };
 

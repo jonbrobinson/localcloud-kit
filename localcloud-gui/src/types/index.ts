@@ -136,7 +136,7 @@ export interface PostgresStatus {
 }
 
 export interface KeycloakStatus {
-  status: "running" | "stopped" | "unknown";
+  status: "running" | "starting" | "stopped" | "failed" | "unknown";
 }
 
 export interface LogEntry {
