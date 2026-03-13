@@ -4,7 +4,6 @@ import {
   localstackApi,
   resourceApi,
   configApi,
-  cacheApi,
 } from "@/services/api";
 
 interface LocalStackData {
@@ -40,27 +39,6 @@ export function useLocalStackData() {
 
       // Use the current project config to fetch resources
       const resources = await resourceApi.getStatus(projectConfig.projectName);
-
-      // Add cache status as a resource
-      try {
-        const cacheStatus = await cacheApi.status();
-        const cacheResource: Resource = {
-          id: "cache-redis",
-          name: "Redis Cache",
-          type: "cache",
-          status: cacheStatus.status === "running" ? "active" : "error",
-          environment: "local",
-          project: projectConfig.projectName,
-          createdAt: new Date().toISOString(),
-          details: {
-            info: cacheStatus.info,
-            status: cacheStatus.status,
-          },
-        };
-        resources.push(cacheResource);
-      } catch (error) {
-        console.warn("Failed to fetch cache status:", error);
-      }
 
       // Secrets are now included in the resourceApi.getStatus() call via list_resources.sh
       // No need to fetch them separately to avoid duplicates

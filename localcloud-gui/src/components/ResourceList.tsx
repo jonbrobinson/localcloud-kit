@@ -43,9 +43,6 @@ interface ResourceListProps {
   addLoading?: boolean;
 }
 
-// AWS resource types only — platform services are excluded
-const AWS_RESOURCE_TYPES = ["s3", "dynamodb", "lambda", "apigateway", "ssm", "iam", "secretsmanager"];
-
 const AWS_CATEGORIES = [
   { name: "Storage", types: ["s3"] },
   { name: "Database", types: ["dynamodb"] },
@@ -168,10 +165,7 @@ export default function ResourceList({
     }
   };
 
-  // Only show AWS resources (no platform services)
-  const awsResources = resources.filter(
-    (r) => r.project === projectName && AWS_RESOURCE_TYPES.includes(r.type)
-  );
+  const awsResources = resources.filter((r) => r.project === projectName);
 
   const handleSelectAll = () => {
     if (selectedResources.length === awsResources.length) {
