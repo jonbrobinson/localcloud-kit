@@ -61,6 +61,16 @@ type InspectTargetId =
   | "keycloak"
   | "mailpit";
 
+const AWS_RESOURCE_TYPES = new Set<Resource["type"]>([
+  "s3",
+  "dynamodb",
+  "lambda",
+  "apigateway",
+  "secretsmanager",
+  "ssm",
+  "iam",
+]);
+
 export default function Dashboard() {
   const {
     localstack,
@@ -106,6 +116,54 @@ export default function Dashboard() {
 
   const [createLoading, setCreateLoading] = useState(false);
   const [destroyLoading, setDestroyLoading] = useState(false);
+  const [firstResourceLoading, setFirstResourceLoading] = useState(false);
+
+  const awsResourceCount = resources.filter(
+    (resource) =>
+      resource.project === projectName && AWS_RESOURCE_TYPES.has(resource.type)
+  ).length;
+  const hasAwsResources = awsResourceCount > 0;
+
+  useEffect(() => {
+    if (hasAwsResources && firstResourceLoading) {
+      setFirstResourceLoading(false);
+    }
+  }, [hasAwsResources, firstResourceLoading]);
+
+  const sleep = (ms: number) =>
+    new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+  const refreshResourcesAfterCreate = async (
+    isFirstResourceCreation: boolean
+  ): Promise<boolean> => {
+    if (isFirstResourceCreation) {
+      const timeoutAt = Date.now() + 12000;
+
+      while (Date.now() < timeoutAt) {
+        try {
+          const latestResources = await resourceApi.list(projectName);
+          const hasProvisionedResource = latestResources.some(
+            (resource) =>
+              resource.project === projectName &&
+              AWS_RESOURCE_TYPES.has(resource.type)
+          );
+
+          if (hasProvisionedResource) {
+            await loadInitialData();
+            return true;
+          }
+        } catch (error) {
+          console.error("Polling first resource after create failed:", error);
+        }
+
+        await sleep(650);
+      }
+    }
+
+    await sleep(800);
+    await loadInitialData();
+    return !isFirstResourceCreation;
+  };
 
   // "What's new" dot — shows when the stored version doesn't match the current one
   const [hasNewVersion, setHasNewVersion] = useState(false);
@@ -262,163 +320,291 @@ export default function Dashboard() {
     if (resourceType === "apigateway") { setShowAPIGatewayConfig(true); return; }
     if (resourceType === "ssm") { setShowSSMConfig(true); return; }
 
+    const isFirstResourceCreation = !hasAwsResources;
+    if (isFirstResourceCreation) {
+      setFirstResourceLoading(true);
+    }
+
     setCreateLoading(true);
     try {
       const response = await resourceApi.createSingle(projectName, resourceType);
       if (response.success) {
         toast.success(`${resourceType} resource created successfully`);
-        setTimeout(async () => { await loadInitialData(); }, 1000);
+        const firstResourceLoaded = await refreshResourcesAfterCreate(
+          isFirstResourceCreation
+        );
+        if (isFirstResourceCreation && !firstResourceLoaded) {
+          setFirstResourceLoading(false);
+        }
       } else {
         toast.error(response.error || `Failed to create ${resourceType} resource`);
+        if (isFirstResourceCreation) {
+          setFirstResourceLoading(false);
+        }
       }
     } catch (error) {
       console.error(`Create ${resourceType} resource error:`, error);
       toast.error(`Failed to create ${resourceType} resource: ${error instanceof Error ? error.message : "Unknown error"}`);
+      if (isFirstResourceCreation) {
+        setFirstResourceLoading(false);
+      }
     } finally {
       setCreateLoading(false);
     }
   };
 
   const handleCreateDynamoDBTable = async (dynamodbConfig: DynamoDBTableConfig) => {
+    const isFirstResourceCreation = !hasAwsResources;
+    if (isFirstResourceCreation) {
+      setFirstResourceLoading(true);
+    }
+
     setCreateLoading(true);
     try {
       const response = await resourceApi.createSingleWithConfig(projectName, "dynamodb", { dynamodbConfig });
       if (response.success) {
         toast.success("DynamoDB table created successfully");
         setShowDynamoDBConfig(false);
-        setTimeout(async () => { await loadInitialData(); }, 1000);
+        const firstResourceLoaded = await refreshResourcesAfterCreate(
+          isFirstResourceCreation
+        );
+        if (isFirstResourceCreation && !firstResourceLoaded) {
+          setFirstResourceLoading(false);
+        }
       } else {
         toast.error(response.error || "Failed to create DynamoDB table");
+        if (isFirstResourceCreation) {
+          setFirstResourceLoading(false);
+        }
       }
     } catch (error) {
       console.error("Create DynamoDB table error:", error);
       toast.error(`Failed to create DynamoDB table: ${error instanceof Error ? error.message : "Unknown error"}`);
+      if (isFirstResourceCreation) {
+        setFirstResourceLoading(false);
+      }
     } finally {
       setCreateLoading(false);
     }
   };
 
   const handleCreateS3Bucket = async (s3Config: S3BucketConfig) => {
+    const isFirstResourceCreation = !hasAwsResources;
+    if (isFirstResourceCreation) {
+      setFirstResourceLoading(true);
+    }
+
     setCreateLoading(true);
     try {
       const response = await resourceApi.createSingleWithConfig(projectName, "s3", { s3Config });
       if (response.success) {
         toast.success("S3 bucket created successfully");
         setShowS3Config(false);
-        setTimeout(async () => { await loadInitialData(); }, 1000);
+        const firstResourceLoaded = await refreshResourcesAfterCreate(
+          isFirstResourceCreation
+        );
+        if (isFirstResourceCreation && !firstResourceLoaded) {
+          setFirstResourceLoading(false);
+        }
       } else {
         toast.error(response.error || "Failed to create S3 bucket");
+        if (isFirstResourceCreation) {
+          setFirstResourceLoading(false);
+        }
       }
     } catch (error) {
       console.error("Create S3 bucket error:", error);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const apiMessage = (error as any)?.response?.data?.error;
       toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create S3 bucket"));
+      if (isFirstResourceCreation) {
+        setFirstResourceLoading(false);
+      }
     } finally {
       setCreateLoading(false);
     }
   };
 
   const handleCreateSecret = async (secretsmanagerConfig: import("@/types").SecretsManagerConfig) => {
+    const isFirstResourceCreation = !hasAwsResources;
+    if (isFirstResourceCreation) {
+      setFirstResourceLoading(true);
+    }
+
     setCreateLoading(true);
     try {
       const response = await resourceApi.createSingleWithConfig(projectName, "secretsmanager", { secretsmanagerConfig });
       if (response.success) {
         toast.success("Secret created successfully");
         setShowSecretsConfig(false);
-        setTimeout(async () => { await loadInitialData(); }, 1000);
+        const firstResourceLoaded = await refreshResourcesAfterCreate(
+          isFirstResourceCreation
+        );
+        if (isFirstResourceCreation && !firstResourceLoaded) {
+          setFirstResourceLoading(false);
+        }
       } else {
         toast.error(response.error || "Failed to create secret");
+        if (isFirstResourceCreation) {
+          setFirstResourceLoading(false);
+        }
       }
     } catch (error) {
       console.error("Create secret error:", error);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const apiMessage = (error as any)?.response?.data?.error;
       toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create secret"));
+      if (isFirstResourceCreation) {
+        setFirstResourceLoading(false);
+      }
     } finally {
       setCreateLoading(false);
     }
   };
 
   const handleCreateLambda = async (lambdaConfig: LambdaFunctionConfig) => {
+    const isFirstResourceCreation = !hasAwsResources;
+    if (isFirstResourceCreation) {
+      setFirstResourceLoading(true);
+    }
+
     setCreateLoading(true);
     try {
       const response = await resourceApi.createSingleWithConfig(projectName, "lambda", { lambdaConfig });
       if (response.success) {
         toast.success("Lambda function created successfully");
         setShowLambdaConfig(false);
-        setTimeout(async () => { await loadInitialData(); }, 1000);
+        const firstResourceLoaded = await refreshResourcesAfterCreate(
+          isFirstResourceCreation
+        );
+        if (isFirstResourceCreation && !firstResourceLoaded) {
+          setFirstResourceLoading(false);
+        }
       } else {
         toast.error(response.error || "Failed to create Lambda function");
+        if (isFirstResourceCreation) {
+          setFirstResourceLoading(false);
+        }
       }
     } catch (error) {
       console.error("Create Lambda error:", error);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const apiMessage = (error as any)?.response?.data?.error;
       toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create Lambda function"));
+      if (isFirstResourceCreation) {
+        setFirstResourceLoading(false);
+      }
     } finally {
       setCreateLoading(false);
     }
   };
 
   const handleCreateAPIGateway = async (apigatewayConfig: APIGatewayConfig) => {
+    const isFirstResourceCreation = !hasAwsResources;
+    if (isFirstResourceCreation) {
+      setFirstResourceLoading(true);
+    }
+
     setCreateLoading(true);
     try {
       const response = await resourceApi.createSingleWithConfig(projectName, "apigateway", { apigatewayConfig });
       if (response.success) {
         toast.success("API Gateway created successfully");
         setShowAPIGatewayConfig(false);
-        setTimeout(async () => { await loadInitialData(); }, 1000);
+        const firstResourceLoaded = await refreshResourcesAfterCreate(
+          isFirstResourceCreation
+        );
+        if (isFirstResourceCreation && !firstResourceLoaded) {
+          setFirstResourceLoading(false);
+        }
       } else {
         toast.error(response.error || "Failed to create API Gateway");
+        if (isFirstResourceCreation) {
+          setFirstResourceLoading(false);
+        }
       }
     } catch (error) {
       console.error("Create API Gateway error:", error);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const apiMessage = (error as any)?.response?.data?.error;
       toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create API Gateway"));
+      if (isFirstResourceCreation) {
+        setFirstResourceLoading(false);
+      }
     } finally {
       setCreateLoading(false);
     }
   };
 
   const handleCreateSSMParameter = async (ssmConfig: SSMParameterConfig) => {
+    const isFirstResourceCreation = !hasAwsResources;
+    if (isFirstResourceCreation) {
+      setFirstResourceLoading(true);
+    }
+
     setCreateLoading(true);
     try {
       const response = await resourceApi.createSingleWithConfig(projectName, "ssm", { ssmConfig });
       if (response.success) {
         toast.success("SSM parameter created successfully");
         setShowSSMConfig(false);
-        setTimeout(async () => { await loadInitialData(); }, 1000);
+        const firstResourceLoaded = await refreshResourcesAfterCreate(
+          isFirstResourceCreation
+        );
+        if (isFirstResourceCreation && !firstResourceLoaded) {
+          setFirstResourceLoading(false);
+        }
       } else {
         toast.error(response.error || "Failed to create SSM parameter");
+        if (isFirstResourceCreation) {
+          setFirstResourceLoading(false);
+        }
       }
     } catch (error) {
       console.error("Create SSM parameter error:", error);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const apiMessage = (error as any)?.response?.data?.error;
       toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create SSM parameter"));
+      if (isFirstResourceCreation) {
+        setFirstResourceLoading(false);
+      }
     } finally {
       setCreateLoading(false);
     }
   };
 
   const handleCreateIAMRole = async (iamConfig: IAMRoleConfig) => {
+    const isFirstResourceCreation = !hasAwsResources;
+    if (isFirstResourceCreation) {
+      setFirstResourceLoading(true);
+    }
+
     setCreateLoading(true);
     try {
       const response = await resourceApi.createSingleWithConfig(projectName, "iam", { iamConfig });
       if (response.success) {
         toast.success("IAM role created successfully");
         setShowIAMConfig(false);
-        setTimeout(async () => { await loadInitialData(); }, 1000);
+        const firstResourceLoaded = await refreshResourcesAfterCreate(
+          isFirstResourceCreation
+        );
+        if (isFirstResourceCreation && !firstResourceLoaded) {
+          setFirstResourceLoading(false);
+        }
       } else {
         toast.error(response.error || "Failed to create IAM role");
+        if (isFirstResourceCreation) {
+          setFirstResourceLoading(false);
+        }
       }
     } catch (error) {
       console.error("Create IAM role error:", error);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const apiMessage = (error as any)?.response?.data?.error;
       toast.error(apiMessage || (error instanceof Error ? error.message : "Failed to create IAM role"));
+      if (isFirstResourceCreation) {
+        setFirstResourceLoading(false);
+      }
     } finally {
       setCreateLoading(false);
     }
@@ -1513,6 +1699,7 @@ export default function Dashboard() {
               }}
               onConfigureAPIGateway={(apiId, apiName) => openAPIGatewayViewer(apiId, apiName)}
               onViewIAMRole={(name) => openIAMRoleViewer(name)}
+              firstResourceLoading={firstResourceLoading}
             />
           ) : (
             <div className="bg-white rounded-lg shadow border border-gray-200">
