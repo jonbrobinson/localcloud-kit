@@ -58,28 +58,6 @@ export function useServicesData() {
 
       const { localstackStatus, projectConfig, mailpit: mailpitStats, resources, redis } = payload;
 
-      resources.push({
-        id: "postgres-db",
-        name: "PostgreSQL",
-        type: "postgres",
-        status: postgresStatus.status === "running" ? "active" : "error",
-        environment: "local",
-        project: projectConfig.projectName,
-        createdAt: new Date().toISOString(),
-        details: { host: "localhost", port: 5432, user: "localcloud", database: "localcloud" },
-      });
-
-      resources.push({
-        id: "keycloak-idp",
-        name: "Keycloak",
-        type: "keycloak",
-        status: keycloakStatus.status === "running" ? "active" : "error",
-        environment: "local",
-        project: projectConfig.projectName,
-        createdAt: new Date().toISOString(),
-        details: { adminUrl: "http://localhost:8080", adminUser: "admin", port: 8080 },
-      });
-
       setData({
         localstack: { status: localstackStatus, projectConfig, resources },
         mailpit: mailpitStats,
