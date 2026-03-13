@@ -1,8 +1,7 @@
 # LocalCloud Kit — AGENTS.md
 
-This file gives any AI coding agent the context and standards needed to work
-effectively in this repository. It mirrors `CLAUDE.md` and is kept in sync with
-it. When in doubt, `CLAUDE.md` is the authoritative source.
+This file is the single source of truth for project context and standards in
+this repository. All AI coding agents (and `CLAUDE.md`) read from this file.
 
 ---
 
@@ -227,7 +226,7 @@ change too.**
 | New AWS service or platform service | `docs/<SERVICE>.md` (create if missing), `README.md` features list |
 | New or changed API endpoint | `docs/<SERVICE>.md` — endpoint reference table |
 | New GUI page or major UI change | `docs/<SERVICE>.md` — usage section |
-| Changed port, hostname, or env var | `docs/<SERVICE>.md`, `README.md` configuration section, `CLAUDE.md` and `AGENTS.md` if they reference the value |
+| Changed port, hostname, or env var | `docs/<SERVICE>.md`, `README.md` configuration section, `AGENTS.md` if it references the value |
 | New or changed shell script | `docs/SETUP_SCRIPTS.md` — script inventory |
 | New Docker service | `docker-compose.yml` comment block + `docs/DOCKER.md` |
 | Changed Makefile target | `README.md` common commands section |
