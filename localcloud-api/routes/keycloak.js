@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get("/keycloak/status", async (req, res) => {
   try {
-    const response = await axios.get("http://keycloak:8080/health/ready", { timeout: 5000 });
+    const response = await axios.get("http://keycloak:9000/health/ready", { timeout: 5000 });
     const kcStatus = response.data?.status;
     if (kcStatus === "UP") {
       res.json({ success: true, data: { status: "running" } });
