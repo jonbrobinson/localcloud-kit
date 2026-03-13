@@ -41,6 +41,21 @@ import SSMConfigModal from "./SSMConfigModal";
 import SSMEditModal from "./SSMEditModal";
 import IAMConfigModal from "./IAMConfigModal";
 import LambdaCodeModal from "./LambdaCodeModal";
+import QuickInspectModal, { QuickInspectAction } from "./QuickInspectModal";
+
+type InspectTargetId =
+  | "localstack"
+  | "s3"
+  | "dynamodb"
+  | "lambda"
+  | "apigateway"
+  | "secretsmanager"
+  | "ssm"
+  | "iam"
+  | "postgres"
+  | "redis"
+  | "keycloak"
+  | "mailpit";
 
 export default function Dashboard() {
   const {
@@ -78,6 +93,7 @@ export default function Dashboard() {
   const [selectedSecretName, setSelectedSecretName] = useState<string>("");
   const [showMailpit, setShowMailpit] = useState(false);
   const [showRedis, setShowRedis] = useState(false);
+  const [inspectTarget, setInspectTarget] = useState<InspectTargetId | null>(null);
 
   const [selectedDynamoDBTable, setSelectedDynamoDBTable] = useState<string>("");
   const [selectedS3Bucket, setSelectedS3Bucket] = useState<string>("");
@@ -140,6 +156,11 @@ export default function Dashboard() {
     setShowProjectMenu(false);
     setShowProfileMenu(false);
     setShowMobileMenu(false);
+  };
+
+  const openInspectTarget = (target: InspectTargetId) => {
+    closeAllMenus();
+    setInspectTarget(target);
   };
 
   const handleModalOpen = (modalKey: ModalKey) => {
@@ -414,6 +435,198 @@ export default function Dashboard() {
     return "Unknown";
   };
 
+  const inspectConfig = (() => {
+    if (!inspectTarget) return null;
+
+    const baseActions: QuickInspectAction[] = [];
+    const withDocs = (href: string) => [...baseActions, { label: "Open Docs", href }];
+    const withManager = (href: string, label = "Open Manager") => [...baseActions, { label, href }];
+    const withAdmin = (href: string, label = "Open Admin UI"): QuickInspectAction => ({
+      label,
+      href,
+      external: true,
+    });
+
+    switch (inspectTarget) {
+      case "localstack":
+        return {
+          title: "LocalStack",
+          subtitle: localstackStatus.running ? "AWS emulator is running locally" : "LocalStack is not running",
+          quickChecks: [
+            "Service health is healthy in the status bar",
+            "Endpoint http://localhost:4566 is reachable",
+            "AWS resources refresh successfully",
+          ],
+          actions: withDocs("/localstack"),
+        };
+      case "s3":
+        return {
+          title: "S3 Buckets",
+          subtitle: "Inspect bucket/object flow quickly",
+          quickChecks: [
+            "Bucket exists in active project",
+            "Recent object keys match expected path format",
+            "Object metadata/content type looks correct",
+          ],
+          actions: [
+            { label: "Open Viewer", onClick: () => setShowBuckets(true) },
+            ...withManager("/manage/s3"),
+            ...withDocs("/s3"),
+          ],
+        };
+      case "dynamodb":
+        return {
+          title: "DynamoDB",
+          subtitle: "Inspect local table data and value types",
+          quickChecks: [
+            "Table exists and is active",
+            "Recent items include required keys",
+            "Numeric/date fields have expected types",
+          ],
+          actions: [
+            { label: "Open Viewer", onClick: () => setShowDynamoDB(true) },
+            ...withManager("/manage/dynamodb"),
+            ...withDocs("/dynamodb"),
+          ],
+        };
+      case "lambda":
+        return {
+          title: "Lambda",
+          subtitle: "Check function setup and local invocation flow",
+          quickChecks: [
+            "Function exists with expected runtime/handler",
+            "Invocation returns expected payload structure",
+            "Function appears in the manager list",
+          ],
+          actions: [
+            { label: "Create / Configure", onClick: () => setShowLambdaConfig(true) },
+            ...withManager("/manage/lambda"),
+            ...withDocs("/lambda"),
+          ],
+        };
+      case "apigateway":
+        return {
+          title: "API Gateway",
+          subtitle: "Validate routes and local invoke URLs",
+          quickChecks: [
+            "API and stage exist",
+            "Route method/path match caller behavior",
+            "Invoke URL responds with expected status",
+          ],
+          actions: [
+            { label: "Create / Configure", onClick: () => setShowAPIGatewayConfig(true) },
+            ...withManager("/manage/apigateway"),
+            ...withDocs("/apigateway"),
+          ],
+        };
+      case "secretsmanager":
+        return {
+          title: "Secrets Manager",
+          subtitle: "Verify secret names and local reads",
+          quickChecks: [
+            "Secret name/path matches application config",
+            "Latest value can be read locally",
+            "ARN and metadata look correct",
+          ],
+          actions: [
+            { label: "Create / Configure", onClick: () => setShowSecretsConfig(true) },
+            ...withManager("/manage/secrets"),
+            ...withDocs("/secrets"),
+          ],
+        };
+      case "ssm":
+        return {
+          title: "Parameter Store",
+          subtitle: "Validate local parameter values and types",
+          quickChecks: [
+            "Expected path exists",
+            "Parameter type matches intended usage",
+            "Consumer app reads latest local value",
+          ],
+          actions: [
+            { label: "Create / Configure", onClick: () => setShowSSMConfig(true) },
+            ...withManager("/manage/ssm"),
+            ...withDocs("/ssm"),
+          ],
+        };
+      case "iam":
+        return {
+          title: "IAM & STS",
+          subtitle: "Inspect role setup and local identity flow",
+          quickChecks: [
+            "Role exists with expected trust policy",
+            "Policies match intended permissions",
+            "STS calls return expected identity values",
+          ],
+          actions: [
+            { label: "Create / Configure", onClick: () => setShowIAMConfig(true) },
+            ...withManager("/manage/iam"),
+            ...withDocs("/iam"),
+          ],
+        };
+      case "postgres":
+        return {
+          title: "PostgreSQL",
+          subtitle: postgres.status === "running" ? "Database is running locally" : "Database is not running",
+          quickChecks: [
+            "Service status is running",
+            "Connection works on localhost:5432",
+            "Recent writes are visible in expected tables",
+          ],
+          actions: [
+            { label: "Open Docs", href: "/postgres" },
+            withAdmin("https://pgadmin.localcloudkit.com:3030"),
+          ],
+        };
+      case "redis":
+        return {
+          title: "Redis Cache",
+          subtitle: redis.status === "running" ? "Redis is running locally" : "Redis is unavailable",
+          quickChecks: [
+            "Redis status is running",
+            "Expected key prefixes appear",
+            "TTL/value structure is correct",
+          ],
+          actions: [
+            { label: "Open Inspector", onClick: () => setShowRedis(true) },
+            ...withManager("/cache", "Open Cache Manager"),
+            ...withDocs("/redis"),
+          ],
+        };
+      case "keycloak":
+        return {
+          title: "Keycloak",
+          subtitle: keycloak.status === "running" ? "Identity provider is running" : "Identity provider is not running",
+          quickChecks: [
+            "Realm and client IDs match app config",
+            "Login/token flows succeed locally",
+            "Role mappings are present",
+          ],
+          actions: [
+            { label: "Open Docs", href: "/keycloak" },
+            withAdmin("https://keycloak.localcloudkit.com:3030"),
+          ],
+        };
+      case "mailpit":
+        return {
+          title: "Mailpit",
+          subtitle: mailpit.status === "healthy" ? "Mailpit inbox is available" : "Mailpit inbox is unavailable",
+          quickChecks: [
+            "SMTP test emails are received",
+            "To/from/subject values are correct",
+            "Unread count increases after send",
+          ],
+          actions: [
+            { label: "Open Inbox Preview", onClick: () => setShowMailpit(true) },
+            { label: "Open Docs", href: "/mailpit" },
+            withAdmin("https://mailpit.localcloudkit.com:3030"),
+          ],
+        };
+      default:
+        return null;
+    }
+  })();
+
   if (error) {
     return (
       <AnimatePresence mode="wait">
@@ -479,7 +692,15 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />
                         S3 Buckets
                       </button>
-                      <Link href="/manage/s3" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openInspectTarget("s3")}
+                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
+                        >
+                          Inspect
+                        </button>
+                        <Link href="/manage/s3" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      </div>
                     </div>
 
                     {/* Database */}
@@ -493,7 +714,15 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />
                         DynamoDB
                       </button>
-                      <Link href="/manage/dynamodb" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openInspectTarget("dynamodb")}
+                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
+                        >
+                          Inspect
+                        </button>
+                        <Link href="/manage/dynamodb" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      </div>
                     </div>
 
                     {/* Compute */}
@@ -507,7 +736,15 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />
                         Lambda
                       </button>
-                      <Link href="/manage/lambda" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openInspectTarget("lambda")}
+                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
+                        >
+                          Inspect
+                        </button>
+                        <Link href="/manage/lambda" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      </div>
                     </div>
 
                     {/* Networking */}
@@ -521,7 +758,15 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />
                         API Gateway
                       </button>
-                      <Link href="/manage/apigateway" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openInspectTarget("apigateway")}
+                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
+                        >
+                          Inspect
+                        </button>
+                        <Link href="/manage/apigateway" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      </div>
                     </div>
 
                     {/* Security & Identity */}
@@ -535,7 +780,15 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                         Secrets Manager
                       </button>
-                      <Link href="/manage/secrets" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openInspectTarget("secretsmanager")}
+                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
+                        >
+                          Inspect
+                        </button>
+                        <Link href="/manage/secrets" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between px-2">
                       <button
@@ -545,7 +798,15 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                         Parameter Store
                       </button>
-                      <Link href="/manage/ssm" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openInspectTarget("ssm")}
+                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
+                        >
+                          Inspect
+                        </button>
+                        <Link href="/manage/ssm" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between px-2">
                       <button
@@ -555,7 +816,15 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />
                         IAM Roles
                       </button>
-                      <Link href="/manage/iam" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openInspectTarget("iam")}
+                          className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
+                        >
+                          Inspect
+                        </button>
+                        <Link href="/manage/iam" onClick={closeAllMenus} className="px-2 py-1 text-xs text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded whitespace-nowrap">Manage →</Link>
+                      </div>
                     </div>
 
                   </div>
@@ -601,23 +870,31 @@ export default function Dashboard() {
                               </>
                             );
                             const action = service.action;
-                            return action.type === "link" ? (
-                              <Link
-                                key={service.id}
-                                href={action.href}
-                                onClick={() => closeAllMenus()}
-                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                              >
-                                {itemContent}
-                              </Link>
-                            ) : (
-                              <button
-                                key={service.id}
-                                onClick={() => { handleModalOpen(action.modalKey); closeAllMenus(); }}
-                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                              >
-                                {itemContent}
-                              </button>
+                            return (
+                              <div key={service.id} className="flex items-center justify-between px-2">
+                                {action.type === "link" ? (
+                                  <Link
+                                    href={action.href}
+                                    onClick={() => closeAllMenus()}
+                                    className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                                  >
+                                    {itemContent}
+                                  </Link>
+                                ) : (
+                                  <button
+                                    onClick={() => { handleModalOpen(action.modalKey); closeAllMenus(); }}
+                                    className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                                  >
+                                    {itemContent}
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => openInspectTarget(service.id)}
+                                  className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
+                                >
+                                  Inspect
+                                </button>
+                              </div>
                             );
                           })}
                         </div>
@@ -639,7 +916,17 @@ export default function Dashboard() {
                 </button>
                 {showDocsMenu && (
                   <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                    <Link
+                      href="/docs"
+                      onClick={() => setShowDocsMenu(false)}
+                      className="flex items-center w-full px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 transition-colors"
+                    >
+                      <BookOpenIcon className="h-4 w-4 mr-3 text-indigo-500" />
+                      Docs Hub
+                    </Link>
+
                     {/* Infrastructure */}
+                    <div className="border-t border-gray-100 mt-1" />
                     <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Infrastructure</p>
                     <Link
                       href="/localstack"
@@ -851,24 +1138,62 @@ export default function Dashboard() {
               {/* Resources */}
               <div className="pt-3 px-2">
                 <p className="px-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">AWS Resources</p>
-                <button onClick={() => { setShowBuckets(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />S3 Buckets
-                </button>
-                <button onClick={() => { setShowDynamoDB(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />DynamoDB Tables
-                </button>
-                <button onClick={() => { setShowLambdaConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />Lambda Functions
-                </button>
-                <button onClick={() => { setShowAPIGatewayConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />API Gateway
-                </button>
-                <button onClick={() => { setShowSecretsConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Secrets Manager
-                </button>
-                <button onClick={() => { setShowSSMConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Parameter Store
-                </button>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowBuckets(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />S3 Buckets
+                  </button>
+                  <button onClick={() => openInspectTarget("s3")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowDynamoDB(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />DynamoDB Tables
+                  </button>
+                  <button onClick={() => openInspectTarget("dynamodb")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowLambdaConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />Lambda Functions
+                  </button>
+                  <button onClick={() => openInspectTarget("lambda")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowAPIGatewayConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />API Gateway
+                  </button>
+                  <button onClick={() => openInspectTarget("apigateway")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowSecretsConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Secrets Manager
+                  </button>
+                  <button onClick={() => openInspectTarget("secretsmanager")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowSSMConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Parameter Store
+                  </button>
+                  <button onClick={() => openInspectTarget("ssm")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowIAMConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />IAM Roles
+                  </button>
+                  <button onClick={() => openInspectTarget("iam")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
               </div>
 
               {/* Services — categorised by kind */}
@@ -894,23 +1219,31 @@ export default function Dashboard() {
                           </>
                         );
                         const action = service.action;
-                        return action.type === "link" ? (
-                          <Link
-                            key={service.id}
-                            href={action.href}
-                            onClick={closeAllMenus}
-                            className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                          >
-                            {itemContent}
-                          </Link>
-                        ) : (
-                          <button
-                            key={service.id}
-                            onClick={() => { handleModalOpen(action.modalKey); closeAllMenus(); }}
-                            className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                          >
-                            {itemContent}
-                          </button>
+                        return (
+                          <div key={service.id} className="flex items-center gap-1">
+                            {action.type === "link" ? (
+                              <Link
+                                href={action.href}
+                                onClick={closeAllMenus}
+                                className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                              >
+                                {itemContent}
+                              </Link>
+                            ) : (
+                              <button
+                                onClick={() => { handleModalOpen(action.modalKey); closeAllMenus(); }}
+                                className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                              >
+                                {itemContent}
+                              </button>
+                            )}
+                            <button
+                              onClick={() => openInspectTarget(service.id)}
+                              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
+                            >
+                              Inspect
+                            </button>
+                          </div>
                         );
                       })}
                     </div>
@@ -921,6 +1254,9 @@ export default function Dashboard() {
               {/* Docs */}
               <div className="pt-2 px-2 border-t border-gray-100 mt-2">
                 <p className="px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Docs</p>
+                <Link href="/docs" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm font-medium text-indigo-700 rounded-lg hover:bg-indigo-50 transition-colors">
+                  <BookOpenIcon className="h-4 w-4 mr-3 text-indigo-500" />Docs Hub
+                </Link>
                 <Link href="/localstack" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />LocalStack
                 </Link>
@@ -1132,6 +1468,17 @@ export default function Dashboard() {
       </div>
 
       {/* Modals */}
+
+      {inspectConfig && (
+        <QuickInspectModal
+          isOpen={!!inspectConfig}
+          onClose={() => setInspectTarget(null)}
+          title={inspectConfig.title}
+          subtitle={inspectConfig.subtitle}
+          quickChecks={inspectConfig.quickChecks}
+          actions={inspectConfig.actions}
+        />
+      )}
 
       {showDynamoDBConfig && (
         <DynamoDBConfigModal

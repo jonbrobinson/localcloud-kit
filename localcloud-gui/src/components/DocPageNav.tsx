@@ -83,7 +83,17 @@ export default function DocPageNav({ title, subtitle, children }: DocPageNavProp
               </button>
               {showDocsMenu && (
                 <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                  <Link
+                    href="/docs"
+                    onClick={() => setShowDocsMenu(false)}
+                    className="flex items-center w-full px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 transition-colors"
+                  >
+                    <BookOpenIcon className="h-4 w-4 mr-3 text-indigo-500" />
+                    Docs Hub
+                  </Link>
+
                   {/* Infrastructure */}
+                  <div className="border-t border-gray-100 mt-1" />
                   <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     Infrastructure
                   </p>
@@ -102,6 +112,15 @@ export default function DocPageNav({ title, subtitle, children }: DocPageNavProp
                     AWS Resources
                   </p>
                   <Link
+                    href="/connect"
+                    onClick={() => setShowDocsMenu(false)}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <BookOpenIcon className="h-4 w-4 mr-3 text-gray-400" />
+                    Connect
+                  </Link>
+
+                  <Link
                     href="/s3"
                     onClick={() => setShowDocsMenu(false)}
                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -118,12 +137,44 @@ export default function DocPageNav({ title, subtitle, children }: DocPageNavProp
                     DynamoDB
                   </Link>
                   <Link
+                    href="/lambda"
+                    onClick={() => setShowDocsMenu(false)}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />
+                    Lambda
+                  </Link>
+                  <Link
+                    href="/apigateway"
+                    onClick={() => setShowDocsMenu(false)}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />
+                    API Gateway
+                  </Link>
+                  <Link
                     href="/secrets"
                     onClick={() => setShowDocsMenu(false)}
                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
                     Secrets Manager
+                  </Link>
+                  <Link
+                    href="/ssm"
+                    onClick={() => setShowDocsMenu(false)}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <ServerIcon className="h-4 w-4 mr-3 text-gray-400" />
+                    Parameter Store
+                  </Link>
+                  <Link
+                    href="/iam"
+                    onClick={() => setShowDocsMenu(false)}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
+                    IAM &amp; STS
                   </Link>
 
                   {/* Services */}
