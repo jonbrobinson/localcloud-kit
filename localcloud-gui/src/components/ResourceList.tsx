@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Resource } from "@/types";
 import { Icon } from "@iconify/react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   TrashIcon,
   EyeIcon,
@@ -41,6 +42,7 @@ interface ResourceListProps {
   onAddIAM?: () => void;
   refreshLoading?: boolean;
   addLoading?: boolean;
+  firstResourceLoading?: boolean;
 }
 
 const AWS_CATEGORIES = [
@@ -101,6 +103,7 @@ export default function ResourceList({
   onAddIAM,
   refreshLoading = false,
   addLoading = false,
+  firstResourceLoading = false,
 }: ResourceListProps) {
   const [selectedResources, setSelectedResources] = useState<string[]>([]);
   const [showDetails, setShowDetails] = useState<string | null>(null);
@@ -188,6 +191,7 @@ export default function ResourceList({
 
   const hasAddActions = onAddS3 || onAddDynamoDB || onAddSecrets || onAddLambda || onAddAPIGateway || onAddSSM || onAddIAM;
   const rowGridTemplate = "1.25rem 2.5rem minmax(0, 1fr) 10rem 8rem 1.75rem";
+  const listTransition = { duration: 0.24, ease: "easeOut" as const };
   const emptyStateActions: EmptyStateAction[] = [
     onAddS3
       ? {
@@ -226,9 +230,10 @@ export default function ResourceList({
         }
       : null,
   ].filter((action): action is EmptyStateAction => action !== null);
+  const viewState = awsResources.length === 0 ? (firstResourceLoading ? "building" : "empty") : "list";
 
   return (
-    <div className="bg-white rounded-lg shadow">
+    <motion.div layout className="bg-white rounded-lg shadow">
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
@@ -367,83 +372,158 @@ export default function ResourceList({
         </div>
       </div>
 
-      {/* Empty state */}
-      {awsResources.length === 0 ? (
-        <div className="px-6 py-12">
-          <div className="flex items-center justify-center space-x-4 mb-6 opacity-20">
-            <Icon icon="logos:aws-s3" className="w-10 h-10" />
-            <Icon icon="logos:aws-dynamodb" className="w-10 h-10" />
-            <Icon icon="logos:aws-lambda" className="w-10 h-10" />
-            <Icon icon="logos:aws-api-gateway" className="w-10 h-10" />
-            <Icon icon="logos:aws-secrets-manager" className="w-10 h-10" />
-          </div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-1 text-center">Create your first AWS resource</h4>
-          <p className="text-sm text-gray-500 text-center">
-            Start with S3 or DynamoDB, or pick from other resource types.
-          </p>
+      <AnimatePresence initial={false} mode="wait">
+        {viewState === "empty" && (
+          <motion.div
+            key="empty-state"
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={listTransition}
+            className="px-6 py-12 min-h-[23rem] flex flex-col justify-center"
+          >
+            <div className="flex items-center justify-center space-x-4 mb-6 opacity-20">
+              <Icon icon="logos:aws-s3" className="w-10 h-10" />
+              <Icon icon="logos:aws-dynamodb" className="w-10 h-10" />
+              <Icon icon="logos:aws-lambda" className="w-10 h-10" />
+              <Icon icon="logos:aws-api-gateway" className="w-10 h-10" />
+              <Icon icon="logos:aws-secrets-manager" className="w-10 h-10" />
+            </div>
+            <h4 className="text-sm font-semibold text-gray-900 mb-1 text-center">Create your first AWS resource</h4>
+            <p className="text-sm text-gray-500 text-center">
+              Start with S3 or DynamoDB, or pick from other resource types.
+            </p>
 
-          {emptyStateActions.length > 0 && (
+            {emptyStateActions.length > 0 && (
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                {emptyStateActions.map((action) => (
+                  <button
+                    key={action.key}
+                    onClick={action.onClick}
+                    disabled={addLoading}
+                    className="flex items-center p-3 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/40 transition-colors disabled:opacity-50"
+                  >
+                    <Icon icon={action.icon} className="w-8 h-8 mr-3 flex-shrink-0" />
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium text-gray-900">{action.title}</span>
+                      <span className="block text-xs text-gray-500">{action.description}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <p className="mt-4 text-xs text-gray-500 text-center">
+              You can also use the <span className="font-medium">+ Add</span> menu for Secrets Manager, Parameter Store, and IAM.
+            </p>
+          </motion.div>
+        )}
+
+        {viewState === "building" && (
+          <motion.div
+            key="building-first-resource"
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={listTransition}
+            className="px-6 py-12 min-h-[23rem] flex flex-col justify-center"
+          >
+            <div className="flex items-center justify-center space-x-4 mb-6 opacity-20">
+              <Icon icon="logos:aws-s3" className="w-10 h-10" />
+              <Icon icon="logos:aws-dynamodb" className="w-10 h-10" />
+              <Icon icon="logos:aws-lambda" className="w-10 h-10" />
+              <Icon icon="logos:aws-api-gateway" className="w-10 h-10" />
+              <Icon icon="logos:aws-secrets-manager" className="w-10 h-10" />
+            </div>
+            <h4 className="text-sm font-semibold text-gray-900 mb-1 text-center">Building your first AWS resource...</h4>
+            <p className="text-sm text-gray-500 text-center">
+              This can take a few seconds while LocalStack provisions and saves it.
+            </p>
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
-              {emptyStateActions.map((action) => (
-                <button
-                  key={action.key}
-                  onClick={action.onClick}
-                  disabled={addLoading}
-                  className="flex items-center p-3 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/40 transition-colors disabled:opacity-50"
+              {[0, 1, 2, 3].map((idx) => (
+                <div
+                  key={`building-card-${idx}`}
+                  className="flex items-center p-3 border border-gray-200 rounded-lg bg-gray-50/70 animate-pulse"
                 >
-                  <Icon icon={action.icon} className="w-8 h-8 mr-3 flex-shrink-0" />
-                  <span className="min-w-0">
-                    <span className="block text-sm font-medium text-gray-900">{action.title}</span>
-                    <span className="block text-xs text-gray-500">{action.description}</span>
+                  <div className="w-8 h-8 mr-3 rounded bg-gray-200" />
+                  <span className="min-w-0 w-full">
+                    <span className="block h-3.5 w-28 bg-gray-200 rounded mb-1.5" />
+                    <span className="block h-3 w-24 bg-gray-100 rounded" />
                   </span>
-                </button>
+                </div>
               ))}
             </div>
-          )}
+            <p className="mt-4 text-xs text-gray-500 text-center">
+              Your new resource will appear here automatically.
+            </p>
+          </motion.div>
+        )}
 
-          <p className="mt-4 text-xs text-gray-500 text-center">
-            You can also use the <span className="font-medium">+ Add</span> menu for Secrets Manager, Parameter Store, and IAM.
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Category sections */}
-          {AWS_CATEGORIES.map((category, catIndex) => {
-            const categoryResources = awsResources.filter((r) =>
-              category.types.includes(r.type)
-            );
-            if (categoryResources.length === 0) return null;
+        {viewState === "list" && (
+          <motion.div
+            key="resource-list"
+            layout
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={listTransition}
+          >
+            {/* Category sections */}
+            <AnimatePresence initial={false}>
+              {AWS_CATEGORIES.map((category, catIndex) => {
+                const categoryResources = awsResources.filter((r) =>
+                  category.types.includes(r.type)
+                );
+                if (categoryResources.length === 0) return null;
 
-            return (
-              <div key={`${category.name}-${catIndex}`}>
-                {/* Category header */}
-                <div className="px-6 py-2 bg-gray-50 border-b border-gray-200 flex items-center space-x-2">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {category.name}
-                  </span>
-                  <span className="text-xs text-gray-400">({categoryResources.length})</span>
-                </div>
+                return (
+                  <motion.div
+                    key={`${category.name}-${catIndex}`}
+                    layout
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={listTransition}
+                  >
+                    {/* Category header */}
+                    <div className="px-6 py-2 bg-gray-50 border-b border-gray-200 flex items-center space-x-2">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {category.name}
+                      </span>
+                      <span className="text-xs text-gray-400">({categoryResources.length})</span>
+                    </div>
 
-                {/* Column labels — only on first category */}
-                <div
-                  className="grid items-center gap-x-4 px-6 py-2 bg-white border-b border-gray-100"
-                  style={{ gridTemplateColumns: rowGridTemplate }}
-                >
-                  <div />
-                  <div />
-                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Resource</span>
-                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Status</span>
-                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide text-center">Action</span>
-                  <div />
-                </div>
+                    {/* Column labels — only on first category */}
+                    <div
+                      className="grid items-center gap-x-4 px-6 py-2 bg-white border-b border-gray-100"
+                      style={{ gridTemplateColumns: rowGridTemplate }}
+                    >
+                      <div />
+                      <div />
+                      <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Resource</span>
+                      <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Status</span>
+                      <span className="text-xs font-medium text-gray-400 uppercase tracking-wide text-center">Action</span>
+                      <div />
+                    </div>
 
-                <div className="divide-y divide-gray-100">
-                  {categoryResources.map((resource) => (
-                    <div key={resource.id} className="px-6 py-4">
-                      <div
-                        className="grid items-center gap-x-4"
-                        style={{ gridTemplateColumns: rowGridTemplate }}
-                      >
+                    <div className="divide-y divide-gray-100">
+                      <AnimatePresence initial={false}>
+                        {categoryResources.map((resource) => (
+                          <motion.div
+                            key={resource.id}
+                            layout
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={listTransition}
+                            className="px-6 py-4"
+                          >
+                            <div
+                              className="grid items-center gap-x-4"
+                              style={{ gridTemplateColumns: rowGridTemplate }}
+                            >
                         {/* Checkbox */}
                         <input
                           type="checkbox"
@@ -570,12 +650,20 @@ export default function ResourceList({
                             <EyeIcon className="h-4 w-4" />
                           </button>
                         </div>
-                      </div>
+                            </div>
 
-                      {/* Resource Details */}
-                      {showDetails === resource.id && (
-                        <div className="mt-4 pl-8 border-l-2 border-gray-200">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            {/* Resource Details */}
+                            <AnimatePresence initial={false}>
+                              {showDetails === resource.id && (
+                                <motion.div
+                                  layout
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  transition={listTransition}
+                                  className="mt-4 pl-8 border-l-2 border-gray-200 overflow-hidden"
+                                >
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
                               <dt className="font-medium text-gray-500">Resource ID</dt>
                               <dd className="text-gray-900 font-mono">{resource.id}</dd>
@@ -683,33 +771,47 @@ export default function ResourceList({
                                 </div>
                               ))}
                           </div>
-                        </div>
-                      )}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
                     </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
 
-          {/* Select All footer */}
-          {awsResources.length > 0 && (
-            <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  checked={selectedResources.length === awsResources.length && awsResources.length > 0}
-                  onChange={handleSelectAll}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <span className="text-sm text-gray-700">
-                  Select all ({awsResources.length} resource{awsResources.length !== 1 ? "s" : ""})
-                </span>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-    </div>
+            {/* Select All footer */}
+            <AnimatePresence initial={false}>
+              {awsResources.length > 0 && (
+                <motion.div
+                  key="select-all-footer"
+                  layout
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  transition={listTransition}
+                  className="px-6 py-3 bg-gray-50 border-t border-gray-200"
+                >
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedResources.length === awsResources.length && awsResources.length > 0}
+                      onChange={handleSelectAll}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-gray-700">
+                      Select all ({awsResources.length} resource{awsResources.length !== 1 ? "s" : ""})
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
