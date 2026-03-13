@@ -9,7 +9,6 @@ import {
   KeyIcon,
   PlusIcon,
   TrashIcon,
-  UserCircleIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useState } from "react";
@@ -153,9 +152,9 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">
               <Image src="/logo.svg" alt="LocalCloud Kit" width={36} height={36} />
-              <div className="flex items-center space-x-2">
-                <UserCircleIcon className="h-6 w-6 text-blue-600" />
-                <h1 className="text-xl font-bold text-gray-900">Profile & Preferences</h1>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">LocalCloud Kit</h1>
+                <p className="text-xs text-gray-500">Profile and preferences service</p>
               </div>
               <div className="h-5 w-px bg-gray-200" />
               <Link

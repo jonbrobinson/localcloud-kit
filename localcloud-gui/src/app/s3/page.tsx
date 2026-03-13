@@ -184,7 +184,7 @@ export default function S3DocPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="S3 Buckets" subtitle="Local object storage via LocalStack">
+      <DocPageNav title="LocalCloud Kit" subtitle="Object storage service via LocalStack">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
           href="/manage/s3"

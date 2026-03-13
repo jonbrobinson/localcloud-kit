@@ -199,7 +199,7 @@ export default function CachePage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="Cache" subtitle="Redis">
+      <DocPageNav title="LocalCloud Kit" subtitle="Redis caching service">
         <ServiceStatusBadge service="redis" name="Redis" />
         <div className="relative" ref={connectionRef}>
           <button
