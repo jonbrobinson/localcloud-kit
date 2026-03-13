@@ -396,16 +396,20 @@ export default function Dashboard() {
 
   const serviceStatusClass = (status: string) => {
     if (status === "running") return "bg-green-100 text-green-800";
-    if (status === "stopped") return "bg-red-100 text-red-800";
+    if (status === "starting") return "bg-yellow-100 text-yellow-700";
+    if (status === "failed") return "bg-red-100 text-red-800";
     return "bg-gray-100 text-gray-600";
   };
   const serviceDotClass = (status: string) => {
     if (status === "running") return "bg-green-500";
-    if (status === "stopped") return "bg-red-500";
+    if (status === "starting") return "bg-yellow-400 animate-pulse";
+    if (status === "failed") return "bg-red-500";
     return "bg-gray-400";
   };
   const serviceLabel = (status: string) => {
     if (status === "running") return "Running";
+    if (status === "starting") return "Starting…";
+    if (status === "failed") return "Failed";
     if (status === "stopped") return "Stopped";
     return "Unknown";
   };

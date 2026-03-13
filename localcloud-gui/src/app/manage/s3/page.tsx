@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import {
-  ArrowLeftIcon,
   PlusIcon,
   FolderIcon,
   DocumentIcon,
@@ -163,18 +162,16 @@ export default function ManageS3Page() {
       <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                <ArrowLeftIcon className="h-4 w-4 mr-1.5" />
+            <div className="flex items-center space-x-3">
+              <Image src="/logo.svg" alt="LocalCloud Kit" width={36} height={36} />
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">S3 Buckets</h1>
+                <p className="text-xs text-gray-500">Browse and manage S3 buckets and objects</p>
+              </div>
+              <div className="h-5 w-px bg-gray-200" />
+              <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
                 Dashboard
               </Link>
-              <div className="flex items-center space-x-3">
-                <Image src="/logo.svg" alt="LocalCloud Kit" width={36} height={36} />
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">S3 Buckets</h1>
-                  <p className="text-xs text-gray-500">Browse and manage S3 buckets and objects</p>
-                </div>
-              </div>
             </div>
             <div className="flex items-center space-x-3">
               <Link href="/s3" className="flex items-center space-x-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">

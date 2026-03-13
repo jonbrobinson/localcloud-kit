@@ -2,8 +2,8 @@
 
 import { usePreferences } from "@/context/PreferencesContext";
 import { HighlightTheme, PreferredLanguage, Project } from "@/types";
+import Image from "next/image";
 import {
-  ArrowLeftIcon,
   CircleStackIcon,
   FolderIcon,
   KeyIcon,
@@ -152,14 +152,18 @@ export default function ProfilePage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">
+              <Image src="/logo.svg" alt="LocalCloud Kit" width={36} height={36} />
+              <div className="flex items-center space-x-2">
+                <UserCircleIcon className="h-6 w-6 text-blue-600" />
+                <h1 className="text-xl font-bold text-gray-900">Profile & Preferences</h1>
+              </div>
+              <div className="h-5 w-px bg-gray-200" />
               <Link
                 href="/"
-                className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
               >
-                <ArrowLeftIcon className="h-5 w-5" />
+                Dashboard
               </Link>
-              <UserCircleIcon className="h-7 w-7 text-blue-600" />
-              <h1 className="text-xl font-bold text-gray-900">Profile & Preferences</h1>
             </div>
           </div>
         </div>
