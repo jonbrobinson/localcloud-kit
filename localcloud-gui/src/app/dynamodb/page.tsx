@@ -196,7 +196,7 @@ export default function DynamoDBDocPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="NoSQL database service via LocalStack">
+      <DocPageNav title="LocalCloud Kit" subtitle="DynamoDB">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
           href="/manage/dynamodb"

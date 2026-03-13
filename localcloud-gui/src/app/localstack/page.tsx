@@ -73,7 +73,7 @@ alias awslocal='aws --endpoint-url ${projectConfig.awsEndpoint}'`;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="AWS service emulation platform">
+      <DocPageNav title="LocalCloud Kit" subtitle="LocalStack">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
       </DocPageNav>
 

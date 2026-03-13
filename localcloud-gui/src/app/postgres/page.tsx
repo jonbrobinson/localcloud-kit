@@ -142,7 +142,7 @@ export default function PostgresPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="PostgreSQL relational database service">
+      <DocPageNav title="LocalCloud Kit" subtitle="PostgreSQL">
         <ServiceStatusBadge service="postgres" name="PostgreSQL" />
         <a
           href={PGADMIN_DIRECT_URL}

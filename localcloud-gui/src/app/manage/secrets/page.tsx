@@ -188,7 +188,7 @@ export default function ManageSecretsPage() {
               <Image src="/logo.svg" alt="LocalCloud Kit" width={36} height={36} />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">LocalCloud Kit</h1>
-                <p className="text-xs text-gray-500">Secrets Manager service for managing LocalStack secrets</p>
+                <p className="text-xs text-gray-500">Manage secrets</p>
               </div>
               <div className="h-5 w-px bg-gray-200" />
               <Link

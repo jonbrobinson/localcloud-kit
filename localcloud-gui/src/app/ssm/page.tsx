@@ -233,7 +233,7 @@ export default function SSMDocPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="SSM Parameter Store configuration service">
+      <DocPageNav title="LocalCloud Kit" subtitle="Parameter Store">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
           href="/manage/ssm"

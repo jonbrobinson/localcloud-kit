@@ -406,7 +406,7 @@ export default function IAMDocPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="IAM and STS identity service via LocalStack">
+      <DocPageNav title="LocalCloud Kit" subtitle="IAM & STS">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
           href="/manage/iam"
