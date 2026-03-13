@@ -168,6 +168,20 @@ make start
 make restart
 ```
 
+### Preview AWS Resources from Dashboard
+
+From the Dashboard **Resources** panel, you can now open resource-specific viewer modals directly for:
+
+- S3 buckets
+- DynamoDB tables
+- Lambda functions (code viewer)
+- API Gateway APIs (configuration viewer)
+- Secrets Manager secrets
+- SSM parameters
+- IAM roles (role + attached policies viewer)
+
+If no active resource exists yet for a type, create one first from **+ Add**.
+
 ### Regenerate Certificates
 
 If certificates expire or need regeneration:

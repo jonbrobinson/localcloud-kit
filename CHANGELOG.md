@@ -9,6 +9,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **SecretsDetailModal**: Clicking a secret in the resource list now opens a focused single-secret modal showing name, ARN, masked value with reveal toggle, inline edit (value + description), and delete with confirmation; includes "Open in Secrets Manager →" link to the full manage page
 - **Manage links**: "Open Manager →" links added to all existing service viewer modals (BucketViewer, DynamoDBViewer, SecretsManagerViewer, LambdaCodeModal, SSMEditModal, APIGatewayConfigViewer) and to the Resources dropdown in the Dashboard
 - **Docs Hub**: New `/docs` page that centralizes all documentation links, quick verification checklists, and direct manager/admin tool links
+- **IAMRolePoliciesModal**: Added a dashboard IAM role viewer modal that shows role metadata and attached policies with copy-ARN support
+- **docs/LOCAL_WORKFLOW.md**: Added a dashboard preview section listing viewer modals for all supported AWS resource types
 
 ### Changed
 - **DocPageNav**: Dashboard link now appears to the right of the page title and subtitle in the nav header
@@ -16,6 +18,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **Dashboard menus**: Resources and Services dropdowns now include an **Inspect** option that opens a quick modal with verification checks plus docs/manager/admin links, with full desktop + mobile parity
 - **Dashboard + ResourceList**: Docs dropdown is now grouped into three columns, resource dropdown rows have roomier spacing with icon-first preview/manage controls, and AWS resource rows show less text truncation
 - **Dashboard actions**: Resource dropdown icons now map by intent — eye opens viewers (where available), checklist opens inspect checks, and external-link opens full manage pages
+- **Dashboard resources**: Added viewer action wiring for Lambda, API Gateway, Secrets Manager, SSM, and IAM from the Resources dropdown and resource list
 
 ### Fixed
 - **SecretsDetailModal**: Clicking a secret from the resource list previously opened all secrets; now correctly opens only the clicked secret
