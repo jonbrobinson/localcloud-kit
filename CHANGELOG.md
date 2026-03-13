@@ -9,6 +9,9 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **SecretsDetailModal**: Clicking a secret in the resource list now opens a focused single-secret modal showing name, ARN, masked value with reveal toggle, inline edit (value + description), and delete with confirmation; includes "Open in Secrets Manager →" link to the full manage page
 - **Manage links**: "Open Manager →" links added to all existing service viewer modals (BucketViewer, DynamoDBViewer, SecretsManagerViewer, LambdaCodeModal, SSMEditModal, APIGatewayConfigViewer) and to the Resources dropdown in the Dashboard
 
+### Changed
+- **DocPageNav**: Dashboard link now appears to the right of the page title and subtitle in the nav header
+
 ### Fixed
 - **SecretsDetailModal**: Clicking a secret from the resource list previously opened all secrets; now correctly opens only the clicked secret
 
