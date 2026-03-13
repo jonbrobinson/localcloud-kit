@@ -4,6 +4,12 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-03-13
+
+### Changed
+- **CLAUDE.md**: Require reading AGENTS.md before executing any action
+- **AGENTS.md**: Attribution section expanded — commit author must always be human; no AI agents (Claude, Copilot, Cursor, etc.) in author or co-author fields; Co-Authored-By reserved for human collaborators only
+
 ## [0.13.0] - 2026-03-13
 
 ### Added
