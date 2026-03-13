@@ -206,7 +206,18 @@ Entries go under `## [Unreleased]` at the top of the file. Use these subsections
 Run through every applicable item before committing. Order matters: build first,
 docs second, changelog last (PR step only).
 
-### 1 — GUI Build (required for any `localcloud-gui/` change)
+### 1 — GUI Lint (required for any `localcloud-gui/` change)
+
+```bash
+cd localcloud-gui && npm run lint
+```
+
+- Must pass with **zero errors** — fix all errors before committing
+- `@typescript-eslint/no-unused-vars` is set to **error**: remove every unused import, variable, and function before committing
+- Warnings (e.g. `no-explicit-any`, `react-hooks/exhaustive-deps`) are acceptable; errors are not
+- Skip only for backend-only or shell-script-only changes; run it when in doubt
+
+### 2 — GUI Build (required for any `localcloud-gui/` change)
 
 ```bash
 cd localcloud-gui && npm run build
@@ -216,7 +227,7 @@ cd localcloud-gui && npm run build
 - Warnings are acceptable; type errors and compile failures are not
 - Skip only for backend-only or shell-script-only changes; run it when in doubt
 
-### 2 — Documentation Update
+### 3 — Documentation Update
 
 Update the matching `docs/` markdown file whenever you change behaviour, add
 endpoints, rename things, or add a new service. **If the code changed, the docs
@@ -237,7 +248,7 @@ settings or config, common operations, troubleshooting tips. Do **not** duplicat
 the SDK examples from the GUI doc pages verbatim — link to the relevant `/route`
 instead.
 
-### 3 — README Update
+### 4 — README Update
 
 Update `README.md` when any of the following change:
 
@@ -250,7 +261,7 @@ Update `README.md` when any of the following change:
 The README is user-facing. Write in plain, direct language. Do not include
 internal implementation details.
 
-### 4 — Changelog Update (PR step only)
+### 5 — Changelog Update (PR step only)
 
 `CHANGELOG.md` is updated **once per PR**, as the last commit before opening the
 PR — never mid-feature. See the Changelog Standards section above.
