@@ -1138,24 +1138,62 @@ export default function Dashboard() {
               {/* Resources */}
               <div className="pt-3 px-2">
                 <p className="px-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">AWS Resources</p>
-                <button onClick={() => { setShowBuckets(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />S3 Buckets
-                </button>
-                <button onClick={() => { setShowDynamoDB(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />DynamoDB Tables
-                </button>
-                <button onClick={() => { setShowLambdaConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />Lambda Functions
-                </button>
-                <button onClick={() => { setShowAPIGatewayConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />API Gateway
-                </button>
-                <button onClick={() => { setShowSecretsConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Secrets Manager
-                </button>
-                <button onClick={() => { setShowSSMConfig(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Parameter Store
-                </button>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowBuckets(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />S3 Buckets
+                  </button>
+                  <button onClick={() => openInspectTarget("s3")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowDynamoDB(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />DynamoDB Tables
+                  </button>
+                  <button onClick={() => openInspectTarget("dynamodb")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowLambdaConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />Lambda Functions
+                  </button>
+                  <button onClick={() => openInspectTarget("lambda")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowAPIGatewayConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />API Gateway
+                  </button>
+                  <button onClick={() => openInspectTarget("apigateway")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowSecretsConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Secrets Manager
+                  </button>
+                  <button onClick={() => openInspectTarget("secretsmanager")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowSSMConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Parameter Store
+                  </button>
+                  <button onClick={() => openInspectTarget("ssm")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setShowIAMConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />IAM Roles
+                  </button>
+                  <button onClick={() => openInspectTarget("iam")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                    Inspect
+                  </button>
+                </div>
               </div>
 
               {/* Services — categorised by kind */}
@@ -1181,23 +1219,31 @@ export default function Dashboard() {
                           </>
                         );
                         const action = service.action;
-                        return action.type === "link" ? (
-                          <Link
-                            key={service.id}
-                            href={action.href}
-                            onClick={closeAllMenus}
-                            className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                          >
-                            {itemContent}
-                          </Link>
-                        ) : (
-                          <button
-                            key={service.id}
-                            onClick={() => { handleModalOpen(action.modalKey); closeAllMenus(); }}
-                            className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                          >
-                            {itemContent}
-                          </button>
+                        return (
+                          <div key={service.id} className="flex items-center gap-1">
+                            {action.type === "link" ? (
+                              <Link
+                                href={action.href}
+                                onClick={closeAllMenus}
+                                className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                              >
+                                {itemContent}
+                              </Link>
+                            ) : (
+                              <button
+                                onClick={() => { handleModalOpen(action.modalKey); closeAllMenus(); }}
+                                className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                              >
+                                {itemContent}
+                              </button>
+                            )}
+                            <button
+                              onClick={() => openInspectTarget(service.id)}
+                              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
+                            >
+                              Inspect
+                            </button>
+                          </div>
                         );
                       })}
                     </div>
