@@ -154,6 +154,7 @@ services:
       - KC_PROXY_HEADERS=xforwarded
       - KC_HOSTNAME_STRICT=false
       - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_HEALTH_ENABLED=true
     command: start-dev
     tmpfs:
       - /tmp
