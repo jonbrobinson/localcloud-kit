@@ -6,15 +6,16 @@ import { resourceApi } from "@/services/api";
 import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayConfig, SSMParameterConfig, IAMRoleConfig, ModalKey } from "@/types";
 import { PLATFORM_SERVICES, PLATFORM_SERVICE_KINDS, SERVICE_KIND_LABEL } from "@/constants/platformServices";
 import {
+  ArrowTopRightOnSquareIcon,
   Bars3Icon,
   BookOpenIcon,
   ChevronDownIcon,
+  ClipboardDocumentCheckIcon,
   DocumentTextIcon,
   EyeIcon,
   ServerIcon,
   Squares2X2Icon,
   UserCircleIcon,
-  WrenchScrewdriverIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Icon } from "@iconify/react";
@@ -175,29 +176,41 @@ export default function Dashboard() {
     setter(!current);
   };
 
+  const previewActionClass =
+    "inline-flex items-center justify-center p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors";
   const inspectActionClass =
     "inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors";
   const manageActionClass =
     "inline-flex items-center justify-center p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors";
 
-  const renderInspectManageActions = (label: string, target: InspectTargetId, manageHref: string) => (
+  const renderResourceActions = (label: string, target: InspectTargetId, manageHref: string, onPreview?: () => void) => (
     <div className="flex items-center gap-1">
+      {onPreview && (
+        <button
+          onClick={onPreview}
+          className={previewActionClass}
+          title={`Open ${label} viewer`}
+          aria-label={`Open ${label} viewer`}
+        >
+          <EyeIcon className="h-4 w-4" />
+        </button>
+      )}
       <button
         onClick={() => openInspectTarget(target)}
         className={inspectActionClass}
-        title={`Quick preview ${label}`}
-        aria-label={`Quick preview ${label}`}
+        title={`Inspect ${label} checks`}
+        aria-label={`Inspect ${label} checks`}
       >
-        <EyeIcon className="h-4 w-4" />
+        <ClipboardDocumentCheckIcon className="h-4 w-4" />
       </button>
       <Link
         href={manageHref}
         onClick={closeAllMenus}
         className={manageActionClass}
-        title={`Open ${label} manager`}
-        aria-label={`Open ${label} manager`}
+        title={`Open ${label} page`}
+        aria-label={`Open ${label} page`}
       >
-        <WrenchScrewdriverIcon className="h-4 w-4" />
+        <ArrowTopRightOnSquareIcon className="h-4 w-4" />
       </Link>
     </div>
   );
@@ -206,10 +219,10 @@ export default function Dashboard() {
     <button
       onClick={() => openInspectTarget(target)}
       className={inspectActionClass}
-      title={`Quick preview ${label}`}
-      aria-label={`Quick preview ${label}`}
+      title={`Inspect ${label} checks`}
+      aria-label={`Inspect ${label} checks`}
     >
-      <EyeIcon className="h-4 w-4" />
+      <ClipboardDocumentCheckIcon className="h-4 w-4" />
     </button>
   );
 
@@ -732,7 +745,10 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />
                         S3 Buckets
                       </button>
-                      {renderInspectManageActions("S3 Buckets", "s3", "/manage/s3")}
+                      {renderResourceActions("S3 Buckets", "s3", "/manage/s3", () => {
+                        setShowBuckets(true);
+                        closeAllMenus();
+                      })}
                     </div>
 
                     {/* Database */}
@@ -746,7 +762,10 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />
                         DynamoDB
                       </button>
-                      {renderInspectManageActions("DynamoDB", "dynamodb", "/manage/dynamodb")}
+                      {renderResourceActions("DynamoDB", "dynamodb", "/manage/dynamodb", () => {
+                        setShowDynamoDB(true);
+                        closeAllMenus();
+                      })}
                     </div>
 
                     {/* Compute */}
@@ -760,7 +779,7 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />
                         Lambda
                       </button>
-                      {renderInspectManageActions("Lambda", "lambda", "/manage/lambda")}
+                      {renderResourceActions("Lambda", "lambda", "/manage/lambda")}
                     </div>
 
                     {/* Networking */}
@@ -774,7 +793,7 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />
                         API Gateway
                       </button>
-                      {renderInspectManageActions("API Gateway", "apigateway", "/manage/apigateway")}
+                      {renderResourceActions("API Gateway", "apigateway", "/manage/apigateway")}
                     </div>
 
                     {/* Security & Identity */}
@@ -788,7 +807,7 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                         Secrets Manager
                       </button>
-                      {renderInspectManageActions("Secrets Manager", "secretsmanager", "/manage/secrets")}
+                      {renderResourceActions("Secrets Manager", "secretsmanager", "/manage/secrets")}
                     </div>
                     <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
                       <button
@@ -798,7 +817,7 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
                         Parameter Store
                       </button>
-                      {renderInspectManageActions("Parameter Store", "ssm", "/manage/ssm")}
+                      {renderResourceActions("Parameter Store", "ssm", "/manage/ssm")}
                     </div>
                     <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
                       <button
@@ -808,7 +827,7 @@ export default function Dashboard() {
                         <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />
                         IAM Roles
                       </button>
-                      {renderInspectManageActions("IAM Roles", "iam", "/manage/iam")}
+                      {renderResourceActions("IAM Roles", "iam", "/manage/iam")}
                     </div>
 
                   </div>
