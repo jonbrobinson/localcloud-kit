@@ -3,7 +3,6 @@
 import {
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import DocPageNav from "@/components/DocPageNav";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";

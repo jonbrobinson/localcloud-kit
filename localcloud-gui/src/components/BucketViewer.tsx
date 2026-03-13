@@ -227,22 +227,6 @@ export default function BucketViewer({
     }
   };
 
-  const getParentPath = (key: string) => {
-    // Get the parent path for navigation
-    if (key.endsWith("/")) {
-      // Remove the trailing slash and get parent
-      const trimmed = key.slice(0, -1);
-      const parts = trimmed.split("/");
-      parts.pop(); // Remove the last part
-      return parts.length > 0 ? parts.join("/") + "/" : "";
-    } else {
-      // Get the directory path
-      const parts = key.split("/");
-      parts.pop(); // Remove the filename
-      return parts.length > 0 ? parts.join("/") + "/" : "";
-    }
-  };
-
   const handleViewFile = (objectKey: string) => {
     if (!selectedBucket) return;
     setSelectedFile({ bucketName: selectedBucket, objectKey });

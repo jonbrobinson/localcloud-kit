@@ -7,21 +7,6 @@ import { highlightThemes, HighlightTheme } from "./highlightThemes";
 import { marked } from "marked";
 import Papa from "papaparse";
 
-// Helper function to encode Unicode strings to base64
-function encodeUnicodeToBase64(str: string): string {
-  try {
-    // First try the standard btoa for ASCII content
-    return btoa(str);
-  } catch (error) {
-    // If btoa fails due to Unicode characters, use a more robust approach
-    const encoder = new TextEncoder();
-    const bytes = encoder.encode(str);
-    const binaryString = Array.from(bytes, (byte) =>
-      String.fromCharCode(byte)
-    ).join("");
-    return btoa(binaryString);
-  }
-}
 // Register highlight.js languages
 import javascript from "highlight.js/lib/languages/javascript";
 import typescript from "highlight.js/lib/languages/typescript";
@@ -151,7 +136,6 @@ export default function FileViewerModal({
   projectName,
   bucketName,
   objectKey,
-  objectSize,
   theme = "github",
 }: FileViewerModalProps) {
   const [fileContent, setFileContent] = useState<FileContent | null>(null);
@@ -179,7 +163,7 @@ export default function FileViewerModal({
       } else {
         setError(data.error || "Failed to load file content");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to load file content");
     } finally {
       setLoading(false);
