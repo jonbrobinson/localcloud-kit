@@ -13,6 +13,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **docs/LOCAL_WORKFLOW.md**: Added a dashboard preview section listing viewer modals for all supported AWS resource types
 
 ### Changed
+- **ResourceList**: Empty resources view now includes quick-create cards for S3 and DynamoDB (plus other available AWS resource actions)
 - **DocPageNav**: Dashboard link now appears to the right of the page title and subtitle in the nav header
 - **Non-dashboard headers**: Title next to the logo is now consistent as "LocalCloud Kit" and subtitles now use short service labels
 - **Dashboard menus**: Resources and Services dropdowns now include an **Inspect** option that opens a quick modal with verification checks plus docs/manager/admin links, with full desktop + mobile parity
