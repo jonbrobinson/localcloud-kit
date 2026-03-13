@@ -105,8 +105,8 @@ export default function ManageAPIGatewayPage() {
             <div className="flex items-center space-x-3">
               <Image src="/logo.svg" alt="LocalCloud Kit" width={36} height={36} />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">API Gateway</h1>
-                <p className="text-xs text-gray-500">Manage REST APIs and endpoints</p>
+                <h1 className="text-xl font-bold text-gray-900">LocalCloud Kit</h1>
+                <p className="text-xs text-gray-500">API Gateway service for managing REST APIs and endpoints</p>
               </div>
               <div className="h-5 w-px bg-gray-200" />
               <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">

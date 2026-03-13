@@ -217,7 +217,7 @@ export default function SecretsDocPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="Secrets Manager" subtitle="Local secret storage via LocalStack">
+      <DocPageNav title="LocalCloud Kit" subtitle="Secrets management service via LocalStack">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
           href="/manage/secrets"
