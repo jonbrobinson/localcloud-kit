@@ -170,8 +170,8 @@ The header contains three primary dropdowns:
 | Dropdown | Contents |
 |----------|----------|
 | **Resources** | AWS resources organized by category (Storage, Database, Compute, Networking, Security & Identity) — things you create and destroy in LocalStack |
-| **Services** | Platform services (Keycloak, Mailpit, PostgreSQL, Redis) — always-running infrastructure managed via their own admin UIs |
-| **Docs** | Reference documentation for all services and AWS resources |
+| **Services** | Platform services (Keycloak, Mailpit, PostgreSQL, Redis) with quick **Inspect** actions and links to manager/admin tools |
+| **Docs** | Opens the **Docs Hub** (`/docs`) with all documentation pages, verification checklists, and manager/admin links |
 
 ### AWS Service Emulation
 
