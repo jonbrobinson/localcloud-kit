@@ -27,6 +27,36 @@ After deploying to a stage, APIs are accessible at:
 http://localhost:4566/restapis/{apiId}/{stage}/_user_request_/{path}
 ```
 
+### About `_user_request_`
+
+LocalStack uses the special `_user_request_` path segment when emulating API Gateway invoke URLs. This is **expected and correct** for local development.
+
+- **LocalStack (local)**:
+
+  ```
+  http://localhost:4566/restapis/{apiId}/{stage}/_user_request_/{path}
+  ```
+
+- **AWS (real API Gateway)**:
+
+  ```
+  https://{apiId}.execute-api.{region}.amazonaws.com/{stage}/{path}
+  ```
+
+When you see a URL like:
+
+```
+http://localhost:4566/restapis/c2w1l17b8w/dev/_user_request_/hello
+```
+
+this is the LocalStack equivalent of a real AWS invoke URL such as:
+
+```
+https://c2w1l17b8w.execute-api.us-east-1.amazonaws.com/dev/hello
+```
+
+You should **keep `_user_request_` in the URL** when invoking APIs against LocalStack; it is not a typo and does not appear in real AWS URLs.
+
 ## API Endpoints
 
 | Method | Endpoint | Description |
