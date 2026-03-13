@@ -221,7 +221,7 @@ export default function LambdaDocPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100">
-      <DocPageNav title="Lambda" subtitle="Serverless functions via LocalStack">
+      <DocPageNav title="LocalCloud Kit" subtitle="Lambda">
         <ServiceStatusBadge service="localstack" name="LocalStack" />
         <Link
           href="/manage/lambda"
