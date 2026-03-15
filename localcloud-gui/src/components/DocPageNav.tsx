@@ -2,6 +2,7 @@
 
 import {
   BookOpenIcon,
+  ChartBarIcon,
   ChevronDownIcon,
   CircleStackIcon,
   EnvelopeIcon,
@@ -213,6 +214,14 @@ export default function DocPageNav({ title, subtitle, children }: DocPageNavProp
                   >
                     <KeyIcon className="h-4 w-4 mr-3 text-gray-400" />
                     Keycloak
+                  </Link>
+                  <Link
+                    href="/posthog"
+                    onClick={() => setShowDocsMenu(false)}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <ChartBarIcon className="h-4 w-4 mr-3 text-gray-400" />
+                    PostHog
                   </Link>
                 </div>
               )}

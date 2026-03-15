@@ -3,12 +3,13 @@ import {
   KeycloakStatus,
   LocalStackStatus,
   MailpitStats,
+  PosthogStatus,
   PostgresStatus,
   ProjectConfig,
   RedisStatus,
   Resource,
 } from "@/types";
-import { dashboardApi, keycloakApi, postgresApi } from "@/services/api";
+import { dashboardApi, keycloakApi, postgresApi, posthogApi } from "@/services/api";
 
 interface LocalStackData {
   status: LocalStackStatus;
@@ -22,6 +23,7 @@ interface ServicesData {
   redis: RedisStatus;
   postgres: PostgresStatus;
   keycloak: KeycloakStatus;
+  posthog: PosthogStatus;
 }
 
 export function useServicesData() {
@@ -43,6 +45,7 @@ export function useServicesData() {
     redis: { status: "unknown" },
     postgres: { status: "unknown" },
     keycloak: { status: "unknown" },
+    posthog: { status: "unknown" },
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -50,10 +53,11 @@ export function useServicesData() {
   const loadData = useCallback(async () => {
     try {
       setError(null);
-      const [payload, postgresStatus, keycloakStatus] = await Promise.all([
+      const [payload, postgresStatus, keycloakStatus, posthogStatus] = await Promise.all([
         dashboardApi.getData(),
         postgresApi.status(),
         keycloakApi.status(),
+        posthogApi.status(),
       ]);
 
       const { localstackStatus, projectConfig, mailpit: mailpitStats, resources, redis } = payload;
@@ -64,6 +68,7 @@ export function useServicesData() {
         redis,
         postgres: postgresStatus,
         keycloak: keycloakStatus,
+        posthog: posthogStatus,
       });
     } catch (err) {
       const error =

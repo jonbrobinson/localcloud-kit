@@ -9,6 +9,7 @@ HOSTNAME="app-local.localcloudkit.com"
 MAILPIT_HOSTNAME="mailpit.localcloudkit.com"
 PGADMIN_HOSTNAME="pgadmin.localcloudkit.com"
 KEYCLOAK_HOSTNAME="keycloak.localcloudkit.com"
+POSTHOG_HOSTNAME="posthog.localcloudkit.com"
 IP="127.0.0.1"
 HOSTS_FILE="/etc/hosts"
 BACKUP_FILE="/etc/hosts.localcloudkit.backup"
@@ -42,6 +43,7 @@ MAIN_EXISTS=false
 MAILPIT_EXISTS=false
 PGADMIN_EXISTS=false
 KEYCLOAK_EXISTS=false
+POSTHOG_EXISTS=false
 
 if grep -q "$HOSTNAME" "$HOSTS_FILE" 2>/dev/null; then
     MAIN_EXISTS=true
@@ -55,12 +57,15 @@ fi
 if grep -q "$KEYCLOAK_HOSTNAME" "$HOSTS_FILE" 2>/dev/null; then
     KEYCLOAK_EXISTS=true
 fi
+if grep -q "$POSTHOG_HOSTNAME" "$HOSTS_FILE" 2>/dev/null; then
+    POSTHOG_EXISTS=true
+fi
 
-if [ "$MAIN_EXISTS" = true ] && [ "$MAILPIT_EXISTS" = true ] && [ "$PGADMIN_EXISTS" = true ] && [ "$KEYCLOAK_EXISTS" = true ]; then
+if [ "$MAIN_EXISTS" = true ] && [ "$MAILPIT_EXISTS" = true ] && [ "$PGADMIN_EXISTS" = true ] && [ "$KEYCLOAK_EXISTS" = true ] && [ "$POSTHOG_EXISTS" = true ]; then
     echo -e "${GREEN}✓ All entries already exist in $HOSTS_FILE${NC}"
     echo ""
     echo "Current entries:"
-    grep -E "$HOSTNAME|$MAILPIT_HOSTNAME|$PGADMIN_HOSTNAME|$KEYCLOAK_HOSTNAME" "$HOSTS_FILE" | sed 's/^/  /'
+    grep -E "$HOSTNAME|$MAILPIT_HOSTNAME|$PGADMIN_HOSTNAME|$KEYCLOAK_HOSTNAME|$POSTHOG_HOSTNAME" "$HOSTS_FILE" | sed 's/^/  /'
     echo ""
     echo -e "${GREEN}No changes needed!${NC}"
     exit 0
@@ -75,6 +80,7 @@ if [ "$EUID" -ne 0 ]; then
     [ "$MAILPIT_EXISTS" = false ] && echo "  ${BLUE}$IP $MAILPIT_HOSTNAME${NC}"
     [ "$PGADMIN_EXISTS" = false ] && echo "  ${BLUE}$IP $PGADMIN_HOSTNAME${NC}"
     [ "$KEYCLOAK_EXISTS" = false ] && echo "  ${BLUE}$IP $KEYCLOAK_HOSTNAME${NC}"
+    [ "$POSTHOG_EXISTS" = false ] && echo "  ${BLUE}$IP $POSTHOG_HOSTNAME${NC}"
     echo ""
     echo -e "${YELLOW}This requires sudo privileges to modify /etc/hosts${NC}"
     echo ""
@@ -107,14 +113,19 @@ if [ "$KEYCLOAK_EXISTS" = false ]; then
     echo -e "${YELLOW}Adding entry: $IP $KEYCLOAK_HOSTNAME${NC}"
     echo "$IP $KEYCLOAK_HOSTNAME" >> "$HOSTS_FILE"
 fi
+if [ "$POSTHOG_EXISTS" = false ]; then
+    echo -e "${YELLOW}Adding entry: $IP $POSTHOG_HOSTNAME${NC}"
+    echo "$IP $POSTHOG_HOSTNAME" >> "$HOSTS_FILE"
+fi
 
 # Verify additions
 if grep -q "$HOSTNAME" "$HOSTS_FILE" 2>/dev/null && grep -q "$MAILPIT_HOSTNAME" "$HOSTS_FILE" 2>/dev/null && \
-   grep -q "$PGADMIN_HOSTNAME" "$HOSTS_FILE" 2>/dev/null && grep -q "$KEYCLOAK_HOSTNAME" "$HOSTS_FILE" 2>/dev/null; then
+   grep -q "$PGADMIN_HOSTNAME" "$HOSTS_FILE" 2>/dev/null && grep -q "$KEYCLOAK_HOSTNAME" "$HOSTS_FILE" 2>/dev/null && \
+   grep -q "$POSTHOG_HOSTNAME" "$HOSTS_FILE" 2>/dev/null; then
     echo -e "${GREEN}✓ Entries added successfully${NC}"
     echo ""
     echo "Current entries:"
-    grep -E "$HOSTNAME|$MAILPIT_HOSTNAME|$PGADMIN_HOSTNAME|$KEYCLOAK_HOSTNAME" "$HOSTS_FILE" | sed 's/^/  /'
+    grep -E "$HOSTNAME|$MAILPIT_HOSTNAME|$PGADMIN_HOSTNAME|$KEYCLOAK_HOSTNAME|$POSTHOG_HOSTNAME" "$HOSTS_FILE" | sed 's/^/  /'
     echo ""
     echo -e "${GREEN}=== Setup Complete ===${NC}"
     echo ""
@@ -125,6 +136,7 @@ if grep -q "$HOSTNAME" "$HOSTS_FILE" 2>/dev/null && grep -q "$MAILPIT_HOSTNAME" 
     echo "  ${BLUE}https://$MAILPIT_HOSTNAME:3030${NC}"
     echo "  ${BLUE}https://$PGADMIN_HOSTNAME:3030${NC}"
     echo "  ${BLUE}https://$KEYCLOAK_HOSTNAME:3030${NC}"
+    echo "  ${BLUE}https://$POSTHOG_HOSTNAME:3030${NC}"
     echo ""
 else
     echo -e "${RED}✗ Failed to add entries${NC}"

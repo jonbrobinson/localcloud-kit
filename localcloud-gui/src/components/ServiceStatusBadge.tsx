@@ -7,6 +7,7 @@ import {
   mailpitApi,
   postgresApi,
   keycloakApi,
+  posthogApi,
 } from "@/services/api";
 
 export type ServiceKey =
@@ -14,7 +15,8 @@ export type ServiceKey =
   | "redis"
   | "mailpit"
   | "postgres"
-  | "keycloak";
+  | "keycloak"
+  | "posthog";
 
 type StatusLevel = "running" | "degraded" | "starting" | "stopped" | "failed" | "unknown";
 
@@ -54,6 +56,14 @@ async function fetchStatus(service: ServiceKey): Promise<StatusState> {
       }
       case "keycloak": {
         const s = await keycloakApi.status();
+        if (s.status === "running") return { level: "running", label: "Running" };
+        if (s.status === "starting") return { level: "starting", label: "Starting" };
+        if (s.status === "stopped") return { level: "stopped", label: "Stopped" };
+        if (s.status === "failed") return { level: "failed", label: "Failed" };
+        return { level: "unknown", label: "Unknown" };
+      }
+      case "posthog": {
+        const s = await posthogApi.status();
         if (s.status === "running") return { level: "running", label: "Running" };
         if (s.status === "starting") return { level: "starting", label: "Starting" };
         if (s.status === "stopped") return { level: "stopped", label: "Stopped" };

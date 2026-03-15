@@ -85,8 +85,8 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 
    - Install mkcert (if needed)
    - Install mkcert CA certificate
-   - Generate SSL certificates for `app-local.localcloudkit.com`
-   - Add domain to `/etc/hosts`
+   - Generate SSL certificates for LocalCloud Kit subdomains
+   - Add LocalCloud Kit domains to `/etc/hosts`
 
 3. **Start all services:**
 
@@ -106,6 +106,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
    - **GUI**: https://app-local.localcloudkit.com:3030
    - **API**: https://app-local.localcloudkit.com:3030/api
    - **Mailpit**: https://mailpit.localcloudkit.com:3030
+   - **PostHog** (optional profile): https://posthog.localcloudkit.com:3030
 
    Direct localhost (no TLS):
    - **LocalStack**: http://localhost:4566
@@ -121,6 +122,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 - **WebSocket (Socket.IO)**: `wss://app-local.localcloudkit.com:3030/ws/socket.io`
 - **Health Check**: `https://app-local.localcloudkit.com:3030/health`
 - **LocalStack Health**: `https://app-local.localcloudkit.com:3030/localstack/health`
+- **PostHog** (optional profile): `https://posthog.localcloudkit.com:3030`
 
 ### Direct Access (bypassing Traefik)
 
@@ -212,6 +214,19 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
   - No password required (local development)
   - Can be accessed directly via `redis:6379` from any container on the network
 
+### 7. PostHog (optional profile)
+
+- **Profile**: `posthog`
+- **URL**: `https://posthog.localcloudkit.com:3030`
+- **Role**: Local product analytics, event capture, and feature flags
+- **Isolation**:
+  - Dedicated `posthog-postgres`
+  - Dedicated `posthog-redis`
+  - Dedicated `posthog-clickhouse`
+  - Dedicated `posthog-kafka`
+  - Dedicated `posthog-zookeeper`
+- **Start**: `docker compose --profile posthog up -d`
+
 ## Volume Mounts
 
 ### Application Code (Hot Reload)
@@ -279,7 +294,7 @@ This allows browsers to trust the certificates without warnings.
 
 ### Certificate Features
 
-- **SANs**: `app-local.localcloudkit.com`, `*.app-local.localcloudkit.com`, `mailpit.localcloudkit.com`
+- **SANs**: `app-local.localcloudkit.com`, `*.app-local.localcloudkit.com`, `mailpit.localcloudkit.com`, `pgadmin.localcloudkit.com`, `keycloak.localcloudkit.com`, `posthog.localcloudkit.com`
 - **Validity**: 825 days
 - **Trust**: Trusted by Chrome, Safari, and other browsers (after CA installation)
 - **Single cert** covers both the main app and the Mailpit subdomain
@@ -570,6 +585,7 @@ alias docker-clean='docker system prune -f && docker volume prune -f'
    # Or manually
    echo "127.0.0.1 app-local.localcloudkit.com" | sudo tee -a /etc/hosts
    echo "127.0.0.1 mailpit.localcloudkit.com" | sudo tee -a /etc/hosts
+   echo "127.0.0.1 posthog.localcloudkit.com" | sudo tee -a /etc/hosts
    ```
 
 ### Health Checks
@@ -589,6 +605,9 @@ curl http://localhost:4566/_localstack/health
 
 # Check Redis
 redis-cli -h localhost -p 6380 ping
+
+# Check PostHog (optional profile)
+curl -k https://posthog.localcloudkit.com:3030/_health
 ```
 
 ### Diagnosing a Crashing Container

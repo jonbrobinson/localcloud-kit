@@ -2,7 +2,7 @@
 
 > **Local Cloud Development Environment**
 
-Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Lambda, API Gateway, SSM Parameter Store, Secrets Manager, Redis cache, and email testing with Mailpit.
+Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Lambda, API Gateway, SSM Parameter Store, Secrets Manager, Redis cache, email testing with Mailpit, and optional product analytics with PostHog.
 
 [![Version](https://img.shields.io/badge/version-0.13.1-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.13.1)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -13,6 +13,7 @@ Build and test cloud apps locally — no AWS account needed. Free, fast, and wit
 [![Mailpit](https://img.shields.io/badge/Mailpit-Email%20Testing-e8622a?style=for-the-badge&logo=maildotru&logoColor=white)](https://mailpit.axllent.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Keycloak](https://img.shields.io/badge/Keycloak-Identity-7F4F24?style=for-the-badge&logo=keycloak&logoColor=white)](https://www.keycloak.org/)
+[![PostHog](https://img.shields.io/badge/PostHog-Analytics-f54e00?style=for-the-badge&logo=posthog&logoColor=white)](https://posthog.com/)
 
 ## Table of Contents
 
@@ -52,8 +53,8 @@ Everything else is handled automatically!
 
 - Automatically downloads and installs `mkcert` if not found (works on macOS, Linux, Windows)
 - Installs the mkcert CA to your system trust store (requires sudo password)
-- Generates a single trusted certificate covering all LocalCloud Kit subdomains: `app-local`, `mailpit`, `pgadmin`, and `keycloak`
-- Adds all four subdomains (`app-local`, `mailpit`, `pgadmin`, `keycloak`) to `/etc/hosts` (requires sudo password)
+- Generates a single trusted certificate covering all LocalCloud Kit subdomains: `app-local`, `mailpit`, `pgadmin`, `keycloak`, and `posthog`
+- Adds all five subdomains (`app-local`, `mailpit`, `pgadmin`, `keycloak`, `posthog`) to `/etc/hosts` (requires sudo password)
 
 **No manual installation needed** — the script handles everything automatically. See [docs/SETUP_SCRIPTS.md](docs/SETUP_SCRIPTS.md) for individual scripts.
 
@@ -79,6 +80,7 @@ Via Traefik (TLS — trusted cert, no browser warnings):
 - **Mailpit** (email inbox): https://mailpit.localcloudkit.com:3030
 - **pgAdmin** (database UI): https://pgadmin.localcloudkit.com:3030
 - **Keycloak** (identity & access): https://keycloak.localcloudkit.com:3030
+- **PostHog** (analytics, optional profile): https://posthog.localcloudkit.com:3030
 
 Direct localhost (no TLS — always available):
 
@@ -101,6 +103,7 @@ Direct localhost (no TLS — always available):
 | pgAdmin | https://pgadmin.localcloudkit.com:3030 | PostgreSQL UI |
 | PostgreSQL | localhost:5432 | Direct DB |
 | Keycloak | https://keycloak.localcloudkit.com:3030 | Identity & access |
+| PostHog | https://posthog.localcloudkit.com:3030 | Product analytics (optional profile) |
 
 > **Note**: Run `./scripts/setup.sh` once to add subdomains to `/etc/hosts` and generate the TLS certificate.
 
@@ -112,7 +115,7 @@ Direct localhost (no TLS — always available):
 
 The dashboard shows your local cloud environment at a glance:
 
-- **Services Status Bar** — health indicators for Keycloak, LocalStack, Mailpit, PostgreSQL, and Redis. Click any service to open its management panel or docs.
+- **Services Status Bar** — health indicators for Keycloak, LocalStack, Mailpit, PostgreSQL, PostHog, and Redis. Click any service to open its management panel or docs.
 - **AWS Resources** — categorized view (Storage, Database, Security & Identity) with add/destroy actions and inline inspection.
 
 ![Main Dashboard](docs/screenshots/01-main-dashboard.png)
@@ -170,7 +173,7 @@ The header contains three primary dropdowns:
 | Dropdown | Contents |
 |----------|----------|
 | **Resources** | AWS resources organized by category (Storage, Database, Compute, Networking, Security & Identity) — things you create and destroy in LocalStack |
-| **Services** | Platform services (Keycloak, Mailpit, PostgreSQL, Redis) with quick **Inspect** actions and links to manager/admin tools |
+| **Services** | Platform services (Keycloak, Mailpit, PostgreSQL, PostHog, Redis) with quick **Inspect** actions and links to manager/admin tools |
 | **Docs** | Opens the **Docs Hub** (`/docs`) with all documentation pages, verification checklists, and manager/admin links |
 
 ### AWS Service Emulation
@@ -238,6 +241,13 @@ The header contains three primary dropdowns:
 - **Quick Test Button**: Send a preset test email in one click from the dashboard modal
 - **Full Test Compose**: Complete compose form on the Mailpit documentation page
 - **Admin UI**: Link through to the full Mailpit web interface for advanced filtering and message inspection
+
+#### PostHog Analytics (optional profile)
+
+- **Optional Compose Profile**: Start only when needed via `docker compose --profile posthog up -d`
+- **Isolated Data Stores**: Dedicated PostHog Postgres, Redis, ClickHouse, Kafka, and Zookeeper services
+- **Dashboard Visibility**: Service health appears in the status bar and Services menu
+- **Doc & SDK Examples**: Local integration snippets for TypeScript, Node.js, Python, and CLI
 
 ### Development Tools
 
@@ -383,6 +393,7 @@ Edit `docker-compose.yml` for port mappings, environment variables, resource lim
 ```bash
 # Start services
 make start                         # Recommended: Cross-platform Make command
+make start-posthog                # Include optional PostHog profile
 docker compose up --build          # Alternative: Docker Compose directly
 
 # View logs
@@ -438,6 +449,7 @@ docker compose up -d --scale api=3 # Scale services
 - **[docs/REDIS.md](docs/REDIS.md)** — Redis cache
 - **[docs/KEYCLOAK.md](docs/KEYCLOAK.md)** — Identity & access
 - **[docs/PGADMIN.md](docs/PGADMIN.md)** — PostgreSQL UI
+- **[docs/POSTHOG.md](docs/POSTHOG.md)** — Product analytics (optional profile)
 
 ### Components
 

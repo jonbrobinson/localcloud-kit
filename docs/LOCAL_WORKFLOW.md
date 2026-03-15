@@ -70,6 +70,7 @@ This will:
 - Start all services (Traefik, Nginx, GUI, API, LocalStack, Redis)
 - Wait for services to be ready
 - Display access URLs
+- Keep optional PostHog profile stopped unless explicitly enabled
 
 ## 🔄 Daily Development Workflow
 
@@ -78,6 +79,9 @@ This will:
 ```bash
 # Start all services
 make start
+
+# Start all services + optional PostHog profile
+make start-posthog
 
 # Or if already running, restart
 make restart
@@ -90,6 +94,7 @@ Open in your browser:
 - **Main GUI**: `https://app-local.localcloudkit.com:3030`
 - **API**: `https://app-local.localcloudkit.com:3030/api`
 - **Health Check**: `https://app-local.localcloudkit.com:3030/health`
+- **PostHog** (optional profile): `https://posthog.localcloudkit.com:3030`
 
 ### Development Features
 
@@ -104,6 +109,7 @@ Open in your browser:
 - Express API: `http://localhost:3031`
 - LocalStack: `http://localhost:4566`
 - Redis: `localhost:6380`
+- PostHog profile control: `docker compose --profile posthog up -d`
 
 ### Viewing Logs
 
@@ -243,6 +249,7 @@ For dependency changes: `make stop && docker compose build --no-cache gui api &&
 | Task                        | Command                                                      |
 | --------------------------- | ------------------------------------------------------------ |
 | Start services              | `make start`                                                 |
+| Start services + PostHog    | `make start-posthog`                                         |
 | Stop services               | `make stop`                                                  |
 | Restart services            | `make restart`                                               |
 | **After `git pull`**        | **`make restart`**                                           |
@@ -261,6 +268,7 @@ For dependency changes: `make stop && docker compose build --no-cache gui api &&
 | Web GUI        | `https://app-local.localcloudkit.com:3030`     | Main application         |
 | API            | `https://app-local.localcloudkit.com:3030/api` | REST API                 |
 | Mailpit        | `https://mailpit.localcloudkit.com:3030`       | Email testing UI         |
+| PostHog        | `https://posthog.localcloudkit.com:3030`       | Product analytics (optional profile) |
 
 **Direct localhost (no TLS):**
 

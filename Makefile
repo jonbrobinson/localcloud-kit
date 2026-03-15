@@ -7,6 +7,7 @@ ENVIRONMENT ?= dev
 AWS_ENDPOINT ?= http://localhost:4566
 AWS_REGION ?= us-east-1
 LOCALSTACK_VERSION ?= latest
+DOCKER_PROFILES ?=
 
 # Colors for output
 GREEN := \033[0;32m
@@ -15,13 +16,13 @@ RED := \033[0;31m
 BLUE := \033[0;34m
 NC := \033[0m # No Color
 
-.PHONY: help start start-legacy stop restart status logs clean
+.PHONY: help start start-posthog start-legacy stop restart status logs clean
 .PHONY: shell-create shell-destroy shell-list
 .PHONY: gui-start gui-stop gui-restart
 .PHONY: setup check-prerequisites docker-build docker-logs
 .PHONY: reset clean-volumes clean-all reset-env
 .PHONY: mailpit-logs mailpit-clear
-.PHONY: postgres-logs keycloak-logs pgadmin-logs
+.PHONY: postgres-logs keycloak-logs pgadmin-logs posthog-logs
 
 # Default target
 help: ## Show this help message
@@ -41,6 +42,7 @@ help: ## Show this help message
 	@echo ""
 	@echo "$(YELLOW)Usage Examples:$(NC)"
 	@echo "  make start                              # Start with LocalStack latest"
+	@echo "  make start-posthog                      # Start with optional PostHog profile"
 	@echo "  make start LOCALSTACK_VERSION=4.14      # Start with a specific LocalStack version"
 	@echo "  make start-legacy                       # Start with LocalStack 4.14 (community legacy)"
 	@echo "  make gui-start                          # Start GUI system with Docker"
@@ -53,8 +55,9 @@ help: ## Show this help message
 start: ## Start all services with Docker Compose (LOCALSTACK_VERSION=latest by default)
 	@echo "$(GREEN)Starting LocalStack Template with Docker...$(NC)"
 	@echo "$(YELLOW)Using LocalStack version: $(LOCALSTACK_VERSION)$(NC)"
+	@if [ "$(DOCKER_PROFILES)" != "" ]; then echo "$(YELLOW)Using compose profiles: $(DOCKER_PROFILES)$(NC)"; fi
 	@mkdir -p volume/cache volume/lib volume/logs volume/tmp
-	LOCALSTACK_VERSION=$(LOCALSTACK_VERSION) docker compose up --build -d
+	COMPOSE_PROFILES=$(DOCKER_PROFILES) LOCALSTACK_VERSION=$(LOCALSTACK_VERSION) docker compose up --build -d
 	@echo "$(GREEN)Waiting for services to be ready...$(NC)"
 	@until curl -s -k https://app-local.localcloudkit.com:3030/health > /dev/null 2>&1 || curl -s http://localhost/health > /dev/null 2>&1; do sleep 2; done
 	@echo "$(GREEN)All services are ready!$(NC)"
@@ -65,6 +68,7 @@ start: ## Start all services with Docker Compose (LOCALSTACK_VERSION=latest by d
 	@echo "$(YELLOW)  Mailpit (mail): https://mailpit.localcloudkit.com:3030$(NC)"
 	@echo "$(YELLOW)  Keycloak:       https://keycloak.localcloudkit.com:3030$(NC)"
 	@echo "$(YELLOW)  pgAdmin:        https://pgadmin.localcloudkit.com:3030$(NC)"
+	@if [ "$(DOCKER_PROFILES)" = "posthog" ]; then echo "$(YELLOW)  PostHog:        https://posthog.localcloudkit.com:3030$(NC)"; fi
 	@echo ""
 	@echo "$(GREEN)--- Direct localhost URLs (no TLS) ---$(NC)"
 	@echo "$(YELLOW)  LocalStack:     http://localhost:4566$(NC)"
@@ -77,6 +81,9 @@ start: ## Start all services with Docker Compose (LOCALSTACK_VERSION=latest by d
 
 start-legacy: ## Start all services using LocalStack 4.14 (community legacy)
 	@$(MAKE) start LOCALSTACK_VERSION=4.14
+
+start-posthog: ## Start all services including optional PostHog profile
+	@$(MAKE) start DOCKER_PROFILES=posthog
 
 stop: ## Stop all Docker services
 	@echo "$(YELLOW)Stopping all services...$(NC)"
@@ -92,6 +99,7 @@ status: ## Check Docker services status
 	@curl -s -k https://app-local.localcloudkit.com:3030/health > /dev/null 2>&1 && echo "$(GREEN)  GUI/API:   https://app-local.localcloudkit.com:3030  ✓$(NC)" || echo "$(RED)  GUI/API:   not responding$(NC)"
 	@curl -s http://localhost:4566/_localstack/health > /dev/null 2>&1 && echo "$(GREEN)  LocalStack: http://localhost:4566  ✓$(NC)" || echo "$(RED)  LocalStack: not responding$(NC)"
 	@curl -s http://localhost:8025/api/v1/info > /dev/null 2>&1 && echo "$(GREEN)  Mailpit:   http://localhost:8025  ✓$(NC)" || echo "$(YELLOW)  Mailpit:   not responding (may not be running)$(NC)"
+	@curl -s -k https://posthog.localcloudkit.com:3030/_health > /dev/null 2>&1 && echo "$(GREEN)  PostHog:   https://posthog.localcloudkit.com:3030  ✓$(NC)" || echo "$(YELLOW)  PostHog:   not responding (optional profile may be stopped)$(NC)"
 
 logs: ## View Docker services logs
 	docker compose logs -f
@@ -194,6 +202,9 @@ pgadmin-logs: ## View pgAdmin container logs
 # Keycloak
 keycloak-logs: ## View Keycloak container logs
 	docker compose logs -f keycloak
+
+posthog-logs: ## View PostHog service logs
+	docker compose logs -f posthog-web posthog-worker posthog-plugin-server
 
 # Setup and Utilities
 setup: ## Initial setup - create directories and install dependencies

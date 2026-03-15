@@ -14,7 +14,8 @@ export interface DocsHubEntry {
     | "redis"
     | "mailpit"
     | "postgres"
-    | "keycloak";
+    | "keycloak"
+    | "posthog";
   title: string;
   category: DocsCategory;
   docsPath: string;
@@ -235,6 +236,21 @@ export const DOCS_HUB_ENTRIES: DocsHubEntry[] = [
     adminLabel: "Open Admin UI",
     icon: "simple-icons:keycloak",
   },
+  {
+    id: "posthog",
+    title: "PostHog",
+    category: "platform-services",
+    docsPath: "/posthog",
+    summary: "Product analytics and feature-flag verification in local mode.",
+    quickChecks: [
+      "PostHog service is running",
+      "Project API key and host match local settings",
+      "Test event appears in the PostHog events stream",
+    ],
+    adminUrl: "https://posthog.localcloudkit.com:3030",
+    adminLabel: "Open PostHog UI",
+    icon: "simple-icons:posthog",
+  },
 ];
 
 export const EXTERNAL_DOCS_LINKS: ExternalDocsLink[] = [
@@ -257,5 +273,10 @@ export const EXTERNAL_DOCS_LINKS: ExternalDocsLink[] = [
     title: "Mailpit Docs",
     href: "https://mailpit.axllent.org/docs/",
     description: "Mailpit UI and SMTP behavior reference.",
+  },
+  {
+    title: "PostHog Self-Host Docs",
+    href: "https://posthog.com/docs/self-host",
+    description: "PostHog deployment and self-hosting reference.",
   },
 ];
