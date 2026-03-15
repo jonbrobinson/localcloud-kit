@@ -139,6 +139,10 @@ export interface KeycloakStatus {
   status: "running" | "starting" | "stopped" | "failed" | "unknown";
 }
 
+export interface PosthogStatus {
+  status: "running" | "starting" | "stopped" | "failed" | "unknown";
+}
+
 export interface LogEntry {
   timestamp: string;
   level: "info" | "success" | "warning" | "error";

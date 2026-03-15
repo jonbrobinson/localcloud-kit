@@ -12,6 +12,7 @@ PREVIOUS_DOMAINS=(
     "mailpit.localcloudkit.com"
     "pgadmin.localcloudkit.com"
     "keycloak.localcloudkit.com"
+    "posthog.localcloudkit.com"
 )
 
 CURRENT_DOMAIN="app-local.localcloudkit.com"

@@ -6,6 +6,7 @@ import {
   LocalStackStatus,
   LogEntry,
   MailpitStats,
+  PosthogStatus,
   PostgresStatus,
   Project,
   ProjectConfig,
@@ -481,6 +482,18 @@ export const keycloakApi = {
   status: async (): Promise<KeycloakStatus> => {
     try {
       const response = await api.get("/keycloak/status");
+      return response.data.data || { status: "unknown" };
+    } catch {
+      return { status: "unknown" };
+    }
+  },
+};
+
+// PostHog
+export const posthogApi = {
+  status: async (): Promise<PosthogStatus> => {
+    try {
+      const response = await api.get("/posthog/status");
       return response.data.data || { status: "unknown" };
     } catch {
       return { status: "unknown" };

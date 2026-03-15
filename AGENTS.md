@@ -30,6 +30,7 @@ required.
 | `api` | localcloud-api | custom (Dockerfile.api) | 3031 | Express.js backend |
 | `nginx` | localstack-nginx | nginx:alpine | 80 (internal) | Internal routing |
 | `redis` | localcloud-redis | redis:7-alpine | 6380 (host) | Cache service |
+| `posthog-*` | localcloud-posthog-* | posthog/clickhouse/kafka stack | profile only | Optional product analytics stack |
 
 All services communicate over the `localstack-network` Docker bridge network.
 
@@ -48,7 +49,7 @@ samples/            # Sample files for S3/DynamoDB testing
 
 - **Frontend**: Next.js 15, React 18, TypeScript 5, Tailwind CSS, @iconify/react (AWS service icons)
 - **Backend**: Express.js 4, Node.js 22, Winston logging, Socket.IO, aws-sdk v2
-- **Infrastructure**: Docker Compose, Traefik v3, Nginx (alpine), Redis 7
+- **Infrastructure**: Docker Compose, Traefik v3, Nginx (alpine), Redis 7, optional PostHog profile
 - **AWS Emulation**: LocalStack (S3, DynamoDB, Lambda, API Gateway, IAM, Secrets Manager)
 
 ---
@@ -80,6 +81,7 @@ All AWS resource creation modals support **saved configs**:
 
 ```bash
 make start          # Start all services
+make start-posthog  # Start all services + optional PostHog profile
 make stop           # Stop all services
 make restart        # Restart all services
 make status         # Health check all services
@@ -103,6 +105,7 @@ AWS_SECRET_ACCESS_KEY=test
 AWS_ENDPOINT_URL=http://localstack:4566
 API_URL=https://app-local.localcloudkit.com:3030/api
 CORS_ORIGIN=https://app-local.localcloudkit.com:3030
+POSTHOG_INTERNAL_URL=http://posthog-web:8000
 ```
 
 ---
@@ -113,6 +116,7 @@ CORS_ORIGIN=https://app-local.localcloudkit.com:3030
 - Nginx fans traffic to the GUI (port 3030) and API (port 3031)
 - LocalStack is reachable at `http://localstack:4566` inside Docker, `http://localhost:4566` from the host
 - Redis is at `localcloud-redis:6379` inside Docker, `localhost:6380` from the host
+- PostHog (when profile enabled) is routed via `https://posthog.localcloudkit.com:3030`
 - TLS certificates are generated with mkcert and mounted into Traefik
 
 ---
@@ -336,7 +340,7 @@ a clear two-category model:
 
 | Category | Examples | Managed via | Can destroy? |
 |----------|----------|-------------|--------------|
-| **Platform Services** | Keycloak, Mailpit, PostgreSQL, Redis | Their own admin UIs | No — Docker Compose lifecycle |
+| **Platform Services** | Keycloak, Mailpit, PostgreSQL, PostHog, Redis | Their own admin UIs | No — Docker Compose lifecycle |
 | **AWS Resources** | S3, DynamoDB, Lambda, API Gateway, IAM | Dashboard modals | Yes — individually, per project |
 
 ### Navigation Structure
@@ -347,7 +351,7 @@ a clear two-category model:
 
 ### Status Bar
 
-Shows health of all platform services in alphabetical order: **Keycloak | LocalStack | Mailpit | PostgreSQL | Redis**. Clicking a service opens its management modal or links to its doc page.
+Shows health of all platform services in alphabetical order: **Keycloak | LocalStack | Mailpit | PostgreSQL | PostHog | Redis**. Clicking a service opens its management modal or links to its doc page.
 
 ### ResourceList Component
 
