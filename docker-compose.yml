@@ -195,6 +195,151 @@ services:
       - "traefik.http.routers.mailpit.tls=true"
       - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
 
+  # PostHog Stack (optional profile; isolated service-only data stores)
+  posthog-postgres:
+    image: postgres:16-alpine
+    container_name: localcloud-posthog-postgres
+    profiles: ["posthog"]
+    environment:
+      - POSTGRES_USER=posthog
+      - POSTGRES_PASSWORD=posthog
+      - POSTGRES_DB=posthog
+    volumes:
+      - posthog_postgres_data:/var/lib/postgresql/data
+    networks:
+      - localstack-network
+    restart: unless-stopped
+
+  posthog-redis:
+    image: redis:7-alpine
+    container_name: localcloud-posthog-redis
+    profiles: ["posthog"]
+    command: redis-server --appendonly yes
+    volumes:
+      - posthog_redis_data:/data
+    networks:
+      - localstack-network
+    restart: unless-stopped
+
+  posthog-clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    container_name: localcloud-posthog-clickhouse
+    profiles: ["posthog"]
+    environment:
+      - CLICKHOUSE_DB=posthog
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    volumes:
+      - posthog_clickhouse_data:/var/lib/clickhouse
+    networks:
+      - localstack-network
+    restart: unless-stopped
+
+  posthog-zookeeper:
+    image: zookeeper:3.9
+    container_name: localcloud-posthog-zookeeper
+    profiles: ["posthog"]
+    environment:
+      - ZOO_MY_ID=1
+      - ZOO_4LW_COMMANDS_WHITELIST=ruok,mntr,conf
+    networks:
+      - localstack-network
+    restart: unless-stopped
+
+  posthog-kafka:
+    image: wurstmeister/kafka:2.13-2.8.1
+    container_name: localcloud-posthog-kafka
+    profiles: ["posthog"]
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=posthog-zookeeper:2181
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://posthog-kafka:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+    depends_on:
+      - posthog-zookeeper
+    networks:
+      - localstack-network
+    restart: unless-stopped
+
+  posthog-web:
+    image: posthog/posthog:latest
+    container_name: localcloud-posthog-web
+    profiles: ["posthog"]
+    environment:
+      - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
+      - REDIS_URL=redis://posthog-redis:6379/
+      - CLICKHOUSE_HOST=posthog-clickhouse
+      - CLICKHOUSE_DATABASE=posthog
+      - CLICKHOUSE_USER=default
+      - KAFKA_HOSTS=posthog-kafka:9092
+      - KAFKA_URL=posthog-kafka:9092
+      - PRIMARY_DB=clickhouse
+      - SECRET_KEY=localcloud-posthog-secret-key-change-me
+      - SITE_URL=https://posthog.localcloudkit.com:3030
+      - IS_BEHIND_PROXY=true
+      - SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
+    depends_on:
+      - posthog-postgres
+      - posthog-redis
+      - posthog-clickhouse
+      - posthog-kafka
+    networks:
+      - localstack-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.posthog.rule=Host(`posthog.localcloudkit.com`)"
+      - "traefik.http.routers.posthog.entrypoints=websecure"
+      - "traefik.http.routers.posthog.tls=true"
+      - "traefik.http.services.posthog.loadbalancer.server.port=8000"
+
+  posthog-worker:
+    image: posthog/posthog:latest
+    container_name: localcloud-posthog-worker
+    profiles: ["posthog"]
+    command: ./bin/docker-server worker
+    environment:
+      - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
+      - REDIS_URL=redis://posthog-redis:6379/
+      - CLICKHOUSE_HOST=posthog-clickhouse
+      - CLICKHOUSE_DATABASE=posthog
+      - CLICKHOUSE_USER=default
+      - KAFKA_HOSTS=posthog-kafka:9092
+      - KAFKA_URL=posthog-kafka:9092
+      - PRIMARY_DB=clickhouse
+      - SECRET_KEY=localcloud-posthog-secret-key-change-me
+      - SITE_URL=https://posthog.localcloudkit.com:3030
+      - IS_BEHIND_PROXY=true
+    depends_on:
+      - posthog-web
+    networks:
+      - localstack-network
+    restart: unless-stopped
+
+  posthog-plugin-server:
+    image: posthog/posthog-plugin-server:latest
+    container_name: localcloud-posthog-plugin-server
+    profiles: ["posthog"]
+    environment:
+      - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
+      - REDIS_URL=redis://posthog-redis:6379/
+      - CLICKHOUSE_HOST=posthog-clickhouse
+      - CLICKHOUSE_DATABASE=posthog
+      - CLICKHOUSE_USER=default
+      - KAFKA_HOSTS=posthog-kafka:9092
+      - KAFKA_URL=posthog-kafka:9092
+      - SECRET_KEY=localcloud-posthog-secret-key-change-me
+      - SITE_URL=https://posthog.localcloudkit.com:3030
+    depends_on:
+      - posthog-kafka
+      - posthog-clickhouse
+      - posthog-postgres
+      - posthog-redis
+    networks:
+      - localstack-network
+    restart: unless-stopped
+
 networks:
   localstack-network:
     driver: bridge
@@ -203,3 +348,6 @@ volumes:
   localstack_data:
   localcloud-data:
   postgres_data:
+  posthog_postgres_data:
+  posthog_redis_data:
+  posthog_clickhouse_data:

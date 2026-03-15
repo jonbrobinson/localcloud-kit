@@ -10,6 +10,7 @@ DOMAIN="app-local.localcloudkit.com"
 MAILPIT_DOMAIN="mailpit.localcloudkit.com"
 PGADMIN_DOMAIN="pgadmin.localcloudkit.com"
 KEYCLOAK_DOMAIN="keycloak.localcloudkit.com"
+POSTHOG_DOMAIN="posthog.localcloudkit.com"
 CERT_DIR="./traefik/certs"
 MKCERT_BIN_DIR="./scripts/bin"
 MKCERT_BIN="$MKCERT_BIN_DIR/mkcert"
@@ -314,11 +315,11 @@ fi
 echo -e "${GREEN}✓ mkcert CA found at: $CA_ROOT${NC}"
 
 # Create temporary config file for extensions
-# Include base domain, wildcard, and Mailpit subdomain
+# Include base domain, wildcard, and platform service subdomains
 TMP_EXT_FILE=$(mktemp)
 cat > "$TMP_EXT_FILE" <<EOF
 [v3_req]
-subjectAltName = DNS:$DOMAIN, DNS:*.$DOMAIN, DNS:$MAILPIT_DOMAIN, DNS:$PGADMIN_DOMAIN, DNS:$KEYCLOAK_DOMAIN
+subjectAltName = DNS:$DOMAIN, DNS:*.$DOMAIN, DNS:$MAILPIT_DOMAIN, DNS:$PGADMIN_DOMAIN, DNS:$KEYCLOAK_DOMAIN, DNS:$POSTHOG_DOMAIN
 EOF
 
 # Generate private key (show errors for debugging)
@@ -425,6 +426,7 @@ echo ""
 echo "2. Open in your browser:"
 echo "   ${BLUE}https://$DOMAIN:3030${NC}       (main app)"
 echo "   ${BLUE}https://$MAILPIT_DOMAIN:3030${NC}  (Mailpit email testing)"
+echo "   ${BLUE}https://$POSTHOG_DOMAIN:3030${NC}  (PostHog analytics)"
 echo ""
 echo "3. Verify setup (optional):"
 echo "   ${BLUE}./scripts/verify-setup.sh${NC}"
@@ -432,7 +434,7 @@ echo ""
 
 if [ "$CA_INSTALLED" = true ]; then
     echo -e "${GREEN}Both Chrome and Safari will trust these certificates automatically!${NC}"
-    echo -e "${GREEN}The certificate covers both $DOMAIN and $MAILPIT_DOMAIN.${NC}"
+    echo -e "${GREEN}The certificate covers app-local, mailpit, pgadmin, keycloak, and posthog domains.${NC}"
 else
     echo -e "${YELLOW}⚠️  Remember to install the CA certificate first (see above)${NC}"
 fi
