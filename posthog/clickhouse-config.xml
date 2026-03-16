@@ -7,8 +7,9 @@
         </node>
     </zookeeper>
 
-    <!-- Cluster definitions — PostHog expects 'posthog', 'posthog_migrations',
-         and 'posthog_primary_replica' (used by distributed table migrations). -->
+    <!-- Cluster definitions — must match PostHog's official docker/clickhouse/config.d/default.xml.
+         All five cluster names are required: posthog, posthog_migrations, posthog_primary_replica,
+         posthog_single_shard, and posthog_writable. All point to the single local node. -->
     <remote_servers>
         <posthog>
             <shard>
@@ -42,21 +43,37 @@
                 </replica>
             </shard>
         </posthog_single_shard>
+        <!-- posthog_writable: used by PostHog for Distributed table DDL and event writes -->
+        <posthog_writable>
+            <shard>
+                <replica>
+                    <host>posthog-clickhouse</host>
+                    <port>9000</port>
+                </replica>
+            </shard>
+        </posthog_writable>
     </remote_servers>
 
-    <!-- Macros used by ReplicatedMergeTree table definitions and PostHog cluster queries -->
+    <!-- Macros used by ReplicatedMergeTree table definitions and PostHog cluster queries.
+         Values must match PostHog's official config: hostClusterType=online, hostClusterRole=data.
+         These are embedded in ReplicatedMergeTree ZooKeeper paths and table routing logic. -->
     <macros>
         <shard>01</shard>
-        <replica>01</replica>
-        <hostClusterType>default</hostClusterType>
-        <hostClusterRole>default</hostClusterRole>
+        <replica>ch1</replica>
+        <hostClusterType>online</hostClusterType>
+        <hostClusterRole>data</hostClusterRole>
     </macros>
 
-    <!-- Named collection 'msk_cluster' — PostHog Kafka engine tables reference this by name.
-         In production PostHog uses Amazon MSK; locally we point it at posthog-kafka. -->
+    <!-- Named collections for Kafka engine tables.
+         PostHog's latest image references both 'msk_cluster' and 'warpstream_ingestion'
+         when creating Kafka engine tables during init. Both must exist or ClickHouse will
+         throw a "collection not found" error at startup. -->
     <named_collections>
         <msk_cluster>
             <kafka_broker_list>posthog-kafka:9092</kafka_broker_list>
         </msk_cluster>
+        <warpstream_ingestion>
+            <kafka_broker_list>posthog-kafka:9092</kafka_broker_list>
+        </warpstream_ingestion>
     </named_collections>
 </clickhouse>
