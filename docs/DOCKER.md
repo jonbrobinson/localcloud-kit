@@ -224,7 +224,6 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
   - Dedicated `posthog-redis`
   - Dedicated `posthog-clickhouse`
   - Dedicated `posthog-kafka`
-  - Dedicated `posthog-zookeeper`
 - **Start**: `docker compose --profile posthog up -d`
 
 ## Volume Mounts
