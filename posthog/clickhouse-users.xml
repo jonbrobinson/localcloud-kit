@@ -1,0 +1,17 @@
+<clickhouse>
+    <users>
+        <default>
+            <!-- Allow SQL-level access management (create users, roles, etc.) -->
+            <access_management>1</access_management>
+            <!-- Allow managing named collections (create/alter/drop) -->
+            <named_collection_control>1</named_collection_control>
+            <!-- Grants applied directly from config — bypasses WITH GRANT OPTION check.
+                 Required because PostHog Kafka engine tables reference the msk_cluster
+                 named collection defined in clickhouse-config.xml and ClickHouse 23.x+
+                 requires an explicit NAMED COLLECTION grant to use it in queries. -->
+            <grants>
+                <query>GRANT NAMED COLLECTION ON * TO default WITH GRANT OPTION</query>
+            </grants>
+        </default>
+    </users>
+</clickhouse>
