@@ -41,7 +41,7 @@ main() {
   command -v aws >/dev/null 2>&1 || { echo "AWS CLI is not installed. Please install it first." >&2; exit 1; }
   command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Please install it first." >&2; exit 1; }
   
-  if ! curl -s "$AWS_ENDPOINT" >/dev/null; then
+  if ! curl -s --connect-timeout 5 --max-time 10 "$AWS_ENDPOINT" >/dev/null; then
     echo "LocalStack is not running at $AWS_ENDPOINT. Please start it first." >&2
     exit 1
   fi
