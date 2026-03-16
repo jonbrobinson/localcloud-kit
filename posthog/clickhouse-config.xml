@@ -1,0 +1,35 @@
+<clickhouse>
+    <!-- ZooKeeper connection — required for ReplicatedMergeTree tables -->
+    <zookeeper>
+        <node>
+            <host>posthog-zookeeper</host>
+            <port>2181</port>
+        </node>
+    </zookeeper>
+
+    <!-- Cluster definitions — PostHog expects both 'posthog' and 'posthog_migrations' -->
+    <remote_servers>
+        <posthog>
+            <shard>
+                <replica>
+                    <host>posthog-clickhouse</host>
+                    <port>9000</port>
+                </replica>
+            </shard>
+        </posthog>
+        <posthog_migrations>
+            <shard>
+                <replica>
+                    <host>posthog-clickhouse</host>
+                    <port>9000</port>
+                </replica>
+            </shard>
+        </posthog_migrations>
+    </remote_servers>
+
+    <!-- Macros used by ReplicatedMergeTree table definitions -->
+    <macros>
+        <shard>01</shard>
+        <replica>01</replica>
+    </macros>
+</clickhouse>
