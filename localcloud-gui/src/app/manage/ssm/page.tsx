@@ -18,6 +18,7 @@ import { resourceApi } from "@/services/api";
 import { SSMParameterConfig } from "@/types";
 import SSMConfigModal from "@/components/SSMConfigModal";
 import SSMEditModal from "@/components/SSMEditModal";
+import SystemLogsButton from "@/components/SystemLogsButton";
 
 interface SSMParameter {
   Name: string;
@@ -181,6 +182,7 @@ export default function ManageSSMPage() {
               </Link>
             </div>
             <div className="flex items-center space-x-3">
+              <SystemLogsButton />
               <Link href="/ssm" className="flex items-center space-x-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                 <BookOpenIcon className="h-4 w-4" />
                 <span>Docs</span>

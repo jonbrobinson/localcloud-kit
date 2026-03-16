@@ -185,11 +185,13 @@ export default function Dashboard() {
   const [showResourcesMenu, setShowResourcesMenu] = useState(false);
   const [showServicesMenu, setShowServicesMenu] = useState(false);
   const [showDocsMenu, setShowDocsMenu] = useState(false);
+  const [showDevToolsMenu, setShowDevToolsMenu] = useState(false);
   const [showProjectMenu, setShowProjectMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const resourcesMenuRef = useRef<HTMLDivElement>(null);
   const servicesMenuRef = useRef<HTMLDivElement>(null);
   const docsMenuRef = useRef<HTMLDivElement>(null);
+  const devToolsMenuRef = useRef<HTMLDivElement>(null);
   const projectMenuRef = useRef<HTMLDivElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -203,6 +205,9 @@ export default function Dashboard() {
       }
       if (docsMenuRef.current && !docsMenuRef.current.contains(e.target as Node)) {
         setShowDocsMenu(false);
+      }
+      if (devToolsMenuRef.current && !devToolsMenuRef.current.contains(e.target as Node)) {
+        setShowDevToolsMenu(false);
       }
       if (projectMenuRef.current && !projectMenuRef.current.contains(e.target as Node)) {
         setShowProjectMenu(false);
@@ -219,6 +224,7 @@ export default function Dashboard() {
     setShowResourcesMenu(false);
     setShowServicesMenu(false);
     setShowDocsMenu(false);
+    setShowDevToolsMenu(false);
     setShowProjectMenu(false);
     setShowProfileMenu(false);
     setShowMobileMenu(false);
@@ -1305,6 +1311,30 @@ export default function Dashboard() {
                 )}
               </div>
 
+              {/* Dev Tools dropdown */}
+              <div className="relative" ref={devToolsMenuRef}>
+                <button
+                  onClick={() => toggleMenu(setShowDevToolsMenu, showDevToolsMenu)}
+                  className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <ServerIcon className="h-4 w-4 mr-2" />
+                  Dev Tools
+                  <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showDevToolsMenu ? "rotate-180" : ""}`} />
+                </button>
+                {showDevToolsMenu && (
+                  <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Logs</p>
+                    <button
+                      onClick={() => { setShowLogs(true); closeAllMenus(); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />
+                      System Logs
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* Divider before project + profile */}
               <div className="h-5 w-px bg-gray-200 mx-1.5" />
 
@@ -1383,15 +1413,6 @@ export default function Dashboard() {
                       <UserCircleIcon className="h-4 w-4 mr-3 text-gray-400" />
                       Profile & Preferences
                     </Link>
-                    <div className="border-t border-gray-100 my-1" />
-                    <p className="px-4 pt-1 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Dev Tools</p>
-                    <button
-                      onClick={() => { setShowLogs(true); setShowProfileMenu(false); }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      Logs
-                    </button>
                   </div>
                 )}
               </div>
@@ -1578,6 +1599,14 @@ export default function Dashboard() {
                 })}
               </div>
 
+              {/* Dev Tools */}
+              <div className="pt-2 px-2 border-t border-gray-100 mt-2">
+                <p className="px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Dev Tools</p>
+                <button onClick={() => { setShowLogs(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />System Logs
+                </button>
+              </div>
+
               {/* Account */}
               <div className="pt-2 px-2 border-t border-gray-100 mt-2">
                 <p className="px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Account</p>
@@ -1590,9 +1619,6 @@ export default function Dashboard() {
                 <Link href="/profile" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   <UserCircleIcon className="h-4 w-4 mr-3 text-gray-400" />Profile & Preferences
                 </Link>
-                <button onClick={() => { setShowLogs(true); closeAllMenus(); }} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />Logs
-                </button>
               </div>
             </div>
           )}

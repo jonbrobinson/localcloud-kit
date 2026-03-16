@@ -53,14 +53,28 @@ export function useServicesData() {
   const loadData = useCallback(async () => {
     try {
       setError(null);
-      const [payload, postgresStatus, keycloakStatus, posthogStatus] = await Promise.all([
+      const [payloadResult, postgresResult, keycloakResult, posthogResult] = await Promise.allSettled([
         dashboardApi.getData(),
         postgresApi.status(),
         keycloakApi.status(),
         posthogApi.status(),
       ]);
 
+      if (payloadResult.status === "rejected") {
+        throw payloadResult.reason instanceof Error
+          ? payloadResult.reason
+          : new Error("Failed to load dashboard data");
+      }
+
+      const payload = payloadResult.value;
       const { localstackStatus, projectConfig, mailpit: mailpitStats, resources, redis } = payload;
+
+      const postgresStatus: PostgresStatus =
+        postgresResult.status === "fulfilled" ? postgresResult.value : { status: "unknown" };
+      const keycloakStatus: KeycloakStatus =
+        keycloakResult.status === "fulfilled" ? keycloakResult.value : { status: "unknown" };
+      const posthogStatus: PosthogStatus =
+        posthogResult.status === "fulfilled" ? posthogResult.value : { status: "unknown" };
 
       setData({
         localstack: { status: localstackStatus, projectConfig, resources },

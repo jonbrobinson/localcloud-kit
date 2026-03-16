@@ -21,6 +21,7 @@ import Image from "next/image";
 import SecretsConfigModal from "@/components/SecretsConfigModal";
 import { SecretsManagerConfig } from "@/types";
 import { resourceApi } from "@/services/api";
+import SystemLogsButton from "@/components/SystemLogsButton";
 
 interface Secret {
   Name: string;
@@ -199,6 +200,7 @@ export default function ManageSecretsPage() {
               </Link>
             </div>
             <div className="flex items-center space-x-3">
+              <SystemLogsButton />
               <Link
                 href="/secrets"
                 className="flex items-center space-x-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"

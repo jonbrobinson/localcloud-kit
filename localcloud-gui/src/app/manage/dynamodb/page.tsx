@@ -16,6 +16,7 @@ import { resourceApi } from "@/services/api";
 import { DynamoDBTableConfig } from "@/types";
 import DynamoDBConfigModal from "@/components/DynamoDBConfigModal";
 import DynamoDBAddItemModal from "@/components/DynamoDBAddItemModal";
+import SystemLogsButton from "@/components/SystemLogsButton";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DynamoDBItem = Record<string, any>;
@@ -165,6 +166,7 @@ export default function ManageDynamoDBPage() {
               </Link>
             </div>
             <div className="flex items-center space-x-3">
+              <SystemLogsButton />
               <Link href="/dynamodb" className="flex items-center space-x-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                 <BookOpenIcon className="h-4 w-4" />
                 <span>Docs</span>

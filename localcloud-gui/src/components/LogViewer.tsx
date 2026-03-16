@@ -17,7 +17,7 @@ interface LogViewerProps {
 export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [filter, setFilter] = useState<
-    "all" | "localstack" | "automation" | "gui"
+    "all" | "localstack" | "automation" | "gui" | "posthog"
   >("all");
   const [autoScroll, setAutoScroll] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -93,6 +93,8 @@ export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
         return "bg-blue-100 text-blue-800";
       case "gui":
         return "bg-gray-100 text-gray-800";
+      case "posthog":
+        return "bg-orange-100 text-orange-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -139,6 +141,7 @@ export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
               <option value="localstack">LocalStack</option>
               <option value="automation">Automation</option>
               <option value="gui">GUI</option>
+              <option value="posthog">PostHog</option>
             </select>
             <label className="flex items-center space-x-2 cursor-pointer select-none">
               <input

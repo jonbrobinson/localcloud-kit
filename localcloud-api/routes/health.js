@@ -74,7 +74,7 @@ router.get("/dashboard", async (req, res) => {
           status: "healthy",
         }))
         .catch(() => ({ total: 0, unread: 0, status: "unavailable" })),
-      execAsync(`/bin/sh ${path.join("/app/scripts/shell", "list_cache.sh")}`)
+      execAsync(`/bin/sh ${path.join("/app/scripts/shell", "list_cache.sh")}`, { timeout: 5000 })
         .then(({ stdout }) => JSON.parse(stdout))
         .catch(() => ({ status: "unknown", info: null })),
     ]);
