@@ -195,11 +195,10 @@ services:
       - "traefik.http.routers.mailpit.tls=true"
       - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
 
-  # PostHog Stack (optional profile; isolated service-only data stores)
+  # PostHog Stack (product analytics)
   posthog-postgres:
     image: postgres:16-alpine
     container_name: localcloud-posthog-postgres
-    profiles: ["posthog"]
     environment:
       - POSTGRES_USER=posthog
       - POSTGRES_PASSWORD=posthog
@@ -209,22 +208,32 @@ services:
     networks:
       - localstack-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U posthog"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   posthog-redis:
     image: redis:7-alpine
     container_name: localcloud-posthog-redis
-    profiles: ["posthog"]
     command: redis-server --appendonly yes
     volumes:
       - posthog_redis_data:/data
     networks:
       - localstack-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   posthog-clickhouse:
-    image: clickhouse/clickhouse-server:24.3
+    image: clickhouse/clickhouse-server:23.6
     container_name: localcloud-posthog-clickhouse
-    profiles: ["posthog"]
     environment:
       - CLICKHOUSE_DB=posthog
       - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
@@ -233,22 +242,32 @@ services:
     networks:
       - localstack-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - 'http://localhost:8123/ping' | grep -q 'Ok.'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
 
   posthog-zookeeper:
     image: zookeeper:3.9
     container_name: localcloud-posthog-zookeeper
-    profiles: ["posthog"]
     environment:
       - ZOO_MY_ID=1
       - ZOO_4LW_COMMANDS_WHITELIST=ruok,mntr,conf
     networks:
       - localstack-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc -w2 localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   posthog-kafka:
     image: wurstmeister/kafka:2.13-2.8.1
     container_name: localcloud-posthog-kafka
-    profiles: ["posthog"]
     environment:
       - KAFKA_BROKER_ID=1
       - KAFKA_ZOOKEEPER_CONNECT=posthog-zookeeper:2181
@@ -257,33 +276,47 @@ services:
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
       - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
     depends_on:
-      - posthog-zookeeper
+      posthog-zookeeper:
+        condition: service_healthy
     networks:
       - localstack-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
 
   posthog-web:
     image: posthog/posthog:latest
     container_name: localcloud-posthog-web
-    profiles: ["posthog"]
     environment:
       - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
       - REDIS_URL=redis://posthog-redis:6379/
       - CLICKHOUSE_HOST=posthog-clickhouse
       - CLICKHOUSE_DATABASE=posthog
       - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=
+      - CLICKHOUSE_SECURE=false
+      - CLICKHOUSE_VERIFY=false
       - KAFKA_HOSTS=posthog-kafka:9092
-      - KAFKA_URL=posthog-kafka:9092
       - PRIMARY_DB=clickhouse
       - SECRET_KEY=localcloud-posthog-secret-key-change-me
       - SITE_URL=https://posthog.localcloudkit.com:3030
       - IS_BEHIND_PROXY=true
       - SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
+      - DISABLE_ASYNC_MIGRATIONS_ON_STARTUP=0
+      - OBJECT_STORAGE_ENABLED=false
     depends_on:
-      - posthog-postgres
-      - posthog-redis
-      - posthog-clickhouse
-      - posthog-kafka
+      posthog-postgres:
+        condition: service_healthy
+      posthog-redis:
+        condition: service_healthy
+      posthog-clickhouse:
+        condition: service_healthy
+      posthog-kafka:
+        condition: service_healthy
     networks:
       - localstack-network
     restart: unless-stopped
@@ -297,20 +330,22 @@ services:
   posthog-worker:
     image: posthog/posthog:latest
     container_name: localcloud-posthog-worker
-    profiles: ["posthog"]
-    command: ./bin/docker-server worker
+    command: ./bin/docker-worker
     environment:
       - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
       - REDIS_URL=redis://posthog-redis:6379/
       - CLICKHOUSE_HOST=posthog-clickhouse
       - CLICKHOUSE_DATABASE=posthog
       - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=
+      - CLICKHOUSE_SECURE=false
+      - CLICKHOUSE_VERIFY=false
       - KAFKA_HOSTS=posthog-kafka:9092
-      - KAFKA_URL=posthog-kafka:9092
       - PRIMARY_DB=clickhouse
       - SECRET_KEY=localcloud-posthog-secret-key-change-me
       - SITE_URL=https://posthog.localcloudkit.com:3030
       - IS_BEHIND_PROXY=true
+      - OBJECT_STORAGE_ENABLED=false
     depends_on:
       - posthog-web
     networks:
@@ -318,24 +353,31 @@ services:
     restart: unless-stopped
 
   posthog-plugin-server:
-    image: posthog/posthog-plugin-server:latest
+    image: posthog/posthog:latest
     container_name: localcloud-posthog-plugin-server
-    profiles: ["posthog"]
+    command: ./bin/plugin-server --no-restart-loop
     environment:
       - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
       - REDIS_URL=redis://posthog-redis:6379/
       - CLICKHOUSE_HOST=posthog-clickhouse
       - CLICKHOUSE_DATABASE=posthog
       - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=
+      - CLICKHOUSE_SECURE=false
+      - CLICKHOUSE_VERIFY=false
       - KAFKA_HOSTS=posthog-kafka:9092
-      - KAFKA_URL=posthog-kafka:9092
       - SECRET_KEY=localcloud-posthog-secret-key-change-me
       - SITE_URL=https://posthog.localcloudkit.com:3030
+      - OBJECT_STORAGE_ENABLED=false
     depends_on:
-      - posthog-kafka
-      - posthog-clickhouse
-      - posthog-postgres
-      - posthog-redis
+      posthog-kafka:
+        condition: service_healthy
+      posthog-clickhouse:
+        condition: service_healthy
+      posthog-postgres:
+        condition: service_healthy
+      posthog-redis:
+        condition: service_healthy
     networks:
       - localstack-network
     restart: unless-stopped
