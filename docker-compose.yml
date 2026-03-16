@@ -239,6 +239,7 @@ services:
       - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
     volumes:
       - posthog_clickhouse_data:/var/lib/clickhouse
+      - ./posthog/clickhouse-config.xml:/etc/clickhouse-server/config.d/posthog.xml:ro
     networks:
       - localstack-network
     restart: unless-stopped
@@ -309,7 +310,6 @@ services:
       - SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
       - DISABLE_ASYNC_MIGRATIONS_ON_STARTUP=0
       - OBJECT_STORAGE_ENABLED=false
-      - CLICKHOUSE_REPLICATION=false
     depends_on:
       posthog-postgres:
         condition: service_healthy
@@ -349,7 +349,6 @@ services:
       - IS_BEHIND_PROXY=true
       - TRUSTED_PROXIES=*
       - OBJECT_STORAGE_ENABLED=false
-      - CLICKHOUSE_REPLICATION=false
     depends_on:
       - posthog-web
     networks:
@@ -373,7 +372,6 @@ services:
       - SECRET_KEY=localcloud-posthog-secret-key-change-me
       - SITE_URL=https://posthog.localcloudkit.com:3030
       - OBJECT_STORAGE_ENABLED=false
-      - CLICKHOUSE_REPLICATION=false
     depends_on:
       posthog-kafka:
         condition: service_healthy
