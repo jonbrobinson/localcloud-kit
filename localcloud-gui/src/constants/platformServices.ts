@@ -1,5 +1,4 @@
 import {
-  ChartBarIcon,
   CircleStackIcon,
   EnvelopeIcon,
   KeyIcon,
@@ -9,7 +8,7 @@ import { ComponentType } from "react";
 import { ServiceKind, ModalKey } from "@/types";
 
 export interface PlatformServiceEntry {
-  id: "keycloak" | "mailpit" | "postgres" | "redis" | "posthog";
+  id: "keycloak" | "mailpit" | "postgres" | "redis";
   label: string;
   kind: ServiceKind;
   icon: ComponentType<{ className?: string }>;
@@ -46,13 +45,7 @@ export const PLATFORM_SERVICES: PlatformServiceEntry[] = [
     icon: EnvelopeIcon,
     action: { type: "modal", modalKey: "mailpit" },
   },
-  {
-    id: "posthog",
-    label: "PostHog",
-    kind: "admin-tool",
-    icon: ChartBarIcon,
-    action: { type: "link", href: "/posthog" },
-  },
+  // PostHog temporarily disabled — re-add when integration is stable
 ];
 
 export const SERVICE_KIND_LABEL: Record<ServiceKind, string> = {
