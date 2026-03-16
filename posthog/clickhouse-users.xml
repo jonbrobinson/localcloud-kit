@@ -1,24 +1,12 @@
 <clickhouse>
     <users>
         <default>
-            <!-- ClickHouse 24.8+: <access_management> and <named_collection_control> flags
-                 cannot coexist with a <grants> block on the same user — the server will
-                 fatal on startup. Everything is expressed here via explicit grants instead.
-
-                 GRANT ALL ON *.*              — full data/DDL access on all databases
-                 GRANT ACCESS MANAGEMENT       — equivalent of access_management=1
-                                                 (create/alter/drop users, roles, quotas)
-                 GRANT NAMED COLLECTION ADMIN  — equivalent of named_collection_control=1
-                                                 (create/alter/drop named collections)
-                 GRANT NAMED COLLECTION ON *   — use named collections in queries
-                                                 (required by PostHog Kafka engine tables
-                                                  referencing the msk_cluster collection) -->
-            <grants>
-                <query>GRANT ALL ON *.* TO default WITH GRANT OPTION</query>
-                <query>GRANT ACCESS MANAGEMENT ON *.* TO default</query>
-                <query>GRANT NAMED COLLECTION ADMIN ON *.* TO default</query>
-                <query>GRANT NAMED COLLECTION ON * TO default WITH GRANT OPTION</query>
-            </grants>
+            <!-- Allow SQL-level access management (create users, roles, etc.) -->
+            <access_management>1</access_management>
+            <!-- Allow managing named collections (create/alter/drop). PostHog uses msk_cluster from config. -->
+            <named_collection_control>1</named_collection_control>
+            <!-- Do not use <grants> here: ClickHouse 24.x does not allow mixing
+                 grants with access_management/named_collection_control on the same user. -->
         </default>
     </users>
 </clickhouse>
