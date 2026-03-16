@@ -356,35 +356,8 @@ services:
       - localstack-network
     restart: unless-stopped
 
-  posthog-plugin-server:
-    image: posthog/posthog:latest
-    container_name: localcloud-posthog-plugin-server
-    command: ./bin/plugin-server --no-restart-loop
-    environment:
-      - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
-      - REDIS_URL=redis://posthog-redis:6379/
-      - CLICKHOUSE_HOST=posthog-clickhouse
-      - CLICKHOUSE_DATABASE=posthog
-      - CLICKHOUSE_USER=default
-      - CLICKHOUSE_PASSWORD=
-      - CLICKHOUSE_SECURE=false
-      - CLICKHOUSE_VERIFY=false
-      - KAFKA_HOSTS=posthog-kafka:9092
-      - SECRET_KEY=localcloud-posthog-secret-key-change-me
-      - SITE_URL=https://posthog.localcloudkit.com:3030
-      - OBJECT_STORAGE_ENABLED=false
-    depends_on:
-      posthog-kafka:
-        condition: service_healthy
-      posthog-clickhouse:
-        condition: service_healthy
-      posthog-postgres:
-        condition: service_healthy
-      posthog-redis:
-        condition: service_healthy
-    networks:
-      - localstack-network
-    restart: unless-stopped
+  # posthog-plugin-server removed: ./bin/plugin-server no longer ships in posthog/posthog:latest
+  # The plugin server (now "CDP worker") is not required for core analytics functionality
 
 networks:
   localstack-network:
