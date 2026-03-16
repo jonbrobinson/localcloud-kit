@@ -158,12 +158,18 @@ export default function DynamoDBViewer({
           projectName
         )}`
       );
+      if (!response.ok) {
+        throw new Error(`Failed to load tables (${response.status})`);
+      }
       const data = await response.json();
       if (data.success) {
         setTables(data.data || []);
+      } else {
+        throw new Error(data.error || "Failed to load tables");
       }
     } catch (error) {
       console.error("Failed to load tables:", error);
+      setError(error instanceof Error ? error.message : "Failed to load tables");
     } finally {
       setLoading(false);
     }
@@ -214,6 +220,7 @@ export default function DynamoDBViewer({
     if (!selectedTable) return;
 
     setLoading(true);
+    setError("");
     try {
       const response = await fetch(
         `${"/api"}/dynamodb/table/${encodeURIComponent(
@@ -222,6 +229,9 @@ export default function DynamoDBViewer({
           queryParams.limit
         }`
       );
+      if (!response.ok) {
+        throw new Error(`Failed to load table contents (${response.status})`);
+      }
       const data = await response.json();
       if (data.success) {
         // Flatten DynamoDB items for display
@@ -230,9 +240,12 @@ export default function DynamoDBViewer({
         );
         setItems(items);
         setScanResult(data.data);
+      } else {
+        throw new Error(data.error || "Failed to load table contents");
       }
     } catch (error) {
       console.error("Failed to load table contents:", error);
+      setError(error instanceof Error ? error.message : "Failed to load table contents");
     } finally {
       setLoading(false);
     }
@@ -263,6 +276,9 @@ export default function DynamoDBViewer({
           selectedTable
         )}/query?${params.toString()}`
       );
+      if (!response.ok) {
+        throw new Error(`Query failed (${response.status})`);
+      }
       const data = await response.json();
       if (data.success) {
         // Flatten DynamoDB items for display
@@ -271,9 +287,12 @@ export default function DynamoDBViewer({
         );
         setItems(items);
         setScanResult(data.data);
+      } else {
+        throw new Error(data.error || "Query failed");
       }
     } catch (error) {
       console.error("Failed to execute query:", error);
+      setError(error instanceof Error ? error.message : "Query failed");
     } finally {
       setLoading(false);
     }
