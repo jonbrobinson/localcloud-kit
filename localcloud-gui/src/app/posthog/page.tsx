@@ -139,7 +139,7 @@ export default function PosthogPage() {
           <p className="text-sm text-gray-600 leading-relaxed">
             LocalCloud Kit includes <strong>PostHog</strong> as an optional platform service for local
             product analytics, event capture, and feature-flag development. The PostHog stack runs in an
-            isolated profile with dedicated Postgres, Redis, ClickHouse, Kafka, and Zookeeper containers.
+            isolated profile with dedicated Postgres, Redis, ClickHouse, and Kafka containers.
           </p>
           <p className="text-sm text-gray-600 leading-relaxed mt-2">
             This stack is intended for local service usage and is intentionally isolated from your
@@ -194,7 +194,7 @@ docker compose ps`}
                 <tr>
                   <td className="px-4 py-2.5 text-gray-600">Isolation model</td>
                   <td className="px-4 py-2.5 text-gray-900">
-                    Dedicated PostHog Postgres/Redis/ClickHouse/Kafka/Zookeeper
+                    Dedicated PostHog Postgres/Redis/ClickHouse/Kafka
                   </td>
                 </tr>
                 <tr>

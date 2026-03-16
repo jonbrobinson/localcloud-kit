@@ -1,12 +1,4 @@
 <clickhouse>
-    <!-- ZooKeeper connection — required for ReplicatedMergeTree tables -->
-    <zookeeper>
-        <node>
-            <host>posthog-zookeeper</host>
-            <port>2181</port>
-        </node>
-    </zookeeper>
-
     <!-- Cluster definitions — must match PostHog's official docker/clickhouse/config.d/default.xml.
          All five cluster names are required: posthog, posthog_migrations, posthog_primary_replica,
          posthog_single_shard, and posthog_writable. All point to the single local node. -->
@@ -54,9 +46,8 @@
         </posthog_writable>
     </remote_servers>
 
-    <!-- Macros used by ReplicatedMergeTree table definitions and PostHog cluster queries.
-         Values must match PostHog's official config: hostClusterType=online, hostClusterRole=data.
-         These are embedded in ReplicatedMergeTree ZooKeeper paths and table routing logic. -->
+    <!-- Macros used by PostHog cluster queries.
+         Values must match PostHog's official config: hostClusterType=online, hostClusterRole=data. -->
     <macros>
         <shard>01</shard>
         <replica>ch1</replica>
