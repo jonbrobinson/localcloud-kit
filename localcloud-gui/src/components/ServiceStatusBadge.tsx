@@ -129,7 +129,7 @@ export default function ServiceStatusBadge({
   return (
     <div className="flex items-center space-x-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full">
       <span
-        className={`h-2 w-2 rounded-full flex-shrink-0 ${dotClass[status.level]}`}
+        className={`h-2 w-2 rounded-full shrink-0 ${dotClass[status.level]}`}
       />
       <span className="text-xs font-medium text-gray-600">{name}</span>
       <span
