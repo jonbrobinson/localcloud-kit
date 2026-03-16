@@ -32,7 +32,7 @@ router.get("/posthog/status", async (req, res) => {
       const reachable = await checkTcpPort("posthog-web", 8000);
       const status = reachable ? "starting" : "stopped";
       addLog(
-        reachable ? "info" : "warning",
+        "info",
         reachable ? "PostHog port is reachable — service is starting" : "PostHog is not running or not in active profile",
         "posthog"
       );
