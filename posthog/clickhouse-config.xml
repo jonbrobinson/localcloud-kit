@@ -27,9 +27,11 @@
         </posthog_migrations>
     </remote_servers>
 
-    <!-- Macros used by ReplicatedMergeTree table definitions -->
+    <!-- Macros used by ReplicatedMergeTree table definitions and PostHog cluster queries -->
     <macros>
         <shard>01</shard>
         <replica>01</replica>
+        <hostClusterType>default</hostClusterType>
+        <hostClusterRole>default</hostClusterRole>
     </macros>
 </clickhouse>
