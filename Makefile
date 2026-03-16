@@ -198,7 +198,7 @@ keycloak-logs: ## View Keycloak container logs
 	docker compose logs -f keycloak
 
 posthog-logs: ## View PostHog service logs
-	docker compose logs -f posthog-web posthog-worker posthog-plugin-server
+	docker compose logs -f posthog-web posthog-worker posthog-clickhouse posthog-kafka posthog-kafka-init
 
 # Setup and Utilities
 setup: ## Initial setup - create directories and install dependencies
