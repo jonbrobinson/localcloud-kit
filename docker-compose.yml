@@ -218,10 +218,10 @@ services:
       start_period: 30s
 
   posthog-redis:
-    image: redis:7-alpine
+    image: redis:7.2-alpine
     container_name: localcloud-posthog-redis
     profiles: ["posthog"]
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 200mb --maxmemory-policy allkeys-lru
     volumes:
       - posthog_redis_data:/data
     networks:
@@ -234,14 +234,36 @@ services:
       retries: 10
       start_period: 10s
 
+  posthog-zookeeper:
+    image: zookeeper:3.7.0
+    container_name: localcloud-posthog-zookeeper
+    profiles: ["posthog"]
+    volumes:
+      - posthog_zookeeper_data:/data
+      - posthog_zookeeper_datalog:/datalog
+      - posthog_zookeeper_logs:/logs
+    networks:
+      - localstack-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc -w2 localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
   posthog-clickhouse:
     # Pin to 25.10: 24.8 lacks DateTime64-in-TTL (document_embeddings migration); 26.x
     # drops/renames system.crash_log (custom_metrics_server_crash view migration). 25.10 has both.
     image: clickhouse/clickhouse-server:25.10
     container_name: localcloud-posthog-clickhouse
     profiles: ["posthog"]
+    depends_on:
+      posthog-zookeeper:
+        condition: service_healthy
     environment:
       - CLICKHOUSE_DB=posthog
+      - CLICKHOUSE_SKIP_USER_SETUP=1
       # CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT intentionally omitted: when set to 1 it creates
       # the default user via SQL (GRANT ALL ON *.*), which excludes NAMED COLLECTION and makes
       # XML <grants> (in users.d/) ineffective for that user. Without it, the default user is
@@ -284,6 +306,10 @@ services:
       - --set redpanda.auto_create_topics_enabled=true
     environment:
       - ALLOW_PLAINTEXT_LISTENER=true
+      # Hobby: keep logs for 1 hour to reduce local disk usage
+      - KAFKA_LOG_RETENTION_MS=3600000
+      - KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS=300000
+      - KAFKA_LOG_RETENTION_HOURS=1
     volumes:
       - posthog_kafka_data:/var/lib/redpanda/data
     networks:
@@ -332,18 +358,27 @@ services:
       - CLICKHOUSE_DATABASE=posthog
       - CLICKHOUSE_USER=default
       - CLICKHOUSE_PASSWORD=
+      - CLICKHOUSE_API_USER=api
+      - CLICKHOUSE_API_PASSWORD=apipass
+      - CLICKHOUSE_APP_USER=app
+      - CLICKHOUSE_APP_PASSWORD=apppass
       - CLICKHOUSE_SECURE=false
       - CLICKHOUSE_VERIFY=false
       - KAFKA_HOSTS=posthog-kafka:9092
       - PRIMARY_DB=clickhouse
       - SECRET_KEY=localcloud-posthog-secret-key-change-me
       - SITE_URL=https://posthog.localcloudkit.com:3030
+      - DEPLOYMENT=hobby
       - OBJECT_STORAGE_ENABLED=false
       - CLICKHOUSE_REPLICATION=false
+      - OTEL_SDK_DISABLED=true
+      - DISABLE_SECURE_SSL_REDIRECT=true
     depends_on:
       posthog-postgres:
         condition: service_healthy
       posthog-clickhouse:
+        condition: service_healthy
+      posthog-zookeeper:
         condition: service_healthy
       posthog-kafka:
         condition: service_healthy
@@ -362,6 +397,10 @@ services:
       - CLICKHOUSE_DATABASE=posthog
       - CLICKHOUSE_USER=default
       - CLICKHOUSE_PASSWORD=
+      - CLICKHOUSE_API_USER=api
+      - CLICKHOUSE_API_PASSWORD=apipass
+      - CLICKHOUSE_APP_USER=app
+      - CLICKHOUSE_APP_PASSWORD=apppass
       - CLICKHOUSE_SECURE=false
       - CLICKHOUSE_VERIFY=false
       - KAFKA_HOSTS=posthog-kafka:9092
@@ -373,8 +412,12 @@ services:
       - SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
       - POSTHOG_SKIP_MIGRATION_CHECKS=1
       - SKIP_ASYNC_MIGRATIONS_SETUP=1
+      - DEPLOYMENT=hobby
       - OBJECT_STORAGE_ENABLED=false
       - CLICKHOUSE_REPLICATION=false
+      - OTEL_SDK_DISABLED=true
+      - DISABLE_SECURE_SSL_REDIRECT=true
+      - FLAGS_REDIS_ENABLED=false
     depends_on:
       posthog-postgres:
         condition: service_healthy
@@ -417,6 +460,10 @@ services:
       - CLICKHOUSE_DATABASE=posthog
       - CLICKHOUSE_USER=default
       - CLICKHOUSE_PASSWORD=
+      - CLICKHOUSE_API_USER=api
+      - CLICKHOUSE_API_PASSWORD=apipass
+      - CLICKHOUSE_APP_USER=app
+      - CLICKHOUSE_APP_PASSWORD=apppass
       - CLICKHOUSE_SECURE=false
       - CLICKHOUSE_VERIFY=false
       - KAFKA_HOSTS=posthog-kafka:9092
@@ -425,9 +472,13 @@ services:
       - SITE_URL=https://posthog.localcloudkit.com:3030
       - IS_BEHIND_PROXY=true
       - TRUSTED_PROXIES=*
+      - DEPLOYMENT=hobby
       - OBJECT_STORAGE_ENABLED=false
       - POSTHOG_SKIP_MIGRATION_CHECKS=1
       - CLICKHOUSE_REPLICATION=false
+      - OTEL_SDK_DISABLED=true
+      - DISABLE_SECURE_SSL_REDIRECT=true
+      - FLAGS_REDIS_ENABLED=false
     depends_on:
       posthog-web:
         condition: service_healthy
@@ -450,3 +501,6 @@ volumes:
   posthog_redis_data:
   posthog_clickhouse_data:
   posthog_kafka_data:
+  posthog_zookeeper_data:
+  posthog_zookeeper_datalog:
+  posthog_zookeeper_logs:
