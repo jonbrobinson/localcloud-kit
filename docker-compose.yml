@@ -349,7 +349,7 @@ services:
       - IS_BEHIND_PROXY=true
       - TRUSTED_PROXIES=*
       - SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
-      - DISABLE_ASYNC_MIGRATIONS_ON_STARTUP=1
+      - POSTHOG_SKIP_MIGRATION_CHECKS=1
       - SKIP_ASYNC_MIGRATIONS_SETUP=1
       - OBJECT_STORAGE_ENABLED=false
     depends_on:
@@ -383,7 +383,7 @@ services:
   posthog-worker:
     image: posthog/posthog:latest
     container_name: localcloud-posthog-worker
-    command: ./bin/docker-worker
+    command: ./bin/docker-worker-celery --with-scheduler
     environment:
       - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
       - REDIS_URL=redis://posthog-redis:6379/
@@ -400,7 +400,7 @@ services:
       - IS_BEHIND_PROXY=true
       - TRUSTED_PROXIES=*
       - OBJECT_STORAGE_ENABLED=false
-      - DISABLE_ASYNC_MIGRATIONS_ON_STARTUP=1
+      - POSTHOG_SKIP_MIGRATION_CHECKS=1
     depends_on:
       posthog-web:
         condition: service_healthy
