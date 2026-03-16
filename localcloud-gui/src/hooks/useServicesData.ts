@@ -3,13 +3,12 @@ import {
   KeycloakStatus,
   LocalStackStatus,
   MailpitStats,
-  PosthogStatus,
   PostgresStatus,
   ProjectConfig,
   RedisStatus,
   Resource,
 } from "@/types";
-import { dashboardApi, keycloakApi, postgresApi, posthogApi } from "@/services/api";
+import { dashboardApi, keycloakApi, postgresApi } from "@/services/api";
 
 interface LocalStackData {
   status: LocalStackStatus;
@@ -23,7 +22,6 @@ interface ServicesData {
   redis: RedisStatus;
   postgres: PostgresStatus;
   keycloak: KeycloakStatus;
-  posthog: PosthogStatus;
 }
 
 export function useServicesData() {
@@ -45,7 +43,6 @@ export function useServicesData() {
     redis: { status: "unknown" },
     postgres: { status: "unknown" },
     keycloak: { status: "unknown" },
-    posthog: { status: "unknown" },
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -53,11 +50,10 @@ export function useServicesData() {
   const loadData = useCallback(async () => {
     try {
       setError(null);
-      const [payloadResult, postgresResult, keycloakResult, posthogResult] = await Promise.allSettled([
+      const [payloadResult, postgresResult, keycloakResult] = await Promise.allSettled([
         dashboardApi.getData(),
         postgresApi.status(),
         keycloakApi.status(),
-        posthogApi.status(),
       ]);
 
       if (payloadResult.status === "rejected") {
@@ -73,8 +69,6 @@ export function useServicesData() {
         postgresResult.status === "fulfilled" ? postgresResult.value : { status: "unknown" };
       const keycloakStatus: KeycloakStatus =
         keycloakResult.status === "fulfilled" ? keycloakResult.value : { status: "unknown" };
-      const posthogStatus: PosthogStatus =
-        posthogResult.status === "fulfilled" ? posthogResult.value : { status: "unknown" };
 
       startTransition(() => {
         setData({
@@ -83,7 +77,6 @@ export function useServicesData() {
           redis,
           postgres: postgresStatus,
           keycloak: keycloakStatus,
-          posthog: posthogStatus,
         });
       });
     } catch (err) {
