@@ -240,6 +240,7 @@ services:
     volumes:
       - posthog_clickhouse_data:/var/lib/clickhouse
       - ./posthog/clickhouse-config.xml:/etc/clickhouse-server/config.d/posthog.xml:ro
+      - ./posthog/clickhouse-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - localstack-network
     restart: unless-stopped
