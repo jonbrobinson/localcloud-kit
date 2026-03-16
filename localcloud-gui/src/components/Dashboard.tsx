@@ -977,7 +977,7 @@ export default function Dashboard() {
           key="error"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-50 to-pink-100"
+          className="flex items-center justify-center min-h-screen bg-linear-to-br from-red-50 to-pink-100"
         >
           <div className="text-center">
             <div className="text-red-600 text-6xl mb-4">⚠️</div>
@@ -996,7 +996,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1032,7 +1032,7 @@ export default function Dashboard() {
                         onClick={() => { setShowBuckets(true); closeAllMenus(); }}
                         className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
-                        <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 shrink-0" />
                         S3 Buckets
                       </button>
                       {renderResourceActions("S3 Buckets", "s3", "/manage/s3", () => {
@@ -1049,7 +1049,7 @@ export default function Dashboard() {
                         onClick={() => { setShowDynamoDB(true); closeAllMenus(); }}
                         className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
-                        <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 shrink-0" />
                         DynamoDB
                       </button>
                       {renderResourceActions("DynamoDB", "dynamodb", "/manage/dynamodb", () => {
@@ -1066,7 +1066,7 @@ export default function Dashboard() {
                         onClick={() => { setShowLambdaConfig(true); closeAllMenus(); }}
                         className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
-                        <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 shrink-0" />
                         Lambda
                       </button>
                       {renderResourceActions("Lambda", "lambda", "/manage/lambda", () => {
@@ -1083,7 +1083,7 @@ export default function Dashboard() {
                         onClick={() => { setShowAPIGatewayConfig(true); closeAllMenus(); }}
                         className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
-                        <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 shrink-0" />
                         API Gateway
                       </button>
                       {renderResourceActions("API Gateway", "apigateway", "/manage/apigateway", () => {
@@ -1100,7 +1100,7 @@ export default function Dashboard() {
                         onClick={() => { setShowSecretsConfig(true); closeAllMenus(); }}
                         className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
-                        <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 shrink-0" />
                         Secrets Manager
                       </button>
                       {renderResourceActions("Secrets Manager", "secretsmanager", "/manage/secrets", () => {
@@ -1113,7 +1113,7 @@ export default function Dashboard() {
                         onClick={() => { setShowSSMConfig(true); closeAllMenus(); }}
                         className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
-                        <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 shrink-0" />
                         Parameter Store
                       </button>
                       {renderResourceActions("Parameter Store", "ssm", "/manage/ssm", () => {
@@ -1126,7 +1126,7 @@ export default function Dashboard() {
                         onClick={() => { setShowIAMConfig(true); closeAllMenus(); }}
                         className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
-                        <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />
+                        <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 shrink-0" />
                         IAM Roles
                       </button>
                       {renderResourceActions("IAM Roles", "iam", "/manage/iam", () => {
@@ -1168,7 +1168,7 @@ export default function Dashboard() {
                             const ServiceIcon = service.icon;
                             const itemContent = (
                               <>
-                                <ServiceIcon className="h-4 w-4 mr-3 text-gray-400 flex-shrink-0" />
+                                <ServiceIcon className="h-4 w-4 mr-3 text-gray-400 shrink-0" />
                                 {service.label}
                                 {service.id === "mailpit" && mailpit.unread > 0 && (
                                   <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-xs font-bold bg-red-500 text-white leading-none">
@@ -1220,7 +1220,7 @@ export default function Dashboard() {
                   <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showDocsMenu ? "rotate-180" : ""}`} />
                 </button>
                 {showDocsMenu && (
-                  <div className="absolute right-0 mt-1 w-[44rem] max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-md shadow-lg z-50 p-3">
+                  <div className="absolute right-0 mt-1 w-176 max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-md shadow-lg z-50 p-3">
                     <Link
                       href="/docs"
                       onClick={() => setShowDocsMenu(false)}
@@ -1250,7 +1250,7 @@ export default function Dashboard() {
                           onClick={() => setShowDocsMenu(false)}
                           className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 shrink-0" />
                           DynamoDB
                         </Link>
                         <Link
@@ -1258,7 +1258,7 @@ export default function Dashboard() {
                           onClick={() => setShowDocsMenu(false)}
                           className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 shrink-0" />
                           S3 Buckets
                         </Link>
                         <Link
@@ -1266,7 +1266,7 @@ export default function Dashboard() {
                           onClick={() => setShowDocsMenu(false)}
                           className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 shrink-0" />
                           Lambda
                         </Link>
                         <Link
@@ -1274,7 +1274,7 @@ export default function Dashboard() {
                           onClick={() => setShowDocsMenu(false)}
                           className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 shrink-0" />
                           API Gateway
                         </Link>
                         <Link
@@ -1282,7 +1282,7 @@ export default function Dashboard() {
                           onClick={() => setShowDocsMenu(false)}
                           className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 shrink-0" />
                           Secrets Manager
                         </Link>
                         <Link
@@ -1290,7 +1290,7 @@ export default function Dashboard() {
                           onClick={() => setShowDocsMenu(false)}
                           className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 shrink-0" />
                           Parameter Store
                         </Link>
                         <Link
@@ -1298,7 +1298,7 @@ export default function Dashboard() {
                           onClick={() => setShowDocsMenu(false)}
                           className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />
+                          <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 shrink-0" />
                           IAM &amp; STS
                         </Link>
                       </div>
@@ -1360,7 +1360,7 @@ export default function Dashboard() {
                   className="flex items-center gap-1.5 px-2 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-xs font-semibold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
                     {profile?.active_project_label || "Default"}
                   </span>
                   <ChevronDownIcon className={`h-3.5 w-3.5 text-gray-400 transition-transform ${showProjectMenu ? "rotate-180" : ""}`} />
@@ -1378,7 +1378,7 @@ export default function Dashboard() {
                             : "text-gray-700 hover:bg-gray-50"
                         }`}
                       >
-                        <span className={`h-2 w-2 rounded-full mr-3 flex-shrink-0 ${p.id === profile?.active_project_id ? "bg-blue-500" : "bg-gray-300"}`} />
+                        <span className={`h-2 w-2 rounded-full mr-3 shrink-0 ${p.id === profile?.active_project_id ? "bg-blue-500" : "bg-gray-300"}`} />
                         {p.label}
                       </button>
                     ))}
@@ -1462,7 +1462,7 @@ export default function Dashboard() {
                 <p className="px-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">AWS Resources</p>
                 <div className="flex items-center gap-1">
                   <button onClick={() => { setShowBuckets(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />S3 Buckets
+                    <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 shrink-0" />S3 Buckets
                   </button>
                   <button onClick={() => openInspectTarget("s3")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
                     Inspect
@@ -1470,7 +1470,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => { setShowDynamoDB(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />DynamoDB Tables
+                    <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 shrink-0" />DynamoDB Tables
                   </button>
                   <button onClick={() => openInspectTarget("dynamodb")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
                     Inspect
@@ -1478,7 +1478,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => { setShowLambdaConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />Lambda Functions
+                    <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 shrink-0" />Lambda Functions
                   </button>
                   <button onClick={() => openInspectTarget("lambda")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
                     Inspect
@@ -1486,7 +1486,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => { setShowAPIGatewayConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />API Gateway
+                    <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 shrink-0" />API Gateway
                   </button>
                   <button onClick={() => openInspectTarget("apigateway")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
                     Inspect
@@ -1494,7 +1494,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => { setShowSecretsConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Secrets Manager
+                    <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 shrink-0" />Secrets Manager
                   </button>
                   <button onClick={() => openInspectTarget("secretsmanager")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
                     Inspect
@@ -1502,7 +1502,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => { setShowSSMConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Parameter Store
+                    <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 shrink-0" />Parameter Store
                   </button>
                   <button onClick={() => openInspectTarget("ssm")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
                     Inspect
@@ -1510,7 +1510,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => { setShowIAMConfig(true); closeAllMenus(); }} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />IAM Roles
+                    <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 shrink-0" />IAM Roles
                   </button>
                   <button onClick={() => openInspectTarget("iam")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
                     Inspect
@@ -1531,7 +1531,7 @@ export default function Dashboard() {
                         const ServiceIcon = service.icon;
                         const itemContent = (
                           <>
-                            <ServiceIcon className="h-4 w-4 mr-3 text-gray-400 flex-shrink-0" />
+                            <ServiceIcon className="h-4 w-4 mr-3 text-gray-400 shrink-0" />
                             {service.label}
                             {service.id === "mailpit" && mailpit.unread > 0 && (
                               <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-xs font-bold bg-red-500 text-white">
@@ -1583,32 +1583,32 @@ export default function Dashboard() {
                   <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />LocalStack
                 </Link>
                 <Link href="/s3" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 flex-shrink-0" />S3 Buckets
+                  <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 shrink-0" />S3 Buckets
                 </Link>
                 <Link href="/dynamodb" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 flex-shrink-0" />DynamoDB
+                  <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 shrink-0" />DynamoDB
                 </Link>
                 <Link href="/lambda" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 flex-shrink-0" />Lambda
+                  <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 shrink-0" />Lambda
                 </Link>
                 <Link href="/apigateway" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 flex-shrink-0" />API Gateway
+                  <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 shrink-0" />API Gateway
                 </Link>
                 <Link href="/secrets" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Secrets Manager
+                  <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 shrink-0" />Secrets Manager
                 </Link>
                 <Link href="/ssm" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 flex-shrink-0" />Parameter Store
+                  <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 shrink-0" />Parameter Store
                 </Link>
                 <Link href="/iam" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 flex-shrink-0" />IAM &amp; STS
+                  <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 shrink-0" />IAM &amp; STS
                 </Link>
                 {PLATFORM_SERVICES.map((service) => {
                   const ServiceIcon = service.icon;
                   const href = service.action.type === "link" ? service.action.href : `/${service.id}`;
                   return (
                     <Link key={service.id} href={href} onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                      <ServiceIcon className="h-4 w-4 mr-3 text-gray-400 flex-shrink-0" />{service.label}
+                      <ServiceIcon className="h-4 w-4 mr-3 text-gray-400 shrink-0" />{service.label}
                     </Link>
                   );
                 })}
@@ -1650,7 +1650,7 @@ export default function Dashboard() {
 
           {/* Keycloak */}
           <Link href="/keycloak" className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="Keycloak">
-            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(keycloak.status)}`} />
+            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${serviceDotClass(keycloak.status)}`} />
             <span className="text-sm font-medium text-gray-700">Keycloak</span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(keycloak.status)}`}>
               {serviceLabel(keycloak.status)}
@@ -1661,7 +1661,7 @@ export default function Dashboard() {
 
           {/* LocalStack */}
           <div className="flex items-center space-x-2 px-3">
-            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
+            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${
               localstackStatus.health === "healthy" ? "bg-green-500" :
               localstackStatus.health === "unhealthy" ? "bg-red-500" : "bg-gray-400"
             }`} />
@@ -1682,7 +1682,7 @@ export default function Dashboard() {
 
           {/* Mailpit */}
           <button onClick={() => setShowMailpit(true)} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="Open Mailpit Inbox">
-            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${mailpit.status === "healthy" ? "bg-green-500" : "bg-gray-400"}`} />
+            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${mailpit.status === "healthy" ? "bg-green-500" : "bg-gray-400"}`} />
             <span className="text-sm font-medium text-gray-700">Mailpit</span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${mailpit.status === "healthy" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
               {mailpit.status === "healthy" ? "Running" : "Unavailable"}
@@ -1698,7 +1698,7 @@ export default function Dashboard() {
 
           {/* PostgreSQL */}
           <Link href="/postgres" className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="PostgreSQL">
-            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(postgres.status)}`} />
+            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${serviceDotClass(postgres.status)}`} />
             <span className="text-sm font-medium text-gray-700">PostgreSQL</span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(postgres.status)}`}>
               {serviceLabel(postgres.status)}
@@ -1709,7 +1709,7 @@ export default function Dashboard() {
 
           {/* PostHog */}
           <Link href="/posthog" className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="PostHog">
-            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(posthog.status)}`} />
+            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${serviceDotClass(posthog.status)}`} />
             <span className="text-sm font-medium text-gray-700">PostHog</span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(posthog.status)}`}>
               {serviceLabel(posthog.status)}
@@ -1720,7 +1720,7 @@ export default function Dashboard() {
 
           {/* Redis */}
           <button onClick={() => setShowRedis(true)} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="Open Redis Cache">
-            <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${serviceDotClass(redis.status)}`} />
+            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${serviceDotClass(redis.status)}`} />
             <span className="text-sm font-medium text-gray-700">Redis</span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(redis.status)}`}>
               {serviceLabel(redis.status)}

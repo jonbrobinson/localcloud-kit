@@ -30,7 +30,7 @@ function ResourceRowSkeleton({ opacity = 1 }: { opacity?: number }) {
 export function ServicePillSkeleton({ name }: { name: string }) {
   return (
     <div className="flex items-center space-x-2 px-3">
-      <div className="h-2.5 w-2.5 rounded-full bg-gray-300 flex-shrink-0 animate-pulse" />
+      <div className="h-2.5 w-2.5 rounded-full bg-gray-300 shrink-0 animate-pulse" />
       <span className="text-sm font-medium text-gray-700">{name}</span>
       <div className="h-5 w-16 rounded-full bg-gray-100 animate-pulse" />
     </div>
@@ -105,7 +105,7 @@ export default function DashboardSkeleton() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.15 } }}
       transition={{ duration: 0.2 }}
-      className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100"
+      className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100"
     >
       {/* ── Header ─────────────────────────────────────────── */}
       <header className="bg-white shadow-sm border-b border-gray-200">
