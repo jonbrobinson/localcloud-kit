@@ -21,6 +21,29 @@ import SystemLogsButton from "@/components/SystemLogsButton";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DynamoDBItem = Record<string, any>;
 
+// Extract a human-readable string from a DynamoDB typed value, e.g. {S:"foo"} → "foo"
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function displayDynamoDBValue(val: any): string {
+  if (val === undefined || val === null) return "—";
+  if (typeof val !== "object") return String(val);
+  if ("S" in val) return val.S;
+  if ("N" in val) return val.N;
+  if ("BOOL" in val) return String(val.BOOL);
+  if ("NULL" in val) return "null";
+  if ("SS" in val) return JSON.stringify(val.SS);
+  if ("NS" in val) return JSON.stringify(val.NS);
+  if ("L" in val || "M" in val) return JSON.stringify(val);
+  return JSON.stringify(val);
+}
+
+// Extract the raw string/number value from a DynamoDB typed attribute for use in key expressions
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractDynamoDBKeyValue(val: any): string {
+  if (val === undefined || val === null) return "";
+  if (typeof val !== "object") return String(val);
+  return val.S ?? val.N ?? String(val);
+}
+
 interface TableInfo {
   TableName: string;
   TableStatus?: string;
@@ -84,7 +107,8 @@ export default function ManageDynamoDBPage() {
       const res = await fetch(`/api/dynamodb/table/${encodeURIComponent(tableName)}/scan`);
       const result = await res.json();
       if (result.success) {
-        setItems(result.data?.items || []);
+        // AWS CLI returns "Items" (uppercase); normalize to handle either casing
+        setItems(result.data?.Items || result.data?.items || []);
       } else {
         toast.error("Failed to load items");
       }
@@ -124,12 +148,17 @@ export default function ManageDynamoDBPage() {
     if (!selectedTable || !deleteItemTarget || !schema) return;
     setDeleteLoading(true);
     try {
-      const key: DynamoDBItem = { [schema.pk]: deleteItemTarget[schema.pk] };
-      if (schema.sk) key[schema.sk] = deleteItemTarget[schema.sk];
+      const partitionValue = extractDynamoDBKeyValue(deleteItemTarget[schema.pk]);
+      const sortValue = schema.sk ? extractDynamoDBKeyValue(deleteItemTarget[schema.sk]) : undefined;
       const res = await fetch(`/api/dynamodb/table/${encodeURIComponent(selectedTable)}/item`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key }),
+        body: JSON.stringify({
+          projectName,
+          partitionKey: schema.pk,
+          partitionValue,
+          ...(schema.sk && sortValue ? { sortKey: schema.sk, sortValue } : {}),
+        }),
       });
       const result = await res.json();
       if (result.success) {
@@ -294,7 +323,7 @@ export default function ManageDynamoDBPage() {
                         <tr key={i} className="hover:bg-gray-50">
                           {allKeys.map((k) => (
                             <td key={k} className="px-4 py-2.5 text-xs font-mono text-gray-700 max-w-xs truncate">
-                              {item[k] !== undefined ? JSON.stringify(item[k]) : "—"}
+                              {displayDynamoDBValue(item[k])}
                             </td>
                           ))}
                           <td className="px-4 py-2.5 text-right">
@@ -354,7 +383,7 @@ export default function ManageDynamoDBPage() {
               const res = await fetch(`/api/dynamodb/table/${encodeURIComponent(selectedTable)}/item`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ item }),
+                body: JSON.stringify({ item, projectName }),
               });
               const result = await res.json();
               if (result.success) {
