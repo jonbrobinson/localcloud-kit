@@ -81,7 +81,7 @@ start-legacy: ## Start all services using LocalStack 4.14 (community legacy)
 
 stop: ## Stop all Docker services
 	@echo "$(YELLOW)Stopping all services...$(NC)"
-	docker compose down
+	docker compose down --remove-orphans
 
 restart: stop start ## Restart all Docker services
 
@@ -119,7 +119,7 @@ clean-volumes: ## Clean up Docker volumes (removes all data)
 	@echo "$(YELLOW)Cleaning up Docker volumes...$(NC)"
 	@echo "$(RED)WARNING: This will remove all Docker volumes and data!$(NC)"
 	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@docker compose down -v
+	@docker compose down -v --remove-orphans
 	@docker volume prune -f
 	@echo "$(GREEN)Docker volumes cleaned$(NC)"
 
@@ -127,7 +127,7 @@ clean-all: ## Clean up everything including images and containers
 	@echo "$(YELLOW)Cleaning up all Docker resources...$(NC)"
 	@echo "$(RED)WARNING: This will remove all containers, images, and volumes!$(NC)"
 	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@docker compose down -v --rmi all
+	@docker compose down -v --rmi all --remove-orphans
 	@docker system prune -af --volumes
 	@echo "$(GREEN)All Docker resources cleaned$(NC)"
 
