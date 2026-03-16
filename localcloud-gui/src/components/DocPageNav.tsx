@@ -15,6 +15,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import SystemLogsButton from "./SystemLogsButton";
 
 interface DocPageNavProps {
   title: string;
@@ -66,6 +67,8 @@ export default function DocPageNav({ title, subtitle, children }: DocPageNavProp
           <div className="flex items-center gap-1">
             {/* Custom action slot (e.g. "Manage Buckets" button) */}
             {children}
+
+            <SystemLogsButton />
 
             {/* Divider before nav items */}
             <div className="h-5 w-px bg-gray-200 mx-1" />

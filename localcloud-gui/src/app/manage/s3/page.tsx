@@ -21,6 +21,7 @@ import { S3BucketConfig } from "@/types";
 import S3ConfigModal from "@/components/S3ConfigModal";
 import FileViewerModal from "@/components/FileViewerModal";
 import UploadFileModal from "@/components/UploadFileModal";
+import SystemLogsButton from "@/components/SystemLogsButton";
 
 interface BucketItem {
   Name?: string;
@@ -174,6 +175,7 @@ export default function ManageS3Page() {
               </Link>
             </div>
             <div className="flex items-center space-x-3">
+              <SystemLogsButton />
               <Link href="/s3" className="flex items-center space-x-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                 <BookOpenIcon className="h-4 w-4" />
                 <span>Docs</span>

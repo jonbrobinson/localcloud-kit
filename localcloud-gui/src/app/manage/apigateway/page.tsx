@@ -16,6 +16,7 @@ import { resourceApi } from "@/services/api";
 import { APIGatewayConfig } from "@/types";
 import APIGatewayConfigModal from "@/components/APIGatewayConfigModal";
 import APIGatewayConfigViewer from "@/components/APIGatewayConfigViewer";
+import SystemLogsButton from "@/components/SystemLogsButton";
 
 interface APIGatewayAPI {
   id: string;
@@ -114,6 +115,7 @@ export default function ManageAPIGatewayPage() {
               </Link>
             </div>
             <div className="flex items-center space-x-3">
+              <SystemLogsButton />
               <Link href="/apigateway" className="flex items-center space-x-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                 <BookOpenIcon className="h-4 w-4" />
                 <span>Docs</span>

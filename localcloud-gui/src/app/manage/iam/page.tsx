@@ -16,6 +16,7 @@ import Image from "next/image";
 import { resourceApi } from "@/services/api";
 import { IAMRoleConfig } from "@/types";
 import IAMConfigModal from "@/components/IAMConfigModal";
+import SystemLogsButton from "@/components/SystemLogsButton";
 
 interface IAMRole {
   RoleName: string;
@@ -152,6 +153,7 @@ export default function ManageIAMPage() {
               </Link>
             </div>
             <div className="flex items-center space-x-3">
+              <SystemLogsButton />
               <Link href="/iam" className="flex items-center space-x-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                 <BookOpenIcon className="h-4 w-4" />
                 <span>Docs</span>
