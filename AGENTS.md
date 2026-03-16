@@ -30,7 +30,7 @@ required.
 | `api` | localcloud-api | custom (Dockerfile.api) | 3031 | Express.js backend |
 | `nginx` | localstack-nginx | nginx:alpine | 80 (internal) | Internal routing |
 | `redis` | localcloud-redis | redis:7-alpine | 6380 (host) | Cache service |
-| `posthog-*` | localcloud-posthog-* | posthog/clickhouse/kafka stack | profile only | Optional product analytics stack |
+| `posthog-*` | localcloud-posthog-* | posthog/clickhouse/kafka stack | — | Product analytics stack |
 
 All services communicate over the `localstack-network` Docker bridge network.
 
@@ -80,8 +80,7 @@ All AWS resource creation modals support **saved configs**:
 ## Common Commands
 
 ```bash
-make start          # Start all services
-make start-posthog  # Start all services + optional PostHog profile
+make start          # Start all services (including PostHog)
 make stop           # Stop all services
 make restart        # Restart all services
 make status         # Health check all services
