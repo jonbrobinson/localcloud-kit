@@ -308,7 +308,7 @@ services:
       - IS_BEHIND_PROXY=true
       - TRUSTED_PROXIES=*
       - SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
-      - DISABLE_ASYNC_MIGRATIONS_ON_STARTUP=0
+      - DISABLE_ASYNC_MIGRATIONS_ON_STARTUP=1
       - OBJECT_STORAGE_ENABLED=false
     depends_on:
       posthog-postgres:
@@ -349,6 +349,7 @@ services:
       - IS_BEHIND_PROXY=true
       - TRUSTED_PROXIES=*
       - OBJECT_STORAGE_ENABLED=false
+      - DISABLE_ASYNC_MIGRATIONS_ON_STARTUP=1
     depends_on:
       - posthog-web
     networks:
