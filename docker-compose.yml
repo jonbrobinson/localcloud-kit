@@ -309,6 +309,7 @@ services:
       - TRUSTED_PROXIES=*
       - SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
       - DISABLE_ASYNC_MIGRATIONS_ON_STARTUP=1
+      - SKIP_ASYNC_MIGRATIONS_SETUP=1
       - OBJECT_STORAGE_ENABLED=false
     depends_on:
       posthog-postgres:
