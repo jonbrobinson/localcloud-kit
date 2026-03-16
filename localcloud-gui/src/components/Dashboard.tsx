@@ -19,12 +19,13 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Icon } from "@iconify/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import ResourceList from "./ResourceList";
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import packageJson from "../../package.json";
 import BucketViewer from "./BucketViewer";
 import DynamoDBConfigModal from "./DynamoDBConfigModal";
@@ -72,7 +73,19 @@ const AWS_RESOURCE_TYPES = new Set<Resource["type"]>([
   "iam",
 ]);
 
+const DOC_ROUTES = [
+  "/docs", "/localstack", "/s3", "/dynamodb", "/lambda",
+  "/apigateway", "/secrets", "/ssm", "/iam",
+  "/redis", "/mailpit", "/postgres", "/keycloak", "/posthog",
+];
+
 export default function Dashboard() {
+  const router = useRouter();
+
+  const prefetchDocRoutes = useCallback(() => {
+    DOC_ROUTES.forEach((route) => router.prefetch(route));
+  }, [router]);
+
   const {
     localstack,
     mailpit,
@@ -1198,6 +1211,8 @@ export default function Dashboard() {
               <div className="relative" ref={docsMenuRef}>
                 <button
                   onClick={() => toggleMenu(setShowDocsMenu, showDocsMenu)}
+                  onMouseEnter={prefetchDocRoutes}
+                  onFocus={prefetchDocRoutes}
                   className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   <BookOpenIcon className="h-4 w-4 mr-2" />

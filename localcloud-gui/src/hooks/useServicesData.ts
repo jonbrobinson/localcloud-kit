@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, startTransition } from "react";
 import {
   KeycloakStatus,
   LocalStackStatus,
@@ -76,13 +76,15 @@ export function useServicesData() {
       const posthogStatus: PosthogStatus =
         posthogResult.status === "fulfilled" ? posthogResult.value : { status: "unknown" };
 
-      setData({
-        localstack: { status: localstackStatus, projectConfig, resources },
-        mailpit: mailpitStats,
-        redis,
-        postgres: postgresStatus,
-        keycloak: keycloakStatus,
-        posthog: posthogStatus,
+      startTransition(() => {
+        setData({
+          localstack: { status: localstackStatus, projectConfig, resources },
+          mailpit: mailpitStats,
+          redis,
+          postgres: postgresStatus,
+          keycloak: keycloakStatus,
+          posthog: posthogStatus,
+        });
       });
     } catch (err) {
       const error =
