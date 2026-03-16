@@ -113,3 +113,5 @@ curl -s -X POST "https://posthog.localcloudkit.com:3030/i/v0/e/" \
 - **Health endpoint unavailable**: Check logs with `make posthog-logs`
 - **Events not appearing**: Verify API key and host match `https://posthog.localcloudkit.com:3030`
 - **Domain issues**: Re-run `sudo ./scripts/setup-hosts.sh` and `./scripts/setup-mkcert.sh`
+- **ClickHouse migration fails with "TTL expression result column should have DateTime or Date type, but has DateTime64"**: PostHog’s document_embeddings migration needs DateTime64-in-TTL (25.x+). We pin to `clickhouse/clickhouse-server:25.10`.
+- **ClickHouse migration fails with "Unknown table expression identifier 'system.crash_log'"**: PostHog creates a view on `system.crash_log`; ClickHouse 26.x removed or renamed it. Use 25.10 (or another 25.x) instead of `latest`. We pin to 25.10 for compatibility.
