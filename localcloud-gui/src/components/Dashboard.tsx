@@ -58,7 +58,6 @@ type InspectTargetId =
   | "ssm"
   | "iam"
   | "postgres"
-  | "posthog"
   | "redis"
   | "keycloak"
   | "mailpit";
@@ -76,7 +75,7 @@ const AWS_RESOURCE_TYPES = new Set<Resource["type"]>([
 const DOC_ROUTES = [
   "/docs", "/localstack", "/s3", "/dynamodb", "/lambda",
   "/apigateway", "/secrets", "/ssm", "/iam",
-  "/redis", "/mailpit", "/postgres", "/keycloak", "/posthog",
+  "/redis", "/mailpit", "/postgres", "/keycloak",
 ];
 
 export default function Dashboard() {
@@ -92,7 +91,6 @@ export default function Dashboard() {
     redis,
     postgres,
     keycloak,
-    posthog,
     loading,
     error,
     refetch: loadInitialData,
@@ -948,23 +946,6 @@ export default function Dashboard() {
             withAdmin("https://mailpit.localcloudkit.com:3030"),
           ],
         };
-      case "posthog":
-        return {
-          title: "PostHog",
-          subtitle:
-            posthog.status === "running"
-              ? "Product analytics service is running"
-              : "Product analytics service is not running",
-          quickChecks: [
-            "PostHog status is running",
-            "Project API key is available in PostHog settings",
-            "A test event appears in the events stream",
-          ],
-          actions: [
-            { label: "Open Docs", href: "/posthog" },
-            withAdmin("https://posthog.localcloudkit.com:3030", "Open PostHog UI"),
-          ],
-        };
       default:
         return null;
     }
@@ -1702,17 +1683,6 @@ export default function Dashboard() {
             <span className="text-sm font-medium text-gray-700">PostgreSQL</span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(postgres.status)}`}>
               {serviceLabel(postgres.status)}
-            </span>
-          </Link>
-
-          <div className="h-4 w-px bg-gray-200" />
-
-          {/* PostHog */}
-          <Link href="/posthog" className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="PostHog">
-            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${serviceDotClass(posthog.status)}`} />
-            <span className="text-sm font-medium text-gray-700">PostHog</span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(posthog.status)}`}>
-              {serviceLabel(posthog.status)}
             </span>
           </Link>
 

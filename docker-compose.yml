@@ -196,9 +196,11 @@ services:
       - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
 
   # PostHog Stack (product analytics)
+  # NOTE: PostHog services are disabled (profile-gated). Run with --profile posthog to enable.
   posthog-postgres:
     image: postgres:16-alpine
     container_name: localcloud-posthog-postgres
+    profiles: ["posthog"]
     environment:
       - POSTGRES_USER=posthog
       - POSTGRES_PASSWORD=posthog
@@ -218,6 +220,7 @@ services:
   posthog-redis:
     image: redis:7-alpine
     container_name: localcloud-posthog-redis
+    profiles: ["posthog"]
     command: redis-server --appendonly yes
     volumes:
       - posthog_redis_data:/data
@@ -236,6 +239,7 @@ services:
     # drops/renames system.crash_log (custom_metrics_server_crash view migration). 25.10 has both.
     image: clickhouse/clickhouse-server:25.10
     container_name: localcloud-posthog-clickhouse
+    profiles: ["posthog"]
     environment:
       - CLICKHOUSE_DB=posthog
       # CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT intentionally omitted: when set to 1 it creates
@@ -259,6 +263,7 @@ services:
   posthog-zookeeper:
     image: zookeeper:3.9
     container_name: localcloud-posthog-zookeeper
+    profiles: ["posthog"]
     environment:
       - ZOO_MY_ID=1
       - ZOO_4LW_COMMANDS_WHITELIST=ruok,mntr,conf
@@ -275,6 +280,7 @@ services:
   posthog-kafka:
     image: docker.redpanda.com/redpandadata/redpanda:v25.1.9
     container_name: localcloud-posthog-kafka
+    profiles: ["posthog"]
     command:
       - redpanda
       - start
@@ -310,6 +316,7 @@ services:
   posthog-kafka-init:
     image: docker.redpanda.com/redpandadata/redpanda:v25.1.9
     container_name: localcloud-posthog-kafka-init
+    profiles: ["posthog"]
     entrypoint: /bin/sh
     command:
       - -c
@@ -333,6 +340,7 @@ services:
   posthog-db-migrate:
     image: posthog/posthog:latest
     container_name: localcloud-posthog-db-migrate
+    profiles: ["posthog"]
     command: python manage.py migrate --no-input
     environment:
       - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
@@ -361,6 +369,7 @@ services:
   posthog-web:
     image: posthog/posthog:latest
     container_name: localcloud-posthog-web
+    profiles: ["posthog"]
     environment:
       - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
       - REDIS_URL=redis://posthog-redis:6379/
@@ -414,6 +423,7 @@ services:
   posthog-worker:
     image: posthog/posthog:latest
     container_name: localcloud-posthog-worker
+    profiles: ["posthog"]
     command: ./bin/docker-worker-celery --with-scheduler
     environment:
       - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
