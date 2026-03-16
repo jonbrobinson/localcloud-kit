@@ -232,7 +232,7 @@ services:
       start_period: 10s
 
   posthog-clickhouse:
-    image: clickhouse/clickhouse-server:23.6
+    image: clickhouse/clickhouse-server:24.8
     container_name: localcloud-posthog-clickhouse
     environment:
       - CLICKHOUSE_DB=posthog
