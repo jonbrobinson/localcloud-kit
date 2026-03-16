@@ -232,7 +232,9 @@ services:
       start_period: 10s
 
   posthog-clickhouse:
-    image: clickhouse/clickhouse-server:24.8
+    # Pin to 25.10: 24.8 lacks DateTime64-in-TTL (document_embeddings migration); 26.x
+    # drops/renames system.crash_log (custom_metrics_server_crash view migration). 25.10 has both.
+    image: clickhouse/clickhouse-server:25.10
     container_name: localcloud-posthog-clickhouse
     environment:
       - CLICKHOUSE_DB=posthog
@@ -328,11 +330,12 @@ services:
       - localstack-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:8000/_health/ | grep -q 'ok' || exit 1"]
+      # Require HTTP 200 only; body format may vary by PostHog version. start_period allows migrations to finish.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8000/_health/ || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 10
-      start_period: 120s
+      retries: 15
+      start_period: 300s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.posthog.rule=Host(`posthog.localcloudkit.com`)"
