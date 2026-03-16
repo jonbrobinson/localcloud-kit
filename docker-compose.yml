@@ -260,23 +260,6 @@ services:
       retries: 20
       start_period: 60s
 
-  posthog-zookeeper:
-    image: zookeeper:3.9
-    container_name: localcloud-posthog-zookeeper
-    profiles: ["posthog"]
-    environment:
-      - ZOO_MY_ID=1
-      - ZOO_4LW_COMMANDS_WHITELIST=ruok,mntr,conf
-    networks:
-      - localstack-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "echo ruok | nc -w2 localhost 2181 | grep imok"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
-
   posthog-kafka:
     image: docker.redpanda.com/redpandadata/redpanda:v25.1.9
     container_name: localcloud-posthog-kafka
@@ -361,6 +344,8 @@ services:
       posthog-postgres:
         condition: service_healthy
       posthog-clickhouse:
+        condition: service_healthy
+      posthog-kafka:
         condition: service_healthy
     networks:
       - localstack-network
