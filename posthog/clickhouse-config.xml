@@ -7,7 +7,8 @@
         </node>
     </zookeeper>
 
-    <!-- Cluster definitions — PostHog expects both 'posthog' and 'posthog_migrations' -->
+    <!-- Cluster definitions — PostHog expects 'posthog', 'posthog_migrations',
+         and 'posthog_primary_replica' (used by distributed table migrations). -->
     <remote_servers>
         <posthog>
             <shard>
@@ -25,6 +26,14 @@
                 </replica>
             </shard>
         </posthog_migrations>
+        <posthog_primary_replica>
+            <shard>
+                <replica>
+                    <host>posthog-clickhouse</host>
+                    <port>9000</port>
+                </replica>
+            </shard>
+        </posthog_primary_replica>
     </remote_servers>
 
     <!-- Macros used by ReplicatedMergeTree table definitions and PostHog cluster queries -->
