@@ -47,10 +47,10 @@ export default function ManageDynamoDBPage() {
   const loadTables = useCallback(async () => {
     setLoadingTables(true);
     try {
-      const res = await fetch("/api/dynamodb/tables");
+      const res = await fetch(`/api/dynamodb/tables?projectName=${encodeURIComponent(projectName)}`);
       const result = await res.json();
       if (result.success) {
-        setTables(result.data?.TableNames?.map((n: string) => ({ TableName: n })) || []);
+        setTables((result.data as string[])?.map((n: string) => ({ TableName: n })) || []);
       } else {
         toast.error("Failed to load tables");
       }
