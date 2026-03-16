@@ -245,7 +245,7 @@ The header contains three primary dropdowns:
 #### PostHog Analytics (optional profile)
 
 - **Optional Compose Profile**: Start only when needed via `docker compose --profile posthog up -d`
-- **Isolated Data Stores**: Dedicated PostHog Postgres, Redis, ClickHouse, and Kafka services
+- **Isolated Data Stores**: Dedicated PostHog Postgres, Redis, ClickHouse, Kafka, and ZooKeeper services
 - **Dashboard Visibility**: Service health appears in the status bar and Services menu
 - **Doc & SDK Examples**: Local integration snippets for TypeScript, Node.js, Python, and CLI
 

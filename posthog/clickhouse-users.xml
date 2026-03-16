@@ -8,5 +8,27 @@
             <!-- Do not use <grants> here: ClickHouse 24.x does not allow mixing
                  grants with access_management/named_collection_control on the same user. -->
         </default>
+
+        <!-- api user: used by PostHog web/worker for analytics queries (CLICKHOUSE_API_USER) -->
+        <api>
+            <password>apipass</password>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+            <access_management>0</access_management>
+        </api>
+
+        <!-- app user: used by PostHog plugins/ingestion pipeline (CLICKHOUSE_APP_USER) -->
+        <app>
+            <password>apppass</password>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+            <access_management>0</access_management>
+        </app>
     </users>
 </clickhouse>
