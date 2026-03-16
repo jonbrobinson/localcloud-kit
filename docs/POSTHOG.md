@@ -4,7 +4,7 @@ LocalCloud Kit includes PostHog as an **optional** platform service for local pr
 
 ## Why optional?
 
-PostHog requires a multi-service stack (web, worker, plugin server, ClickHouse, Kafka, Redis, PostgreSQL). Keeping it optional avoids slowing down the default local workflow for teams that do not need analytics during every run.
+PostHog requires a multi-service stack (web, worker, plugin server, ClickHouse, Kafka, ZooKeeper, Redis, PostgreSQL). Keeping it optional avoids slowing down the default local workflow for teams that do not need analytics during every run.
 
 ## Isolation model
 
@@ -13,8 +13,9 @@ PostHog runs with **dedicated data stores** and does not reuse the primary app P
 - `posthog-postgres`
 - `posthog-redis`
 - `posthog-clickhouse` (ClickHouse 25.x)
-- `posthog-kafka` (Redpanda v25.1.9, Kafka-compatible; ZooKeeper-free)
+- `posthog-kafka` (Redpanda v25.1.9, Kafka-compatible)
 - `posthog-kafka-init` (one-shot topic provisioner; exits after creating required topics)
+- `posthog-zookeeper` (ZooKeeper 3.7.0 — required by ClickHouse for ReplicatedMergeTree coordination)
 - `posthog-web`
 - `posthog-worker`
 
@@ -116,7 +117,7 @@ curl -s -X POST "https://posthog.localcloudkit.com:3030/i/v0/e/" \
 - **ClickHouse migration fails with "Unknown table expression identifier ‘system.crash_log’"**: PostHog creates a view on `system.crash_log`; ClickHouse 26.x removed or renamed it. Use 25.10 (or another 25.x) instead of `latest`. We pin to 25.10 for compatibility.
 - **ClickHouse or Kafka startup failures after an upgrade**: Wipe PostHog volumes to force a clean init:
   ```bash
-  docker compose down posthog-web posthog-worker posthog-clickhouse posthog-kafka posthog-kafka-init posthog-postgres posthog-redis
-  docker volume rm localcloud-kit_posthog_clickhouse_data localcloud-kit_posthog_kafka_data localcloud-kit_posthog_postgres_data localcloud-kit_posthog_redis_data
+  docker compose down posthog-web posthog-worker posthog-clickhouse posthog-kafka posthog-kafka-init posthog-postgres posthog-redis posthog-zookeeper
+  docker volume rm localcloud-kit_posthog_clickhouse_data localcloud-kit_posthog_kafka_data localcloud-kit_posthog_postgres_data localcloud-kit_posthog_redis_data localcloud-kit_posthog_zookeeper_data localcloud-kit_posthog_zookeeper_datalog localcloud-kit_posthog_zookeeper_logs
   docker compose up -d
   ```
