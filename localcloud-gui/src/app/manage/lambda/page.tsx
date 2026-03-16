@@ -51,7 +51,7 @@ export default function ManageLambdaPage() {
   const loadFunctions = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/lambda/functions");
+      const res = await fetch(`/api/lambda/functions?projectName=${encodeURIComponent(projectName)}`);
       const result = await res.json();
       if (result.success) {
         setFunctions(result.data?.Functions || []);

@@ -40,7 +40,7 @@ export default function ManageAPIGatewayPage() {
   const loadApis = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/apigateway/apis");
+      const res = await fetch(`/api/apigateway/apis?projectName=${encodeURIComponent(projectName)}`);
       const result = await res.json();
       if (result.success) {
         setApis(result.data?.items || result.data || []);
