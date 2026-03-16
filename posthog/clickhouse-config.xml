@@ -64,6 +64,19 @@
         <hostClusterRole>data</hostClusterRole>
     </macros>
 
+    <!-- Enable crash_log system table — required by PostHog's ClickHouse migrations which
+         create metrics tables with SELECT ... FROM system.crash_log. Without this config
+         block, system.crash_log does not exist and migrate_clickhouse fails with Code: 60. -->
+    <crash_log>
+        <database>system</database>
+        <table>crash_log</table>
+        <flush_interval_milliseconds>1000</flush_interval_milliseconds>
+        <max_size_rows>1024</max_size_rows>
+        <reserved_size_rows>1024</reserved_size_rows>
+        <buffer_size_rows_flush_threshold>512</buffer_size_rows_flush_threshold>
+        <flush_on_crash>false</flush_on_crash>
+    </crash_log>
+
     <!-- Named collections for Kafka engine tables.
          PostHog's latest image references both 'msk_cluster' and 'warpstream_ingestion'
          when creating Kafka engine tables during init. Both must exist or ClickHouse will
