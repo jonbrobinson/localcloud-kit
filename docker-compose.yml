@@ -330,6 +330,34 @@ services:
       - localstack-network
     restart: "no"
 
+  posthog-db-migrate:
+    image: posthog/posthog:latest
+    container_name: localcloud-posthog-db-migrate
+    command: python manage.py migrate --no-input
+    environment:
+      - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
+      - REDIS_URL=redis://posthog-redis:6379/
+      - CLICKHOUSE_HOST=posthog-clickhouse
+      - CLICKHOUSE_DATABASE=posthog
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=
+      - CLICKHOUSE_SECURE=false
+      - CLICKHOUSE_VERIFY=false
+      - KAFKA_HOSTS=posthog-kafka:9092
+      - PRIMARY_DB=clickhouse
+      - SECRET_KEY=localcloud-posthog-secret-key-change-me
+      - SITE_URL=https://posthog.localcloudkit.com:3030
+      - OBJECT_STORAGE_ENABLED=false
+      - CLICKHOUSE_REPLICATION=false
+    depends_on:
+      posthog-postgres:
+        condition: service_healthy
+      posthog-clickhouse:
+        condition: service_healthy
+    networks:
+      - localstack-network
+    restart: "no"
+
   posthog-web:
     image: posthog/posthog:latest
     container_name: localcloud-posthog-web
@@ -352,6 +380,7 @@ services:
       - POSTHOG_SKIP_MIGRATION_CHECKS=1
       - SKIP_ASYNC_MIGRATIONS_SETUP=1
       - OBJECT_STORAGE_ENABLED=false
+      - CLICKHOUSE_REPLICATION=false
     depends_on:
       posthog-postgres:
         condition: service_healthy
@@ -362,6 +391,8 @@ services:
       posthog-kafka:
         condition: service_healthy
       posthog-kafka-init:
+        condition: service_completed_successfully
+      posthog-db-migrate:
         condition: service_completed_successfully
     networks:
       - localstack-network
@@ -401,6 +432,7 @@ services:
       - TRUSTED_PROXIES=*
       - OBJECT_STORAGE_ENABLED=false
       - POSTHOG_SKIP_MIGRATION_CHECKS=1
+      - CLICKHOUSE_REPLICATION=false
     depends_on:
       posthog-web:
         condition: service_healthy
