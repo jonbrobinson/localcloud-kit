@@ -236,7 +236,10 @@ services:
     container_name: localcloud-posthog-clickhouse
     environment:
       - CLICKHOUSE_DB=posthog
-      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+      # CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT intentionally omitted: when set to 1 it creates
+      # the default user via SQL (GRANT ALL ON *.*), which excludes NAMED COLLECTION and makes
+      # XML <grants> (in users.d/) ineffective for that user. Without it, the default user is
+      # XML-managed; users.xml already provides access_management=1 so PostHog user init still works.
     volumes:
       - posthog_clickhouse_data:/var/lib/clickhouse
       - ./posthog/clickhouse-config.xml:/etc/clickhouse-server/config.d/posthog.xml:ro
