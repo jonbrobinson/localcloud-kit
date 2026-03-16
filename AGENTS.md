@@ -122,7 +122,7 @@ POSTHOG_INTERNAL_URL=http://posthog-web:8000
 
 ## Adding a New Service
 
-When adding a new service (e.g., MailHog):
+When adding a new service (e.g., Mailpit):
 
 1. **docker-compose.yml** — add the service block with the image, ports, network, and restart policy
 2. **traefik/dynamic.yml** — add a router and service entry if it needs HTTPS routing through Traefik
