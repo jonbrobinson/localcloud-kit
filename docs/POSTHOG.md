@@ -12,12 +12,12 @@ PostHog runs with **dedicated data stores** and does not reuse the primary app P
 
 - `posthog-postgres`
 - `posthog-redis`
-- `posthog-clickhouse`
-- `posthog-kafka`
-- `posthog-zookeeper`
+- `posthog-clickhouse` (ClickHouse 25.x)
+- `posthog-kafka` (Redpanda v25.1.9, Kafka-compatible)
+- `posthog-kafka-init` (one-shot topic provisioner; exits after creating required topics)
+- `posthog-zookeeper` (for ClickHouse ReplicatedMergeTree)
 - `posthog-web`
 - `posthog-worker`
-- `posthog-plugin-server`
 
 This keeps PostHog analytics data isolated from application data.
 
@@ -109,9 +109,15 @@ curl -s -X POST "https://posthog.localcloudkit.com:3030/i/v0/e/" \
 
 ## Troubleshooting
 
-- **PostHog is stopped**: Start profile with `docker compose --profile posthog up -d`
+- **PostHog is stopped**: Start with `docker compose up -d posthog-web posthog-worker` (and all dependencies)
 - **Health endpoint unavailable**: Check logs with `make posthog-logs`
 - **Events not appearing**: Verify API key and host match `https://posthog.localcloudkit.com:3030`
 - **Domain issues**: Re-run `sudo ./scripts/setup-hosts.sh` and `./scripts/setup-mkcert.sh`
 - **ClickHouse migration fails with "TTL expression result column should have DateTime or Date type, but has DateTime64"**: PostHog’s document_embeddings migration needs DateTime64-in-TTL (25.x+). We pin to `clickhouse/clickhouse-server:25.10`.
-- **ClickHouse migration fails with "Unknown table expression identifier 'system.crash_log'"**: PostHog creates a view on `system.crash_log`; ClickHouse 26.x removed or renamed it. Use 25.10 (or another 25.x) instead of `latest`. We pin to 25.10 for compatibility.
+- **ClickHouse migration fails with "Unknown table expression identifier ‘system.crash_log’"**: PostHog creates a view on `system.crash_log`; ClickHouse 26.x removed or renamed it. Use 25.10 (or another 25.x) instead of `latest`. We pin to 25.10 for compatibility.
+- **ClickHouse or Kafka startup failures after an upgrade**: Wipe PostHog volumes to force a clean init:
+  ```bash
+  docker compose down posthog-web posthog-worker posthog-clickhouse posthog-kafka posthog-kafka-init posthog-postgres posthog-redis posthog-zookeeper
+  docker volume rm localcloud-kit_posthog_clickhouse_data localcloud-kit_posthog_kafka_data localcloud-kit_posthog_postgres_data localcloud-kit_posthog_redis_data
+  docker compose up -d
+  ```
