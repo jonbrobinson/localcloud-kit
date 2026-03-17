@@ -12,7 +12,7 @@ cloud services using LocalStack, managed through a Next.js web GUI and an
 Express.js API backend, all orchestrated via Docker Compose. No AWS account is
 required.
 
-- **Version**: 0.13.1
+- **Version**: 0.13.2
 - **License**: MIT
 - **Primary URL**: https://app-local.localcloudkit.com:3030
 
