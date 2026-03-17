@@ -5,7 +5,19 @@ All notable changes to LocalCloud Kit will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- **PostHog**: Added an optional, isolated PostHog platform service profile with dedicated Postgres/Redis/ClickHouse/Kafka/Zookeeper containers, dashboard status/docs integration, and new `docs/POSTHOG.md` + `/posthog` SDK examples page.
+
+### Changed
+
+### Fixed
+
+### Removed
+
+### Security
+
+## [0.13.2] - 2026-03-17
+
+### Fixed
+- **PostHog (beta)**: Hardened the optional PostHog profile (ClickHouse 25.10 + crash_log init, Redis 7.4 RDB compatibility, ZooKeeper healthcheck, web-only Unit/Granian startup), clarified beta status across docs/UI, and aligned Makefile/cleanup targets to fully include the profile.
 
 ## [0.13.1] - 2026-03-13
 
