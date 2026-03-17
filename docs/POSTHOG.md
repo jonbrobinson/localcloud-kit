@@ -1,6 +1,6 @@
-# PostHog (Optional Profile)
+# PostHog (Beta, Optional Profile)
 
-LocalCloud Kit includes PostHog as an **optional** platform service for local product analytics, event capture, and feature flags.
+LocalCloud Kit includes PostHog as an **optional, beta** platform service for local product analytics, event capture, and feature flags. This integration is experimental and intended for local evaluation only; APIs and behavior may change between releases.
 
 ## Why optional?
 
@@ -113,8 +113,12 @@ curl -s -X POST "https://posthog.localcloudkit.com:3030/i/v0/e/" \
 - **Health endpoint unavailable**: Check logs with `make posthog-logs`
 - **Events not appearing**: Verify API key and host match `https://posthog.localcloudkit.com:3030`
 - **Domain issues**: Re-run `sudo ./scripts/setup-hosts.sh` and `./scripts/setup-mkcert.sh`
+- **`posthog-zookeeper` is unhealthy / "dependency failed to start"**: ZooKeeper 3.7+ disables four-letter commands (e.g. `ruok`) by default. We set `ZOO_4LW_COMMANDS_WHITELIST=srvr,ruok` so the healthcheck can succeed. If you override the image or env, keep `ruok` in the whitelist.
+- **`posthog-redis` unhealthy / "Can't handle RDB format version 12"**: The data volume was written by Redis 7.4+ (RDB v12). We use `redis:7.4-alpine` so it can load. If you still see this, remove the volume and start fresh: `docker volume rm localcloud-kit_posthog_redis_data` then `docker compose --profile posthog up -d`.
+- **ClickHouse exits with "Effective user of the process (root) does not match the owner of the data (clickhouse)" (Code: 430)**: The data volume is owned by user `clickhouse` (UID 101). We set `user: "101:101"` on the service so the process runs as that user. If you still see this after a volume from another setup, remove the volume and start fresh, or `chown -R 101:101` the volume data.
 - **ClickHouse migration fails with "TTL expression result column should have DateTime or Date type, but has DateTime64"**: PostHog’s document_embeddings migration needs DateTime64-in-TTL (25.x+). We pin to `clickhouse/clickhouse-server:25.10`.
 - **ClickHouse migration fails with "Unknown table expression identifier ‘system.crash_log’"**: PostHog creates a view on `system.crash_log`; ClickHouse 26.x removed or renamed it. Use 25.10 (or another 25.x) instead of `latest`. We pin to 25.10 for compatibility.
+- **`posthog-web` crash loop / "Cannot find module '/code/nodejs/dist/index.js'" / "Nodejs services crashed!"**: The default `posthog/posthog:latest` startup runs a Node service (docker-worker) whose built file is missing in the image. We override the web service command to run only `./bin/docker-server` (Nginx Unit/Granian); core analytics work without the in-container Node worker. If you remove the `command` override, ensure the image you use includes a working Node build or pin to a known-good tag.
 - **ClickHouse or Kafka startup failures after an upgrade**: Wipe PostHog volumes to force a clean init:
   ```bash
   docker compose down posthog-web posthog-worker posthog-clickhouse posthog-kafka posthog-kafka-init posthog-postgres posthog-redis posthog-zookeeper

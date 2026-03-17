@@ -79,9 +79,9 @@ start: ## Start all services with Docker Compose (LOCALSTACK_VERSION=latest by d
 start-legacy: ## Start all services using LocalStack 4.14 (community legacy)
 	@$(MAKE) start LOCALSTACK_VERSION=4.14
 
-stop: ## Stop all Docker services
+stop: ## Stop all Docker services (includes optional PostHog profile)
 	@echo "$(YELLOW)Stopping all services...$(NC)"
-	docker compose down --remove-orphans
+	docker compose --profile posthog down --remove-orphans
 
 restart: stop start ## Restart all Docker services
 
@@ -119,15 +119,15 @@ clean-volumes: ## Clean up Docker volumes (removes all data)
 	@echo "$(YELLOW)Cleaning up Docker volumes...$(NC)"
 	@echo "$(RED)WARNING: This will remove all Docker volumes and data!$(NC)"
 	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@docker compose down -v --remove-orphans
+	@docker compose --profile posthog down -v --remove-orphans
 	@docker volume prune -f
 	@echo "$(GREEN)Docker volumes cleaned$(NC)"
 
-clean-all: ## Clean up everything including images and containers
+clean-all: ## Clean up everything including images and containers (includes PostHog profile)
 	@echo "$(YELLOW)Cleaning up all Docker resources...$(NC)"
 	@echo "$(RED)WARNING: This will remove all containers, images, and volumes!$(NC)"
 	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@docker compose down -v --rmi all --remove-orphans
+	@docker compose --profile posthog down -v --rmi all --remove-orphans
 	@docker system prune -af --volumes
 	@echo "$(GREEN)All Docker resources cleaned$(NC)"
 

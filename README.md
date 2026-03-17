@@ -2,7 +2,7 @@
 
 > **Local Cloud Development Environment**
 
-Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Lambda, API Gateway, SSM Parameter Store, Secrets Manager, Redis cache, email testing with Mailpit, and optional product analytics with PostHog.
+Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Lambda, API Gateway, SSM Parameter Store, Secrets Manager, Redis cache, email testing with Mailpit, and optional beta product analytics with PostHog.
 
 [![Version](https://img.shields.io/badge/version-0.13.1-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.13.1)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -80,7 +80,7 @@ Via Traefik (TLS — trusted cert, no browser warnings):
 - **Mailpit** (email inbox): https://mailpit.localcloudkit.com:3030
 - **pgAdmin** (database UI): https://pgadmin.localcloudkit.com:3030
 - **Keycloak** (identity & access): https://keycloak.localcloudkit.com:3030
-- **PostHog** (analytics, optional profile): https://posthog.localcloudkit.com:3030
+- **PostHog** (analytics, optional beta profile): https://posthog.localcloudkit.com:3030
 
 Direct localhost (no TLS — always available):
 
@@ -103,7 +103,7 @@ Direct localhost (no TLS — always available):
 | pgAdmin | https://pgadmin.localcloudkit.com:3030 | PostgreSQL UI |
 | PostgreSQL | localhost:5432 | Direct DB |
 | Keycloak | https://keycloak.localcloudkit.com:3030 | Identity & access |
-| PostHog | https://posthog.localcloudkit.com:3030 | Product analytics (optional profile) |
+| PostHog | https://posthog.localcloudkit.com:3030 | Product analytics (optional beta profile) |
 
 > **Note**: Run `./scripts/setup.sh` once to add subdomains to `/etc/hosts` and generate the TLS certificate.
 

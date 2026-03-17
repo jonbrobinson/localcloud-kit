@@ -49,7 +49,7 @@ export function ServicesBarSkeleton() {
       <div className="h-4 w-px bg-gray-200" />
       <ServicePillSkeleton name="PostgreSQL" />
       <div className="h-4 w-px bg-gray-200" />
-      <ServicePillSkeleton name="PostHog" />
+      <ServicePillSkeleton name="PostHog (Beta)" />
       <div className="h-4 w-px bg-gray-200" />
       <ServicePillSkeleton name="Redis" />
     </div>
