@@ -238,10 +238,10 @@ export const DOCS_HUB_ENTRIES: DocsHubEntry[] = [
   },
   {
     id: "posthog",
-    title: "PostHog",
+    title: "PostHog (Beta)",
     category: "platform-services",
     docsPath: "/posthog",
-    summary: "Product analytics and feature-flag verification in local mode.",
+    summary: "Experimental product analytics and feature-flag verification in local mode.",
     quickChecks: [
       "PostHog service is running",
       "Project API key and host match local settings",
