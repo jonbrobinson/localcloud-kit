@@ -183,8 +183,8 @@ services:
     image: axllent/mailpit:latest
     container_name: localcloud-mailpit
     ports:
-      - "1025:1025"  # SMTP
-      - "8025:8025"  # Web UI (direct access)
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI (direct access)
     networks:
       - localstack-network
     restart: unless-stopped
@@ -282,7 +282,11 @@ services:
       - localstack-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - 'http://localhost:8123/ping' | grep -q 'Ok.'"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - 'http://localhost:8123/ping' | grep -q 'Ok.'",
+        ]
       interval: 10s
       timeout: 5s
       retries: 20
@@ -322,7 +326,8 @@ services:
       - localstack-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9644/v1/status/ready || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:9644/v1/status/ready || exit 1"]
       interval: 5s
       timeout: 10s
       retries: 20
@@ -466,7 +471,11 @@ services:
     restart: unless-stopped
     healthcheck:
       # Require HTTP 200 only; body format may vary by PostHog version. start_period allows migrations to finish.
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8000/_health/ || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://localhost:8000/_health/ || exit 1",
+        ]
       interval: 30s
       timeout: 10s
       retries: 15
