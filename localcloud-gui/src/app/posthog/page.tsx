@@ -120,8 +120,8 @@ export default function PosthogPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="PostHog">
-        <ServiceStatusBadge service="posthog" name="PostHog" />
+      <DocPageNav title="LocalCloud Kit" subtitle="PostHog (Beta)">
+        <ServiceStatusBadge service="posthog" name="PostHog (Beta)" />
         <a
           href={POSTHOG_UI_URL}
           target="_blank"
@@ -134,6 +134,14 @@ export default function PosthogPage() {
       </DocPageNav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <section className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg px-4 py-3 text-sm">
+          <p className="font-medium">PostHog integration is currently in beta.</p>
+          <p className="mt-1">
+            This stack is experimental and intended for local evaluation only. APIs, behavior, and defaults
+            may change between releases.
+          </p>
+        </section>
+
         <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">About PostHog</h2>
           <p className="text-sm text-gray-600 leading-relaxed">

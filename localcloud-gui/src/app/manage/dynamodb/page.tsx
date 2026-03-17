@@ -281,7 +281,7 @@ export default function ManageDynamoDBPage() {
                   </button>
                   <button
                     onClick={() => setShowAddItem(true)}
-                    className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700"
                   >
                     <PlusIcon className="h-3.5 w-3.5" />
                     <span>Add Item</span>
@@ -299,7 +299,7 @@ export default function ManageDynamoDBPage() {
                   <p className="text-sm text-gray-400">No items in this table</p>
                   <button
                     onClick={() => setShowAddItem(true)}
-                    className="mt-3 inline-flex items-center px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800"
+                    className="mt-3 inline-flex items-center px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700"
                   >
                     <PlusIcon className="h-3.5 w-3.5 mr-1" />
                     Add first item

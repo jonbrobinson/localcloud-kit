@@ -218,7 +218,8 @@ services:
       start_period: 30s
 
   posthog-redis:
-    image: redis:7.2-alpine
+    # Use 7.4+ so existing volumes with RDB format version 12 (AOF base file) load without "Can't handle RDB format version 12"
+    image: redis:7.4-alpine
     container_name: localcloud-posthog-redis
     profiles: ["posthog"]
     command: redis-server --appendonly yes --maxmemory 200mb --maxmemory-policy allkeys-lru
@@ -238,6 +239,9 @@ services:
     image: zookeeper:3.7.0
     container_name: localcloud-posthog-zookeeper
     profiles: ["posthog"]
+    environment:
+      # Allow ruok so the healthcheck (echo ruok | nc ... | grep imok) can succeed
+      - ZOO_4LW_COMMANDS_WHITELIST=srvr,ruok
     volumes:
       - posthog_zookeeper_data:/data
       - posthog_zookeeper_datalog:/datalog
@@ -258,6 +262,8 @@ services:
     image: clickhouse/clickhouse-server:25.10
     container_name: localcloud-posthog-clickhouse
     profiles: ["posthog"]
+    # Match data volume owner so ClickHouse does not throw MISMATCHING_USERS_FOR_PROCESS_AND_DATA (430)
+    user: "101:101"
     depends_on:
       posthog-zookeeper:
         condition: service_healthy
@@ -346,6 +352,23 @@ services:
       - localstack-network
     restart: "no"
 
+  # Create system.crash_log so PostHog's migrate_clickhouse can create the custom_metrics_server_crash view.
+  # ClickHouse only creates this table on fatal crash; PostHog expects it to exist.
+  posthog-clickhouse-crash-log-init:
+    image: clickhouse/clickhouse-server:25.10
+    container_name: localcloud-posthog-clickhouse-crash-log-init
+    profiles: ["posthog"]
+    entrypoint: ["/usr/bin/clickhouse-client"]
+    command:
+      - --host=posthog-clickhouse
+      - --query=CREATE TABLE IF NOT EXISTS system.crash_log (build_id String, revision UInt32, version String, trace_full Array(String), trace Array(UInt64), query_id String, thread_id UInt64, signal Int32, timestamp_ns UInt64, event_time DateTime, event_date Date, hostname LowCardinality(String)) ENGINE = MergeTree() ORDER BY (event_date, hostname)
+    depends_on:
+      posthog-clickhouse:
+        condition: service_healthy
+    networks:
+      - localstack-network
+    restart: "no"
+
   posthog-db-migrate:
     image: posthog/posthog:latest
     container_name: localcloud-posthog-db-migrate
@@ -376,6 +399,8 @@ services:
     depends_on:
       posthog-postgres:
         condition: service_healthy
+      posthog-redis:
+        condition: service_healthy
       posthog-clickhouse:
         condition: service_healthy
       posthog-zookeeper:
@@ -390,6 +415,9 @@ services:
     image: posthog/posthog:latest
     container_name: localcloud-posthog-web
     profiles: ["posthog"]
+    # Run only the web server (Unit/Granian); default ./bin/docker also starts ./bin/docker-worker
+    # (Node) which fails with "Cannot find module '/code/nodejs/dist/index.js'" in posthog/posthog:latest.
+    command: ["./bin/docker-server"]
     environment:
       - DATABASE_URL=postgres://posthog:posthog@posthog-postgres:5432/posthog
       - REDIS_URL=redis://posthog-redis:6379/
@@ -425,6 +453,8 @@ services:
         condition: service_healthy
       posthog-clickhouse:
         condition: service_healthy
+      posthog-clickhouse-crash-log-init:
+        condition: service_completed_successfully
       posthog-kafka:
         condition: service_healthy
       posthog-kafka-init:
