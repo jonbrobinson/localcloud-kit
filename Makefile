@@ -7,6 +7,7 @@ ENVIRONMENT ?= dev
 AWS_ENDPOINT ?= http://localhost:4566
 AWS_REGION ?= us-east-1
 LOCALSTACK_VERSION ?= latest
+APP_PORT ?= 3030
 
 # Colors for output
 GREEN := \033[0;32m
@@ -40,7 +41,8 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "(setup|check)"
 	@echo ""
 	@echo "$(YELLOW)Usage Examples:$(NC)"
-	@echo "  make start                              # Start with LocalStack latest"
+	@echo "  make start                              # Start with LocalStack latest (port 3030)"
+	@echo "  make start APP_PORT=4040                # Start on a custom port (e.g. 4040)"
 	@echo "  make start LOCALSTACK_VERSION=4.14      # Start with a specific LocalStack version"
 	@echo "  make start-legacy                       # Start with LocalStack 4.14 (community legacy)"
 	@echo "  make gui-start                          # Start GUI system with Docker"
@@ -54,18 +56,18 @@ start: ## Start all services with Docker Compose (LOCALSTACK_VERSION=latest by d
 	@echo "$(GREEN)Starting LocalStack Template with Docker...$(NC)"
 	@echo "$(YELLOW)Using LocalStack version: $(LOCALSTACK_VERSION)$(NC)"
 	@mkdir -p volume/cache volume/lib volume/logs volume/tmp
-	LOCALSTACK_VERSION=$(LOCALSTACK_VERSION) docker compose up --build -d
+	LOCALSTACK_VERSION=$(LOCALSTACK_VERSION) APP_PORT=$(APP_PORT) docker compose up --build -d
 	@echo "$(GREEN)Waiting for services to be ready...$(NC)"
-	@until curl -s -k https://app-local.localcloudkit.com:3030/health > /dev/null 2>&1 || curl -s http://localhost/health > /dev/null 2>&1; do sleep 2; done
+	@until curl -s -k https://app-local.localcloudkit.com:$(APP_PORT)/health > /dev/null 2>&1 || curl -s http://localhost/health > /dev/null 2>&1; do sleep 2; done
 	@echo "$(GREEN)All services are ready!$(NC)"
 	@echo ""
 	@echo "$(GREEN)--- App URLs (via Traefik, TLS) ---$(NC)"
-	@echo "$(YELLOW)  GUI:            https://app-local.localcloudkit.com:3030$(NC)"
-	@echo "$(YELLOW)  API:            https://app-local.localcloudkit.com:3030/api$(NC)"
-	@echo "$(YELLOW)  Mailpit (mail): https://mailpit.localcloudkit.com:3030$(NC)"
-	@echo "$(YELLOW)  Keycloak:       https://keycloak.localcloudkit.com:3030$(NC)"
-	@echo "$(YELLOW)  pgAdmin:        https://pgadmin.localcloudkit.com:3030$(NC)"
-	@echo "$(YELLOW)  PostHog:        https://posthog.localcloudkit.com:3030$(NC)"
+	@echo "$(YELLOW)  GUI:            https://app-local.localcloudkit.com:$(APP_PORT)$(NC)"
+	@echo "$(YELLOW)  API:            https://app-local.localcloudkit.com:$(APP_PORT)/api$(NC)"
+	@echo "$(YELLOW)  Mailpit (mail): https://mailpit.localcloudkit.com:$(APP_PORT)$(NC)"
+	@echo "$(YELLOW)  Keycloak:       https://keycloak.localcloudkit.com:$(APP_PORT)$(NC)"
+	@echo "$(YELLOW)  pgAdmin:        https://pgadmin.localcloudkit.com:$(APP_PORT)$(NC)"
+	@echo "$(YELLOW)  PostHog:        https://posthog.localcloudkit.com:$(APP_PORT)$(NC)"
 	@echo ""
 	@echo "$(GREEN)--- Direct localhost URLs (no TLS) ---$(NC)"
 	@echo "$(YELLOW)  LocalStack:     http://localhost:4566$(NC)"
@@ -90,10 +92,10 @@ status: ## Check Docker services status
 	@docker compose ps
 	@echo ""
 	@echo "$(YELLOW)Health Checks:$(NC)"
-	@curl -s -k https://app-local.localcloudkit.com:3030/health > /dev/null 2>&1 && echo "$(GREEN)  GUI/API:   https://app-local.localcloudkit.com:3030  ✓$(NC)" || echo "$(RED)  GUI/API:   not responding$(NC)"
+	@curl -s -k https://app-local.localcloudkit.com:$(APP_PORT)/health > /dev/null 2>&1 && echo "$(GREEN)  GUI/API:   https://app-local.localcloudkit.com:$(APP_PORT)  ✓$(NC)" || echo "$(RED)  GUI/API:   not responding$(NC)"
 	@curl -s http://localhost:4566/_localstack/health > /dev/null 2>&1 && echo "$(GREEN)  LocalStack: http://localhost:4566  ✓$(NC)" || echo "$(RED)  LocalStack: not responding$(NC)"
 	@curl -s http://localhost:8025/api/v1/info > /dev/null 2>&1 && echo "$(GREEN)  Mailpit:   http://localhost:8025  ✓$(NC)" || echo "$(YELLOW)  Mailpit:   not responding (may not be running)$(NC)"
-	@curl -s -k https://posthog.localcloudkit.com:3030/_health > /dev/null 2>&1 && echo "$(GREEN)  PostHog:   https://posthog.localcloudkit.com:3030  ✓$(NC)" || echo "$(YELLOW)  PostHog:   not responding (optional profile may be stopped)$(NC)"
+	@curl -s -k https://posthog.localcloudkit.com:$(APP_PORT)/_health > /dev/null 2>&1 && echo "$(GREEN)  PostHog:   https://posthog.localcloudkit.com:$(APP_PORT)  ✓$(NC)" || echo "$(YELLOW)  PostHog:   not responding (optional profile may be stopped)$(NC)"
 
 logs: ## View Docker services logs
 	docker compose logs -f
@@ -141,7 +143,7 @@ reset-env: clean clean-all ## Full environment reset (clean resources, stop serv
 gui-start: ## Start the LocalCloud Kit GUI system with Docker
 	@echo "$(BLUE)Starting LocalCloud Kit GUI with Docker...$(NC)"
 	@docker compose up -d localcloud-gui localcloud-api nginx
-	@echo "$(GREEN)LocalCloud Kit GUI is running at https://app-local.localcloudkit.com:3030$(NC)"
+	@echo "$(GREEN)LocalCloud Kit GUI is running at https://app-local.localcloudkit.com:$(APP_PORT)$(NC)"
 
 gui-stop: ## Stop the LocalCloud Kit GUI system
 	@echo "$(YELLOW)Stopping LocalCloud Kit GUI...$(NC)"
