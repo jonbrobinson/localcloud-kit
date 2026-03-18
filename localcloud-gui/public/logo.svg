@@ -1,36 +1,35 @@
-<svg width="96" height="48" viewBox="0 0 96 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="120" height="48" viewBox="0 0 120 48" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="96" y2="48" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bg" x1="0" y1="0" x2="120" y2="48" gradientUnits="userSpaceOnUse">
       <stop stop-color="#1d4ed8"/>
       <stop offset="1" stop-color="#4338ca"/>
     </linearGradient>
   </defs>
 
-  <!-- Background -->
-  <rect width="96" height="48" rx="10" fill="url(#bg)"/>
+  <!-- Background: 120×48 with generous padding all around -->
+  <rect width="120" height="48" rx="12" fill="url(#bg)"/>
 
-  <!-- ① Cloud — cloud services -->
+  <!-- Icons occupy x=14..106, y=13..35 — 14px left/right padding, 13px top/bottom -->
+
+  <!-- ① Cloud — x=14..36 (22px wide) -->
   <g fill="white">
-    <circle cx="19" cy="19" r="5.5"/>
-    <circle cx="12" cy="23" r="4"/>
-    <circle cx="26" cy="23" r="4"/>
-    <rect x="8" y="22" width="22" height="9" rx="4.5"/>
+    <circle cx="25" cy="20" r="5"/>
+    <circle cx="18" cy="24" r="3.5"/>
+    <circle cx="32" cy="24" r="3.5"/>
+    <rect x="14" y="23" width="22" height="8" rx="4"/>
   </g>
 
   <!-- separator -->
-  <circle cx="34" cy="24" r="1.5" fill="white" opacity="0.3"/>
+  <circle cx="43" cy="24" r="1.5" fill="white" opacity="0.3"/>
 
-  <!-- ② Envelope — mailbox / messaging -->
-  <!-- clear rectangle body so the top edge is defined -->
-  <rect x="37" y="16" width="22" height="17" rx="1.5" fill="white"/>
-  <!-- flap V line inside -->
-  <path d="M37,16.5 L48,25 L59,16.5" fill="none" stroke="#3730a3" stroke-opacity="0.3" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- ② Envelope — x=49..71 (22px wide) -->
+  <rect x="49" y="16" width="22" height="16" rx="1.5" fill="white"/>
+  <path d="M49,16.5 L60,24 L71,16.5" fill="none" stroke="#3730a3" stroke-opacity="0.3" stroke-width="1.5" stroke-linejoin="round"/>
 
   <!-- separator -->
-  <circle cx="63" cy="24" r="1.5" fill="white" opacity="0.3"/>
+  <circle cx="78" cy="24" r="1.5" fill="white" opacity="0.3"/>
 
-  <!-- ③ Shield — identity / IAM -->
-  <path d="M77,35 C66,30 66,25 66,19 C66,14 69,13 77,13 C85,13 88,14 88,19 C88,25 88,30 77,35 Z" fill="white"/>
-  <!-- checkmark inside -->
-  <path d="M71,24 L75,28 L83,20" fill="none" stroke="#3730a3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- ③ Shield — x=84..106 (22px wide) -->
+  <path d="M95,35 C84,30 84,25 84,19 C84,14 87,13 95,13 C103,13 106,14 106,19 C106,25 106,30 95,35 Z" fill="white"/>
+  <path d="M89,24 L93,28 L101,20" fill="none" stroke="#3730a3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
