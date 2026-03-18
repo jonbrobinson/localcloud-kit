@@ -4,7 +4,7 @@ services:
     image: traefik:v3
     container_name: traefik
     ports:
-      - "3030:3030"
+      - "${APP_PORT:-3030}:3030"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
@@ -150,7 +150,7 @@ services:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
       - KC_HTTP_ENABLED=true
-      - KC_HOSTNAME=https://keycloak.localcloudkit.com:3030
+      - KC_HOSTNAME=https://keycloak.localcloudkit.com:${APP_PORT:-3030}
       - KC_PROXY_HEADERS=xforwarded
       - KC_HOSTNAME_STRICT=false
       - KC_HOSTNAME_STRICT_HTTPS=false
@@ -395,7 +395,7 @@ services:
       - KAFKA_HOSTS=posthog-kafka:9092
       - PRIMARY_DB=clickhouse
       - SECRET_KEY=localcloud-posthog-secret-key-change-me
-      - SITE_URL=https://posthog.localcloudkit.com:3030
+      - SITE_URL=https://posthog.localcloudkit.com:${APP_PORT:-3030}
       - DEPLOYMENT=hobby
       - OBJECT_STORAGE_ENABLED=false
       - CLICKHOUSE_REPLICATION=false
@@ -439,7 +439,7 @@ services:
       - KAFKA_HOSTS=posthog-kafka:9092
       - PRIMARY_DB=clickhouse
       - SECRET_KEY=localcloud-posthog-secret-key-change-me
-      - SITE_URL=https://posthog.localcloudkit.com:3030
+      - SITE_URL=https://posthog.localcloudkit.com:${APP_PORT:-3030}
       - IS_BEHIND_PROXY=true
       - TRUSTED_PROXIES=*
       - SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
@@ -508,7 +508,7 @@ services:
       - KAFKA_HOSTS=posthog-kafka:9092
       - PRIMARY_DB=clickhouse
       - SECRET_KEY=localcloud-posthog-secret-key-change-me
-      - SITE_URL=https://posthog.localcloudkit.com:3030
+      - SITE_URL=https://posthog.localcloudkit.com:${APP_PORT:-3030}
       - IS_BEHIND_PROXY=true
       - TRUSTED_PROXIES=*
       - DEPLOYMENT=hobby
