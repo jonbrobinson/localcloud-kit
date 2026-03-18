@@ -21,14 +21,16 @@
   <circle cx="34" cy="24" r="1.5" fill="white" opacity="0.3"/>
 
   <!-- ② Envelope — mailbox / messaging -->
-  <path d="M37,17 L48,25 L59,17 L59,33 L37,33 Z" fill="white"/>
+  <!-- clear rectangle body so the top edge is defined -->
+  <rect x="37" y="16" width="22" height="17" rx="1.5" fill="white"/>
+  <!-- flap V line inside -->
+  <path d="M37,16.5 L48,25 L59,16.5" fill="none" stroke="#3730a3" stroke-opacity="0.3" stroke-width="1.5" stroke-linejoin="round"/>
 
   <!-- separator -->
   <circle cx="63" cy="24" r="1.5" fill="white" opacity="0.3"/>
 
-  <!-- ③ Person — identity / IAM -->
-  <g fill="white">
-    <circle cx="77" cy="19" r="5"/>
-    <path d="M67,35 C67,28 71,25 77,25 C83,25 87,28 87,35 Z"/>
-  </g>
+  <!-- ③ Shield — identity / IAM -->
+  <path d="M77,35 C66,30 66,25 66,19 C66,14 69,13 77,13 C85,13 88,14 88,19 C88,25 88,30 77,35 Z" fill="white"/>
+  <!-- checkmark inside -->
+  <path d="M71,24 L75,28 L83,20" fill="none" stroke="#3730a3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
