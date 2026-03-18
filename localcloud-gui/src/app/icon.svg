@@ -9,7 +9,7 @@
   <!-- Background -->
   <rect width="64" height="64" rx="12" fill="url(#bg)"/>
 
-  <!-- ① Cloud — top center, widest -->
+  <!-- ① Cloud — top center -->
   <g fill="white">
     <circle cx="32" cy="14" r="8"/>
     <circle cx="19" cy="19" r="6"/>
@@ -18,11 +18,13 @@
   </g>
 
   <!-- ② Envelope — bottom left -->
-  <path d="M5,34 L18,43 L31,34 L31,54 L5,54 Z" fill="white"/>
+  <!-- clear rectangle body -->
+  <rect x="5" y="34" width="26" height="20" rx="1.5" fill="white"/>
+  <!-- flap V line -->
+  <path d="M5,34.5 L18,44 L31,34.5" fill="none" stroke="#3730a3" stroke-opacity="0.3" stroke-width="2" stroke-linejoin="round"/>
 
-  <!-- ③ Person — bottom right -->
-  <g fill="white">
-    <circle cx="47" cy="38" r="6"/>
-    <path d="M36,58 C36,50 40,46 47,46 C54,46 58,50 58,58 Z"/>
-  </g>
+  <!-- ③ Shield — bottom right, identity / IAM -->
+  <path d="M47,57 C35,51 35,45 35,38 C35,31 38,30 47,30 C56,30 59,31 59,38 C59,45 59,51 47,57 Z" fill="white"/>
+  <!-- checkmark inside -->
+  <path d="M40,43 L45,49 L55,37" fill="none" stroke="#3730a3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
