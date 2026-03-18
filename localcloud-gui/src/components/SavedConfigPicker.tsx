@@ -7,7 +7,7 @@ import { useState } from "react";
 import { toast } from "react-hot-toast";
 
 interface SavedConfigPickerProps {
-  resourceType: "s3" | "dynamodb" | "secrets";
+  resourceType: "s3" | "dynamodb" | "secrets" | "iam";
   onLoad: (config: SavedConfig["config"]) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   currentConfig: any;
