@@ -41,7 +41,7 @@ export default function RedisModal({ onClose }: RedisModalProps) {
         status: statusData.status,
         info: statusData.info,
       });
-      setKeys(keysData.keys || []);
+      setKeys((keysData.data || []).map((k) => k.key));
     } catch {
       setRedisInfo({ status: "unavailable" });
     } finally {

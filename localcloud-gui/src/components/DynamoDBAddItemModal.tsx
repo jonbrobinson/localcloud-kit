@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChevronDownIcon, XMarkIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { getDynamoDBTableSchema } from "@/services/api";
 
@@ -29,7 +29,7 @@ interface TableSchema {
 interface DynamoDBAddItemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (item: Record<string, any>) => void;
+  onSubmit: (item: Record<string, unknown>) => void;
   tableName: string;
   projectName: string;
   loading?: boolean;
@@ -69,8 +69,7 @@ function isAttributeEmpty(attr: NestedAttribute): boolean {
 
 // Recursive builder for DynamoDB attribute
 // Returns undefined when the attribute is effectively empty so it can be dropped cleanly
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildDynamoDBAttribute(attr: NestedAttribute): any {
+function buildDynamoDBAttribute(attr: NestedAttribute): unknown {
   if (isAttributeEmpty(attr)) return undefined;
 
   if (attr.type === "S") return { S: attr.value ?? "" };
@@ -78,7 +77,7 @@ function buildDynamoDBAttribute(attr: NestedAttribute): any {
   if (attr.type === "BOOL") return { BOOL: attr.value === "true" };
 
   if (attr.type === "M" && attr.children) {
-    const mapObj: Record<string, any> = {};
+    const mapObj: Record<string, unknown> = {};
     for (const child of attr.children) {
       if (!child.key) continue;
       const builtChild = buildDynamoDBAttribute(child);
@@ -113,7 +112,7 @@ function AttributeEditor({
   onRemove?: () => void;
   parentType?: AttributeType | null;
 }) {
-  const handleFieldChange = (field: keyof NestedAttribute, value: any) => {
+  const handleFieldChange = (field: keyof NestedAttribute, value: unknown) => {
     onChange({ ...attr, [field]: value });
   };
 
@@ -257,11 +256,34 @@ export default function DynamoDBAddItemModal({
   const [attributes, setAttributes] = useState<NestedAttribute[]>([]);
   const [error, setError] = useState("");
 
+  const loadTableSchema = useCallback(async () => {
+    setSchemaLoading(true);
+    setError("");
+    try {
+      const response = await getDynamoDBTableSchema(projectName, tableName);
+      if (response.success) {
+        setSchema(response.data);
+        // Initialize key values
+        const initialKeys: Record<string, string> = {};
+        response.data.Table.KeySchema.forEach(
+          (key: { AttributeName: string }) => {
+            initialKeys[key.AttributeName] = "";
+          }
+        );
+        setKeyValues(initialKeys);
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load table schema");
+    } finally {
+      setSchemaLoading(false);
+    }
+  }, [projectName, tableName]);
+
   useEffect(() => {
     if (isOpen && tableName) {
       loadTableSchema();
     }
-  }, [isOpen, tableName]);
+  }, [isOpen, tableName, loadTableSchema]);
 
   // Reset form state each time the modal is opened so previous values don't persist
   useEffect(() => {
@@ -282,29 +304,6 @@ export default function DynamoDBAddItemModal({
       document.body.style.overflow = "";
     };
   }, [isOpen, onClose]);
-
-  const loadTableSchema = async () => {
-    setSchemaLoading(true);
-    setError("");
-    try {
-      const response = await getDynamoDBTableSchema(projectName, tableName);
-      if (response.success) {
-        setSchema(response.data);
-        // Initialize key values
-        const initialKeys: Record<string, string> = {};
-        response.data.Table.KeySchema.forEach(
-          (key: { AttributeName: string }) => {
-            initialKeys[key.AttributeName] = "";
-          }
-        );
-        setKeyValues(initialKeys);
-      }
-    } catch (err: any) {
-      setError(err.message || "Failed to load table schema");
-    } finally {
-      setSchemaLoading(false);
-    }
-  };
 
   const handleAddAttribute = () => {
     setAttributes([...attributes, { key: "", type: "S" }]);
@@ -344,7 +343,7 @@ export default function DynamoDBAddItemModal({
     }
 
     // Build item in DynamoDB format
-    const item: Record<string, any> = {};
+    const item: Record<string, unknown> = {};
 
     // Add key values
     schema.Table.KeySchema.forEach((key: { AttributeName: string }) => {

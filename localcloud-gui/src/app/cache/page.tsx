@@ -37,8 +37,8 @@ export default function CachePage() {
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<any>(null);
-  const [allKeys, setAllKeys] = useState<any[]>([]);
+  const [status, setStatus] = useState<{ status: string; info?: unknown } | null>(null);
+  const [allKeys, setAllKeys] = useState<{ key: string; value: string }[]>([]);
   const [activeAction, setActiveAction] = useState<
     "set" | "get" | "delete" | null
   >("set");
@@ -83,8 +83,8 @@ export default function CachePage() {
       const res = await cacheApi.status();
       setStatus(res);
       setResult(null);
-    } catch (e: any) {
-      setError(e.message || "Failed to fetch status");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to fetch status");
     } finally {
       setLoading(false);
     }
@@ -106,8 +106,8 @@ export default function CachePage() {
         setActiveAction(null);
         await handleShowAllKeys();
       }
-    } catch (e: any) {
-      setError(e.message || "Failed to set key");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to set key");
     } finally {
       setLoading(false);
     }
@@ -127,8 +127,8 @@ export default function CachePage() {
         setKey("");
         setActiveAction(null);
       }
-    } catch (e: any) {
-      setError(e.message || "Failed to get key");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to get key");
     } finally {
       setLoading(false);
     }
@@ -149,8 +149,8 @@ export default function CachePage() {
         setActiveAction(null);
         await handleShowAllKeys();
       }
-    } catch (e: any) {
-      setError(e.message || "Failed to delete key");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to delete key");
     } finally {
       setLoading(false);
     }
@@ -168,8 +168,8 @@ export default function CachePage() {
           setAllKeys(keysRes.data || []);
         }
       }
-    } catch (e: any) {
-      setError(e.message || "Failed to flush cache");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to flush cache");
     } finally {
       setLoading(false);
     }
@@ -185,8 +185,8 @@ export default function CachePage() {
       } else {
         setError(res.error || "Failed to fetch keys");
       }
-    } catch (e: any) {
-      setError(e.message || "Failed to fetch keys");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to fetch keys");
     } finally {
       setLoading(false);
     }

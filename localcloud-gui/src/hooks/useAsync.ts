@@ -4,19 +4,19 @@ interface UseAsyncReturn<T> {
   data: T | null;
   loading: boolean;
   error: Error | null;
-  execute: (...args: any[]) => Promise<T>;
+  execute: (...args: unknown[]) => Promise<T>;
   reset: () => void;
 }
 
 export function useAsync<T>(
-  asyncFunction: (...args: any[]) => Promise<T>
+  asyncFunction: (...args: unknown[]) => Promise<T>
 ): UseAsyncReturn<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const execute = useCallback(
-    async (...args: any[]) => {
+    async (...args: unknown[]) => {
       setLoading(true);
       setError(null);
 

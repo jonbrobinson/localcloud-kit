@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { XMarkIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import hljs from "highlight.js";
 import { highlightThemes, HighlightTheme } from "./highlightThemes";
@@ -143,7 +143,7 @@ export default function FileViewerModal({
   const [error, setError] = useState<string | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<HighlightTheme>(theme);
 
-  const loadFileContent = async () => {
+  const loadFileContent = useCallback(async () => {
     if (!isOpen) return;
 
     setLoading(true);
@@ -168,7 +168,7 @@ export default function FileViewerModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [isOpen, bucketName, objectKey, projectName]);
 
   useEffect(() => {
     if (isOpen) {
@@ -177,7 +177,7 @@ export default function FileViewerModal({
       setFileContent(null);
       setError(null);
     }
-  }, [isOpen, projectName, bucketName, objectKey]);
+  }, [isOpen, loadFileContent]);
 
   useEffect(() => {
     setSelectedTheme(theme);
@@ -315,8 +315,8 @@ export default function FileViewerModal({
     const jsonString = fileContent.content.trim();
     try {
       prettyJson = JSON.stringify(JSON.parse(jsonString), null, 2);
-    } catch (e: any) {
-      jsonParseError = e.message || "Invalid JSON format.";
+    } catch (e: unknown) {
+      jsonParseError = e instanceof Error ? e.message : "Invalid JSON format.";
       prettyJson = jsonString;
     }
   }
@@ -503,6 +503,7 @@ export default function FileViewerModal({
                   </div>
                 )}
                 {viewerType === "image" && (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={`data:${fileContent.metadata.ContentType};base64,${fileContent.content}`}
                     alt={objectKey}
@@ -528,10 +529,10 @@ export default function FileViewerModal({
                   <div className="overflow-x-auto">
                     <table className="min-w-full text-xs border border-gray-400">
                       <tbody>
-                        {Papa.parse(fileContent.content.trim()).data.map(
-                          (row: any, i: number) => (
+                        {Papa.parse<string[]>(fileContent.content.trim()).data.map(
+                          (row, i) => (
                             <tr key={i}>
-                              {row.map((cell: any, j: number) => (
+                              {row.map((cell, j) => (
                                 <td
                                   key={j}
                                   className="border border-gray-400 px-2 py-1 whitespace-nowrap text-gray-800 font-medium"
