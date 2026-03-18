@@ -12,6 +12,7 @@ interface SavedConfigPickerProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   currentConfig: any;
   configLabel: string;
+  hideSave?: boolean;
 }
 
 export default function SavedConfigPicker({
@@ -19,6 +20,7 @@ export default function SavedConfigPicker({
   onLoad,
   currentConfig,
   configLabel,
+  hideSave = false,
 }: SavedConfigPickerProps) {
   const { profile, savedConfigs, saveConfig } = usePreferences();
   const [showSaveInput, setShowSaveInput] = useState(false);
@@ -56,17 +58,19 @@ export default function SavedConfigPicker({
           <span className="text-sm font-medium text-gray-700">Saved configs</span>
           <span className="text-xs text-gray-400">({profile.active_project_label})</span>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowSaveInput((v) => !v)}
-          className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-        >
-          {showSaveInput ? "Cancel" : `Save ${configLabel}`}
-        </button>
+        {!hideSave && (
+          <button
+            type="button"
+            onClick={() => setShowSaveInput((v) => !v)}
+            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+          >
+            {showSaveInput ? "Cancel" : `Save ${configLabel}`}
+          </button>
+        )}
       </div>
 
       {/* Save input */}
-      {showSaveInput && (
+      {!hideSave && showSaveInput && (
         <div className="flex items-center space-x-2 mb-3">
           <input
             type="text"

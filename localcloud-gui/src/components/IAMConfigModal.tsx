@@ -5,6 +5,8 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Icon } from "@iconify/react";
 import { IAMRoleConfig } from "@/types";
 import SavedConfigPicker from "./SavedConfigPicker";
+import { usePreferences } from "@/context/PreferencesContext";
+import { toast } from "react-hot-toast";
 
 // Common AWS service principals that can assume roles
 const TRUST_SERVICE_OPTIONS = [
@@ -55,6 +57,7 @@ export default function IAMConfigModal({
   projectName,
   loading = false,
 }: IAMConfigModalProps) {
+  const { saveConfig } = usePreferences();
   const [roleName, setRoleName] = useState(`${projectName}-role`);
   const [trustServices, setTrustServices] = useState<string[]>(DEFAULT_TRUST_SERVICES);
   const [description, setDescription] = useState("");
@@ -62,6 +65,10 @@ export default function IAMConfigModal({
   const [advancedMode, setAdvancedMode] = useState(false);
   const [customPolicy, setCustomPolicy] = useState("");
   const [customPolicyError, setCustomPolicyError] = useState("");
+  const [saveAsConfig, setSaveAsConfig] = useState(false);
+  const [configName, setConfigName] = useState("");
+  const [configNameTouched, setConfigNameTouched] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -83,6 +90,9 @@ export default function IAMConfigModal({
       setAdvancedMode(false);
       setCustomPolicy("");
       setCustomPolicyError("");
+      setSaveAsConfig(false);
+      setConfigName("");
+      setConfigNameTouched(false);
     }
   }, [isOpen, projectName]);
 
@@ -110,8 +120,21 @@ export default function IAMConfigModal({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handlePrettify = () => {
+    try {
+      setCustomPolicy(JSON.stringify(JSON.parse(customPolicy), null, 2));
+      setCustomPolicyError("");
+    } catch {
+      setCustomPolicyError("Invalid JSON — cannot prettify.");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saveAsConfig && !configName.trim()) {
+      setConfigNameTouched(true);
+      return;
+    }
     if (advancedMode) {
       try {
         JSON.parse(customPolicy);
@@ -131,13 +154,27 @@ export default function IAMConfigModal({
     if (advancedMode) {
       config.customPolicy = customPolicy;
     }
+    if (saveAsConfig && configName.trim()) {
+      setSaving(true);
+      try {
+        await saveConfig(configName.trim(), "iam", config);
+        toast.success(`Config "${configName.trim()}" saved`);
+      } catch {
+        toast.error("Failed to save config");
+      } finally {
+        setSaving(false);
+      }
+    }
     onSubmit(config);
   };
 
+  const configNameError = configNameTouched && saveAsConfig && !configName.trim();
   const canSubmit =
     !loading &&
+    !saving &&
     roleName.trim() !== "" &&
-    (advancedMode ? customPolicy.trim() !== "" : trustServices.length > 0);
+    (advancedMode ? customPolicy.trim() !== "" : trustServices.length > 0) &&
+    (!saveAsConfig || configName.trim() !== "");
 
   const currentConfig: Record<string, unknown> = {
     roleName,
@@ -182,6 +219,7 @@ export default function IAMConfigModal({
             onLoad={handleLoad}
             currentConfig={currentConfig}
             configLabel="IAM Role"
+            hideSave
           />
 
           {/* Role Name */}
@@ -255,16 +293,25 @@ export default function IAMConfigModal({
                 <label className="block text-sm font-medium text-gray-700">
                   Trust Policy (JSON)
                 </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAdvancedMode(false);
-                    setCustomPolicyError("");
-                  }}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  Back to selector
-                </button>
+                <div className="flex items-center space-x-3">
+                  <button
+                    type="button"
+                    onClick={handlePrettify}
+                    className="text-xs text-gray-500 hover:text-gray-700 font-medium"
+                  >
+                    Prettify
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAdvancedMode(false);
+                      setCustomPolicyError("");
+                    }}
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Back to selector
+                  </button>
+                </div>
               </div>
               <textarea
                 value={customPolicy}
@@ -328,6 +375,42 @@ export default function IAMConfigModal({
             </p>
           </div>
 
+          {/* Save as config */}
+          <div className="border-t pt-4">
+            <label className="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={saveAsConfig}
+                onChange={(e) => {
+                  setSaveAsConfig(e.target.checked);
+                  if (!e.target.checked) setConfigName("");
+                }}
+                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+              />
+              <span className="text-sm text-gray-700">Save as config</span>
+            </label>
+            {saveAsConfig && (
+              <div className="mt-3">
+                <input
+                  type="text"
+                  value={configName}
+                  onChange={(e) => setConfigName(e.target.value)}
+                  onBlur={() => setConfigNameTouched(true)}
+                  placeholder="e.g. my-lambda-role"
+                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
+                    configNameError
+                      ? "border-red-400 focus:ring-red-400 focus:border-red-400 bg-red-50"
+                      : "border-gray-300 focus:ring-red-500 focus:border-red-500"
+                  }`}
+                  autoFocus
+                />
+                {configNameError && (
+                  <p className="text-xs text-red-600 mt-1">Config name is required.</p>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Actions */}
           <div className="flex justify-end space-x-3 pt-2">
             <button
@@ -343,7 +426,7 @@ export default function IAMConfigModal({
               className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
               disabled={!canSubmit}
             >
-              {loading ? "Creating..." : "Create Role"}
+              {loading || saving ? "Creating..." : "Create Role"}
             </button>
           </div>
         </form>
