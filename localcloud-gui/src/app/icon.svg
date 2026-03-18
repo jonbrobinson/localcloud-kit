@@ -1,0 +1,27 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1d4ed8"/>
+      <stop offset="1" stop-color="#4338ca"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="64" height="64" rx="12" fill="url(#bg)"/>
+
+  <!-- Top cloud (smaller, faded) -->
+  <g opacity="0.5" fill="white">
+    <circle cx="32" cy="18" r="8"/>
+    <circle cx="21" cy="23" r="6"/>
+    <circle cx="43" cy="23" r="6"/>
+    <rect x="15" y="22" width="34" height="9" rx="4.5"/>
+  </g>
+
+  <!-- Bottom cloud (full opacity) -->
+  <g fill="white">
+    <circle cx="32" cy="42" r="9.5"/>
+    <circle cx="19" cy="48" r="8"/>
+    <circle cx="45" cy="48" r="8"/>
+    <rect x="11" y="47" width="42" height="10" rx="5"/>
+  </g>
+</svg>
