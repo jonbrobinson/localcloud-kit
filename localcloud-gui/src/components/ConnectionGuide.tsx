@@ -89,7 +89,7 @@ const CodeBlock = ({
         // Optionally remove the theme link on unmount
         // if (link) link.remove();
       };
-    }, [theme]);
+    }, []); // ClientCodeBlock remounts when theme changes, so effect always runs fresh
 
     useEffect(() => {
       // Use highlight.js to generate highlighted HTML safely
@@ -107,7 +107,7 @@ const CodeBlock = ({
       }).value;
 
       setHighlightedCode(highlighted);
-    }, [code, language]);
+    }, []); // ClientCodeBlock remounts when code/language change, so effect always runs fresh
 
     return (
       <pre className="p-4 rounded-lg overflow-x-auto">

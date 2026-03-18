@@ -11,10 +11,21 @@ import {
   Project,
   ProjectConfig,
   Resource,
+  ResourceTemplate,
   RedisStatus,
   SavedConfig,
   UserProfile,
 } from "@/types";
+
+interface CacheStatus {
+  status: "running" | "stopped" | "unknown";
+  info?: Record<string, string>;
+}
+
+interface CacheKeyEntry {
+  key: string;
+  value: string;
+}
 
 export interface DashboardData {
   localstackStatus: LocalStackStatus;
@@ -124,8 +135,8 @@ export const configApi = {
     return response.data.data!;
   },
 
-  getTemplates: async (): Promise<any[]> => {
-    const response = await api.get<ApiResponse<any[]>>("/config/templates");
+  getTemplates: async (): Promise<ResourceTemplate[]> => {
+    const response = await api.get<ApiResponse<ResourceTemplate[]>>("/config/templates");
     return response.data.data || [];
   },
 };
@@ -153,6 +164,7 @@ export const healthApi = {
 // S3 Bucket Management
 export const s3Api = {
   // List all buckets for a project
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getBuckets: async (projectName: string): Promise<ApiResponse<any[]>> => {
     try {
       const response = await fetch(
@@ -172,6 +184,7 @@ export const s3Api = {
   getBucketContents: async (
     projectName: string,
     bucketName: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<ApiResponse<any[]>> => {
     try {
       const response = await fetch(
@@ -192,6 +205,7 @@ export const s3Api = {
     projectName: string,
     bucketName: string,
     objectKey: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<ApiResponse<any>> => {
     try {
       const response = await fetch(
@@ -215,6 +229,7 @@ export const s3Api = {
     bucketName: string,
     objectKey: string,
     content: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<ApiResponse<any>> => {
     try {
       const response = await fetch(
@@ -246,6 +261,7 @@ export const s3Api = {
     bucketName: string,
     objectKey: string,
     file: File
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<ApiResponse<any>> => {
     try {
       const formData = new FormData();
@@ -275,6 +291,7 @@ export const s3Api = {
     projectName: string,
     bucketName: string,
     objectKey: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<ApiResponse<any>> => {
     try {
       const response = await fetch(
@@ -334,28 +351,28 @@ export const mailpitApi = {
 
 // Redis Cache Management
 export const cacheApi = {
-  status: async (): Promise<any> => {
-    const response = await api.get("/cache/status");
+  status: async (): Promise<CacheStatus> => {
+    const response = await api.get<CacheStatus>("/cache/status");
     return response.data;
   },
-  set: async (key: string, value: string): Promise<any> => {
-    const response = await api.post("/cache/set", { key, value });
+  set: async (key: string, value: string): Promise<ApiResponse> => {
+    const response = await api.post<ApiResponse>("/cache/set", { key, value });
     return response.data;
   },
-  get: async (key: string): Promise<any> => {
-    const response = await api.get("/cache/get", { params: { key } });
+  get: async (key: string): Promise<ApiResponse> => {
+    const response = await api.get<ApiResponse>("/cache/get", { params: { key } });
     return response.data;
   },
-  del: async (key: string): Promise<any> => {
-    const response = await api.delete("/cache/del", { data: { key } });
+  del: async (key: string): Promise<ApiResponse> => {
+    const response = await api.delete<ApiResponse>("/cache/del", { data: { key } });
     return response.data;
   },
-  flush: async (): Promise<any> => {
-    const response = await api.post("/cache/flush");
+  flush: async (): Promise<ApiResponse> => {
+    const response = await api.post<ApiResponse>("/cache/flush");
     return response.data;
   },
-  keys: async (): Promise<any> => {
-    const response = await api.get("/cache/keys");
+  keys: async (): Promise<ApiResponse<CacheKeyEntry[]>> => {
+    const response = await api.get<ApiResponse<CacheKeyEntry[]>>("/cache/keys");
     return response.data;
   },
 };
@@ -363,7 +380,7 @@ export const cacheApi = {
 export async function addDynamoDBItem(
   projectName: string,
   tableName: string,
-  item: any
+  item: Record<string, unknown>
 ) {
   const res = await fetch(`/api/dynamodb/table/${tableName}/item`, {
     method: "POST",
@@ -450,8 +467,7 @@ export const savedConfigsApi = {
     const response = await api.get<ApiResponse<SavedConfig[]>>("/saved-configs", { params });
     return response.data.data || [];
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  create: async (projectId: number, name: string, resourceType: string, config: any): Promise<SavedConfig> => {
+  create: async (projectId: number, name: string, resourceType: string, config: unknown): Promise<SavedConfig> => {
     const response = await api.post<ApiResponse<SavedConfig>>("/saved-configs", {
       project_id: projectId,
       name,
