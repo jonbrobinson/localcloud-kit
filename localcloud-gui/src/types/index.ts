@@ -99,7 +99,9 @@ export interface SSMParameterConfig {
 
 export interface IAMRoleConfig {
   roleName: string;
-  trustService: string;
+  trustServices: string[];
+  trustPolicy: string;
+  customPolicy?: string;
   description?: string;
   path?: string;
 }
@@ -223,7 +225,7 @@ export interface SavedConfig {
   id: number;
   project_id: number;
   name: string;
-  resource_type: "s3" | "dynamodb" | "secrets" | "secretsmanager" | "lambda" | "apigateway" | "ssm";
+  resource_type: "s3" | "dynamodb" | "secrets" | "secretsmanager" | "lambda" | "apigateway" | "ssm" | "iam";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: any;
   config_json: string;

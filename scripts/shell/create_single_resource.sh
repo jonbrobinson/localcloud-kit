@@ -602,38 +602,26 @@ EOF
 }
 
 create_iam_role() {
+  DEFAULT_TRUST_POLICY='{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
+
   if [ -n "$RESOURCE_CONFIG" ]; then
     ROLE_NAME=$(echo "$RESOURCE_CONFIG" | jq -r '.roleName // empty')
     DESCRIPTION=$(echo "$RESOURCE_CONFIG" | jq -r '.description // empty')
-    TRUST_SERVICE=$(echo "$RESOURCE_CONFIG" | jq -r '.trustService // "lambda"')
+    TRUST_POLICY=$(echo "$RESOURCE_CONFIG" | jq -r '.trustPolicy // empty')
     PATH_PREFIX=$(echo "$RESOURCE_CONFIG" | jq -r '.path // "/"')
 
     if [ -z "$ROLE_NAME" ]; then
       ROLE_NAME="${NAME_PREFIX}-role"
     fi
+    if [ -z "$TRUST_POLICY" ] || [ "$TRUST_POLICY" = "null" ]; then
+      TRUST_POLICY="$DEFAULT_TRUST_POLICY"
+    fi
   else
     ROLE_NAME="${NAME_PREFIX}-role"
     DESCRIPTION="Default IAM role created by LocalCloud Kit"
-    TRUST_SERVICE="lambda"
+    TRUST_POLICY="$DEFAULT_TRUST_POLICY"
     PATH_PREFIX="/"
   fi
-
-  # Build trust policy document for the given service principal
-  TRUST_POLICY=$(cat <<TRUST
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "${TRUST_SERVICE}.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-TRUST
-)
 
   CMD="$AWS_CMD iam create-role --role-name \"$ROLE_NAME\" --assume-role-policy-document '$TRUST_POLICY'"
   if [ -n "$DESCRIPTION" ] && [ "$DESCRIPTION" != "null" ]; then
@@ -647,6 +635,7 @@ TRUST
   log "Created IAM role: $ROLE_NAME"
 
   ARN="arn:aws:iam::000000000000:role${PATH_PREFIX}${ROLE_NAME}"
+  TRUST_SERVICES=$(echo "$RESOURCE_CONFIG" | jq -c '.trustServices // ["lambda"]')
 
   cat <<EOF
 {
@@ -659,7 +648,7 @@ TRUST
   "details": {
     "roleName": "$ROLE_NAME",
     "arn": "$ARN",
-    "trustService": "$TRUST_SERVICE",
+    "trustServices": $TRUST_SERVICES,
     "path": "$PATH_PREFIX",
     "description": "$DESCRIPTION"
   }
