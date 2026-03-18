@@ -15,8 +15,8 @@ export default function CacheModal({ isOpen, onClose }: CacheModalProps) {
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<any>(null);
-  const [allKeys, setAllKeys] = useState<any[]>([]);
+  const [status, setStatus] = useState<{ status: string; info?: unknown } | null>(null);
+  const [allKeys, setAllKeys] = useState<{ key: string; value: string }[]>([]);
   const [showAllKeys, setShowAllKeys] = useState(false);
   const [activeAction, setActiveAction] = useState<
     "set" | "get" | "delete" | null
@@ -49,8 +49,8 @@ export default function CacheModal({ isOpen, onClose }: CacheModalProps) {
       const res = await cacheApi.status();
       setStatus(res);
       setResult(null);
-    } catch (e: any) {
-      setError(e.message || "Failed to fetch status");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to fetch status");
     } finally {
       setLoading(false);
     }
@@ -71,8 +71,8 @@ export default function CacheModal({ isOpen, onClose }: CacheModalProps) {
         setValue("");
         setActiveAction(null);
       }
-    } catch (e: any) {
-      setError(e.message || "Failed to set key");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to set key");
     } finally {
       setLoading(false);
     }
@@ -92,8 +92,8 @@ export default function CacheModal({ isOpen, onClose }: CacheModalProps) {
         setKey("");
         setActiveAction(null);
       }
-    } catch (e: any) {
-      setError(e.message || "Failed to get key");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to get key");
     } finally {
       setLoading(false);
     }
@@ -113,8 +113,8 @@ export default function CacheModal({ isOpen, onClose }: CacheModalProps) {
         setKey("");
         setActiveAction(null);
       }
-    } catch (e: any) {
-      setError(e.message || "Failed to delete key");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to delete key");
     } finally {
       setLoading(false);
     }
@@ -134,8 +134,8 @@ export default function CacheModal({ isOpen, onClose }: CacheModalProps) {
           setShowAllKeys(true);
         }
       }
-    } catch (e: any) {
-      setError(e.message || "Failed to flush cache");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to flush cache");
     } finally {
       setLoading(false);
     }
@@ -152,8 +152,8 @@ export default function CacheModal({ isOpen, onClose }: CacheModalProps) {
       } else {
         setError(res.error || "Failed to fetch keys");
       }
-    } catch (e: any) {
-      setError(e.message || "Failed to fetch keys");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to fetch keys");
     } finally {
       setLoading(false);
     }
@@ -162,7 +162,6 @@ export default function CacheModal({ isOpen, onClose }: CacheModalProps) {
   // Fetch status when modal opens
   useEffect(() => {
     if (isOpen) fetchStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -226,8 +225,8 @@ export default function CacheModal({ isOpen, onClose }: CacheModalProps) {
                   {status.status}
                 </span>
               </div>
-              {status.info && (
-                <div className="break-all">Info: {status.info}</div>
+              {!!status.info && (
+                <div className="break-all">Info: {JSON.stringify(status.info)}</div>
               )}
             </div>
           )}

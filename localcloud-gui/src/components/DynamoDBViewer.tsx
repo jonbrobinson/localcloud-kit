@@ -17,7 +17,7 @@ import {
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import DynamoDBAddItemModal from "./DynamoDBAddItemModal";
 import DynamoDBConfigModal from "./DynamoDBConfigModal";
 import { Icon } from "@iconify/react";
@@ -33,17 +33,15 @@ interface DynamoDBViewerProps {
   skName?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface DynamoDBItem {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ScanResult {
   items: DynamoDBItem[];
   count: number;
   scannedCount: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  lastEvaluatedKey?: any;
+  lastEvaluatedKey?: unknown;
 }
 
 interface TableSchema {
@@ -83,7 +81,7 @@ export default function DynamoDBViewer({
   const [addLoading, setAddLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
-  const [selectedJsonData, setSelectedJsonData] = useState<any>(null);
+  const [selectedJsonData, setSelectedJsonData] = useState<unknown>(null);
   const [selectedJsonTitle, setSelectedJsonTitle] = useState<string>("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<DynamoDBItem | null>(null);
@@ -110,11 +108,36 @@ export default function DynamoDBViewer({
     }
   };
 
+  const loadTables = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${"/api"}/dynamodb/tables?projectName=${encodeURIComponent(
+          projectName
+        )}`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to load tables (${response.status})`);
+      }
+      const data = await response.json();
+      if (data.success) {
+        setTables(data.data || []);
+      } else {
+        throw new Error(data.error || "Failed to load tables");
+      }
+    } catch (error) {
+      console.error("Failed to load tables:", error);
+      setError(error instanceof Error ? error.message : "Failed to load tables");
+    } finally {
+      setLoading(false);
+    }
+  }, [projectName]);
+
   useEffect(() => {
     if (isOpen) {
       loadTables();
     }
-  }, [isOpen]);
+  }, [isOpen, loadTables]);
 
   useEffect(() => {
     if (isOpen && selectedTableName && tables.length > 0) {
@@ -148,32 +171,8 @@ export default function DynamoDBViewer({
       loadTableSchema();
       loadTableContents();
     }
-  }, [selectedTable]);
-
-  const loadTables = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${"/api"}/dynamodb/tables?projectName=${encodeURIComponent(
-          projectName
-        )}`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to load tables (${response.status})`);
-      }
-      const data = await response.json();
-      if (data.success) {
-        setTables(data.data || []);
-      } else {
-        throw new Error(data.error || "Failed to load tables");
-      }
-    } catch (error) {
-      console.error("Failed to load tables:", error);
-      setError(error instanceof Error ? error.message : "Failed to load tables");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTable]); // intentionally only re-run when table selection changes
 
   const refreshData = async () => {
     await loadTables();
@@ -195,19 +194,20 @@ export default function DynamoDBViewer({
   };
 
   // Helper to flatten DynamoDB item format
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const flattenDynamoDBItem = (item: any): Record<string, any> => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const flat: Record<string, any> = {};
-    for (const key in item) {
-      const value = item[key];
+  const flattenDynamoDBItem = (item: unknown): Record<string, unknown> => {
+    const flat: Record<string, unknown> = {};
+    if (typeof item !== "object" || item === null) return flat;
+    const obj = item as Record<string, unknown>;
+    for (const key in obj) {
+      const value = obj[key];
       if (typeof value === "object" && value !== null) {
-        if ("S" in value) flat[key] = value.S;
-        else if ("N" in value) flat[key] = Number(value.N);
-        else if ("BOOL" in value) flat[key] = value.BOOL;
-        else if ("NULL" in value) flat[key] = null;
-        else if ("L" in value) flat[key] = value.L.map(flattenDynamoDBItem);
-        else if ("M" in value) flat[key] = flattenDynamoDBItem(value.M);
+        const v = value as Record<string, unknown>;
+        if ("S" in v) flat[key] = v.S;
+        else if ("N" in v) flat[key] = Number(v.N);
+        else if ("BOOL" in v) flat[key] = v.BOOL;
+        else if ("NULL" in v) flat[key] = null;
+        else if ("L" in v) flat[key] = (v.L as unknown[]).map(flattenDynamoDBItem);
+        else if ("M" in v) flat[key] = flattenDynamoDBItem(v.M);
         else flat[key] = value;
       } else {
         flat[key] = value;
@@ -298,22 +298,21 @@ export default function DynamoDBViewer({
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleAddItem = async (item: any) => {
+  const handleAddItem = async (item: Record<string, unknown>) => {
     setAddLoading(true);
     setError("");
     try {
       await addDynamoDBItem(projectName, selectedTable, item);
       setAddModalOpen(false);
       await loadTableContents();
-    } catch (err: any) {
-      setError(err.message || "Failed to add item");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to add item");
     } finally {
       setAddLoading(false);
     }
   };
 
-  const formatValue = (value: any): string => {
+  const formatValue = (value: unknown): string => {
     if (value === null || value === undefined) return "";
     if (typeof value === "object") return JSON.stringify(value);
     return String(value);
@@ -361,7 +360,7 @@ export default function DynamoDBViewer({
     return key ? (key.KeyType === "HASH" ? "Partition Key" : "Sort Key") : "";
   };
 
-  const handleJsonClick = (data: any, title: string) => {
+  const handleJsonClick = (data: unknown, title: string) => {
     setSelectedJsonData(data);
     setSelectedJsonTitle(title);
     setJsonViewerOpen(true);
@@ -406,8 +405,8 @@ export default function DynamoDBViewer({
       setDeleteModalOpen(false);
       setItemToDelete(null);
       await loadTableContents(); // Refresh the table
-    } catch (err: any) {
-      setError(err.message || "Failed to delete item");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to delete item");
     } finally {
       setDeleteLoading(false);
     }

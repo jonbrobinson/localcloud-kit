@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   XMarkIcon,
   EyeIcon,
@@ -53,6 +53,24 @@ export default function SecretsDetailModal({
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const loadSecret = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/secrets/${encodeURIComponent(secretName)}?includeValue=false`);
+      const result = await res.json();
+      if (result.success) {
+        setSecret(result.data);
+        setEditDesc(result.data.Description || "");
+      } else {
+        toast.error("Failed to load secret");
+      }
+    } catch {
+      toast.error("Failed to load secret");
+    } finally {
+      setLoading(false);
+    }
+  }, [secretName]);
+
   useEffect(() => {
     if (isOpen && secretName) {
       loadSecret();
@@ -65,7 +83,7 @@ export default function SecretsDetailModal({
       setEditing(false);
       setConfirmDelete(false);
     }
-  }, [isOpen, secretName]);
+  }, [isOpen, secretName, loadSecret]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -83,24 +101,6 @@ export default function SecretsDetailModal({
       document.body.style.overflow = "";
     };
   }, [isOpen, onClose, editing, confirmDelete]);
-
-  const loadSecret = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/secrets/${encodeURIComponent(secretName)}?includeValue=false`);
-      const result = await res.json();
-      if (result.success) {
-        setSecret(result.data);
-        setEditDesc(result.data.Description || "");
-      } else {
-        toast.error("Failed to load secret");
-      }
-    } catch {
-      toast.error("Failed to load secret");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleReveal = async () => {
     if (revealed) {

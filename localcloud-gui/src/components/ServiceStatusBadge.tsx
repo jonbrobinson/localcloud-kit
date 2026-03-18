@@ -37,7 +37,7 @@ async function fetchStatus(service: ServiceKey): Promise<StatusState> {
       }
       case "redis": {
         const s = await cacheApi.status();
-        const st = s?.data?.status ?? s?.status ?? "unknown";
+        const st = s?.status ?? "unknown";
         if (st === "running") return { level: "running", label: "Running" };
         if (st === "stopped") return { level: "stopped", label: "Stopped" };
         return { level: "unknown", label: "Unknown" };
