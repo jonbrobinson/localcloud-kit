@@ -984,7 +984,7 @@ export default function Dashboard() {
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <Image src="/logo.svg" alt="LocalCloud Kit" width={80} height={40} />
+              <Image src="/logo.svg" alt="LocalCloud Kit" width={90} height={36} />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">LocalCloud Kit</h1>
                 <p className="text-xs text-gray-500">Local Cloud Development Environment • v{packageJson.version}</p>
