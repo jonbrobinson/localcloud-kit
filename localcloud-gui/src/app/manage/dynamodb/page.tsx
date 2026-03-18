@@ -184,7 +184,7 @@ export default function ManageDynamoDBPage() {
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">
-              <Image src="/logo.svg" alt="LocalCloud Kit" width={36} height={36} />
+              <Image src="/icon.svg" alt="LocalCloud Kit" width={36} height={36} />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">LocalCloud Kit</h1>
                 <p className="text-xs text-gray-500">Manage tables</p>
