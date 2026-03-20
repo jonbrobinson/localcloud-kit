@@ -1,6 +1,16 @@
 <svg width="700" height="400" viewBox="0 0 700 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Shine/depth gradient overlay (scaled from 424×224 to 700×400) -->
+    <linearGradient id="shine" x1="210" y1="-120" x2="515" y2="505" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
   <!-- Background card -->
   <rect width="700" height="400" rx="24" fill="#1B3A8C"/>
+  <!-- Gradient shine overlay -->
+  <rect width="700" height="400" rx="24" fill="url(#shine)"/>
 
   <!-- Corner brackets — top-left -->
   <polyline points="35,100 35,35 100,35" stroke="white" stroke-width="6" stroke-linecap="square" fill="none"/>
