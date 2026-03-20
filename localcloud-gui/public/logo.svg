@@ -1,6 +1,5 @@
 <svg width="700" height="400" viewBox="0 0 700 400" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Shine/depth gradient overlay (scaled from 424×224 to 700×400) -->
     <linearGradient id="shine" x1="210" y1="-120" x2="515" y2="505" gradientUnits="userSpaceOnUse">
       <stop stop-color="white" stop-opacity="0.05"/>
       <stop offset="1" stop-color="white" stop-opacity="0"/>
@@ -8,44 +7,37 @@
   </defs>
 
   <!-- Background card -->
-  <rect width="700" height="400" rx="24" fill="#1B3A8C"/>
-  <!-- Gradient shine overlay -->
-  <rect width="700" height="400" rx="24" fill="url(#shine)"/>
+  <rect width="700" height="400" rx="28" fill="#1B3A8C"/>
+  <!-- Subtle gradient shine -->
+  <rect width="700" height="400" rx="28" fill="url(#shine)"/>
 
-  <!-- Corner brackets — top-left -->
-  <polyline points="35,100 35,35 100,35" stroke="white" stroke-width="6" stroke-linecap="square" fill="none"/>
-  <!-- Corner brackets — top-right -->
-  <polyline points="665,100 665,35 600,35" stroke="white" stroke-width="6" stroke-linecap="square" fill="none"/>
-  <!-- Corner brackets — bottom-left -->
-  <polyline points="35,300 35,365 100,365" stroke="white" stroke-width="6" stroke-linecap="square" fill="none"/>
-  <!-- Corner brackets — bottom-right -->
-  <polyline points="665,300 665,365 600,365" stroke="white" stroke-width="6" stroke-linecap="square" fill="none"/>
+  <!-- Inset framing brackets — frame spans x:118–582, y:108–292 -->
+  <!-- arm length: 48px, stroke: 5.5px -->
 
-  <!-- ① Cloud — centered at (175, 195) -->
+  <!-- Top-left bracket -->
+  <polyline points="166,108 118,108 118,156" stroke="white" stroke-width="5.5" stroke-linecap="square" fill="none"/>
+  <!-- Top-right bracket -->
+  <polyline points="534,108 582,108 582,156" stroke="white" stroke-width="5.5" stroke-linecap="square" fill="none"/>
+  <!-- Bottom-left bracket -->
+  <polyline points="166,292 118,292 118,244" stroke="white" stroke-width="5.5" stroke-linecap="square" fill="none"/>
+  <!-- Bottom-right bracket -->
+  <polyline points="534,292 582,292 582,244" stroke="white" stroke-width="5.5" stroke-linecap="square" fill="none"/>
+
+  <!-- Cloud — centered at (197, 200) -->
   <g fill="white">
-    <!-- top dome -->
-    <circle cx="175" cy="170" r="44"/>
-    <!-- left lobe -->
-    <circle cx="136" cy="198" r="30"/>
-    <!-- right lobe -->
-    <circle cx="214" cy="198" r="30"/>
-    <!-- base rectangle to fill gaps -->
-    <rect x="106" y="190" width="138" height="48" rx="24"/>
+    <circle cx="197" cy="177" r="39"/>
+    <circle cx="162" cy="202" r="27"/>
+    <circle cx="232" cy="202" r="27"/>
+    <rect x="135" y="194" width="124" height="44" rx="22"/>
   </g>
 
-  <!-- ② Envelope — centered at (350, 200) -->
-  <!-- Body -->
-  <rect x="286" y="152" width="128" height="90" rx="10" fill="white"/>
-  <!-- Flap chevron (dark blue) -->
-  <path d="M286,157 L350,207 L414,157" fill="none" stroke="#1B3A8C" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- Envelope — centered at (350, 200) -->
+  <rect x="287" y="155" width="126" height="90" rx="9" fill="white"/>
+  <path d="M287,161 L350,207 L413,161"
+        fill="none" stroke="#1B3A8C" stroke-width="10"
+        stroke-linejoin="round" stroke-linecap="round"/>
 
-  <!-- ③ Shield — centered at (525, 200) -->
-  <path d="
-    M525,255
-    C486,238 474,220 474,192
-    C474,163 488,152 525,152
-    C562,152 576,163 576,192
-    C576,220 564,238 525,255
-    Z
-  " fill="white"/>
+  <!-- Shield — centered at (503, 208) -->
+  <path d="M503,148 L555,160 L555,198 C555,234 530,254 503,268 C476,254 451,234 451,198 L451,160 Z"
+        fill="white"/>
 </svg>
