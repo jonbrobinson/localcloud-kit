@@ -32,7 +32,7 @@ required.
 | `redis` | localcloud-redis | redis:7-alpine | 6380 (host) | Cache service |
 | `posthog-*` | localcloud-posthog-* | posthog/clickhouse/kafka stack | — | Product analytics stack |
 
-All services communicate over the `localstack-network` Docker bridge network.
+All services communicate over the `lck-network` Docker bridge network.
 
 ### Key Directories
 

@@ -17,7 +17,7 @@ The service being verified is: **$ARGUMENTS**
 ## 1. Docker Compose (`docker-compose.yml`)
 
 - [ ] Service block defined with correct `image`, `container_name`, `restart` policy
-- [ ] Connected to `localstack-network` bridge network
+- [ ] Connected to `lck-network` bridge network
 - [ ] Ports mapped correctly (host:container)
 - [ ] Health check defined (if applicable)
 - [ ] Environment variables use `.env` / `env.example` pattern (no hardcoded secrets)
