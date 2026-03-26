@@ -11,7 +11,7 @@ services:
       - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
       - ./traefik/certs:/certs:ro
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
 
   # AWS Emulator - MiniStack (drop-in LocalStack replacement, no account required)
@@ -34,7 +34,7 @@ services:
       - "./volume:/app/data"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
-      - localstack-network
+      - lck-network
 
   # Next.js GUI Application (with hot reload)
   gui:
@@ -51,7 +51,7 @@ services:
     depends_on:
       - api
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
     command: npm run dev
 
@@ -78,7 +78,7 @@ services:
     depends_on:
       - aws-emulator
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
     command: npm run dev
 
@@ -93,7 +93,7 @@ services:
       - api
       - aws-emulator
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -115,7 +115,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
 
   # pgAdmin - PostgreSQL Web GUI
@@ -132,7 +132,7 @@ services:
     depends_on:
       - postgres
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -160,7 +160,7 @@ services:
     tmpfs:
       - /tmp
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -176,7 +176,7 @@ services:
     ports:
       - "6380:6379"
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
 
   # Mailpit - Local Email Testing
@@ -187,7 +187,7 @@ services:
       - "1025:1025" # SMTP
       - "8025:8025" # Web UI (direct access)
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -209,7 +209,7 @@ services:
     volumes:
       - posthog_postgres_data:/var/lib/postgresql/data
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U posthog"]
@@ -227,7 +227,7 @@ services:
     volumes:
       - posthog_redis_data:/data
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -248,7 +248,7 @@ services:
       - posthog_zookeeper_datalog:/datalog
       - posthog_zookeeper_logs:/logs
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "echo ruok | nc -w2 localhost 2181 | grep imok"]
@@ -280,7 +280,7 @@ services:
       - ./posthog/clickhouse-config.xml:/etc/clickhouse-server/config.d/posthog.xml:ro
       - ./posthog/clickhouse-users.xml:/etc/clickhouse-server/users.d/localcloud-grants.xml:ro
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
     healthcheck:
       test:
@@ -324,7 +324,7 @@ services:
     volumes:
       - posthog_kafka_data:/var/lib/redpanda/data
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
     healthcheck:
       test:
@@ -355,7 +355,7 @@ services:
       posthog-kafka:
         condition: service_healthy
     networks:
-      - localstack-network
+      - lck-network
     restart: "no"
 
   # Create system.crash_log so PostHog's migrate_clickhouse can create the custom_metrics_server_crash view.
@@ -372,7 +372,7 @@ services:
       posthog-clickhouse:
         condition: service_healthy
     networks:
-      - localstack-network
+      - lck-network
     restart: "no"
 
   posthog-db-migrate:
@@ -414,7 +414,7 @@ services:
       posthog-kafka:
         condition: service_healthy
     networks:
-      - localstack-network
+      - lck-network
     restart: "no"
 
   posthog-web:
@@ -468,7 +468,7 @@ services:
       posthog-db-migrate:
         condition: service_completed_successfully
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
     healthcheck:
       # Require HTTP 200 only; body format may vary by PostHog version. start_period allows migrations to finish.
@@ -523,14 +523,14 @@ services:
       posthog-web:
         condition: service_healthy
     networks:
-      - localstack-network
+      - lck-network
     restart: unless-stopped
 
   # posthog-plugin-server removed: ./bin/plugin-server no longer ships in posthog/posthog:latest
   # The plugin server (now "CDP worker") is not required for core analytics functionality
 
 networks:
-  localstack-network:
+  lck-network:
     driver: bridge
 
 volumes:

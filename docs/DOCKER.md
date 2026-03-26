@@ -252,9 +252,9 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 
 ## Network Architecture
 
-All services run on the `localstack-network` bridge network:
+All services run on the `lck-network` bridge network:
 
-- **Network Name**: `localstack-network`
+- **Network Name**: `lck-network`
 - **Driver**: `bridge`
 - **Internal Communication**: Services communicate using service names (e.g., `gui`, `api`, `localstack`)
 
