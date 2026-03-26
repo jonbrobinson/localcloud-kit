@@ -15,15 +15,21 @@ services:
     restart: unless-stopped
 
   # AWS Emulator - MiniStack (drop-in LocalStack replacement, no account required)
+  # Port overrides for running alongside other projects:
+  #   EMULATOR_PORT=4567 docker compose up        → changes host-side AWS emulator port
+  #   RDS_BASE_PORT=15500 docker compose up        → shifts RDS instance ports up
+  #   ELASTICACHE_BASE_PORT=16400 docker compose up → shifts ElastiCache ports up
   aws-emulator:
     image: nahuelnucera/ministack:${MINISTACK_VERSION:-latest}
     container_name: aws-emulator
     ports:
-      - "4566:4566"
+      - "${EMULATOR_PORT:-4566}:4566"
     environment:
       - AWS_DEFAULT_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
+      - RDS_BASE_PORT=${RDS_BASE_PORT:-15432}
+      - ELASTICACHE_BASE_PORT=${ELASTICACHE_BASE_PORT:-16379}
     volumes:
       - "./volume:/app/data"
       - "/var/run/docker.sock:/var/run/docker.sock"

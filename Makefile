@@ -8,6 +8,9 @@ AWS_ENDPOINT ?= http://localhost:4566
 AWS_REGION ?= us-east-1
 MINISTACK_VERSION ?= latest
 APP_PORT ?= 3030
+EMULATOR_PORT ?= 4566
+RDS_BASE_PORT ?= 15432
+ELASTICACHE_BASE_PORT ?= 16379
 
 # Colors for output
 GREEN := \033[0;32m
@@ -41,21 +44,24 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "(setup|check)"
 	@echo ""
 	@echo "$(YELLOW)Usage Examples:$(NC)"
-	@echo "  make start                               # Start with MiniStack latest (port 3030)"
-	@echo "  make start APP_PORT=4040                 # Start on a custom port (e.g. 4040)"
-	@echo "  make start MINISTACK_VERSION=1.0.0       # Start with a specific MiniStack version"
-	@echo "  make gui-start                           # Start GUI system with Docker"
-	@echo "  make shell-create ENV=dev                # Create resources with Shell scripts"
-	@echo "  make clean                               # Clean up all resources"
-	@echo "  make reset                               # Reset Docker environment (stop + clean volumes)"
-	@echo "  make reset-env                           # Full environment reset (stop + clean all + volumes)"
+	@echo "  make start                                  # Start with MiniStack latest (port 3030)"
+	@echo "  make start APP_PORT=4040                    # Start GUI on a custom port"
+	@echo "  make start MINISTACK_VERSION=1.0.0          # Start with a specific MiniStack version"
+	@echo "  make start EMULATOR_PORT=4567               # Shift AWS emulator host port (multi-project)"
+	@echo "  make start RDS_BASE_PORT=15500              # Shift RDS ports (multi-project)"
+	@echo "  make start ELASTICACHE_BASE_PORT=16400      # Shift ElastiCache ports (multi-project)"
+	@echo "  make gui-start                              # Start GUI system with Docker"
+	@echo "  make shell-create ENV=dev                   # Create resources with Shell scripts"
+	@echo "  make clean                                  # Clean up all resources"
+	@echo "  make reset                                  # Reset Docker environment (stop + clean volumes)"
+	@echo "  make reset-env                              # Full environment reset (stop + clean all + volumes)"
 
 # Docker Management
 start: ## Start all services with Docker Compose (MINISTACK_VERSION=latest by default)
 	@echo "$(GREEN)Starting LocalCloud Kit with Docker...$(NC)"
 	@echo "$(YELLOW)Using MiniStack version: $(MINISTACK_VERSION)$(NC)"
 	@mkdir -p volume/cache volume/lib volume/logs volume/tmp
-	MINISTACK_VERSION=$(MINISTACK_VERSION) APP_PORT=$(APP_PORT) docker compose up --build -d
+	MINISTACK_VERSION=$(MINISTACK_VERSION) APP_PORT=$(APP_PORT) EMULATOR_PORT=$(EMULATOR_PORT) RDS_BASE_PORT=$(RDS_BASE_PORT) ELASTICACHE_BASE_PORT=$(ELASTICACHE_BASE_PORT) docker compose up --build -d
 	@echo "$(GREEN)Waiting for services to be ready...$(NC)"
 	@until curl -s -k https://app-local.localcloudkit.com:$(APP_PORT)/health > /dev/null 2>&1 || curl -s http://localhost/health > /dev/null 2>&1; do sleep 2; done
 	@echo "$(GREEN)All services are ready!$(NC)"
@@ -69,7 +75,7 @@ start: ## Start all services with Docker Compose (MINISTACK_VERSION=latest by de
 	@echo "$(YELLOW)  PostHog:        https://posthog.localcloudkit.com:$(APP_PORT)$(NC)"
 	@echo ""
 	@echo "$(GREEN)--- Direct localhost URLs (no TLS) ---$(NC)"
-	@echo "$(YELLOW)  AWS Emulator:   http://localhost:4566$(NC)"
+	@echo "$(YELLOW)  AWS Emulator:   http://localhost:$(EMULATOR_PORT)$(NC)"
 	@echo "$(YELLOW)  Express API:    http://localhost:3031$(NC)"
 	@echo "$(YELLOW)  Mailpit UI:     http://localhost:8025$(NC)"
 	@echo "$(YELLOW)  Mailpit SMTP:   localhost:1025$(NC)"
@@ -89,7 +95,7 @@ status: ## Check Docker services status
 	@echo ""
 	@echo "$(YELLOW)Health Checks:$(NC)"
 	@curl -s -k https://app-local.localcloudkit.com:$(APP_PORT)/health > /dev/null 2>&1 && echo "$(GREEN)  GUI/API:      https://app-local.localcloudkit.com:$(APP_PORT)  ✓$(NC)" || echo "$(RED)  GUI/API:      not responding$(NC)"
-	@curl -s http://localhost:4566/_localstack/health > /dev/null 2>&1 && echo "$(GREEN)  AWS Emulator: http://localhost:4566  ✓$(NC)" || echo "$(RED)  AWS Emulator: not responding$(NC)"
+	@curl -s http://localhost:$(EMULATOR_PORT)/_localstack/health > /dev/null 2>&1 && echo "$(GREEN)  AWS Emulator: http://localhost:$(EMULATOR_PORT)  ✓$(NC)" || echo "$(RED)  AWS Emulator: not responding$(NC)"
 	@curl -s http://localhost:8025/api/v1/info > /dev/null 2>&1 && echo "$(GREEN)  Mailpit:      http://localhost:8025  ✓$(NC)" || echo "$(YELLOW)  Mailpit:      not responding (may not be running)$(NC)"
 	@curl -s -k https://posthog.localcloudkit.com:$(APP_PORT)/_health > /dev/null 2>&1 && echo "$(GREEN)  PostHog:      https://posthog.localcloudkit.com:$(APP_PORT)  ✓$(NC)" || echo "$(YELLOW)  PostHog:      not responding (optional profile may be stopped)$(NC)"
 
