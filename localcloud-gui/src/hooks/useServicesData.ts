@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, startTransition } from "react";
 import {
+  EmulatorStatus,
   KeycloakStatus,
-  LocalStackStatus,
   MailpitStats,
   PostgresStatus,
   ProjectConfig,
@@ -10,14 +10,14 @@ import {
 } from "@/types";
 import { dashboardApi, keycloakApi, postgresApi } from "@/services/api";
 
-interface LocalStackData {
-  status: LocalStackStatus;
+interface AwsEmulatorData {
+  status: EmulatorStatus;
   projectConfig: ProjectConfig;
   resources: Resource[];
 }
 
 interface ServicesData {
-  localstack: LocalStackData;
+  awsEmulator: AwsEmulatorData;
   mailpit: MailpitStats;
   redis: RedisStatus;
   postgres: PostgresStatus;
@@ -26,14 +26,14 @@ interface ServicesData {
 
 export function useServicesData() {
   const [data, setData] = useState<ServicesData>({
-    localstack: {
+    awsEmulator: {
       status: {
         running: false,
         endpoint: "http://localhost:4566",
         health: "unknown",
       },
       projectConfig: {
-        projectName: "localstack-dev",
+        projectName: "localcloud-dev",
         awsEndpoint: "http://localhost:4566",
         awsRegion: "us-east-1",
       },
@@ -63,7 +63,7 @@ export function useServicesData() {
       }
 
       const payload = payloadResult.value;
-      const { localstackStatus, projectConfig, mailpit: mailpitStats, resources, redis } = payload;
+      const { emulatorStatus, projectConfig, mailpit: mailpitStats, resources, redis } = payload;
 
       const postgresStatus: PostgresStatus =
         postgresResult.status === "fulfilled" ? postgresResult.value : { status: "unknown" };
@@ -72,7 +72,7 @@ export function useServicesData() {
 
       startTransition(() => {
         setData({
-          localstack: { status: localstackStatus, projectConfig, resources },
+          awsEmulator: { status: emulatorStatus, projectConfig, resources },
           mailpit: mailpitStats,
           redis,
           postgres: postgresStatus,

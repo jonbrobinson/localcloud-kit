@@ -1,4 +1,4 @@
-export interface LocalStackStatus {
+export interface EmulatorStatus {
   running: boolean;
   endpoint: string;
   health: "healthy" | "unhealthy" | "unknown";
@@ -149,7 +149,7 @@ export interface LogEntry {
   timestamp: string;
   level: "info" | "success" | "warning" | "error";
   message: string;
-  source: "localstack" | "automation" | "gui";
+  source: "aws-emulator" | "automation" | "gui";
 }
 
 export interface CreateResourceRequest {

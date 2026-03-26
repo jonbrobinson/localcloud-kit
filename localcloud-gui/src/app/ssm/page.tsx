@@ -234,7 +234,7 @@ export default function SSMDocPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-100">
       <DocPageNav title="LocalCloud Kit" subtitle="Parameter Store">
-        <ServiceStatusBadge service="localstack" name="LocalStack" />
+        <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
           href="/manage/ssm"
           className="flex items-center px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 rounded-lg hover:bg-teal-100 transition-colors"
@@ -314,7 +314,7 @@ export default function SSMDocPage() {
                 </tr>
                 <tr>
                   <td className="px-4 py-2.5 text-gray-600">Endpoint (Docker)</td>
-                  <td className="px-4 py-2.5 font-mono text-gray-900">http://localstack:4566</td>
+                  <td className="px-4 py-2.5 font-mono text-gray-900">http://aws-emulator:4566</td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2.5 text-gray-600">Region</td>

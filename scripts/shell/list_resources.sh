@@ -2,14 +2,14 @@
 
 export AWS_PAGER=""
 
-# LocalStack Resource Listing Script
+# AWS Emulator resource Listing Script
 # Lists S3, DynamoDB, Lambda, IAM, API Gateway, Secrets Manager, and SSM resources
 # All service queries run in parallel to minimise total latency.
 
 # Configuration
 PROJECT_NAME=$1
 ENVIRONMENT=$2
-AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}
+AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://aws-emulator:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
 NAME_PREFIX="$PROJECT_NAME"
@@ -161,7 +161,7 @@ main() {
   command -v aws >/dev/null 2>&1 || { echo "AWS CLI is not installed. Please install it first." >&2; exit 1; }
   command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Please install it first." >&2; exit 1; }
   if ! curl -s --connect-timeout 5 --max-time 10 "$AWS_ENDPOINT" >/dev/null; then
-    echo "LocalStack is not running at $AWS_ENDPOINT. Please start it first." >&2
+    echo "AWS Emulator is not running at $AWS_ENDPOINT. Please start it first." >&2
     exit 1
   fi
   log "Listing resources for project: $PROJECT_NAME"

@@ -7,7 +7,7 @@ import {
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { LogEntry } from "@/types";
-import { localstackApi } from "@/services/api";
+import { awsEmulatorApi } from "@/services/api";
 
 interface LogViewerProps {
   isOpen: boolean;
@@ -17,7 +17,7 @@ interface LogViewerProps {
 export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [filter, setFilter] = useState<
-    "all" | "localstack" | "automation" | "gui" | "posthog"
+    "all" | "aws-emulator" | "automation" | "gui" | "posthog"
   >("all");
   const [autoScroll, setAutoScroll] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -45,7 +45,7 @@ export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
   const loadLogs = async () => {
     try {
       setLoading(true);
-      const logData = await localstackApi.getLogs();
+      const logData = await awsEmulatorApi.getLogs();
       setLogs(logData);
       setLastUpdated(new Date().toLocaleTimeString());
     } catch (error) {
@@ -87,7 +87,7 @@ export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
 
   const getSourceColor = (source: string) => {
     switch (source) {
-      case "localstack":
+      case "aws-emulator":
         return "bg-purple-100 text-purple-800";
       case "automation":
         return "bg-blue-100 text-blue-800";
@@ -138,7 +138,7 @@ export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
               className="px-3 py-1.5 text-sm text-gray-900 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Sources</option>
-              <option value="localstack">LocalStack</option>
+              <option value="aws-emulator">AWS Emulator</option>
               <option value="automation">Automation</option>
               <option value="gui">GUI</option>
               <option value="posthog">PostHog</option>

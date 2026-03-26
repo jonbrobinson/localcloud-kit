@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
-  localstackApi,
+  awsEmulatorApi,
   cacheApi,
   mailpitApi,
   postgresApi,
@@ -11,7 +11,7 @@ import {
 } from "@/services/api";
 
 export type ServiceKey =
-  | "localstack"
+  | "aws-emulator"
   | "redis"
   | "mailpit"
   | "postgres"
@@ -28,8 +28,8 @@ interface StatusState {
 async function fetchStatus(service: ServiceKey): Promise<StatusState> {
   try {
     switch (service) {
-      case "localstack": {
-        const s = await localstackApi.getStatus();
+      case "aws-emulator": {
+        const s = await awsEmulatorApi.getStatus();
         if (s.running && s.health === "healthy")
           return { level: "running", label: "Running" };
         if (s.running) return { level: "degraded", label: "Unhealthy" };

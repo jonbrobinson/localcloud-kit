@@ -1,26 +1,26 @@
 import { useState, useEffect, useCallback } from "react";
-import { LocalStackStatus, Resource, ProjectConfig } from "@/types";
+import { EmulatorStatus, Resource, ProjectConfig } from "@/types";
 import {
-  localstackApi,
+  awsEmulatorApi,
   resourceApi,
   configApi,
 } from "@/services/api";
 
-interface LocalStackData {
-  localstackStatus: LocalStackStatus;
+interface EmulatorData {
+  emulatorStatus: EmulatorStatus;
   projectConfig: ProjectConfig;
   resources: Resource[];
 }
 
-export function useLocalStackData() {
-  const [data, setData] = useState<LocalStackData>({
-    localstackStatus: {
+export function useEmulatorData() {
+  const [data, setData] = useState<EmulatorData>({
+    emulatorStatus: {
       running: false,
       endpoint: "http://localhost:4566",
       health: "unknown",
     },
     projectConfig: {
-      projectName: "localstack-dev",
+      projectName: "localcloud-dev",
       awsEndpoint: "http://localhost:4566",
       awsRegion: "us-east-1",
     },
@@ -32,8 +32,8 @@ export function useLocalStackData() {
   const loadData = useCallback(async () => {
     try {
       setError(null);
-      const [localstackStatus, projectConfig] = await Promise.all([
-        localstackApi.getStatus(),
+      const [emulatorStatus, projectConfig] = await Promise.all([
+        awsEmulatorApi.getStatus(),
         configApi.getProjectConfig(),
       ]);
 
@@ -44,7 +44,7 @@ export function useLocalStackData() {
       // No need to fetch them separately to avoid duplicates
 
       setData({
-        localstackStatus,
+        emulatorStatus,
         projectConfig,
         resources,
       });

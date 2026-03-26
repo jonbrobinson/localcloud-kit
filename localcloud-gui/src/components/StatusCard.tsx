@@ -1,4 +1,4 @@
-import { LocalStackStatus } from "@/types";
+import { EmulatorStatus } from "@/types";
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 interface StatusCardProps {
-  status: LocalStackStatus;
+  status: EmulatorStatus;
 }
 
 export default function StatusCard({ status }: StatusCardProps) {
@@ -51,7 +51,7 @@ export default function StatusCard({ status }: StatusCardProps) {
         <div className="flex items-center space-x-4">
           {getStatusIcon()}
           <div>
-            <h3 className="text-lg font-medium text-gray-900">LocalStack</h3>
+            <h3 className="text-lg font-medium text-gray-900">AWS Emulator</h3>
             <p className="text-sm text-gray-500">{status.endpoint}</p>
           </div>
         </div>

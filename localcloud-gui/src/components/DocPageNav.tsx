@@ -102,12 +102,12 @@ export default function DocPageNav({ title, subtitle, children }: DocPageNavProp
                     Infrastructure
                   </p>
                   <Link
-                    href="/localstack"
+                    href="/aws-emulator"
                     onClick={() => setShowDocsMenu(false)}
                     className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />
-                    LocalStack
+                    AWS Emulator
                   </Link>
 
                   {/* AWS Resources */}

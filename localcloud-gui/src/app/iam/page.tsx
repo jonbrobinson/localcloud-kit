@@ -407,7 +407,7 @@ export default function IAMDocPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100">
       <DocPageNav title="LocalCloud Kit" subtitle="IAM & STS">
-        <ServiceStatusBadge service="localstack" name="LocalStack" />
+        <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
           href="/manage/iam"
           className="flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
@@ -449,7 +449,7 @@ export default function IAMDocPage() {
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
                 <tr><td className="px-4 py-2.5 text-gray-600">Endpoint (host)</td><td className="px-4 py-2.5 font-mono text-gray-900">http://localhost:4566</td></tr>
-                <tr><td className="px-4 py-2.5 text-gray-600">Endpoint (Docker)</td><td className="px-4 py-2.5 font-mono text-gray-900">http://localstack:4566</td></tr>
+                <tr><td className="px-4 py-2.5 text-gray-600">Endpoint (Docker)</td><td className="px-4 py-2.5 font-mono text-gray-900">http://aws-emulator:4566</td></tr>
                 <tr><td className="px-4 py-2.5 text-gray-600">Region</td><td className="px-4 py-2.5 font-mono text-gray-900">us-east-1</td></tr>
                 <tr><td className="px-4 py-2.5 text-gray-600">Access Key ID</td><td className="px-4 py-2.5 font-mono text-gray-900">test</td></tr>
                 <tr><td className="px-4 py-2.5 text-gray-600">Secret Access Key</td><td className="px-4 py-2.5 font-mono text-gray-900">test</td></tr>

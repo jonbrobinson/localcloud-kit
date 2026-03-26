@@ -3,13 +3,13 @@
 set -e
 export AWS_PAGER=""
 
-# LocalStack Resource Destruction Script
+# AWS Emulator resource Destruction Script
 # Destroys specific S3, DynamoDB, Lambda, and API Gateway resources using AWS CLI
 
 # Configuration
 PROJECT_NAME=${1:-"localstack-template"}
 ENVIRONMENT=${2:-"dev"}
-AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}
+AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://aws-emulator:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
 NAME_PREFIX="$PROJECT_NAME"

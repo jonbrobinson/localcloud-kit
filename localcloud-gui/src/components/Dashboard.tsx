@@ -49,7 +49,7 @@ import IAMRolePoliciesModal from "./IAMRolePoliciesModal";
 import QuickInspectModal, { QuickInspectAction } from "./QuickInspectModal";
 
 type InspectTargetId =
-  | "localstack"
+  | "aws-emulator"
   | "s3"
   | "dynamodb"
   | "lambda"
@@ -73,7 +73,7 @@ const AWS_RESOURCE_TYPES = new Set<Resource["type"]>([
 ]);
 
 const DOC_ROUTES = [
-  "/docs", "/localstack", "/s3", "/dynamodb", "/lambda",
+  "/docs", "/aws-emulator", "/s3", "/dynamodb", "/lambda",
   "/apigateway", "/secrets", "/ssm", "/iam",
   "/redis", "/mailpit", "/postgres", "/keycloak",
 ];
@@ -86,7 +86,7 @@ export default function Dashboard() {
   }, [router]);
 
   const {
-    localstack,
+    awsEmulator,
     mailpit,
     redis,
     postgres,
@@ -96,7 +96,7 @@ export default function Dashboard() {
     refetch: loadInitialData,
   } = useServicesData();
 
-  const { status: localstackStatus, projectConfig: config, resources } = localstack;
+  const { status: emulatorStatus, projectConfig: config, resources } = awsEmulator;
   const { profile, projects, updateProfile, createProject } = usePreferences();
 
   const projectName = profile?.active_project_name || config.projectName;
@@ -772,16 +772,16 @@ export default function Dashboard() {
     });
 
     switch (inspectTarget) {
-      case "localstack":
+      case "aws-emulator":
         return {
-          title: "LocalStack",
-          subtitle: localstackStatus.running ? "AWS emulator is running locally" : "LocalStack is not running",
+          title: "AWS Emulator",
+          subtitle: emulatorStatus.running ? "AWS emulator is running locally" : "AWS Emulator is not running",
           quickChecks: [
             "Service health is healthy in the status bar",
             "Endpoint http://localhost:4566 is reachable",
             "AWS resources refresh successfully",
           ],
-          actions: withDocs("/localstack"),
+          actions: withDocs("/aws-emulator"),
         };
       case "s3":
         return {
@@ -1215,12 +1215,12 @@ export default function Dashboard() {
                       <div className="rounded-md border border-gray-100 py-1">
                         <p className="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Infrastructure</p>
                         <Link
-                          href="/localstack"
+                          href="/aws-emulator"
                           onClick={() => setShowDocsMenu(false)}
                           className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
                           <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />
-                          LocalStack
+                          AWS Emulator
                         </Link>
                       </div>
 
@@ -1560,8 +1560,8 @@ export default function Dashboard() {
                 <Link href="/docs" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm font-medium text-indigo-700 rounded-lg hover:bg-indigo-50 transition-colors">
                   <BookOpenIcon className="h-4 w-4 mr-3 text-indigo-500" />Docs Hub
                 </Link>
-                <Link href="/localstack" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />LocalStack
+                <Link href="/aws-emulator" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />AWS Emulator
                 </Link>
                 <Link href="/s3" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                   <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 shrink-0" />S3 Buckets
@@ -1640,21 +1640,21 @@ export default function Dashboard() {
 
           <div className="h-4 w-px bg-gray-200" />
 
-          {/* LocalStack */}
+          {/* AWS Emulator */}
           <div className="flex items-center space-x-2 px-3">
             <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${
-              localstackStatus.health === "healthy" ? "bg-green-500" :
-              localstackStatus.health === "unhealthy" ? "bg-red-500" : "bg-gray-400"
+              emulatorStatus.health === "healthy" ? "bg-green-500" :
+              emulatorStatus.health === "unhealthy" ? "bg-red-500" : "bg-gray-400"
             }`} />
-            <span className="text-sm font-medium text-gray-700">LocalStack</span>
+            <span className="text-sm font-medium text-gray-700">AWS Emulator</span>
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              localstackStatus.running && localstackStatus.health === "healthy"
+              emulatorStatus.running && emulatorStatus.health === "healthy"
                 ? "bg-green-100 text-green-800"
-                : localstackStatus.running ? "bg-yellow-100 text-yellow-800"
+                : emulatorStatus.running ? "bg-yellow-100 text-yellow-800"
                 : "bg-gray-100 text-gray-600"
             }`}>
-              {localstackStatus.running
-                ? localstackStatus.health === "healthy" ? "Running" : "Unhealthy"
+              {emulatorStatus.running
+                ? emulatorStatus.health === "healthy" ? "Running" : "Unhealthy"
                 : "Stopped"}
             </span>
           </div>
@@ -1705,7 +1705,7 @@ export default function Dashboard() {
           <ResourcesPanelSkeleton />
         ) : (
         <div className="mb-8">
-          {localstackStatus.running ? (
+          {emulatorStatus.running ? (
             <ResourceList
               resources={resources}
               onDestroy={handleDestroyResources}
@@ -1748,13 +1748,13 @@ export default function Dashboard() {
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">AWS Resources</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">LocalStack is not running</p>
+                  <p className="text-xs text-gray-500 mt-0.5">AWS Emulator is not running</p>
                 </div>
               </div>
               {/* Stopped state */}
               <div className="px-6 py-14 text-center">
                 <Icon icon="logos:aws" className="w-14 h-14 opacity-10 mx-auto mb-4" />
-                <h4 className="text-sm font-semibold text-gray-700 mb-1">LocalStack is stopped</h4>
+                <h4 className="text-sm font-semibold text-gray-700 mb-1">AWS Emulator is stopped</h4>
                 <p className="text-sm text-gray-500 mb-4">Start the stack to manage your AWS resources.</p>
                 <code className="inline-block bg-gray-100 text-gray-700 text-xs font-mono px-3 py-1.5 rounded-md">
                   docker compose up -d

@@ -5,7 +5,7 @@
 
 set -e
 FUNCTION_NAME="${1}"
-AWS_ENDPOINT="${AWS_ENDPOINT_URL:-http://localstack:4566}"
+AWS_ENDPOINT="${AWS_ENDPOINT_URL:-http://aws-emulator:4566}"
 AWS_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -26,7 +26,7 @@ if [ -z "$CODE_LOCATION" ] || [ "$CODE_LOCATION" = "null" ]; then
   exit 1
 fi
 
-CODE_URL=$(echo "$CODE_LOCATION" | sed 's|http://localhost:|http://localstack:|g' | sed 's|https://localhost:|https://localstack:|g')
+CODE_URL=$(echo "$CODE_LOCATION" | sed 's|http://localhost:|http://aws-emulator:|g' | sed 's|https://localhost:|https://aws-emulator:|g')
 
 ZIP_FILE="$TMP_DIR/code.zip"
 curl -sS -o "$ZIP_FILE" "$CODE_URL" 2>/dev/null || {

@@ -1,21 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
-import { LocalStackStatus, ProjectConfig } from "@/types";
-import { localstackApi, configApi } from "@/services/api";
+import { EmulatorStatus, ProjectConfig } from "@/types";
+import { awsEmulatorApi, configApi } from "@/services/api";
 
-interface LocalStackStatusData {
-  status: LocalStackStatus;
+interface EmulatorStatusData {
+  status: EmulatorStatus;
   projectConfig: ProjectConfig;
 }
 
-export function useLocalStackStatus() {
-  const [data, setData] = useState<LocalStackStatusData>({
+export function useEmulatorStatus() {
+  const [data, setData] = useState<EmulatorStatusData>({
     status: {
       running: false,
       endpoint: "http://localhost:4566",
       health: "unknown",
     },
     projectConfig: {
-      projectName: "localstack-dev",
+      projectName: "localcloud-dev",
       awsEndpoint: "http://localhost:4566",
       awsRegion: "us-east-1",
     },
@@ -27,7 +27,7 @@ export function useLocalStackStatus() {
     try {
       setError(null);
       const [status, projectConfig] = await Promise.all([
-        localstackApi.getStatus(),
+        awsEmulatorApi.getStatus(),
         configApi.getProjectConfig(),
       ]);
       setData({ status, projectConfig });

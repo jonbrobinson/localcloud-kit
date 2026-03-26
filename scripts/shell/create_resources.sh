@@ -3,12 +3,12 @@
 set -e  # Exit on any error
 export AWS_PAGER=""
 
-# LocalStack Resource Creation Script
+# AWS Emulator resource Creation Script
 # Creates S3, DynamoDB, Lambda, and API Gateway resources using AWS CLI
 
 # Configuration
 PROJECT_NAME=${1:-"localstack-template"}
-AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}
+AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://aws-emulator:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
 NAME_PREFIX="$PROJECT_NAME"

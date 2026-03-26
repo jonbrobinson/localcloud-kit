@@ -13,7 +13,7 @@ if [ -z "$PARAM_NAME" ] || [ -z "$PARAM_VALUE" ]; then
   exit 1
 fi
 
-AWS_ENDPOINT="${AWS_ENDPOINT_URL:-http://localstack:4566}"
+AWS_ENDPOINT="${AWS_ENDPOINT_URL:-http://aws-emulator:4566}"
 AWS_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 
 AWS_CMD="aws --endpoint-url=$AWS_ENDPOINT --region=$AWS_REGION"

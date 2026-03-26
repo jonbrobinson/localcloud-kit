@@ -3,7 +3,7 @@ import {
   CreateResourceRequest,
   DestroyResourceRequest,
   KeycloakStatus,
-  LocalStackStatus,
+  EmulatorStatus,
   LogEntry,
   MailpitStats,
   PosthogStatus,
@@ -28,7 +28,7 @@ interface CacheKeyEntry {
 }
 
 export interface DashboardData {
-  localstackStatus: LocalStackStatus;
+  emulatorStatus: EmulatorStatus;
   projectConfig: ProjectConfig;
   mailpit: MailpitStats;
   resources: Resource[];
@@ -43,17 +43,17 @@ const api = axios.create({
   timeout: 30000,
 });
 
-// LocalStack Management
-export const localstackApi = {
-  getStatus: async (): Promise<LocalStackStatus> => {
-    const response = await api.get<ApiResponse<LocalStackStatus>>(
-      "/localstack/status"
+// AWS Emulator Management
+export const awsEmulatorApi = {
+  getStatus: async (): Promise<EmulatorStatus> => {
+    const response = await api.get<ApiResponse<EmulatorStatus>>(
+      "/aws-emulator/status"
     );
     return response.data.data!;
   },
 
   getLogs: async (): Promise<LogEntry[]> => {
-    const response = await api.get<ApiResponse<LogEntry[]>>("/localstack/logs");
+    const response = await api.get<ApiResponse<LogEntry[]>>("/aws-emulator/logs");
     return response.data.data || [];
   },
 };

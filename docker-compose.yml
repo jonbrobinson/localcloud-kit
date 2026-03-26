@@ -14,23 +14,18 @@ services:
       - localstack-network
     restart: unless-stopped
 
-  # LocalStack - AWS Services Emulation
-  localstack:
-    image: localstack/localstack:${LOCALSTACK_VERSION:-latest}
-    container_name: localstack
+  # AWS Emulator - MiniStack (drop-in LocalStack replacement, no account required)
+  aws-emulator:
+    image: nahuelnucera/ministack:${MINISTACK_VERSION:-latest}
+    container_name: aws-emulator
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=s3,dynamodb,lambda,apigateway,iam,secretsmanager,ssm
-      - DEBUG=1
-      - DATA_DIR=/tmp/localstack/data
-      - DOCKER_HOST=unix:///var/run/docker.sock
       - AWS_DEFAULT_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
-      - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN:-}
     volumes:
-      - "./volume:/var/lib/localstack"
+      - "./volume:/app/data"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - localstack-network
@@ -75,7 +70,7 @@ services:
       - ./scripts:/app/scripts
       - localcloud-data:/app/data
     depends_on:
-      - localstack
+      - aws-emulator
     networks:
       - localstack-network
     restart: unless-stopped
@@ -90,7 +85,7 @@ services:
     depends_on:
       - gui
       - api
-      - localstack
+      - aws-emulator
     networks:
       - localstack-network
     restart: unless-stopped
@@ -533,7 +528,7 @@ networks:
     driver: bridge
 
 volumes:
-  localstack_data:
+  aws_emulator_data:
   localcloud-data:
   postgres_data:
   posthog_postgres_data:

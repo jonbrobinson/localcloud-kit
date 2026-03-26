@@ -287,7 +287,7 @@ export default function APIGatewayDocPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-50 to-rose-100">
       <DocPageNav title="LocalCloud Kit" subtitle="API Gateway">
-        <ServiceStatusBadge service="localstack" name="LocalStack" />
+        <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
           href="/manage/apigateway"
           className="flex items-center px-3 py-1.5 text-sm font-medium text-pink-700 bg-pink-50 rounded-lg hover:bg-pink-100 transition-colors"

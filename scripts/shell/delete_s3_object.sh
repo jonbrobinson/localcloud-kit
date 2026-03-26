@@ -4,18 +4,18 @@ set -e
 export AWS_PAGER=""
 
 # S3 Object Delete Script
-# Deletes files from S3 buckets in LocalStack
+# Deletes files from S3 buckets using the AWS Emulator
 
 # Configuration
 PROJECT_NAME=${1:-"localstack-template"}
 BUCKET_NAME=${2:-""}
 OBJECT_KEY=${3:-""}
-AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}
+AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://aws-emulator:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
 AWS_CMD="aws --endpoint-url=${AWS_ENDPOINT} --region=${AWS_REGION}"
 
-# Set dummy credentials for LocalStack
+# Set dummy credentials for the AWS Emulator
 export AWS_ACCESS_KEY_ID="test"
 export AWS_SECRET_ACCESS_KEY="test"
 export AWS_DEFAULT_REGION="${AWS_REGION}"

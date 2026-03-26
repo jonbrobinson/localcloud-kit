@@ -3,7 +3,7 @@ import { promisify } from "util";
 
 export const execAsync = promisify(exec);
 
-export const internalEndpoint = "http://localstack:4566";
+export const internalEndpoint = "http://aws-emulator:4566";
 export const userEndpoint = "http://localhost:4566";
 export const awsRegion = process.env.AWS_DEFAULT_REGION || "us-east-1";
 
