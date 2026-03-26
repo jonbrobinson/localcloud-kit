@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # CloudStack Solutions - Local AWS Development Environment
-# Query DynamoDB table in LocalStack
+# Query DynamoDB table in the AWS Emulator
 
 set -e
 
@@ -14,10 +14,10 @@ SORT_KEY=${5:-""}
 SORT_VALUE=${6:-""}
 LIMIT=${7:-"100"}
 INDEX_NAME=${8:-""}  # Optional GSI name
-AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}
+AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://aws-emulator:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
-# If localstack hostname is not reachable, fallback to localhost
+# If aws-emulator hostname is not reachable, fallback to localhost
 if ! curl -s --connect-timeout 1 "${AWS_ENDPOINT}" >/dev/null; then
   AWS_ENDPOINT="http://localhost:4566"
 fi
@@ -47,7 +47,7 @@ main() {
   command -v jq >/dev/null 2>&1 || { echo "jq is not installed. Please install it first." >&2; exit 1; }
   
   if ! curl -s --connect-timeout 5 --max-time 10 "$AWS_ENDPOINT" >/dev/null; then
-    echo "LocalStack is not running at $AWS_ENDPOINT. Please start it first." >&2
+    echo "AWS Emulator is not running at $AWS_ENDPOINT. Please start it first." >&2
     exit 1
   fi
   

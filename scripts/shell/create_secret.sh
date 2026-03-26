@@ -4,7 +4,7 @@ set -e  # Exit on any error
 export AWS_PAGER=""
 
 # Create Secret Script
-# Creates a secret in AWS Secrets Manager using LocalStack
+# Creates a secret in AWS Secrets Manager using the AWS Emulator
 
 # Configuration
 SECRET_NAME=${1}
@@ -13,7 +13,7 @@ DESCRIPTION=${3:-""}
 TAGS=${4:-""}
 KMS_KEY_ID=${5:-""}
 
-AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}
+AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://aws-emulator:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
 AWS_CMD="aws --endpoint-url=${AWS_ENDPOINT} --region=${AWS_REGION}"

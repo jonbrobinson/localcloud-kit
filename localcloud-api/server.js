@@ -11,7 +11,7 @@ import { getCachedResources, setCachedResources } from "./lib/resourceCache.js";
 import db from "./db.js";
 
 import healthRouter from "./routes/health.js";
-import localstackRouter, { checkLocalStackStatus } from "./routes/localstack.js";
+import awsEmulatorRouter, { checkEmulatorStatus } from "./routes/aws-emulator.js";
 import resourcesRouter from "./routes/resources.js";
 import configRouter from "./routes/config.js";
 import profileRouter from "./routes/profile.js";
@@ -55,7 +55,7 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Routes
 app.use(healthRouter);
-app.use(localstackRouter);
+app.use(awsEmulatorRouter);
 app.use(resourcesRouter);
 app.use(configRouter);
 app.use(profileRouter);
@@ -84,7 +84,7 @@ io.on("connection", (socket) => {
 
 // Scheduled tasks
 cron.schedule("*/30 * * * * *", () => {
-  checkLocalStackStatus();
+  checkEmulatorStatus();
 });
 
 // Background resource cache refresh — runs every 30 seconds server-side
@@ -108,7 +108,7 @@ cron.schedule("*/30 * * * * *", async () => {
 });
 
 // Initial status check
-setTimeout(checkLocalStackStatus, 2000);
+setTimeout(checkEmulatorStatus, 2000);
 
 const PORT = process.env.PORT || 3031;
 
@@ -117,13 +117,13 @@ server.listen(PORT, () => {
   console.log(
     `LocalCloud Kit API server running on port ${PORT}`,
     `\nEnvironment: ${process.env.NODE_ENV || "local"}`,
-    `\nLocalStack endpoint: ${process.env.LOCALSTACK_ENDPOINT || internalEndpoint}`
+    `\nAWS Emulator endpoint: ${process.env.AWS_ENDPOINT_URL || internalEndpoint}`
   );
   console.log(`
 ╔══════════════════════════════════════════════════════════════╗
-║                    🚀 LocalCloud Kit                    ║
-║  💼 Powered by CloudStack Solutions                         ║
-║  📦 LocalCloud Kit v1.0.0                               ║
+║                    LocalCloud Kit                           ║
+║  AWS Emulator: MiniStack (nahuelnucera/ministack)           ║
+║  Endpoint: http://localhost:4566                            ║
 ╚══════════════════════════════════════════════════════════════╝
   `);
 });

@@ -1,12 +1,12 @@
-# LocalStack Template Makefile
-# Provides automation for LocalStack resource management
+# LocalCloud Kit Makefile
+# Provides automation for AWS Emulator (MiniStack) resource management
 
 # Default values
-PROJECT_NAME ?= localstack-template
+PROJECT_NAME ?= localcloud-kit
 ENVIRONMENT ?= dev
 AWS_ENDPOINT ?= http://localhost:4566
 AWS_REGION ?= us-east-1
-LOCALSTACK_VERSION ?= latest
+MINISTACK_VERSION ?= latest
 APP_PORT ?= 3030
 
 # Colors for output
@@ -16,7 +16,7 @@ RED := \033[0;31m
 BLUE := \033[0;34m
 NC := \033[0m # No Color
 
-.PHONY: help start start-legacy stop restart status logs clean
+.PHONY: help start stop restart status logs clean
 .PHONY: shell-create shell-destroy shell-list
 .PHONY: gui-start gui-stop gui-restart
 .PHONY: setup check-prerequisites docker-build docker-logs
@@ -26,7 +26,7 @@ NC := \033[0m # No Color
 
 # Default target
 help: ## Show this help message
-	@echo "$(GREEN)LocalStack Template - Available Commands$(NC)"
+	@echo "$(GREEN)LocalCloud Kit - Available Commands$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Docker Management:$(NC)"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "(start|stop|restart|status|logs|clean|docker|reset)"
@@ -41,22 +41,21 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "(setup|check)"
 	@echo ""
 	@echo "$(YELLOW)Usage Examples:$(NC)"
-	@echo "  make start                              # Start with LocalStack latest (port 3030)"
-	@echo "  make start APP_PORT=4040                # Start on a custom port (e.g. 4040)"
-	@echo "  make start LOCALSTACK_VERSION=4.14      # Start with a specific LocalStack version"
-	@echo "  make start-legacy                       # Start with LocalStack 4.14 (community legacy)"
-	@echo "  make gui-start                          # Start GUI system with Docker"
-	@echo "  make shell-create ENV=dev               # Create resources with Shell scripts"
-	@echo "  make clean                              # Clean up all resources"
-	@echo "  make reset                              # Reset Docker environment (stop + clean volumes)"
-	@echo "  make reset-env                          # Full environment reset (stop + clean all + volumes)"
+	@echo "  make start                               # Start with MiniStack latest (port 3030)"
+	@echo "  make start APP_PORT=4040                 # Start on a custom port (e.g. 4040)"
+	@echo "  make start MINISTACK_VERSION=1.0.0       # Start with a specific MiniStack version"
+	@echo "  make gui-start                           # Start GUI system with Docker"
+	@echo "  make shell-create ENV=dev                # Create resources with Shell scripts"
+	@echo "  make clean                               # Clean up all resources"
+	@echo "  make reset                               # Reset Docker environment (stop + clean volumes)"
+	@echo "  make reset-env                           # Full environment reset (stop + clean all + volumes)"
 
 # Docker Management
-start: ## Start all services with Docker Compose (LOCALSTACK_VERSION=latest by default)
-	@echo "$(GREEN)Starting LocalStack Template with Docker...$(NC)"
-	@echo "$(YELLOW)Using LocalStack version: $(LOCALSTACK_VERSION)$(NC)"
+start: ## Start all services with Docker Compose (MINISTACK_VERSION=latest by default)
+	@echo "$(GREEN)Starting LocalCloud Kit with Docker...$(NC)"
+	@echo "$(YELLOW)Using MiniStack version: $(MINISTACK_VERSION)$(NC)"
 	@mkdir -p volume/cache volume/lib volume/logs volume/tmp
-	LOCALSTACK_VERSION=$(LOCALSTACK_VERSION) APP_PORT=$(APP_PORT) docker compose up --build -d
+	MINISTACK_VERSION=$(MINISTACK_VERSION) APP_PORT=$(APP_PORT) docker compose up --build -d
 	@echo "$(GREEN)Waiting for services to be ready...$(NC)"
 	@until curl -s -k https://app-local.localcloudkit.com:$(APP_PORT)/health > /dev/null 2>&1 || curl -s http://localhost/health > /dev/null 2>&1; do sleep 2; done
 	@echo "$(GREEN)All services are ready!$(NC)"
@@ -70,16 +69,13 @@ start: ## Start all services with Docker Compose (LOCALSTACK_VERSION=latest by d
 	@echo "$(YELLOW)  PostHog:        https://posthog.localcloudkit.com:$(APP_PORT)$(NC)"
 	@echo ""
 	@echo "$(GREEN)--- Direct localhost URLs (no TLS) ---$(NC)"
-	@echo "$(YELLOW)  LocalStack:     http://localhost:4566$(NC)"
+	@echo "$(YELLOW)  AWS Emulator:   http://localhost:4566$(NC)"
 	@echo "$(YELLOW)  Express API:    http://localhost:3031$(NC)"
 	@echo "$(YELLOW)  Mailpit UI:     http://localhost:8025$(NC)"
 	@echo "$(YELLOW)  Mailpit SMTP:   localhost:1025$(NC)"
 	@echo "$(YELLOW)  Keycloak:       http://localhost:8080$(NC)"
 	@echo "$(YELLOW)  pgAdmin:        http://localhost:5050$(NC)"
 	@echo ""
-
-start-legacy: ## Start all services using LocalStack 4.14 (community legacy)
-	@$(MAKE) start LOCALSTACK_VERSION=4.14
 
 stop: ## Stop all Docker services (includes optional PostHog profile)
 	@echo "$(YELLOW)Stopping all services...$(NC)"
@@ -92,16 +88,16 @@ status: ## Check Docker services status
 	@docker compose ps
 	@echo ""
 	@echo "$(YELLOW)Health Checks:$(NC)"
-	@curl -s -k https://app-local.localcloudkit.com:$(APP_PORT)/health > /dev/null 2>&1 && echo "$(GREEN)  GUI/API:   https://app-local.localcloudkit.com:$(APP_PORT)  ✓$(NC)" || echo "$(RED)  GUI/API:   not responding$(NC)"
-	@curl -s http://localhost:4566/_localstack/health > /dev/null 2>&1 && echo "$(GREEN)  LocalStack: http://localhost:4566  ✓$(NC)" || echo "$(RED)  LocalStack: not responding$(NC)"
-	@curl -s http://localhost:8025/api/v1/info > /dev/null 2>&1 && echo "$(GREEN)  Mailpit:   http://localhost:8025  ✓$(NC)" || echo "$(YELLOW)  Mailpit:   not responding (may not be running)$(NC)"
-	@curl -s -k https://posthog.localcloudkit.com:$(APP_PORT)/_health > /dev/null 2>&1 && echo "$(GREEN)  PostHog:   https://posthog.localcloudkit.com:$(APP_PORT)  ✓$(NC)" || echo "$(YELLOW)  PostHog:   not responding (optional profile may be stopped)$(NC)"
+	@curl -s -k https://app-local.localcloudkit.com:$(APP_PORT)/health > /dev/null 2>&1 && echo "$(GREEN)  GUI/API:      https://app-local.localcloudkit.com:$(APP_PORT)  ✓$(NC)" || echo "$(RED)  GUI/API:      not responding$(NC)"
+	@curl -s http://localhost:4566/_localstack/health > /dev/null 2>&1 && echo "$(GREEN)  AWS Emulator: http://localhost:4566  ✓$(NC)" || echo "$(RED)  AWS Emulator: not responding$(NC)"
+	@curl -s http://localhost:8025/api/v1/info > /dev/null 2>&1 && echo "$(GREEN)  Mailpit:      http://localhost:8025  ✓$(NC)" || echo "$(YELLOW)  Mailpit:      not responding (may not be running)$(NC)"
+	@curl -s -k https://posthog.localcloudkit.com:$(APP_PORT)/_health > /dev/null 2>&1 && echo "$(GREEN)  PostHog:      https://posthog.localcloudkit.com:$(APP_PORT)  ✓$(NC)" || echo "$(YELLOW)  PostHog:      not responding (optional profile may be stopped)$(NC)"
 
 logs: ## View Docker services logs
 	docker compose logs -f
 
 docker-logs: ## View specific service logs
-	@echo "$(YELLOW)Available services: gui, api, nginx, localstack$(NC)"
+	@echo "$(YELLOW)Available services: gui, api, nginx, aws-emulator$(NC)"
 	@echo "$(YELLOW)Usage: make docker-logs SERVICE=gui$(NC)"
 	@if [ "$(SERVICE)" != "" ]; then docker compose logs -f $(SERVICE); fi
 
@@ -204,7 +200,7 @@ posthog-logs: ## View PostHog service logs
 
 # Setup and Utilities
 setup: ## Initial setup - create directories and install dependencies
-	@echo "$(GREEN)Setting up LocalStack template...$(NC)"
+	@echo "$(GREEN)Setting up LocalCloud Kit...$(NC)"
 	@mkdir -p scripts/shell
 	@mkdir -p logs
 	@mkdir -p volume
@@ -215,4 +211,4 @@ check-prerequisites: ## Check if prerequisites are installed
 	@echo "$(YELLOW)Checking prerequisites...$(NC)"
 	@command -v docker >/dev/null 2>&1 || { echo "$(RED)Docker is required but not installed$(NC)"; exit 1; }
 	@command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1 || { echo "$(RED)Docker Compose is required but not installed$(NC)"; exit 1; }
-	@echo "$(GREEN)Prerequisites check passed$(NC)" 
+	@echo "$(GREEN)Prerequisites check passed$(NC)"

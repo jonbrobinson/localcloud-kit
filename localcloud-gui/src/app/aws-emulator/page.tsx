@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocalStackStatus } from "@/hooks/useLocalStackStatus";
+import { useEmulatorStatus } from "@/hooks/useEmulatorStatus";
 import StatusCard from "@/components/StatusCard";
 import { useEffect, useState } from "react";
 import DocPageNav from "@/components/DocPageNav";
@@ -10,7 +10,7 @@ import ServiceStatusBadge from "@/components/ServiceStatusBadge";
 
 type PageTab = "node" | "python" | "cli";
 
-// Maps PreferredLanguage → localstack tab (no typescript tab here — node is equivalent)
+// Maps PreferredLanguage → tab (no typescript tab here — node is equivalent)
 const LANG_TO_TAB: Record<string, PageTab> = {
   typescript: "node",
   node: "node",
@@ -20,8 +20,8 @@ const LANG_TO_TAB: Record<string, PageTab> = {
   cli: "cli",
 };
 
-export default function LocalStackIntegrationPage() {
-  const { status, projectConfig } = useLocalStackStatus();
+export default function AwsEmulatorPage() {
+  const { status, projectConfig } = useEmulatorStatus();
   const { profile } = usePreferences();
   const [activeTab, setActiveTab] = useState<PageTab>("node");
 
@@ -47,7 +47,7 @@ const client = new S3Client({
     accessKeyId: "test",
     secretAccessKey: "test",
   },
-  forcePathStyle: true, // required for LocalStack
+  forcePathStyle: true, // required for local emulator
 });`;
 
   const pythonExample = `import boto3
@@ -60,7 +60,7 @@ client = boto3.client(
     aws_secret_access_key="test",
 )`;
 
-  const cliExample = `# Configure AWS CLI profile for LocalStack
+  const cliExample = `# Configure AWS CLI profile for local emulator
 aws configure set aws_access_key_id test
 aws configure set aws_secret_access_key test
 aws configure set region ${projectConfig.awsRegion}
@@ -73,8 +73,8 @@ alias awslocal='aws --endpoint-url ${projectConfig.awsEndpoint}'`;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="LocalStack">
-        <ServiceStatusBadge service="localstack" name="LocalStack" />
+      <DocPageNav title="LocalCloud Kit" subtitle="AWS Emulator">
+        <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
       </DocPageNav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -107,7 +107,7 @@ alias awslocal='aws --endpoint-url ${projectConfig.awsEndpoint}'`;
                 </tr>
                 <tr>
                   <td className="px-4 py-2.5 text-gray-600">Endpoint (Docker)</td>
-                  <td className="px-4 py-2.5 font-mono text-gray-900">http://localstack:4566</td>
+                  <td className="px-4 py-2.5 font-mono text-gray-900">http://aws-emulator:4566</td>
                 </tr>
                 <tr>
                   <td className="px-4 py-2.5 text-gray-600">Region</td>
@@ -120,6 +120,10 @@ alias awslocal='aws --endpoint-url ${projectConfig.awsEndpoint}'`;
                 <tr>
                   <td className="px-4 py-2.5 text-gray-600">Secret Access Key</td>
                   <td className="px-4 py-2.5 font-mono text-gray-900">test</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2.5 text-gray-600">Powered by</td>
+                  <td className="px-4 py-2.5 font-mono text-gray-900">MiniStack (nahuelnucera/ministack)</td>
                 </tr>
               </tbody>
             </table>
@@ -154,12 +158,12 @@ alias awslocal='aws --endpoint-url ${projectConfig.awsEndpoint}'`;
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Commands</h2>
           <div className="space-y-3">
             <div>
-              <p className="text-sm text-gray-600 mb-1.5">Start LocalStack</p>
-              <ThemeableCodeBlock code="docker compose up -d localstack" language="cli" showThemeSelector={false} />
+              <p className="text-sm text-gray-600 mb-1.5">Start AWS Emulator</p>
+              <ThemeableCodeBlock code="docker compose up -d aws-emulator" language="cli" showThemeSelector={false} />
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-1.5">Stop LocalStack</p>
-              <ThemeableCodeBlock code="docker compose stop localstack" language="cli" showThemeSelector={false} />
+              <p className="text-sm text-gray-600 mb-1.5">Stop AWS Emulator</p>
+              <ThemeableCodeBlock code="docker compose stop aws-emulator" language="cli" showThemeSelector={false} />
             </div>
             <div>
               <p className="text-sm text-gray-600 mb-1.5">Check health</p>

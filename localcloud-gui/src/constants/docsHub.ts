@@ -2,7 +2,7 @@ export type DocsCategory = "infrastructure" | "aws-resources" | "platform-servic
 
 export interface DocsHubEntry {
   id:
-    | "localstack"
+    | "aws-emulator"
     | "connect"
     | "s3"
     | "dynamodb"
@@ -48,13 +48,13 @@ export const DOCS_CATEGORY_ORDER: DocsCategory[] = [
 
 export const DOCS_HUB_ENTRIES: DocsHubEntry[] = [
   {
-    id: "localstack",
-    title: "LocalStack",
+    id: "aws-emulator",
+    title: "AWS Emulator",
     category: "infrastructure",
-    docsPath: "/localstack",
-    summary: "Core AWS emulation runtime used by all AWS resource workflows.",
+    docsPath: "/aws-emulator",
+    summary: "Core AWS emulation runtime (MiniStack) used by all AWS resource workflows.",
     quickChecks: [
-      "LocalStack status is healthy",
+      "AWS Emulator status is healthy",
       "Endpoint http://localhost:4566 is reachable",
       "Resources list updates after create/destroy actions",
     ],
@@ -66,7 +66,7 @@ export const DOCS_HUB_ENTRIES: DocsHubEntry[] = [
     docsPath: "/connect",
     summary: "SDK endpoint configuration reference for local integration.",
     quickChecks: [
-      "AWS endpoint points to LocalStack",
+      "AWS endpoint points to the local emulator",
       "Credentials are test/test in local mode",
       "Region is set consistently across services",
     ],
@@ -255,9 +255,9 @@ export const DOCS_HUB_ENTRIES: DocsHubEntry[] = [
 
 export const EXTERNAL_DOCS_LINKS: ExternalDocsLink[] = [
   {
-    title: "AWS LocalStack Coverage",
-    href: "https://docs.localstack.cloud/references/coverage/",
-    description: "Service-by-service coverage details for AWS APIs in LocalStack.",
+    title: "MiniStack — Free LocalStack Alternative",
+    href: "https://ministack.org",
+    description: "MiniStack documentation — service coverage and configuration reference.",
   },
   {
     title: "AWS SDK Endpoint Configuration",

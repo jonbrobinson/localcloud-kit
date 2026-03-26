@@ -20,7 +20,7 @@ export const logger = winston.createLogger({
 
 export const state = {
   logs: [],
-  localstackStatus: {
+  emulatorStatus: {
     running: false,
     endpoint: process.env.AWS_ENDPOINT_URL || "http://localhost:4566",
     health: "unknown",

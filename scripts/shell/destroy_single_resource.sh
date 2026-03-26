@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # CloudStack Solutions - Local AWS Development Environment
-# Destroy a single AWS resource in LocalStack
+# Destroy a single AWS resource in the AWS Emulator
 
 set -e
 
@@ -9,7 +9,7 @@ set -e
 PROJECT_NAME=${1:-"localcloud-kit"}
 RESOURCE_TYPE=${2:-"s3"}
 RESOURCE_NAME=${3:-""}
-AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}
+AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://aws-emulator:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
 NAME_PREFIX="$PROJECT_NAME"
@@ -157,7 +157,7 @@ main() {
   command -v aws >/dev/null 2>&1 || { echo "AWS CLI is not installed. Please install it first." >&2; exit 1; }
   
   if ! curl -s --connect-timeout 5 --max-time 10 "$AWS_ENDPOINT" >/dev/null; then
-    echo "LocalStack is not running at $AWS_ENDPOINT. Please start it first." >&2
+    echo "AWS Emulator is not running at $AWS_ENDPOINT. Please start it first." >&2
     exit 1
   fi
   

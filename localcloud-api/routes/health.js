@@ -35,8 +35,8 @@ router.get("/dashboard", async (req, res) => {
       awsRegion,
     };
 
-    const localstackStatusForDashboard = {
-      ...state.localstackStatus,
+    const emulatorStatusForDashboard = {
+      ...state.emulatorStatus,
       endpoint: userEndpoint,
     };
 
@@ -109,7 +109,7 @@ router.get("/dashboard", async (req, res) => {
     res.json({
       success: true,
       data: {
-        localstackStatus: localstackStatusForDashboard,
+        emulatorStatus: emulatorStatusForDashboard,
         projectConfig,
         mailpit: mailpitResult,
         resources: resourcesWithExtras,

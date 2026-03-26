@@ -4,13 +4,13 @@ set -e  # Exit on any error
 export AWS_PAGER=""
 
 # Delete Secret Script
-# Deletes a secret from AWS Secrets Manager using LocalStack
+# Deletes a secret from AWS Secrets Manager using the AWS Emulator
 
 # Configuration
 SECRET_NAME=${1}
 FORCE_DELETE=${2:-"false"}
 
-AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://localstack:4566"}
+AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://aws-emulator:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
 AWS_CMD="aws --endpoint-url=${AWS_ENDPOINT} --region=${AWS_REGION}"
