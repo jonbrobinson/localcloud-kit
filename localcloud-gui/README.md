@@ -2,7 +2,7 @@
 
 > **Local AWS Development Environment** by CloudStack Solutions
 
-A modern Next.js web interface for LocalCloud Kit, providing a comprehensive GUI for AWS resource management in LocalStack environments.
+A modern Next.js web interface for LocalCloud Kit, providing a comprehensive GUI for AWS resource management via the AWS Emulator (MiniStack).
 
 ![LocalCloud Kit](https://img.shields.io/badge/LocalCloud-Kit-blue?style=for-the-badge&logo=aws)
 ![CloudStack Solutions](https://img.shields.io/badge/Powered%20by-CloudStack%20Solutions-indigo?style=for-the-badge)
@@ -11,7 +11,7 @@ A modern Next.js web interface for LocalCloud Kit, providing a comprehensive GUI
 
 ### Core Functionality
 
-- **LocalStack Management**: Start, stop, restart, and monitor LocalStack status
+- **AWS Emulator**: Monitor AWS Emulator status and health
 - **Resource Management**: Create and destroy AWS resources (S3, DynamoDB, Lambda, API Gateway)
 - **Multi-Environment Support**: Development, UAT, and Production environments
 - **Resource Templates**: Predefined templates for common AWS setups
@@ -32,10 +32,10 @@ A modern Next.js web interface for LocalCloud Kit, providing a comprehensive GUI
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Next.js GUI   │    │  Express API    │    │   LocalStack    │
+│   Next.js GUI   │    │  Express API    │    │ AWS Emulator    │
 │   (Port 3030)   │◄──►│   (Port 3031)   │◄──►│   (Port 4566)   │
 │                 │    │                 │    │                 │
-│ • Dashboard     │    │ • LocalStack    │    │ • S3 Buckets    │
+│ • Dashboard     │    │ • Emulator      │    │ • S3 Buckets    │
 │ • Resource List │    │   Management    │    │ • DynamoDB      │
 │ • Modals        │    │ • Resource Ops  │    │ • Lambda        │
 │ • Real-time     │    │                 │    │ • API Gateway   │
@@ -68,7 +68,7 @@ npm start
 
 ## 🎨 Features
 
-- **Real-time Dashboard**: Live LocalStack status monitoring
+- **Real-time Dashboard**: Live AWS Emulator status monitoring
 - **Resource Management**: Create and destroy AWS resources
 - **Log Viewer**: Real-time log monitoring with filtering
 - **Responsive Design**: Works on desktop and mobile
@@ -79,7 +79,7 @@ npm start
 ### CloudStack Solutions
 
 - **Company**: CloudStack Solutions
-- **Product**: LocalStack Manager
+- **Product**: LocalCloud Kit
 - **Version**: 1.0.0
 - **Tagline**: Local AWS Development Environment
 
@@ -108,18 +108,18 @@ NEXT_PUBLIC_API_URL=http://localhost:3031
 - **Project Name**: Used for resource naming
 - **Environment**: dev/uat/prod for resource isolation
 - **AWS Region**: Target region for resource deployment
-- **LocalStack Endpoint**: LocalStack service URL
-- **The default project name is 'localstack-dev'.**
+- **AWS Emulator Endpoint**: AWS Emulator URL (`http://localhost:4566`)
+- **The default project name is 'localcloud-kit-dev'.**
 
 ## 📊 API Endpoints
 
-### LocalStack Management
+### AWS Emulator Status
 
-- `GET /localstack/status` - Get LocalStack status
-- `POST /localstack/start` - Start LocalStack
-- `POST /localstack/stop` - Stop LocalStack
-- `POST /localstack/restart` - Restart LocalStack
-- `GET /localstack/logs` - Get logs
+- `GET /aws-emulator/status` - Get AWS Emulator status
+- 
+- 
+- 
+- `GET /aws-emulator/logs` - Get AWS Emulator logs
 
 ### Resource Management
 
@@ -164,13 +164,13 @@ npm start
 - Use environment-specific configurations
 - Regular resource cleanup
 - Monitor resource usage
-- Secure LocalStack endpoints
+- Secure AWS Emulator endpoints
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
-**LocalStack won't start**
+**AWS Emulator won't start**
 
 - Check Docker is running
 - Verify port 4566 is available
@@ -178,7 +178,7 @@ npm start
 
 **Resources not creating**
 
-- Verify LocalStack is healthy
+- Verify AWS Emulator is healthy
 - Check automation script permissions
 - Review logs for specific errors
 
@@ -190,7 +190,7 @@ npm start
 
 ### Logs
 
-- **LocalStack Logs**: Docker container logs
+- **AWS Emulator Logs**: Docker container logs
 - **API Logs**: `localcloud-api/logs/`
 - **GUI Logs**: Browser developer tools
 
@@ -212,7 +212,7 @@ npm start
 
 ## 📄 License
 
-**LocalStack Manager** by CloudStack Solutions
+**AWS Emulator** by LocalCloud Kit
 
 - **License**: MIT
 - **Copyright**: © 2024 CloudStack Solutions
@@ -222,7 +222,7 @@ npm start
 
 ### Documentation
 
-- [LocalStack Documentation](https://docs.localstack.cloud/)
+- [MiniStack](https://github.com/nahuelnucera/ministack)
 - [AWS Services Guide](https://docs.aws.amazon.com/)
 - [CloudStack Solutions](https://cloudstacksolutions.com/)
 

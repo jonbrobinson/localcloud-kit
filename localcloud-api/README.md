@@ -2,7 +2,7 @@
 
 > **Backend API Service** by CloudStack Solutions
 
-A robust Express.js API server for LocalCloud Kit, providing RESTful endpoints for AWS resource management in LocalStack environments.
+A robust Express.js API server for LocalCloud Kit, providing RESTful endpoints for AWS resource management via the AWS Emulator (MiniStack).
 
 ![Express](https://img.shields.io/badge/Express-API%20Server-green?style=for-the-badge&logo=express)
 ![CloudStack Solutions](https://img.shields.io/badge/Powered%20by-CloudStack%20Solutions-indigo?style=for-the-badge)
@@ -13,7 +13,7 @@ A robust Express.js API server for LocalCloud Kit, providing RESTful endpoints f
 
 - Node.js 18+
 - Docker & Docker Compose
-- LocalStack setup (see main project README)
+- AWS Emulator running (see main project README)
 
 ### Installation & Launch
 
@@ -39,11 +39,11 @@ A robust Express.js API server for LocalCloud Kit, providing RESTful endpoints f
 
 - **Resource Management**: Create, list, and destroy AWS resources
 - **Real-time Logging**: Live log streaming with Socket.IO
-- **Health Monitoring**: LocalStack status and health checks
+- **Health Monitoring**: AWS Emulator status and health checks
 - **Template Support**: Predefined resource templates
 - **Web GUI**: Modern Next.js interface
 
-### LocalStack Management
+### AWS Emulator Management
 
 - **Health Monitoring**: Real-time status checking
 - **Log Management**: Comprehensive logging with Winston
@@ -73,10 +73,10 @@ A robust Express.js API server for LocalCloud Kit, providing RESTful endpoints f
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Next.js GUI   │    │  Express API    │    │   LocalStack    │
+│   Next.js GUI   │    │  Express API    │    │ AWS Emulator    │
 │   (Port 3030)   │◄──►│   (Port 3031)   │◄──►│   (Port 4566)   │
 │                 │    │                 │    │                 │
-│ • Dashboard     │    │ • LocalStack    │    │ • S3 Buckets    │
+│ • Dashboard     │    │ • Emulator      │    │ • S3 Buckets    │
 │ • Resource List │    │   Management    │    │ • DynamoDB      │
 │ • Modals        │    │ • Resource Ops  │    │ • Lambda        │
 │ • Real-time     │    │                 │    │ • API Gateway   │
@@ -107,26 +107,26 @@ Returns server health status and version information.
 {
   "status": "ok",
   "timestamp": "2024-01-01T00:00:00.000Z",
-  "service": "LocalStack Manager API",
+  "service": "AWS Emulator API",
   "vendor": "CloudStack Solutions",
   "version": "1.0.0"
 }
 ```
 
-### LocalStack Management
+### AWS Emulator Management
 
 #### Get Status
 
 ```http
-GET /localstack/status
+GET /aws-emulator/status
 ```
 
-Returns current LocalStack status and health information.
+Returns current AWS Emulator status and health information.
 
 #### Get Logs
 
 ```http
-GET /localstack/logs
+GET /aws-emulator/logs
 ```
 
 Returns application logs with filtering options.
@@ -199,8 +199,8 @@ Returns available resource templates.
 PORT=3031
 NODE_ENV=development
 
-# LocalStack Configuration
-LOCALSTACK_ENDPOINT=http://localhost:4566
+# AWS Emulator Configuration
+AWS_ENDPOINT_URL=http://localhost:4566
 
 # Logging Configuration
 LOG_LEVEL=info
@@ -294,10 +294,10 @@ lsof -i :3031
 npm install
 ```
 
-**LocalStack operations failing**
+**AWS Emulator operations failing**
 
 ```bash
-# Check LocalStack health
+# Check AWS Emulator health
 curl http://localhost:4566/_localstack/health
 
 # Check logs
@@ -313,7 +313,7 @@ ls -la ../scripts/shell/
 # Check AWS credentials
 aws configure list
 
-# Check LocalStack status
+# Check AWS Emulator status
 curl http://localhost:4566/_localstack/health
 ```
 
@@ -338,8 +338,8 @@ The API provides comprehensive health monitoring:
 # Basic health check
 curl http://localhost:3031/health
 
-# LocalStack status
-curl http://localhost:3031/localstack/status
+# AWS Emulator status
+curl http://localhost:3031/aws-emulator/status
 
 # Resource status
 curl http://localhost:3031/resources/status
@@ -350,7 +350,7 @@ curl http://localhost:3031/resources/status
 - Request count and response times
 - Error rates and types
 - Resource operation success rates
-- LocalStack uptime and health
+- AWS Emulator uptime and health
 
 ## 🔄 Real-time Updates
 
@@ -374,7 +374,7 @@ io.on("connection", (socket) => {
 ### Event Types
 
 - **log**: New log entries
-- **status**: LocalStack status changes
+- **status**: AWS Emulator status changes
 - **resource**: Resource operation updates
 - **error**: Error notifications
 
@@ -412,13 +412,13 @@ The API orchestrates automation scripts:
 
 ### External Services
 
-- **LocalStack**: AWS service emulation
+- **AWS Emulator (MiniStack)**: AWS service emulation
 - **Docker**: Container management
 - **AWS CLI**: Command-line tools
 
 ## 📄 License
 
-**LocalStack Manager API Server** by CloudStack Solutions
+**AWS Emulator API Server** by LocalCloud Kit
 
 - **License**: MIT
 - **Copyright**: © 2024 CloudStack Solutions
@@ -429,7 +429,7 @@ The API orchestrates automation scripts:
 ### Documentation
 
 - [Express.js Documentation](https://expressjs.com/)
-- [LocalStack Documentation](https://docs.localstack.cloud/)
+- [MiniStack](https://github.com/nahuelnucera/ministack)
 - [CloudStack Solutions](https://cloudstacksolutions.com/)
 
 ### Community

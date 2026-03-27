@@ -65,19 +65,19 @@ make start
 **What happens:**
 
 - Builds Docker images (if needed)
-- Starts all services (Traefik, Nginx, GUI, API, LocalStack, Redis)
+- Starts all services (Traefik, Nginx, GUI, API, AWS Emulator, Redis)
 - Waits for services to be ready
 - Displays access URLs
 
 **Expected output:**
 
 ```
-Starting LocalStack Template with Docker...
+Starting LocalCloud Kit with Docker...
 Waiting for services to be ready...
 All services are ready! Access them via Traefik:
 GUI: https://app-local.localcloudkit.com:3030
 API: https://app-local.localcloudkit.com:3030/api
-LocalStack: http://localhost:4566
+AWS Emulator: http://localhost:4566
 ```
 
 ### Step 3: Open in Your Browser
@@ -105,7 +105,7 @@ curl -k https://app-local.localcloudkit.com:3030/api/health
 | --------------- | ---------------------------------------------- | -------------------------- |
 | **Web GUI**     | `https://app-local.localcloudkit.com:3030`     | Main application dashboard |
 | **API**         | `https://app-local.localcloudkit.com:3030/api` | REST API endpoints         |
-| **LocalStack**  | `http://localhost:4566`                        | Direct AWS services access |
+| **AWS Emulator**  | `http://localhost:4566`                        | Direct AWS services access |
 | **Express API** | `http://localhost:3031`                        | API server (direct)        |
 
 > **Note**: Add to `/etc/hosts`: `127.0.0.1 app-local.localcloudkit.com`
@@ -235,7 +235,7 @@ brew install awscli
 # Ubuntu/Debian
 sudo apt-get install awscli
 
-# Configure for LocalStack
+# Configure for AWS Emulator
 aws configure set aws_access_key_id test
 aws configure set aws_secret_access_key test
 aws configure set region us-east-1
@@ -268,7 +268,7 @@ aws configure set output json
 - **First time?** The certificate setup only needs to run once
 - **Hot reload enabled** - Edit code and see changes instantly
 - **No AWS account needed** - Everything runs locally
-- **Data persists** - LocalStack data is saved in `volume/` directory
+- **Data persists** - AWS Emulator data is saved in `volume/` directory
 
 ---
 

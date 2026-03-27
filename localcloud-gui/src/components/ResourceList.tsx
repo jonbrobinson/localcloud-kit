@@ -439,7 +439,7 @@ export default function ResourceList({
             </div>
             <h4 className="text-sm font-semibold text-gray-900 mb-1 text-center">Building your first AWS resource...</h4>
             <p className="text-sm text-gray-500 text-center">
-              This can take a few seconds while LocalStack provisions and saves it.
+              This can take a few seconds while the emulator provisions and saves it.
             </p>
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
               {[0, 1, 2, 3].map((idx) => (

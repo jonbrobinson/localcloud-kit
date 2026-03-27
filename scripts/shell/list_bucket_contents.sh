@@ -7,7 +7,7 @@ export AWS_PAGER=""
 # Lists files and folders in S3 buckets with metadata
 
 # Configuration
-PROJECT_NAME=${1:-"localstack-template"}
+PROJECT_NAME=${1:-"localcloud-kit"}
 ENVIRONMENT=${2:-"dev"}
 BUCKET_NAME=${3:-""}
 AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://aws-emulator:4566"}

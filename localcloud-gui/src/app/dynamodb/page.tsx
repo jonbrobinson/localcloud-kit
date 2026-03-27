@@ -123,7 +123,7 @@ print(response["Items"])
 
 # Delete an item
 table.delete_item(Key={"id": "user-1"})`,
-  cli: `# Configure the AWS CLI for LocalStack
+  cli: `# Configure the AWS CLI for AWS Emulator
 export AWS_ACCESS_KEY_ID=test
 export AWS_SECRET_ACCESS_KEY=test
 export AWS_DEFAULT_REGION=us-east-1
@@ -172,9 +172,9 @@ const externalResources = [
     description: "Complete boto3 DynamoDB client and resource reference for Python.",
   },
   {
-    name: "LocalStack DynamoDB Coverage",
-    url: "https://docs.localstack.cloud/references/coverage/coverage_dynamodb/",
-    description: "Which DynamoDB API operations are supported by LocalStack.",
+    name: "MiniStack GitHub",
+    url: "https://github.com/nahuelnucera/ministack",
+    description: "MiniStack AWS emulator - supported operations",
   },
 ];
 
@@ -213,7 +213,7 @@ export default function DynamoDBDocPage() {
         <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">About DynamoDB</h2>
           <p className="text-sm text-gray-600 leading-relaxed">
-            LocalCloud Kit emulates <strong>Amazon DynamoDB</strong> via LocalStack — a fully managed,
+            LocalCloud Kit emulates <strong>Amazon DynamoDB</strong> via the AWS Emulator (MiniStack) — a fully managed,
             serverless, key-value NoSQL database. DynamoDB is optimized for high-performance applications
             at any scale, with single-digit millisecond performance.
           </p>

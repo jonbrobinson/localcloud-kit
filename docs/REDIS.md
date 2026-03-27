@@ -4,7 +4,7 @@ LocalCloud Kit includes full Redis cache support for local development and testi
 
 ## Features
 
-- **Standalone Redis**: Runs as a container alongside LocalStack and the API
+- **Standalone Redis**: Runs as a container alongside the AWS Emulator and the API
 - **Full CRUD Operations**: Set, get, delete, and flush cache keys
 - **List All Keys**: View all keys and values in the cache
 - **JSON-Aware**: Pretty-prints JSON values in the GUI

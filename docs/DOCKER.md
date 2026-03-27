@@ -39,7 +39,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
     │   Next.js GUI   │              │  Express API    │
     │   (Port 3030)   │              │   (Port 3031)   │
     │                 │              │                 │
-    │ • Dashboard     │              │ • LocalStack    │
+    │ • Dashboard     │              │ • AWS Emulator  │
     │ • Resource List │              │   Management    │
     │ • Modals        │              │ • Resource Ops  │
     │ • Hot Reload    │              │ • Socket.IO     │
@@ -49,13 +49,13 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
                           │                  │                  │
                           ▼                  ▼                  ▼
                 ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-                │   LocalStack    │ │   Redis Cache   │ │   Shell Scripts │
-                │   (Port 4566)   │ │   (Port 6379)   │ │                 │
-                │                 │ │                 │ │ • Cache ops     │
+                │  AWS Emulator   │ │   Redis Cache   │ │   Shell Scripts │
+                │  (MiniStack)    │ │   (Port 6379)   │ │                 │
+                │  (Port 4566)    │ │                 │ │ • Cache ops     │
                 │ • S3 Buckets    │ │ • Standalone    │ │ • Resource mgmt │
                 │ • DynamoDB      │ │   cache service │ │                 │
                 │ • Lambda        │ │ • Independent   │ └─────────────────┘
-                │ • Secrets Mgr   │ │   of LocalStack │
+                │ • Secrets Mgr   │ │   of emulator   │
                 └─────────────────┘ └─────────────────┘
 ```
 
@@ -109,7 +109,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
    - **PostHog** (optional profile): https://posthog.localcloudkit.com:3030
 
    Direct localhost (no TLS):
-   - **LocalStack**: http://localhost:4566
+   - **AWS Emulator**: http://localhost:4566
    - **Express API**: http://localhost:3031
    - **Mailpit UI**: http://localhost:8025
 
@@ -121,16 +121,16 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 - **API Endpoints**: `https://app-local.localcloudkit.com:3030/api/*`
 - **WebSocket (Socket.IO)**: `wss://app-local.localcloudkit.com:3030/ws/socket.io`
 - **Health Check**: `https://app-local.localcloudkit.com:3030/health`
-- **LocalStack Health**: `https://app-local.localcloudkit.com:3030/localstack/health`
+- **AWS Emulator Health**: `https://app-local.localcloudkit.com:3030/aws-emulator/health`
 - **PostHog** (optional profile): `https://posthog.localcloudkit.com:3030`
 
 ### Direct Access (bypassing Traefik)
 
-- **LocalStack**: `http://localhost:4566` (for AWS CLI)
+- **AWS Emulator**: `http://localhost:4566` (for AWS CLI)
 - **Express API**: `http://localhost:3031` (for direct API access)
 - **Redis**: `localhost:6380` (for direct Redis access)
 
-> **Note**: The URLs above are for accessing the application from your host machine. Within the container network, services communicate using internal hostnames (e.g., `localstack:4566` for the API server to reach LocalStack).
+> **Note**: The URLs above are for accessing the application from your host machine. Within the container network, services communicate using internal hostnames (e.g., `aws-emulator:4566` for the API server to reach the AWS Emulator).
 
 ## Services
 
@@ -157,7 +157,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 
 - **Image**: `nginx:alpine`
 - **Port**: `80` (internal only, not exposed to host)
-- **Role**: Internal routing to GUI, API, and LocalStack
+- **Role**: Internal routing to GUI, API, and AWS Emulator
 - **Configuration**: `nginx.conf`
 
 **Routing Rules:**
@@ -166,7 +166,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 - `/api/*` → Express API (port 3031)
 - `/ws/*` → Express API WebSocket (port 3031)
 - `/health` → Health check endpoint
-- `/localstack/health` → LocalStack health check
+- `/aws-emulator/health` → AWS Emulator health check
 
 ### 3. Next.js GUI
 
@@ -186,15 +186,15 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
   - `3031` (internal)
 - **Development**: Hot reload with volume mounts
 - **Features**:
-  - LocalStack management
+  - AWS Emulator management
   - Resource automation
   - Socket.IO WebSocket server
   - REST API endpoints
 
-### 5. LocalStack
+### 5. AWS Emulator (MiniStack)
 
-- **Image**: `localstack/localstack:${LOCALSTACK_VERSION:-latest}`
-- **Port**: `4566:4566`
+- **Image**: `nahuelnucera/ministack:${MINISTACK_VERSION:-latest}`
+- **Port**: `${EMULATOR_PORT:-4566}:4566`
 - **Features**: AWS services emulation
   - S3
   - DynamoDB
@@ -207,7 +207,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 
 - **Image**: `redis:7-alpine`
 - **Port**: `6380:6379` (exposed for direct access)
-- **Role**: Standalone cache service (independent of LocalStack)
+- **Role**: Standalone cache service (independent of the AWS Emulator)
 - **Features**:
   - Independent caching layer accessible by any service on the network
   - API provides endpoints for cache management via shell scripts
@@ -246,9 +246,9 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 
 ### Data & Logs
 
-- `./volume:/var/lib/localstack` - LocalStack persistent data
+- `./volume:/app/data` - AWS Emulator persistent data
 - `./logs:/app/logs` - Application logs
-- `/var/run/docker.sock:/var/run/docker.sock` - Docker socket (for LocalStack)
+- `/var/run/docker.sock:/var/run/docker.sock` - Docker socket (MiniStack uses this to spawn RDS/ElastiCache sibling containers)
 
 ## Network Architecture
 
@@ -256,15 +256,15 @@ All services run on the `lck-network` bridge network:
 
 - **Network Name**: `lck-network`
 - **Driver**: `bridge`
-- **Internal Communication**: Services communicate using service names (e.g., `gui`, `api`, `localstack`)
+- **Internal Communication**: Services communicate using service names (e.g., `gui`, `api`, `aws-emulator`)
 
 **Service Discovery:**
 
 - `traefik` → `nginx` (via Docker labels)
 - `nginx` → `gui` (via `gui:3030`)
 - `nginx` → `api` (via `api:3031`)
-- `nginx` → `localstack` (via `localstack:4566`)
-- `api` → `localstack` (via `localstack:4566`)
+- `nginx` → `aws-emulator` (via `aws-emulator:4566`)
+- `api` → `aws-emulator` (via `aws-emulator:4566`)
 - `api` → `redis` (via `redis:6379`)
 
 ## SSL/TLS Certificates
@@ -329,7 +329,7 @@ docker compose logs -f traefik
 docker compose logs -f nginx
 docker compose logs -f gui
 docker compose logs -f api
-docker compose logs -f localstack
+docker compose logs -f aws-emulator
 docker compose logs -f redis
 ```
 
@@ -359,7 +359,7 @@ docker system df
 |---|---|
 | **Images** | Pulled/built images. Safe to prune untagged ones. |
 | **Containers** | Writable layers for running/stopped containers. |
-| **Local Volumes** | Named volumes (LocalStack data, postgres data, etc.). **Accumulate silently.** |
+| **Local Volumes** | Named volumes (AWS Emulator data, postgres data, etc.). **Accumulate silently.** |
 | **Build Cache** | Layer cache from `docker build`. Speeds up rebuilds but can grow large. |
 
 ### Why Volumes Accumulate
@@ -414,7 +414,7 @@ docker image prune -a -f          # aggressive: removes all unused images
 
 # 4. Nuclear option — removes everything except running container data
 docker system prune -af --volumes
-# ⚠️  This deletes ALL volumes including LocalStack data. Run make reset first.
+# ⚠️  This deletes ALL volumes including AWS Emulator data. Run make reset first.
 ```
 
 ### Recommendations
@@ -433,10 +433,10 @@ docker stats --no-stream         # one-shot snapshot
 
 **3. Set memory limits on heavy containers**
 
-LocalStack and Keycloak are the heaviest. You can cap them in `docker-compose.yml`:
+The AWS Emulator (MiniStack) and Keycloak are the heaviest. You can cap them in `docker-compose.yml`:
 
 ```yaml
-localstack:
+aws-emulator:
   deploy:
     resources:
       limits:
@@ -597,10 +597,10 @@ curl -k https://app-local.localcloudkit.com:3030/health
 # Check API
 curl -k https://app-local.localcloudkit.com:3030/api/health
 
-# Check LocalStack
-curl -k https://app-local.localcloudkit.com:3030/localstack/health
+# Check AWS Emulator
+curl -k https://app-local.localcloudkit.com:3030/aws-emulator/health
 
-# Check LocalStack directly
+# Check AWS Emulator directly
 curl http://localhost:4566/_localstack/health
 
 # Check Redis
@@ -640,7 +640,7 @@ docker volume prune -f    # if volumes are consuming most space
 ### Service-Specific Debug Commands
 
 ```bash
-# --- LocalStack ---
+# --- AWS Emulator (MiniStack) ---
 # Check which AWS services are healthy
 curl http://localhost:4566/_localstack/health | jq .
 
@@ -685,7 +685,7 @@ docker compose ps traefik
 docker compose ps nginx
 docker compose ps gui
 docker compose ps api
-docker compose ps localstack
+docker compose ps aws-emulator
 docker compose ps redis
 ```
 
@@ -772,7 +772,7 @@ docker system prune
 make reset-env
 docker compose down -v
 
-# Pull updated third-party images (LocalStack, Redis, Traefik)
+# Pull updated third-party images (MiniStack, Redis, Traefik)
 docker compose pull
 make restart          # rebuild custom images + recreate all containers
 

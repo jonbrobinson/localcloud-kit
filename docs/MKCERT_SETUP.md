@@ -164,7 +164,7 @@ make reset
 
 **Direct localhost (no TLS — always available):**
 
-- **LocalStack**: `http://localhost:4566`
+- **AWS Emulator**: `http://localhost:4566`
 - **Express API**: `http://localhost:3031`
 - **Mailpit UI**: `http://localhost:8025`
 - **Mailpit SMTP**: `localhost:1025`

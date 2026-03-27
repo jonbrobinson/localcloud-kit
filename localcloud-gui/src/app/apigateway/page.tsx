@@ -190,7 +190,7 @@ for a in apigw.get_rest_apis()["items"]:
 # Delete an API
 apigw.delete_rest_api(restApiId=api_id)`,
 
-  cli: `# Configure the AWS CLI for LocalStack
+  cli: `# Configure the AWS CLI for AWS Emulator
 export AWS_ACCESS_KEY_ID=test
 export AWS_SECRET_ACCESS_KEY=test
 export AWS_DEFAULT_REGION=us-east-1
@@ -262,9 +262,9 @@ const externalResources = [
     description: "Complete boto3 API Gateway client reference for Python.",
   },
   {
-    name: "LocalStack API Gateway Coverage",
-    url: "https://docs.localstack.cloud/references/coverage/coverage_apigateway/",
-    description: "Which API Gateway operations are supported by LocalStack.",
+    name: "MiniStack GitHub",
+    url: "https://github.com/nahuelnucera/ministack",
+    description: "MiniStack AWS emulator - supported operations",
   },
 ];
 
@@ -303,7 +303,7 @@ export default function APIGatewayDocPage() {
         <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">About API Gateway</h2>
           <p className="text-sm text-gray-600 leading-relaxed">
-            LocalCloud Kit emulates <strong>AWS API Gateway</strong> via LocalStack — a fully managed
+            LocalCloud Kit emulates <strong>AWS API Gateway</strong> via the AWS Emulator (MiniStack) — a fully managed
             service for creating, publishing, and managing REST APIs. You can define resources, methods,
             integrations (including Lambda proxy), and deploy to stages — all locally without an AWS account.
           </p>

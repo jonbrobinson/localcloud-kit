@@ -67,7 +67,7 @@ make start
 This will:
 
 - Build Docker images (if needed)
-- Start all services (Traefik, Nginx, GUI, API, LocalStack, Redis)
+- Start all services (Traefik, Nginx, GUI, API, AWS Emulator, Redis)
 - Wait for services to be ready
 - Display access URLs
 - Keep optional PostHog profile stopped unless explicitly enabled
@@ -107,7 +107,7 @@ Open in your browser:
 **Direct Access (for debugging):**
 
 - Express API: `http://localhost:3031`
-- LocalStack: `http://localhost:4566`
+- AWS Emulator: `http://localhost:4566`
 - Redis: `localhost:6380`
 - PostHog profile control: `docker compose --profile posthog up -d`
 
@@ -211,7 +211,7 @@ This will:
 
 - Stop all services
 - Remove containers
-- Remove volumes (LocalStack data)
+- Remove volumes (AWS Emulator data)
 - Clean up Docker resources
 
 ## 📝 Workflow Summary
@@ -274,7 +274,7 @@ For dependency changes: `make stop && docker compose build --no-cache gui api &&
 
 | Service        | URL                        | Description              |
 | -------------- | -------------------------- | ------------------------ |
-| LocalStack     | `http://localhost:4566`    | AWS services             |
+| AWS Emulator   | `http://localhost:4566`    | AWS services (MiniStack) |
 | Express API    | `http://localhost:3031`    | API server               |
 | Mailpit UI     | `http://localhost:8025`    | Email testing (direct)   |
 | Mailpit SMTP   | `localhost:1025`           | SMTP server              |

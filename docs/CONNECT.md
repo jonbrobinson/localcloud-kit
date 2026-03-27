@@ -1,10 +1,10 @@
-# Connecting to LocalStack
+# Connecting to the AWS Emulator
 
-This guide shows how to connect to your LocalStack instance using various AWS SDKs. All examples cover S3, DynamoDB, and Secrets Manager.
+This guide shows how to connect to your AWS Emulator (MiniStack) instance using various AWS SDKs. All examples cover S3, DynamoDB, and Secrets Manager.
 
-## 🌐 LocalStack Endpoint
+## 🌐 AWS Emulator Endpoint
 
-Your LocalStack instance is running at:
+Your AWS Emulator is running at:
 
 - **Endpoint**: `http://localhost:4566`
 - **Region**: `us-east-1` (default)
@@ -17,7 +17,7 @@ Your LocalStack instance is running at:
 
 ## 🔧 AWS Credentials
 
-LocalStack accepts any non-empty dummy credentials:
+The AWS Emulator accepts any non-empty dummy credentials:
 
 ```bash
 export AWS_ACCESS_KEY_ID=test
@@ -328,7 +328,7 @@ func main() {
 
     s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
         o.BaseEndpoint = aws.String(localstackEndpoint)
-        o.UsePathStyle = true // required for LocalStack S3
+        o.UsePathStyle = true // required for path-style S3 with local emulator
     })
 
     dynamoClient := dynamodb.NewFromConfig(cfg, func(o *dynamodb.Options) {
@@ -552,7 +552,7 @@ public class LocalStackConfig {
             .endpointOverride(ENDPOINT)
             .credentialsProvider(CREDS)
             .region(Region.US_EAST_1)
-            .forcePathStyle(true) // required for LocalStack S3
+            .forcePathStyle(true) // required for path-style S3 with local emulator
             .build();
     }
 
@@ -720,7 +720,7 @@ curl http://localhost:4566/_localstack/health | jq .services
 
 | Problem | Cause | Fix |
 |---------|-------|-----|
-| `Connection refused` | LocalStack not running | `make start` or `docker compose up -d` |
+| `Connection refused` | AWS Emulator not running | `make start` or `docker compose up -d` |
 | `InvalidSignatureException` | Bad credentials format | Use any non-empty string for key/secret |
 | S3 `NoSuchBucket` / path errors | Path style not enabled | Set `forcePathStyle: true` (JS/Java) or `UsePathStyle: true` (Go) |
 | `ResourceNotFoundException` | Wrong region | Use `us-east-1` unless you changed the default |
@@ -748,7 +748,7 @@ config.WithClientLogMode(aws.LogRequestWithBody | aws.LogResponseWithBody),
 
 ## 📚 Additional Resources
 
-- [LocalStack Documentation](https://docs.localstack.cloud/)
+- [MiniStack](https://github.com/nahuelnucera/ministack)
 - [AWS SDK for JavaScript v3](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/)
 - [AWS SDK for Python (boto3)](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)
 - [AWS SDK for Go v2](https://aws.github.io/aws-sdk-go-v2/docs/)

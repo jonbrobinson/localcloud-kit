@@ -39,22 +39,22 @@ AWS_ACCESS_KEY_ID="test" AWS_SECRET_ACCESS_KEY="test" AWS_DEFAULT_REGION="us-eas
 **Recommended Method B: Using AWS CLI profile (convenient)**
 
 ```bash
-# Configure a LocalStack profile (run once)
-aws configure set aws_access_key_id test --profile localstack
-aws configure set aws_secret_access_key test --profile localstack
-aws configure set region us-east-1 --profile localstack
+# Configure an AWS CLI profile for local emulator (run once)
+aws configure set aws_access_key_id test --profile lck
+aws configure set aws_secret_access_key test --profile lck
+aws configure set region us-east-1 --profile lck
 
 # Use the profile for commands
-aws --profile localstack --endpoint-url=http://localhost:4566 s3 cp samples/sample.txt s3://localstack-dev-bucket/
-aws --profile localstack --endpoint-url=http://localhost:4566 s3 ls s3://localstack-dev-bucket/
-aws --profile localstack --endpoint-url=http://localhost:4566 s3 cp s3://localstack-dev-bucket/sample.txt downloaded_sample.txt
+aws --profile lck --endpoint-url=http://localhost:4566 s3 cp samples/sample.txt s3://localstack-dev-bucket/
+aws --profile lck --endpoint-url=http://localhost:4566 s3 ls s3://localstack-dev-bucket/
+aws --profile lck --endpoint-url=http://localhost:4566 s3 cp s3://localstack-dev-bucket/sample.txt downloaded_sample.txt
 ```
 
 **Method C: Environment variables (use with caution)**
 
 ```bash
 # ⚠️  WARNING: This will overwrite your existing AWS credentials
-# Set LocalStack credentials
+# Set AWS Emulator credentials
 export AWS_ACCESS_KEY_ID="test"
 export AWS_SECRET_ACCESS_KEY="test"
 export AWS_DEFAULT_REGION="us-east-1"
@@ -80,12 +80,12 @@ aws --endpoint-url=http://localhost:4566 s3 cp s3://localstack-dev-bucket/sample
 
 ```bash
 # Execute the upload command inside the API container
-docker exec localcloud-api aws --endpoint-url=http://localstack:4566 s3 cp /app/samples/sample.txt s3://localstack-dev-bucket/
+docker exec localcloud-api aws --endpoint-url=http://aws-emulator:4566 s3 cp /app/samples/sample.txt s3://localstack-dev-bucket/
 
 # List contents from inside the container
-docker exec localcloud-api aws --endpoint-url=http://localstack:4566 s3 ls s3://localstack-dev-bucket/
+docker exec localcloud-api aws --endpoint-url=http://aws-emulator:4566 s3 ls s3://localstack-dev-bucket/
 
-# Note: The container already has LocalStack credentials configured
+# Note: The container already has AWS Emulator credentials configured
 ```
 
 ### Testing File Viewer

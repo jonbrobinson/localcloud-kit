@@ -274,7 +274,7 @@ create_dynamodb_table() {
     
     log "Created DynamoDB table: $TABLE_NAME with configuration"
     
-    # Wait for table and GSIs to become active (important for LocalStack)
+    # Wait for table and GSIs to become active (important for local emulator)
     if [ "$GSIS" != "[]" ] && [ "$GSIS" != "null" ]; then
       log "Waiting for table and GSIs to become active..."
       RETRY_COUNT=0

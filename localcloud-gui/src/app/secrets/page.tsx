@@ -145,7 +145,7 @@ sm.delete_secret(
     SecretId="my-app/database-password",
     ForceDeleteWithoutRecovery=True,
 )`,
-  cli: `# Configure the AWS CLI for LocalStack
+  cli: `# Configure the AWS CLI for AWS Emulator
 export AWS_ACCESS_KEY_ID=test
 export AWS_SECRET_ACCESS_KEY=test
 export AWS_DEFAULT_REGION=us-east-1
@@ -193,9 +193,9 @@ const externalResources = [
     description: "Complete boto3 Secrets Manager client reference for Python.",
   },
   {
-    name: "LocalStack Secrets Manager Coverage",
-    url: "https://docs.localstack.cloud/references/coverage/coverage_secretsmanager/",
-    description: "Which Secrets Manager API operations are supported by LocalStack.",
+    name: "MiniStack GitHub",
+    url: "https://github.com/nahuelnucera/ministack",
+    description: "MiniStack AWS emulator - supported operations",
   },
 ];
 
@@ -234,7 +234,7 @@ export default function SecretsDocPage() {
         <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">About Secrets Manager</h2>
           <p className="text-sm text-gray-600 leading-relaxed">
-            LocalCloud Kit emulates <strong>AWS Secrets Manager</strong> via LocalStack — a service that
+            LocalCloud Kit emulates <strong>AWS Secrets Manager</strong> via the AWS Emulator (MiniStack) — a service that
             helps you protect access to your applications, services, and IT resources. You can store
             database credentials, API keys, OAuth tokens, and other sensitive configuration values.
           </p>

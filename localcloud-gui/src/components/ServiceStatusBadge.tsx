@@ -96,7 +96,7 @@ const badgeClass: Record<StatusLevel, string> = {
 
 interface ServiceStatusBadgeProps {
   service: ServiceKey;
-  /** Label shown before the badge, e.g. "LocalStack" */
+  /** Label shown before the badge, e.g. "AWS Emulator" */
   name: string;
   /** Refresh interval in ms — default 10 000 */
   refreshMs?: number;

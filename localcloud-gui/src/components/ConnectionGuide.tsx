@@ -601,10 +601,10 @@ export default function ConnectionGuide() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Connecting to LocalStack
+          Connecting to the AWS Emulator
         </h1>
         <p className="text-lg text-gray-600">
-          Learn how to connect to your LocalStack instance using various AWS
+          Learn how to connect to your AWS Emulator (MiniStack) instance using various AWS
           SDKs.
         </p>
       </div>
@@ -612,7 +612,7 @@ export default function ConnectionGuide() {
       {/* Connection Info */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-semibold text-blue-900 mb-4">
-          🌐 LocalStack Endpoint
+          🌐 AWS Emulator Endpoint
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -761,10 +761,10 @@ export default function ConnectionGuide() {
               <li>
                 •{" "}
                 <a
-                  href="https://docs.localstack.cloud/"
+                  href="https://github.com/nahuelnucera/ministack"
                   className="text-blue-600 hover:text-blue-800"
                 >
-                  LocalStack Documentation
+                  MiniStack Documentation
                 </a>
               </li>
               <li>
@@ -781,9 +781,9 @@ export default function ConnectionGuide() {
           <div>
             <h3 className="font-medium text-gray-900 mb-2">Troubleshooting</h3>
             <ul className="space-y-1 text-sm text-gray-600">
-              <li>• Connection refused: Check if LocalStack is running</li>
+              <li>• Connection refused: Check if AWS Emulator is running</li>
               <li>
-                • Invalid credentials: Use test credentials for LocalStack
+                • Invalid credentials: Use test credentials for AWS Emulator
               </li>
               <li>• S3 path style: Enable forcePathStyle for S3 operations</li>
             </ul>

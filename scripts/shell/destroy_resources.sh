@@ -7,7 +7,7 @@ export AWS_PAGER=""
 # Destroys specific S3, DynamoDB, Lambda, and API Gateway resources using AWS CLI
 
 # Configuration
-PROJECT_NAME=${1:-"localstack-template"}
+PROJECT_NAME=${1:-"localcloud-kit"}
 ENVIRONMENT=${2:-"dev"}
 AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://aws-emulator:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}

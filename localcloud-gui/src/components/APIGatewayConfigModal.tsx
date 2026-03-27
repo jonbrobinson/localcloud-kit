@@ -97,7 +97,7 @@ export default function APIGatewayConfigModal({
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Create REST API</h2>
-              <p className="text-xs text-gray-500">Create a new API Gateway REST API in LocalStack</p>
+              <p className="text-xs text-gray-500">Create a new API Gateway REST API in the AWS Emulator</p>
             </div>
           </div>
           <button

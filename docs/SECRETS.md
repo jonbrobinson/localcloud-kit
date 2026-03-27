@@ -23,11 +23,11 @@ LocalCloud Kit includes comprehensive AWS Secrets Manager support for secure sec
 
 ## Docker Setup
 
-Secrets Manager runs as part of LocalStack services:
+Secrets Manager runs as part of the AWS Emulator (MiniStack) services:
 
 - Enabled in `docker-compose.yml` by default
 - No additional configuration required
-- Works out of the box with LocalStack
+- Works out of the box with the AWS Emulator
 
 ## API Endpoints
 
@@ -184,7 +184,7 @@ Located in `scripts/shell/`:
 ```javascript
 const AWS = require("aws-sdk");
 
-// Configure AWS SDK for LocalStack
+// Configure AWS SDK for AWS Emulator
 const secretsManager = new AWS.SecretsManager({
   endpoint: "http://localhost:4566",
   region: "us-east-1",
@@ -252,7 +252,7 @@ async function deleteSecret() {
 import boto3
 import json
 
-# Configure boto3 for LocalStack
+# Configure boto3 for AWS Emulator
 client = boto3.client(
     'secretsmanager',
     endpoint_url='http://localhost:4566',
@@ -390,7 +390,7 @@ aws --endpoint-url=http://localhost:4566 secretsmanager list-secrets
 
 ### Permission denied
 
-LocalStack doesn't enforce IAM by default, but if you've configured it:
+The AWS Emulator doesn't enforce IAM by default, but if you've configured it:
 
 ```bash
 # Check IAM permissions
