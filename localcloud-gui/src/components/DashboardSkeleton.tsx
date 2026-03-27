@@ -43,7 +43,7 @@ export function ServicesBarSkeleton() {
     <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center flex-wrap gap-y-2 gap-x-0">
       <ServicePillSkeleton name="Keycloak" />
       <div className="h-4 w-px bg-gray-200" />
-      <ServicePillSkeleton name="LocalStack" />
+      <ServicePillSkeleton name="AWS Emulator" />
       <div className="h-4 w-px bg-gray-200" />
       <ServicePillSkeleton name="Mailpit" />
       <div className="h-4 w-px bg-gray-200" />

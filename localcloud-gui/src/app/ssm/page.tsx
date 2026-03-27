@@ -152,7 +152,7 @@ for p in response.get("Parameters", []):
 # Delete a parameter
 ssm.delete_parameter(Name="/my-app/database/host")`,
 
-  cli: `# Configure the AWS CLI for LocalStack
+  cli: `# Configure the AWS CLI for AWS Emulator
 export AWS_ACCESS_KEY_ID=test
 export AWS_SECRET_ACCESS_KEY=test
 export AWS_DEFAULT_REGION=us-east-1
@@ -209,9 +209,9 @@ const externalResources = [
     description: "Complete boto3 SSM client reference for Python.",
   },
   {
-    name: "LocalStack SSM Coverage",
-    url: "https://docs.localstack.cloud/references/coverage/coverage_ssm/",
-    description: "Which SSM API operations are supported by LocalStack.",
+    name: "MiniStack GitHub",
+    url: "https://github.com/nahuelnucera/ministack",
+    description: "MiniStack AWS emulator - supported operations",
   },
 ];
 
@@ -250,7 +250,7 @@ export default function SSMDocPage() {
         <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">About Parameter Store</h2>
           <p className="text-sm text-gray-600 leading-relaxed">
-            LocalCloud Kit emulates <strong>AWS Systems Manager Parameter Store</strong> via LocalStack —
+            LocalCloud Kit emulates <strong>AWS Systems Manager Parameter Store</strong> via the AWS Emulator (MiniStack) —
             a secure, hierarchical storage for configuration data and secrets. Unlike Secrets Manager,
             Parameter Store is free for standard parameters and integrates with most AWS services via
             native parameter resolution.

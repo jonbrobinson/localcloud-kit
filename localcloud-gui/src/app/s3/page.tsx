@@ -113,7 +113,7 @@ s3.download_file("my-bucket", "remote_file.txt", "downloaded.txt")
 response = s3.list_objects_v2(Bucket="my-bucket")
 for obj in response.get("Contents", []):
     print(obj["Key"])`,
-  cli: `# Configure the AWS CLI for LocalStack
+  cli: `# Configure the AWS CLI for AWS Emulator
 export AWS_ACCESS_KEY_ID=test
 export AWS_SECRET_ACCESS_KEY=test
 export AWS_DEFAULT_REGION=us-east-1
@@ -160,9 +160,9 @@ const externalResources = [
     description: "Complete boto3 S3 client reference for Python.",
   },
   {
-    name: "LocalStack S3 Coverage",
-    url: "https://docs.localstack.cloud/references/coverage/coverage_s3/",
-    description: "Which S3 API operations are supported by LocalStack.",
+    name: "MiniStack GitHub",
+    url: "https://github.com/nahuelnucera/ministack",
+    description: "MiniStack AWS emulator - supported operations",
   },
 ];
 
@@ -201,13 +201,13 @@ export default function S3DocPage() {
         <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">About S3</h2>
           <p className="text-sm text-gray-600 leading-relaxed">
-            LocalCloud Kit emulates <strong>Amazon S3</strong> (Simple Storage Service) via LocalStack.
+            LocalCloud Kit emulates <strong>Amazon S3</strong> (Simple Storage Service) via the AWS Emulator (MiniStack).
             S3 is an object storage service that lets you store and retrieve any amount of data — files,
             images, backups, static assets, and more.
           </p>
           <p className="text-sm text-gray-600 leading-relaxed mt-2">
             Your local S3 endpoint is <code className="bg-gray-100 px-1 rounded font-mono text-xs">http://localhost:4566</code>.
-            Use the same AWS SDK code you would in production — just point the endpoint at LocalStack.
+            Use the same AWS SDK code you would in production — just point the endpoint at the local emulator.
           </p>
         </section>
 

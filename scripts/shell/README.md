@@ -2,7 +2,7 @@
 
 > **Standard Automation Approach** by CloudStack Solutions
 
-Fast, reliable command-line automation for LocalStack resource management using AWS CLI.
+Fast, reliable command-line automation for AWS Emulator resource management using AWS CLI.
 
 ![Shell](https://img.shields.io/badge/Shell-Automation-green?style=for-the-badge&logo=gnu-bash)
 ![CloudStack Solutions](https://img.shields.io/badge/Powered%20by-CloudStack%20Solutions-indigo?style=for-the-badge)
@@ -12,7 +12,7 @@ Fast, reliable command-line automation for LocalStack resource management using 
 ### Prerequisites
 
 - **AWS CLI**: For AWS service interactions
-- **LocalStack**: Running on localhost:4566
+- **AWS Emulator**: Running on localhost:4566
 - **Bash**: Available on most systems
 
 ### Installation
@@ -21,7 +21,7 @@ Fast, reliable command-line automation for LocalStack resource management using 
 # Ensure AWS CLI is installed
 aws --version
 
-# Configure AWS CLI for LocalStack
+# Configure AWS CLI for AWS Emulator
 aws configure set aws_access_key_id test
 aws configure set aws_secret_access_key test
 aws configure set region us-east-1
@@ -99,8 +99,8 @@ aws configure set output json
 ### Environment Variables
 
 ```bash
-# LocalStack Configuration
-export LOCALSTACK_ENDPOINT="http://localhost:4566"
+# AWS Emulator Configuration
+export AWS_ENDPOINT_URL="http://localhost:4566"
 export AWS_DEFAULT_REGION="us-east-1"
 
 # Project Configuration
@@ -230,12 +230,12 @@ Options:
 
 - **Environment Isolation**: Use different environments for dev/uat/prod
 - **Resource Cleanup**: Regularly destroy unused resources
-- **Access Control**: Limit LocalStack access to development team
+- **Access Control**: Limit AWS Emulator access to the development team
 - **Monitoring**: Monitor resource usage and costs
 
-### LocalStack Security
+### AWS Emulator Security
 
-- **Local Only**: LocalStack runs locally, no external access
+- **Local Only**: The AWS Emulator runs locally, no external access
 - **No Real AWS**: All operations are simulated
 - **Development Only**: Not for production use
 
@@ -257,14 +257,14 @@ sudo apt-get install awscli
 # Download from https://aws.amazon.com/cli/
 ```
 
-**LocalStack not responding**
+**AWS Emulator not responding**
 
 ```bash
-# Check LocalStack status
+# Check AWS Emulator status
 curl http://localhost:4566/_localstack/health
 
 # Check Docker
-docker ps | grep localstack
+docker ps | grep aws-emulator
 ```
 
 **Permission denied**
@@ -283,7 +283,7 @@ ls -la *.sh
 # Check AWS CLI configuration
 aws configure list
 
-# Test LocalStack connection
+# Test AWS Emulator connection
 aws --endpoint-url=http://localhost:4566 s3 ls
 ```
 
@@ -302,7 +302,7 @@ export AWS_CLI_DEBUG=1
 ### Development Workflow
 
 ```bash
-# 1. Start LocalStack
+# 1. Start AWS Emulator
 docker compose up -d
 
 # 2. Create development resources
@@ -360,10 +360,10 @@ The shell scripts integrate seamlessly with the LocalCloud Kit GUI:
 #!/bin/bash
 set -e
 
-# Start LocalStack
+# Start AWS Emulator
 docker compose up -d
 
-# Wait for LocalStack to be ready
+# Wait for AWS Emulator to be ready
 sleep 10
 
 # Create test resources
@@ -389,7 +389,7 @@ npm test
 ### Documentation
 
 - [AWS CLI Documentation](https://docs.aws.amazon.com/cli/)
-- [LocalStack Documentation](https://docs.localstack.cloud/)
+- [MiniStack](https://github.com/nahuelnucera/ministack)
 - [CloudStack Solutions](https://cloudstacksolutions.com/)
 
 ### Community

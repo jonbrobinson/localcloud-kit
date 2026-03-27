@@ -8,7 +8,7 @@ Build and test cloud apps locally — no AWS account needed. Free, fast, and wit
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 [![Docker](https://img.shields.io/badge/Docker-Containerized-0db7ed?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Emulation-1a1a2e?style=for-the-badge&logo=amazon-aws&logoColor=ff9900)](https://localstack.cloud/)
+[![MiniStack](https://img.shields.io/badge/MiniStack-AWS%20Emulation-1a1a2e?style=for-the-badge&logo=amazon-aws&logoColor=ff9900)](https://github.com/nahuelnucera/ministack)
 [![Redis](https://img.shields.io/badge/Redis-7.x-dc382d?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
 [![Mailpit](https://img.shields.io/badge/Mailpit-Email%20Testing-e8622a?style=for-the-badge&logo=maildotru&logoColor=white)](https://mailpit.axllent.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -21,7 +21,7 @@ Build and test cloud apps locally — no AWS account needed. Free, fast, and wit
 - [Screenshots](#-screenshots)
 - [Project Structure](#-project-structure)
 - [Features](#-features)
-- [LocalStack Version](#-localstack-version)
+- [AWS Emulator](#-aws-emulator)
 - [Usage](#-usage)
 - [Configuration](#-configuration)
 - [Common Commands](#-common-commands)
@@ -84,7 +84,7 @@ Via Traefik (TLS — trusted cert, no browser warnings):
 
 Direct localhost (no TLS — always available):
 
-- **LocalStack**: http://localhost:4566 (for AWS CLI / SDKs)
+- **AWS Emulator**: http://localhost:4566 (for AWS CLI / SDKs)
 - **Mailpit UI**: http://localhost:8025 (direct, no cert required)
 - **Mailpit SMTP**: localhost:1025 (point your app here to catch emails)
 - **Express API**: http://localhost:3031 (bypasses Traefik)
@@ -96,7 +96,7 @@ Direct localhost (no TLS — always available):
 |---------|-----|--------------|
 | Web GUI | https://app-local.localcloudkit.com:3030 | Main application |
 | API | https://app-local.localcloudkit.com:3030/api | REST API |
-| LocalStack | http://localhost:4566 | AWS emulation |
+| AWS Emulator | http://localhost:4566 | AWS emulation (MiniStack) |
 | Redis | localhost:6380 | Cache (no password) |
 | Mailpit UI | https://mailpit.localcloudkit.com:3030 | Email inbox |
 | Mailpit SMTP | localhost:1025 | SMTP endpoint |
@@ -115,7 +115,7 @@ Direct localhost (no TLS — always available):
 
 The dashboard shows your local cloud environment at a glance:
 
-- **Services Status Bar** — health indicators for Keycloak, LocalStack, Mailpit, PostgreSQL, PostHog, and Redis. Click any service to open its management panel or docs.
+- **Services Status Bar** — health indicators for Keycloak, AWS Emulator, Mailpit, PostgreSQL, PostHog, and Redis. Click any service to open its management panel or docs.
 - **AWS Resources** — categorized view (Storage, Database, Security & Identity) with add/destroy actions and inline inspection.
 
 ![Main Dashboard](docs/screenshots/01-main-dashboard.png)
@@ -172,7 +172,7 @@ The header contains three primary dropdowns:
 
 | Dropdown | Contents |
 |----------|----------|
-| **Resources** | AWS resources organized by category (Storage, Database, Compute, Networking, Security & Identity) — things you create and destroy in LocalStack |
+| **Resources** | AWS resources organized by category (Storage, Database, Compute, Networking, Security & Identity) — things you create and destroy in the AWS Emulator |
 | **Services** | Platform services (Keycloak, Mailpit, PostgreSQL, PostHog, Redis) with quick **Inspect** actions and links to manager/admin tools |
 | **Docs** | Opens the **Docs Hub** (`/docs`) with all documentation pages, verification checklists, and manager/admin links |
 
@@ -286,19 +286,20 @@ The header contains three primary dropdowns:
 - **Comprehensive Documentation**: Detailed guides and SDK examples
 - **Sample Files**: Pre-configured examples for testing features
 
-## 📌 LocalStack Version
+## 📌 AWS Emulator
 
-Uses `latest` by default. Last tested: 4.14.0. See [docs/LOCALSTACK.md](docs/LOCALSTACK.md) for version pinning and the March 2026 image change.
+Powered by [MiniStack](https://github.com/nahuelnucera/ministack) — a free, no-account-required AWS emulator. Uses `latest` by default. See [docs/AWS_EMULATOR.md](docs/AWS_EMULATOR.md) for version pinning and multi-project port configuration.
 
 <details>
 <summary><b>Start commands</b></summary>
 
 ```bash
-make start                                    # Default (latest)
-make start-legacy                             # Pin to 4.14 (no auth)
-make start LOCALSTACK_VERSION=4.14.0          # Any version
-docker compose up --build                     # Alternative
-docker compose up -d localstack api nginx     # Dev mode (GUI: cd localcloud-gui && npm run dev)
+make start                                        # Default (latest MiniStack)
+make start MINISTACK_VERSION=1.0.0                # Pin to a specific version
+make start EMULATOR_PORT=4567                     # Shift AWS emulator port (multi-project)
+make start RDS_BASE_PORT=15500                    # Shift RDS ports (multi-project)
+docker compose up --build                         # Alternative
+docker compose up -d aws-emulator api nginx       # Dev mode (GUI: cd localcloud-gui && npm run dev)
 ```
 
 </details>
@@ -311,7 +312,7 @@ docker compose up -d localstack api nginx     # Dev mode (GUI: cd localcloud-gui
 make start
 ```
 
-See [docs/LOCALSTACK.md](docs/LOCALSTACK.md) for `make start-legacy`, version pinning, and development mode.
+See [docs/AWS_EMULATOR.md](docs/AWS_EMULATOR.md) for version pinning and multi-project port configuration.
 
 ### Create Resources
 
@@ -363,7 +364,7 @@ All resources can be managed through:
 - **Web GUI**: https://app-local.localcloudkit.com:3030
 - **Shell Scripts**: Located in `scripts/shell/`
 - **AWS CLI**: Using `--endpoint-url=http://localhost:4566`
-- **AWS SDKs**: Configure with LocalStack endpoint
+- **AWS SDKs**: Configure with AWS Emulator endpoint (`http://localhost:4566`)
 
 ### Test File Viewer
 
@@ -386,7 +387,7 @@ Then view files in the GUI with full syntax highlighting support.
 - **AWS Region**: Default `us-east-1`
 - **Hot Reload**: Enabled for GUI and API
 
-Edit `docker-compose.yml` for port mappings, environment variables, resource limits, and volume mounts. Within Docker, services use internal hostnames (e.g., `localstack:4566`, `localcloud-redis:6379`).
+Edit `docker-compose.yml` for port mappings, environment variables, resource limits, and volume mounts. Within Docker, services use internal hostnames (e.g., `aws-emulator:4566`, `localcloud-redis:6379`).
 
 ## 🚀 Common Commands
 
@@ -474,7 +475,7 @@ MIT License — see [LICENSE](LICENSE).
 - **Discussions**: [GitHub Discussions](https://github.com/jonbrobinson/localcloud-kit/discussions) — questions, community
 - **Docs**: [GETTING_STARTED.md](GETTING_STARTED.md), [docs/](docs/)
 
-**Links:** [Repository](https://github.com/jonbrobinson/localcloud-kit) · [LocalStack](https://docs.localstack.cloud/) · [AWS](https://docs.aws.amazon.com/) · [Docker](https://docs.docker.com/)
+**Links:** [Repository](https://github.com/jonbrobinson/localcloud-kit) · [MiniStack](https://github.com/nahuelnucera/ministack) · [AWS](https://docs.aws.amazon.com/) · [Docker](https://docs.docker.com/)
 
 ---
 

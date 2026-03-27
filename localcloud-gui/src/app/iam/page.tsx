@@ -355,8 +355,8 @@ aws --endpoint-url=http://localhost:4566 sts get-caller-identity
 const externalResources = [
   { name: "AWS IAM Docs", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/", description: "Official IAM user guide" },
   { name: "AWS STS Docs", url: "https://docs.aws.amazon.com/STS/latest/APIReference/", description: "Security Token Service API reference" },
-  { name: "LocalStack IAM", url: "https://docs.localstack.cloud/references/coverage/coverage_iam/", description: "LocalStack IAM feature coverage" },
-  { name: "LocalStack STS", url: "https://docs.localstack.cloud/references/coverage/coverage_sts/", description: "LocalStack STS feature coverage" },
+  { name: "MiniStack GitHub", url: "https://github.com/nahuelnucera/ministack", description: "MiniStack AWS emulator documentation" },
+  
   { name: "@aws-sdk/client-iam", url: "https://www.npmjs.com/package/@aws-sdk/client-iam", description: "AWS SDK v3 IAM client" },
   { name: "@aws-sdk/client-sts", url: "https://www.npmjs.com/package/@aws-sdk/client-sts", description: "AWS SDK v3 STS client" },
 ];
@@ -424,7 +424,7 @@ export default function IAMDocPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-2">About IAM &amp; STS</h2>
           <p className="text-sm text-gray-600 leading-relaxed">
             LocalCloud Kit emulates <strong>AWS Identity and Access Management (IAM)</strong> and
-            the <strong>Security Token Service (STS)</strong> via LocalStack. IAM lets you create
+            the <strong>Security Token Service (STS)</strong> via the AWS Emulator (MiniStack). IAM lets you create
             roles and attach policies that define what AWS services and resources can be accessed.
             STS lets you generate temporary, short-lived credentials for those roles.
           </p>
@@ -453,7 +453,7 @@ export default function IAMDocPage() {
                 <tr><td className="px-4 py-2.5 text-gray-600">Region</td><td className="px-4 py-2.5 font-mono text-gray-900">us-east-1</td></tr>
                 <tr><td className="px-4 py-2.5 text-gray-600">Access Key ID</td><td className="px-4 py-2.5 font-mono text-gray-900">test</td></tr>
                 <tr><td className="px-4 py-2.5 text-gray-600">Secret Access Key</td><td className="px-4 py-2.5 font-mono text-gray-900">test</td></tr>
-                <tr><td className="px-4 py-2.5 text-gray-600">Account ID (LocalStack)</td><td className="px-4 py-2.5 font-mono text-gray-900">000000000000</td></tr>
+                <tr><td className="px-4 py-2.5 text-gray-600">Account ID (Local Emulator)</td><td className="px-4 py-2.5 font-mono text-gray-900">000000000000</td></tr>
               </tbody>
             </table>
           </div>

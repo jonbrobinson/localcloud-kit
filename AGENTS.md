@@ -8,7 +8,7 @@ this repository. All AI coding agents (and `CLAUDE.md`) read from this file.
 ## Project Overview
 
 **LocalCloud Kit** is a free, local AWS development environment. It emulates AWS
-cloud services using LocalStack, managed through a Next.js web GUI and an
+cloud services using MiniStack (a free AWS emulator), managed through a Next.js web GUI and an
 Express.js API backend, all orchestrated via Docker Compose. No AWS account is
 required.
 
@@ -25,10 +25,10 @@ required.
 | Service | Container | Image | Port | Purpose |
 |---------|-----------|-------|------|---------|
 | `traefik` | traefik | traefik:v3 | 3030 (HTTPS entry) | Reverse proxy / TLS termination |
-| `localstack` | localstack | localstack/localstack:latest | 4566 | AWS services emulation |
+| `aws-emulator` | aws-emulator | nahuelnucera/ministack:latest | 4566 | AWS services emulation (MiniStack) |
 | `gui` | localcloud-gui | custom (Dockerfile.gui) | 3030 (internal) | Next.js frontend |
 | `api` | localcloud-api | custom (Dockerfile.api) | 3031 | Express.js backend |
-| `nginx` | localstack-nginx | nginx:alpine | 80 (internal) | Internal routing |
+| `nginx` | localcloud-nginx | nginx:alpine | 80 (internal) | Internal routing |
 | `redis` | localcloud-redis | redis:7-alpine | 6380 (host) | Cache service |
 | `posthog-*` | localcloud-posthog-* | posthog/clickhouse/kafka stack | — | Product analytics stack |
 
@@ -50,7 +50,7 @@ samples/            # Sample files for S3/DynamoDB testing
 - **Frontend**: Next.js 15, React 18, TypeScript 5, Tailwind CSS, @iconify/react (AWS service icons)
 - **Backend**: Express.js 4, Node.js 22, Winston logging, Socket.IO, aws-sdk v2
 - **Infrastructure**: Docker Compose, Traefik v3, Nginx (alpine), Redis 7, optional PostHog profile
-- **AWS Emulation**: LocalStack (S3, DynamoDB, Lambda, API Gateway, IAM, Secrets Manager)
+- **AWS Emulation**: MiniStack (S3, DynamoDB, Lambda, API Gateway, IAM, Secrets Manager)
 
 ---
 
@@ -101,7 +101,7 @@ See `env.example` for all variables. Key ones:
 AWS_DEFAULT_REGION=us-east-1
 AWS_ACCESS_KEY_ID=test
 AWS_SECRET_ACCESS_KEY=test
-AWS_ENDPOINT_URL=http://localstack:4566
+AWS_ENDPOINT_URL=http://aws-emulator:4566
 API_URL=https://app-local.localcloudkit.com:3030/api
 CORS_ORIGIN=https://app-local.localcloudkit.com:3030
 POSTHOG_INTERNAL_URL=http://posthog-web:8000
@@ -113,7 +113,7 @@ POSTHOG_INTERNAL_URL=http://posthog-web:8000
 
 - Traefik listens on port 3030 (HTTPS) and routes to Nginx
 - Nginx fans traffic to the GUI (port 3030) and API (port 3031)
-- LocalStack is reachable at `http://localstack:4566` inside Docker, `http://localhost:4566` from the host
+- AWS Emulator (MiniStack) is reachable at `http://aws-emulator:4566` inside Docker, `http://localhost:4566` from the host
 - Redis is at `localcloud-redis:6379` inside Docker, `localhost:6380` from the host
 - PostHog (when profile enabled) is routed via `https://posthog.localcloudkit.com:3030`
 - TLS certificates are generated with mkcert and mounted into Traefik
@@ -321,7 +321,7 @@ fix(lambda): resolve syntax highlighting failures in code blocks
 
 docs(redis): update container hostname to localcloud-redis
 
-build(docker): pin localstack image to 3.x for stability
+build(docker): pin ministack image to 1.x for stability
 
 refactor(nav): extract shared DocPageNav component
 
@@ -350,7 +350,7 @@ a clear two-category model:
 
 ### Status Bar
 
-Shows health of all platform services in alphabetical order: **Keycloak | LocalStack | Mailpit | PostgreSQL | PostHog | Redis**. Clicking a service opens its management modal or links to its doc page.
+Shows health of all platform services in alphabetical order: **AWS Emulator | Keycloak | Mailpit | PostgreSQL | PostHog | Redis**. Clicking a service opens its management modal or links to its doc page.
 
 ### ResourceList Component
 

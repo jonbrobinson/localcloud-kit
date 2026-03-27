@@ -1,6 +1,6 @@
 # AWS Lambda Integration
 
-LocalCloud Kit includes AWS Lambda support for serverless function development and testing via LocalStack.
+LocalCloud Kit includes AWS Lambda support for serverless function development and testing via the AWS Emulator (MiniStack).
 
 ## Features
 
@@ -20,11 +20,11 @@ LocalCloud Kit includes AWS Lambda support for serverless function development a
 
 ## Docker Setup
 
-Lambda runs as part of LocalStack services:
+Lambda runs as part of the AWS Emulator (MiniStack) services:
 
 - Enabled in `docker-compose.yml` by default
 - No additional configuration required
-- Functions run in-process in LocalStack (no Docker-in-Docker needed)
+- Functions run in-process in the emulator (no Docker-in-Docker needed)
 
 ## API Endpoints
 
@@ -186,8 +186,8 @@ awslocal lambda list-functions
 ### Invocation error
 
 ```bash
-# Check function logs (LocalStack Community writes to stdout)
-docker compose logs localstack | grep my-function
+# Check function logs (writes to stdout)
+docker compose logs aws-emulator | grep my-function
 ```
 
 ### GUI not showing functions

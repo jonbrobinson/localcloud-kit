@@ -15,7 +15,7 @@ docker compose up -d                 # Start if not running
 
 ```bash
 curl -k https://app-local.localcloudkit.com:3030/api/health           # Check API
-curl http://localhost:4566/_localstack/health   # Check LocalStack
+curl http://localhost:4566/_localstack/health   # Check AWS Emulator
 ```
 
 **Common solutions:**
@@ -23,7 +23,7 @@ curl http://localhost:4566/_localstack/health   # Check LocalStack
 | Symptom | Solution |
 |---------|----------|
 | 502 Bad Gateway | API server isn't running → `docker compose up -d` |
-| Can't connect to LocalStack | Wait for startup or restart → `docker compose restart localstack` |
+| Can't connect to AWS Emulator | Wait for startup or restart → `docker compose restart aws-emulator` |
 | Certificate errors / "Not Secure" | Run `./scripts/setup-mkcert.sh` to regenerate |
 | Subdomain cert not trusted (Mailpit, pgAdmin, Keycloak) | See [Certificate Troubleshooting](CERTIFICATE_TROUBLESHOOTING.md) |
 | Domain not resolving | Run `sudo ./scripts/setup-hosts.sh` |
@@ -33,7 +33,7 @@ curl http://localhost:4566/_localstack/health   # Check LocalStack
 **Development mode (GUI outside Docker):**
 
 ```bash
-docker compose up -d localstack api nginx
+docker compose up -d aws-emulator api nginx
 cd localcloud-gui && npm install && npm run dev
 # GUI available at http://localhost:3000
 ```
@@ -96,7 +96,7 @@ Common with this repository because:
 
 1. **Large Dependencies**: Next.js and Node.js have large `node_modules`
 2. **Multiple Builds**: Each `docker compose up --build` creates new layers
-3. **LocalStack Images**: The LocalStack Docker image is ~1GB+
+3. **AWS Emulator Image**: The MiniStack Docker image pulls on first run
 4. **Build Cache**: Docker build cache can grow significantly
 
 ### Monitoring Disk Usage

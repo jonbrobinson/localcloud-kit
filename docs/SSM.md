@@ -1,6 +1,6 @@
 # AWS SSM Parameter Store Integration
 
-LocalCloud Kit includes AWS Systems Manager Parameter Store support for managing configuration data and secrets locally via LocalStack.
+LocalCloud Kit includes AWS Systems Manager Parameter Store support for managing configuration data and secrets locally via the AWS Emulator (MiniStack).
 
 ## Features
 
@@ -234,7 +234,7 @@ awslocal ssm get-parameter --name "/exact/parameter/name"
 
 ### SecureString decryption issues
 
-LocalStack decrypts SecureString using a local KMS key automatically — ensure you pass `--with-decryption` or `WithDecryption=True`.
+The AWS Emulator decrypts SecureString using a local KMS key automatically — ensure you pass `--with-decryption` or `WithDecryption=True`.
 
 ---
 

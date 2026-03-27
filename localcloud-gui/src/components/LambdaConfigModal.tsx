@@ -125,7 +125,7 @@ export default function LambdaConfigModal({
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Create Lambda Function</h2>
-              <p className="text-xs text-gray-500">Deploy a new Lambda function to LocalStack</p>
+              <p className="text-xs text-gray-500">Deploy a new Lambda function to the AWS Emulator</p>
             </div>
           </div>
           <button

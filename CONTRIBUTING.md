@@ -7,7 +7,7 @@ Thank you for considering contributing to LocalCloud Kit! We welcome contributio
 We especially welcome:
 - **🐛 Bug fixes** - Help us squash those bugs
 - **🎨 UI improvements** - Make the interface better and more intuitive
-- **☁️ AWS service integrations** - Add support for more LocalStack services
+- **☁️ AWS service integrations** - Add support for more AWS Emulator services
 
 We also appreciate:
 - Documentation improvements

@@ -22,7 +22,7 @@ localcloud-kit/
 │   │   ├── keycloak.js         # Keycloak health
 │   │   ├── mailpit.js          # Mailpit health
 │   │   ├── postgres.js         # PostgreSQL health
-│   │   ├── localstack.js       # LocalStack health
+│   │   ├── aws-emulator.js    # AWS Emulator health
 │   │   ├── projects.js         # Project management
 │   │   ├── resources.js        # Resource listing
 │   │   ├── savedConfigs.js     # Saved configurations
@@ -70,7 +70,7 @@ localcloud-kit/
 │   ├── DOCKER.md
 │   ├── CONNECT.md
 │   ├── LOCAL_WORKFLOW.md
-│   ├── LOCALSTACK.md
+│   ├── AWS_EMULATOR.md
 │   ├── MKCERT_SETUP.md
 │   ├── CERTIFICATE_TROUBLESHOOTING.md
 │   ├── TROUBLESHOOTING.md

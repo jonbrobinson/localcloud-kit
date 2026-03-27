@@ -150,7 +150,7 @@ export default function RedisDocPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-2">About Redis</h2>
           <p className="text-sm text-gray-600 leading-relaxed">
             LocalCloud Kit includes <strong>Redis 7</strong> — a fast, in-memory data structure store
-            used as a cache, session store, and message broker. It runs alongside LocalStack so your
+            used as a cache, session store, and message broker. It runs alongside the AWS Emulator so your
             application can use caching locally without any external infrastructure.
           </p>
           <p className="text-sm text-gray-600 leading-relaxed mt-2">

@@ -141,7 +141,7 @@ for fn in response.get("Functions", []):
 # Delete function
 lambda_client.delete_function(FunctionName="my-function")`,
 
-  cli: `# Configure the AWS CLI for LocalStack
+  cli: `# Configure the AWS CLI for AWS Emulator
 export AWS_ACCESS_KEY_ID=test
 export AWS_SECRET_ACCESS_KEY=test
 export AWS_DEFAULT_REGION=us-east-1
@@ -197,9 +197,9 @@ const externalResources = [
     description: "Complete boto3 Lambda client reference for Python.",
   },
   {
-    name: "LocalStack Lambda Coverage",
-    url: "https://docs.localstack.cloud/references/coverage/coverage_lambda/",
-    description: "Which Lambda API operations are supported by LocalStack.",
+    name: "MiniStack GitHub",
+    url: "https://github.com/nahuelnucera/ministack",
+    description: "MiniStack AWS emulator - supported operations",
   },
 ];
 
@@ -238,7 +238,7 @@ export default function LambdaDocPage() {
         <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">About Lambda</h2>
           <p className="text-sm text-gray-600 leading-relaxed">
-            LocalCloud Kit emulates <strong>AWS Lambda</strong> via LocalStack — a serverless compute
+            LocalCloud Kit emulates <strong>AWS Lambda</strong> via the AWS Emulator (MiniStack) — a serverless compute
             service that runs your code in response to events. You can create functions in any supported
             runtime, invoke them manually or via triggers, and update your code without any deployment
             pipeline.
@@ -349,7 +349,7 @@ export default function LambdaDocPage() {
         <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Uploading Function Code</h2>
           <p className="text-sm text-gray-600 leading-relaxed mb-4">
-            When you create a Lambda function from the dashboard, LocalStack provisions it with a
+            When you create a Lambda function from the dashboard, the emulator provisions it with a
             minimal placeholder zip. To run real code, upload your own deployment package using the
             AWS CLI or any AWS SDK.
           </p>
@@ -367,7 +367,7 @@ echo 'exports.handler = async (event) => ({ statusCode: 200, body: "Hello!" });'
 zip function.zip index.js`}
           />
 
-          <h3 className="text-sm font-semibold text-gray-800 mt-4 mb-2">Step 2 — Upload to LocalStack</h3>
+          <h3 className="text-sm font-semibold text-gray-800 mt-4 mb-2">Step 2 — Upload to the AWS Emulator</h3>
           <ThemeableCodeBlock
             language="bash"
             code={`export AWS_ACCESS_KEY_ID=test

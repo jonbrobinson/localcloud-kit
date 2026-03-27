@@ -139,7 +139,7 @@ export default function SSMConfigModal({
             </div>
             {parameterType === "SecureString" && (
               <p className="text-xs text-teal-700 mt-1 bg-teal-50 px-2 py-1 rounded">
-                LocalStack encrypts SecureString parameters using a local KMS key.
+                The AWS Emulator encrypts SecureString parameters using a local KMS key.
               </p>
             )}
             {parameterType === "StringList" && (

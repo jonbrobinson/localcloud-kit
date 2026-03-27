@@ -7,7 +7,7 @@ export AWS_PAGER=""
 # Uploads files to S3 buckets using the AWS Emulator
 
 # Configuration
-PROJECT_NAME=${1:-"localstack-template"}
+PROJECT_NAME=${1:-"localcloud-kit"}
 BUCKET_NAME=${2:-""}
 OBJECT_KEY=${3:-""}
 FILE_PATH=${4:-""}

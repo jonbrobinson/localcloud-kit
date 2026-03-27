@@ -59,7 +59,7 @@ export default function CreateResourceModal({
           Create Resources
         </h2>
         <p className="text-sm text-gray-600 mb-6">
-          Fill out the form to create AWS resources in LocalStack.
+          Fill out the form to create AWS resources in the AWS Emulator.
         </p>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
