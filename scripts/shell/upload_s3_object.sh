@@ -50,11 +50,7 @@ upload_object() {
         exit 1
     fi
     
-    # Check if bucket exists
-    if ! $AWS_CMD s3api head-bucket --bucket "$bucket_name" >/dev/null 2>&1; then
-        echo "Error: Bucket '$bucket_name' does not exist" >&2
-        exit 1
-    fi
+    # Do not use head-bucket here — some emulators return errors for valid buckets; put-object will fail clearly if missing.
     
     # Check if file exists
     if [ ! -f "$file_path" ]; then
@@ -90,16 +86,18 @@ upload_object() {
         --body "$file_path" \
         --content-type "$content_type" > /dev/null
     
-    # Get object metadata
-    $AWS_CMD s3api head-object \
+    # Optional metadata for download_s3_object.sh — must not fail the upload (set -e) if head-object is flaky on emulator
+    meta_file="/tmp/object_metadata_$$.json"
+    if $AWS_CMD s3api head-object \
         --bucket "$bucket_name" \
         --key "$object_key" \
         --query '{ContentType:ContentType,ContentLength:ContentLength,LastModified:LastModified,ETag:ETag}' \
-        --output json 2>/dev/null > /tmp/object_metadata.json
-    
-    # Output metadata as JSON comment for parsing
-    echo "<!--METADATA:$(cat /tmp/object_metadata.json)-->" >&2
-    rm -f /tmp/object_metadata.json
+        --output json 2>/dev/null > "$meta_file" && [ -s "$meta_file" ]; then
+        echo "<!--METADATA:$(cat "$meta_file")-->" >&2
+    else
+        echo "<!--METADATA:{}-->" >&2
+    fi
+    rm -f "$meta_file"
     
     echo "Successfully uploaded $object_key to bucket $bucket_name"
 }

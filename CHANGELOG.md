@@ -34,6 +34,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 - **Manage Lambda**: Functions created from the dashboard now respect the active project filter (with **Show all in emulator** for full list)
 - **S3**: Prefix-based folder listing for nested keys; file viewer reliability for images and binary content from the emulator
+- **S3 upload** (`upload_s3_object.sh`): Upload no longer fails when `head-bucket` or `head-object` errors on the emulator after a successful `put-object`
 
 ### Removed
 
