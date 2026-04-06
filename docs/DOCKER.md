@@ -136,7 +136,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 
 ### 1. Traefik Edge Router
 
-- **Image**: `traefik:v3.0`
+- **Image**: `traefik:v3.6`
 - **Ports**:
   - `3030:3030` (HTTPS - port 80 is free for other applications)
   - `8080:8080` (Dashboard, disabled by default)
@@ -155,7 +155,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 
 ### 2. Nginx Internal Reverse Proxy
 
-- **Image**: `nginx:alpine`
+- **Image**: `nginx:1.27-alpine`
 - **Port**: `80` (internal only, not exposed to host)
 - **Role**: Internal routing to GUI, API, and AWS Emulator
 - **Configuration**: `nginx.conf`
@@ -205,7 +205,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 
 ### 6. Redis Cache
 
-- **Image**: `redis:7-alpine`
+- **Image**: `redis:7.4-alpine`
 - **Port**: `6380:6379` (exposed for direct access)
 - **Role**: Standalone cache service (independent of the AWS Emulator)
 - **Features**:
@@ -223,8 +223,8 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
   - Dedicated `posthog-postgres`
   - Dedicated `posthog-redis`
   - Dedicated `posthog-clickhouse`
-  - Dedicated `posthog-kafka`
-  - Dedicated `posthog-zookeeper`
+  - Dedicated `posthog-kafka` (Redpanda `v25.3.1`)
+  - Dedicated `posthog-zookeeper` (`zookeeper:3.9`)
 - **Start**: `docker compose --profile posthog up -d`
 
 ## Volume Mounts
