@@ -17,6 +17,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { s3Api, resourceApi } from "@/services/api";
 import ManageHeaderBrand from "@/components/ManageHeaderBrand";
+import { useProjectName } from "@/hooks/useProjectName";
 import { S3BucketConfig } from "@/types";
 import S3ConfigModal from "@/components/S3ConfigModal";
 import FileViewerModal from "@/components/FileViewerModal";
@@ -71,9 +72,8 @@ function breadcrumbFolderSegments(currentPath: string): { label: string; prefix:
   return out;
 }
 
-const projectName = "default";
-
 export default function ManageS3Page() {
+  const projectName = useProjectName();
   const [buckets, setBuckets] = useState<BucketItem[]>([]);
   const [selectedBucket, setSelectedBucket] = useState<string | null>(null);
   const [contents, setContents] = useState<BucketItem[]>([]);
@@ -97,7 +97,7 @@ export default function ManageS3Page() {
     } finally {
       setLoadingBuckets(false);
     }
-  }, []);
+  }, [projectName]);
 
   useEffect(() => { loadBuckets(); }, [loadBuckets]);
 
@@ -117,7 +117,7 @@ export default function ManageS3Page() {
     } finally {
       setLoadingContents(false);
     }
-  }, []);
+  }, [projectName]);
 
   const selectBucket = (name: string) => {
     setSelectedBucket(name);
