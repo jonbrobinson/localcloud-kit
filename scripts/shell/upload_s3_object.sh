@@ -71,7 +71,9 @@ upload_object() {
         *.jpg|*.jpeg) content_type="image/jpeg" ;;
         *.png) content_type="image/png" ;;
         *.gif) content_type="image/gif" ;;
+        *.webp) content_type="image/webp" ;;
         *.svg) content_type="image/svg+xml" ;;
+        *.bmp) content_type="image/bmp" ;;
         *.txt) content_type="text/plain" ;;
         *.json) content_type="application/json" ;;
         *.xml) content_type="application/xml" ;;

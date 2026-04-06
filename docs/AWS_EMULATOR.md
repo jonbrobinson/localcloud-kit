@@ -61,7 +61,7 @@ ELASTICACHE_BASE_PORT=16400
 
 | Service | Notes |
 |---------|-------|
-| S3 | Bucket management, multipart uploads up to 100MB, nested folders |
+| S3 | Bucket management, multipart uploads up to 100MB, nested folders — GUI details in [docs/S3.md](S3.md) |
 | DynamoDB | Tables, CRUD, GSI, query/scan |
 | Lambda | Function management, runtime/handler config, invocation |
 | API Gateway | REST endpoint creation, stage deployments |

@@ -227,7 +227,8 @@ export default function LambdaConfigModal({
           {/* Note */}
           <div className="rounded-md bg-orange-50 border border-orange-200 p-3 text-xs text-orange-800">
             <strong>No zip required.</strong> The function is created with a minimal placeholder. Upload your real code later with{" "}
-            <code className="bg-orange-100 px-1 rounded">update-function-code</code> (AWS CLI or SDK).
+            <code className="bg-orange-100 px-1 rounded">update-function-code</code> (AWS CLI or SDK).{" "}
+            The dashboard <strong>Code</strong> action downloads that package through the emulator; if your emulator does not expose a code URL, you will see an explanation there instead of file contents.
           </div>
 
           {/* Save Config Toggle */}

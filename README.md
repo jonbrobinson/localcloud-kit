@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="localcloud-gui/public/logo.svg" alt="LocalCloud Kit" width="200" />
+</p>
+
 # LocalCloud Kit
 
 > **Local Cloud Development Environment**
@@ -132,7 +136,7 @@ Create buckets with region selection, optional versioning, encryption, and save-
 
 #### Bucket Management
 
-Browse bucket contents, upload files, and manage objects directly from the GUI.
+Browse bucket contents, upload files, and manage objects directly from the GUI. On **Manage S3** (`/manage/s3`), use **breadcrumbs** to jump to the bucket root or any parent folder; the bucket name returns to the bucket home.
 
 ![Bucket Management](docs/screenshots/03-s3-bucket-management.png)
 
@@ -185,7 +189,7 @@ The header contains three primary dropdowns:
 - **Multipart Uploads**: Handle large files up to 100MB with efficient memory management
 - **File Viewer**: View files with syntax highlighting for 100+ languages
 - **Document Support**: Preview Word documents, PDFs, images, and more
-- **Nested Folders**: Full support for folder structures and nested paths
+- **Nested Folders**: Full support for folder structures and nested paths; **Manage S3** adds clickable breadcrumbs (bucket name → root, each folder segment → that prefix) plus **Back** aligned with the current path
 
 #### DynamoDB
 
@@ -201,6 +205,7 @@ The header contains three primary dropdowns:
 - **Runtime Selection**: Python 3.9–3.12, Node.js 18/20, Java 17/21, Go, .NET 8
 - **Handler Configuration**: Set entry point via modal or AWS CLI
 - **Function Invocation**: Invoke functions with custom payloads
+- **Code preview**: Open deployment package contents from the emulator when available, or **upload a local .zip** in the browser to browse files without deploying
 - **SDK Integration**: Full AWS SDK v2/v3 and boto3 support
 
 #### API Gateway
@@ -441,6 +446,7 @@ docker compose up -d --scale api=3 # Scale services
 
 - **[docs/LAMBDA.md](docs/LAMBDA.md)** — Lambda functions
 - **[docs/API_GATEWAY.md](docs/API_GATEWAY.md)** — API Gateway
+- **[docs/S3.md](docs/S3.md)** — S3 buckets, Manage S3, breadcrumbs, API reference
 - **[docs/SSM.md](docs/SSM.md)** — SSM Parameter Store
 - **[docs/SECRETS.md](docs/SECRETS.md)** — Secrets Manager
 

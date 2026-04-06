@@ -49,13 +49,7 @@ list_bucket_contents() {
         exit 1
     fi
     
-    # Check if bucket exists
-    if ! $AWS_CMD s3api head-bucket --bucket "$bucket_name" >/dev/null 2>&1; then
-        echo "Error: Bucket '$bucket_name' does not exist" >&2
-        exit 1
-    fi
-    
-    # List objects with details
+    # List objects (skip head-bucket — saves one round-trip per open; missing bucket surfaces from list-objects)
     $AWS_CMD s3api list-objects-v2 \
         --bucket "$bucket_name" \
         --prefix "$prefix" \

@@ -12,6 +12,8 @@ This directory contains sample files for testing the LocalCloud Kit file viewer 
 - **Sample.java** - Java class example
 - **sample.docx** - Word document example
 - **sample.txt** - Plain text file example
+- **lambda-demo/** — Source for a tiny Node.js Lambda (`index.handler`). The built archive **`lambda-demo.zip`** (same folder as this README) is committed for quick uploads.
+- **lambda-demo.zip** — Zip of `lambda-demo/`; use with `update-function-code` to test the dashboard **Code** preview against the AWS Emulator.
 
 ## Usage
 

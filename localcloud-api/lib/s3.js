@@ -11,23 +11,35 @@ export async function listBucketContents(projectName, bucketName) {
     const { stdout, stderr } = await execAsync(command, {
       cwd: "/app/scripts/shell",
       env: awsEnv(),
+      maxBuffer: 20 * 1024 * 1024,
     });
 
     if (stderr) {
       addLog("warn", `Bucket listing warning: ${stderr}`, "automation");
     }
 
-    addLog("info", `Bucket listing raw output: "${stdout}"`, "automation");
-
     try {
-      const contents = JSON.parse(stdout);
+      const parsed = JSON.parse(stdout);
+      const contents = parsed == null ? [] : parsed;
       if (!Array.isArray(contents)) {
         addLog("error", "Bucket listing output is not a JSON array", "automation");
         return [];
       }
+      if (bucketName) {
+        addLog(
+          "info",
+          `Listed s3://${bucketName} (${contents.length} objects) for project ${projectName}`,
+          "automation"
+        );
+      }
       return contents;
     } catch (err) {
-      addLog("error", `Failed to parse bucket listing JSON: ${err.message}. Raw output: "${stdout}"`, "automation");
+      const preview = stdout.length > 200 ? `${stdout.slice(0, 200)}…` : stdout;
+      addLog(
+        "error",
+        `Failed to parse bucket listing JSON: ${err.message}. Output preview: ${preview}`,
+        "automation"
+      );
       return [];
     }
   } catch (error) {

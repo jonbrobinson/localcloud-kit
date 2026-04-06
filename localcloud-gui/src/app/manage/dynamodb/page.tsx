@@ -11,8 +11,8 @@ import {
   TrashIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
 import { resourceApi } from "@/services/api";
+import ManageHeaderBrand from "@/components/ManageHeaderBrand";
 import { DynamoDBTableConfig } from "@/types";
 import DynamoDBConfigModal from "@/components/DynamoDBConfigModal";
 import DynamoDBAddItemModal from "@/components/DynamoDBAddItemModal";
@@ -184,7 +184,7 @@ export default function ManageDynamoDBPage() {
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">
-              <Image src="/icon.svg" alt="LocalCloud Kit" width={36} height={36} />
+              <ManageHeaderBrand />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">LocalCloud Kit</h1>
                 <p className="text-xs text-gray-500">Manage tables</p>
@@ -200,8 +200,18 @@ export default function ManageDynamoDBPage() {
                 <BookOpenIcon className="h-4 w-4" />
                 <span>Docs</span>
               </Link>
-              <button onClick={loadTables} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg" title="Refresh">
-                <ArrowPathIcon className={`h-4 w-4 ${loadingTables ? "animate-spin" : ""}`} />
+              <button
+                type="button"
+                onClick={() => {
+                  void loadTables();
+                  if (selectedTable) void loadItems(selectedTable);
+                }}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                title="Refresh tables and items"
+              >
+                <ArrowPathIcon
+                  className={`h-4 w-4 ${loadingTables || loadingItems ? "animate-spin" : ""}`}
+                />
               </button>
               <button
                 onClick={() => setShowCreate(true)}
@@ -261,27 +271,22 @@ export default function ManageDynamoDBPage() {
             </div>
           ) : (
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <h2 className="text-base font-semibold text-gray-900">{selectedTable}</h2>
+              <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-3">
+                  <h2 className="shrink-0 text-base font-semibold text-gray-900">{selectedTable}</h2>
                   {schema && (
-                    <span className="text-xs text-gray-400 font-mono">
-                      PK: {schema.pk}{schema.sk ? ` · SK: ${schema.sk}` : ""}
+                    <span className="min-w-0 truncate text-xs text-gray-400 font-mono">
+                      PK: {schema.pk}
+                      {schema.sk ? ` · SK: ${schema.sk}` : ""}
                     </span>
                   )}
-                  <span className="text-xs text-gray-400">{items.length} items</span>
+                  <span className="shrink-0 text-xs text-gray-400">{items.length} items</span>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex shrink-0 items-center justify-end">
                   <button
-                    onClick={() => loadItems(selectedTable)}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                    title="Refresh"
-                  >
-                    <ArrowPathIcon className={`h-4 w-4 ${loadingItems ? "animate-spin" : ""}`} />
-                  </button>
-                  <button
+                    type="button"
                     onClick={() => setShowAddItem(true)}
-                    className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700"
+                    className="flex items-center space-x-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-indigo-700"
                   >
                     <PlusIcon className="h-3.5 w-3.5" />
                     <span>Add Item</span>

@@ -12,6 +12,7 @@
     "@heroicons/react": "^2.0.18",
     "@iconify/react": "^6.0.2",
     "axios": "^1.13.6",
+    "fflate": "^0.8.2",
     "framer-motion": "^12.35.2",
     "highlight.js": "^11.9.0",
     "marked": "^15.0.12",

@@ -236,9 +236,11 @@ export async function listResources(projectName) {
 
 export async function listAllBuckets(projectName) {
   try {
+    // Fast path: only S3 list-buckets (same prefix filter as list_resources). Avoids
+    // list_resources.sh --all which queries every AWS service and is very slow.
     const { stdout, stderr } = await execAsync(
-      `./list_resources.sh ${projectName} local --all`,
-      { cwd: "/app/scripts/shell", env: awsEnv() }
+      `./list_bucket_contents.sh ${projectName} dev`,
+      { cwd: "/app/scripts/shell", env: awsEnv(), maxBuffer: 1024 * 1024 }
     );
 
     if (stderr) {
@@ -246,16 +248,18 @@ export async function listAllBuckets(projectName) {
     }
 
     try {
-      const allResources = JSON.parse(stdout);
-      if (!Array.isArray(allResources)) {
-        addLog("error", "Resource listing output is not a JSON array", "automation");
+      const parsed = JSON.parse(stdout);
+      const buckets = parsed == null ? [] : parsed;
+      if (!Array.isArray(buckets)) {
+        addLog("error", "Bucket listing output is not a JSON array", "automation");
         return [];
       }
-      return allResources
-        .filter((r) => r.type === "s3")
-        .map((b) => ({ Name: b.name, CreationDate: b.createdAt }));
+      return buckets.map((b) => ({
+        Name: b.Name,
+        CreationDate: b.CreationDate,
+      }));
     } catch (err) {
-      addLog("error", `Failed to parse resource listing JSON: ${err.message}`, "automation");
+      addLog("error", `Failed to parse bucket listing JSON: ${err.message}`, "automation");
       return [];
     }
   } catch (error) {

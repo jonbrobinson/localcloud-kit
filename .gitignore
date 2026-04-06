@@ -112,6 +112,7 @@ Thumbs.db
 # LocalStack specific
 volume/
 *.zip
+!samples/lambda-demo.zip
 
 # mkcert certificates (generated locally, should not be committed)
 traefik/certs/*.pem
