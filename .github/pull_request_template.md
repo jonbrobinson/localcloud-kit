@@ -34,7 +34,7 @@
 ### Documentation & changelog
 - [ ] `CHANGELOG.md` updated under `## [Unreleased]` with user-facing summary
 - [ ] `README.md` updated if access URLs or features changed
-- [ ] `CLAUDE.md` updated if architecture, services table, or conventions changed
+- [ ] `AGENTS.md` / IDE entry (`CLAUDE.md`) updated if architecture, services table, or conventions changed
 - [ ] Relevant `docs/*.md` files updated with current domain/URL info
 
 ## CHANGELOG entry

@@ -28,6 +28,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **FileViewerModal**: Image/PDF via blob URLs, Content-Type handling, base64 normalization for object downloads
 - **Shell**: **download_s3_object.sh** — metadata via `jq`, single-line base64; **list_bucket_contents.sh**, **get_lambda_code.sh**, **upload_s3_object.sh** aligned with emulator workflow
 - **.gitignore**: Allow **samples/lambda-demo.zip** while keeping generic `*.zip` ignored
+- **AGENTS.md / PR template / project structure**: Agent branches documented as `agents/*`; attribution guidance without vendor product names; **verify-new-service** checklist lives under **`.agent/commands/`**; git history messages neutralized (session URLs, AI co-author lines, legacy branch path prose). The IDE hook file **`CLAUDE.md`** remains for tools that require that filename.
 
 ### Fixed
 
@@ -46,8 +47,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 ## [0.13.1] - 2026-03-13
 
 ### Changed
-- **CLAUDE.md**: Require reading AGENTS.md before executing any action
-- **AGENTS.md**: Attribution section expanded — commit author must always be human; no AI agents (Claude, Copilot, Cursor, etc.) in author or co-author fields; Co-Authored-By reserved for human collaborators only
+- **IDE entry / AGENTS.md**: Require reading AGENTS.md before executing any action
+- **AGENTS.md**: Attribution section expanded — commit author must always be human; no automated tools in author or co-author fields; Co-Authored-By reserved for human collaborators only
 
 ## [0.13.0] - 2026-03-13
 
@@ -186,7 +187,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **PostgreSQL**: Full PostgreSQL service integration — container managed via Docker Compose with status monitoring, connection info, and pgAdmin support
 - **Keycloak**: Identity and access management service — HTTPS routing via Traefik, status page with admin console link, and dedicated docs (`docs/KEYCLOAK.md`)
 - **DocPageNav**: Persistent top navigation bar on all doc pages with profile icon, docs dropdown, and per-page language selector
-- **verify-new-service**: Claude command skill for verifying new service integrations end-to-end
+- **verify-new-service**: IDE slash-command checklist for verifying new service integrations end-to-end
 - **`/api/postgres`**: Backend route for PostgreSQL health-check and connection status
 - **`/api/keycloak`**: Backend route for Keycloak health-check and status
 - **docs/KEYCLOAK.md**: Documentation for Keycloak setup, configuration, and usage

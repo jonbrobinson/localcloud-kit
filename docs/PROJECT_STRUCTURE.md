@@ -94,7 +94,7 @@ localcloud-kit/
 ├── 📄 Makefile                 # Build and run commands
 ├── 📄 env.example              # Environment variable template
 ├── 📄 AGENTS.md                # AI coding agent context
-├── 📄 CLAUDE.md                # Claude AI context
+├── 📄 CLAUDE.md                # IDE hook filename; content defers to AGENTS.md
 └── 📄 README.md                # This project
 ```
 
