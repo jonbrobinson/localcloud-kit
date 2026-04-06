@@ -81,7 +81,7 @@ download_object() {
         # Check if this is a binary file based on content type
         local content_type=""
         if [ -f /tmp/object_metadata.json ]; then
-            content_type=$(cat /tmp/object_metadata.json | grep -o '"ContentType":"[^"]*"' | cut -d'"' -f4)
+            content_type=$(jq -r '.ContentType // empty' /tmp/object_metadata.json 2>/dev/null || true)
         fi
         
         # Determine if binary based on content type or file extension
@@ -95,15 +95,19 @@ download_object() {
         else
             # Check file extension as fallback
             case "$object_key" in
-                *.png|*.jpg|*.jpeg|*.gif|*.bmp|*.webp|*.pdf|*.zip|*.tar|*.gz|*.rar|*.7z)
+                *.png|*.jpg|*.jpeg|*.gif|*.bmp|*.webp|*.svg|*.pdf|*.zip|*.tar|*.gz|*.rar|*.7z)
                     is_binary=true
                     ;;
             esac
         fi
         
         if [ "$is_binary" = true ]; then
-            # For binary files, output as base64
-            base64 /tmp/downloaded_object
+            # Single-line base64 so JSON + data: URLs are valid (wrapped base64 breaks <img src>)
+            if command -v openssl >/dev/null 2>&1; then
+                openssl base64 -A -in /tmp/downloaded_object
+            else
+                base64 /tmp/downloaded_object | tr -d '\n\r'
+            fi
         else
             # For text files, output as-is
             cat /tmp/downloaded_object

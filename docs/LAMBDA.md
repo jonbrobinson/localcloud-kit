@@ -8,6 +8,7 @@ LocalCloud Kit includes AWS Lambda support for serverless function development a
 - **Multiple Runtimes**: Python 3.9–3.12, Node.js 18/20, Java 17/21, Go, .NET 8
 - **Function Invocation**: Invoke functions directly from the dashboard or CLI
 - **GUI Management**: Create functions via the dashboard with runtime and handler configuration
+- **Manage Lambda** (`/manage/lambda`): Uses the same **active project** as the dashboard for listing and creating. By default the list only includes functions whose name starts with `{projectName}-` (matching the Resources sidebar). Use **Show all in emulator** to see every function in LocalStack, including names you entered without that prefix.
 - **API Endpoints**: RESTful endpoints for programmatic access
 - **Shell Scripts**: Automation scripts for Lambda operations
 
@@ -30,9 +31,10 @@ Lambda runs as part of the AWS Emulator (MiniStack) services:
 
 | Method | Endpoint | Description |
 | ------ | -------- | ----------- |
-| `GET` | `/api/lambda/functions` | List all Lambda functions |
+| `GET` | `/api/lambda/functions` | List Lambda functions; omit query for all, or `?projectName=` to keep only names starting with `{projectName}-` |
 | `GET` | `/api/lambda/functions/:name` | Get function details |
 | `DELETE` | `/api/lambda/functions/:name` | Delete a function |
+| `GET` | `/api/lambda/functions/:name/code` | Deployment package file list and contents (for the dashboard Code modal) |
 | `POST` | `/api/lambda/functions/:name/invoke` | Invoke a function |
 
 ### Example Requests
@@ -174,6 +176,26 @@ awslocal lambda invoke \
 cat response.json
 ```
 
+## Sample zip (dashboard Code preview)
+
+The repo includes **`samples/lambda-demo.zip`**: a minimal Node.js handler (`index.handler`). After LocalStack is running, attach it to an existing function so **get-function** returns a downloadable `Code.Location` and the GUI **Code** action can list `index.js`:
+
+```bash
+export AWS_ACCESS_KEY_ID=test
+export AWS_SECRET_ACCESS_KEY=test
+export AWS_DEFAULT_REGION=us-east-1
+alias awslocal='aws --endpoint-url http://localhost:4566'
+
+# Use any existing Node.js function (e.g. one you created in the dashboard), or create one first.
+awslocal lambda update-function-code \
+  --function-name YOUR_FUNCTION_NAME \
+  --zip-file fileb://samples/lambda-demo.zip
+```
+
+Then open **Resources → Lambda → Code** for that function. To rebuild the zip from source: `cd samples/lambda-demo && zip -r ../lambda-demo.zip .`
+
+In the **Lambda Code** modal, **Upload zip** parses the archive in your browser so you can preview files when the emulator does not expose a downloadable package (or to inspect a zip before deploying). It does not upload code to LocalStack; use **Manage Lambda** or the AWS CLI for that.
+
 ## Troubleshooting
 
 ### Function not found
@@ -196,6 +218,12 @@ docker compose logs aws-emulator | grep my-function
 # Verify functions exist via API
 curl http://localhost:3031/api/lambda/functions
 ```
+
+### Dashboard “Code” shows no files or an explanation instead of sources
+
+The GUI loads the deployment package by calling `lambda get-function`, following `Code.Location`, and downloading the zip from inside the API container. That matches AWS behavior, but **some local emulators omit `Code.Location` or return a URL that is not reachable from Docker** (for example, only `localhost` on the host). Creating a function without uploading a zip still installs a **placeholder** package when creation succeeds; “no zip required” means you did not have to supply one in the form, not that the function has no package.
+
+If **Code** cannot download or unzip the package, the modal shows a short reason. Use **`awslocal lambda get-function`** / **`update-function-code`** from the host, or the **Manage Lambda** page, to inspect or replace code.
 
 ---
 

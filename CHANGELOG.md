@@ -6,9 +6,33 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+- **AWS Emulator (MiniStack)**: Docker service `aws-emulator` using `nahuelnucera/ministack` — free, no-account AWS emulation (replaces LocalStack Community requirement)
+- **docs/S3.md**: S3 and Manage S3 guide — breadcrumbs, dashboard vs manager, REST reference, links to CONNECT and shell scripts
+- **Manage S3**: Clickable breadcrumbs — bucket name returns to bucket root; folder segments navigate by prefix; **Back** stays aligned with the path
+- **ManageHeaderBrand**: Shared manage-page header with app logo
+- **useProjectName**: Active project name for manage surfaces (e.g. Lambda list filtering)
+- **LambdaCodeModal**: Optional local **.zip** upload to preview package contents in the browser (**fflate**); emulator package listing unchanged when no local zip
+- **samples/lambda-demo.zip** + **samples/lambda-demo/**: Tiny Node.js Lambda source and committed zip for testing code preview and `update-function-code`
+- **localcloud-gui/src/lib**: `s3PrefixListing.ts`, `lambdaZipPreview.ts` for prefix-style S3 listing and zip inspection
+- **env.example**: Notes for dashboard resource-cache refresh behavior (`?refresh=1`, minimum stale interval)
+
 ### Changed
 
+- **Docs & copy**: LocalStack → AWS Emulator / MiniStack across README, **/connect**, **/aws-emulator**, **docs/AWS_EMULATOR.md**, **docs/LAMBDA.md** (Manage Lambda + **Show all in emulator**), **samples/README**
+- **README**: Centered **logo** (`localcloud-gui/public/logo.svg`); S3 feature bullets and Documentation link to **docs/S3.md**; Manage S3 breadcrumb note under screenshots
+- **/s3** doc page: **Manage S3** section describing breadcrumb and **Back** behavior
+- **Dashboard / API**: **resourceCache** — throttled background refresh, in-flight dedupe, `scheduleResourceCacheRefresh`; health route and server cron/startup use the scheduler; **listAllBuckets** avoids full `list_resources --all` scan
+- **S3 API** (`localcloud-api/lib/s3.js`): Safer logging for large listings, higher exec buffer, empty listing normalization
+- **Manage pages** (S3, DynamoDB, Lambda, IAM, SSM, Secrets, API Gateway): Use **ManageHeaderBrand** where applicable; DynamoDB manage layout/toolbar adjustments
+- **BucketViewer**: Streamlined actions / Manage S3 entry consistency
+- **FileViewerModal**: Image/PDF via blob URLs, Content-Type handling, base64 normalization for object downloads
+- **Shell**: **download_s3_object.sh** — metadata via `jq`, single-line base64; **list_bucket_contents.sh**, **get_lambda_code.sh**, **upload_s3_object.sh** aligned with emulator workflow
+- **.gitignore**: Allow **samples/lambda-demo.zip** while keeping generic `*.zip` ignored
+
 ### Fixed
+
+- **Manage Lambda**: Functions created from the dashboard now respect the active project filter (with **Show all in emulator** for full list)
+- **S3**: Prefix-based folder listing for nested keys; file viewer reliability for images and binary content from the emulator
 
 ### Removed
 

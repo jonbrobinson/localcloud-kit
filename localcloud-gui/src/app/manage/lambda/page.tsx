@@ -12,12 +12,13 @@ import {
   BoltIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
 import { resourceApi } from "@/services/api";
+import ManageHeaderBrand from "@/components/ManageHeaderBrand";
 import { LambdaFunctionConfig } from "@/types";
 import LambdaConfigModal from "@/components/LambdaConfigModal";
 import LambdaCodeModal from "@/components/LambdaCodeModal";
 import SystemLogsButton from "@/components/SystemLogsButton";
+import { useProjectName } from "@/hooks/useProjectName";
 
 interface LambdaFunction {
   FunctionName: string;
@@ -31,14 +32,13 @@ interface LambdaFunction {
   CodeSize?: number;
 }
 
-const projectName = "default";
-
 const formatBytes = (b?: number) => {
   if (!b) return "—";
   return b > 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${(b / 1024).toFixed(0)} KB`;
 };
 
 export default function ManageLambdaPage() {
+  const projectName = useProjectName();
   const [functions, setFunctions] = useState<LambdaFunction[]>([]);
   const [selectedFn, setSelectedFn] = useState<LambdaFunction | null>(null);
   const [loading, setLoading] = useState(false);
@@ -47,11 +47,16 @@ export default function ManageLambdaPage() {
   const [showCode, setShowCode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  /** When false, only functions whose name starts with `{projectName}-` (same filter as the dashboard list). */
+  const [showAllFunctions, setShowAllFunctions] = useState(false);
 
   const loadFunctions = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/lambda/functions?projectName=${encodeURIComponent(projectName)}`);
+      const qs = showAllFunctions
+        ? ""
+        : `?projectName=${encodeURIComponent(projectName)}`;
+      const res = await fetch(`/api/lambda/functions${qs}`);
       const result = await res.json();
       if (result.success) {
         setFunctions(result.data?.Functions || []);
@@ -63,9 +68,11 @@ export default function ManageLambdaPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [projectName, showAllFunctions]);
 
-  useEffect(() => { loadFunctions(); }, [loadFunctions]);
+  useEffect(() => {
+    void loadFunctions();
+  }, [loadFunctions]);
 
   const handleCreate = async (config: LambdaFunctionConfig) => {
     setCreateLoading(true);
@@ -115,7 +122,7 @@ export default function ManageLambdaPage() {
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">
-              <Image src="/icon.svg" alt="LocalCloud Kit" width={36} height={36} />
+              <ManageHeaderBrand />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">LocalCloud Kit</h1>
                 <p className="text-xs text-gray-500">Manage functions</p>
@@ -149,8 +156,22 @@ export default function ManageLambdaPage() {
       <div className="flex flex-1 overflow-hidden">
         {/* Function sidebar */}
         <aside className="w-72 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
-          <div className="px-3 py-3 border-b border-gray-100">
+          <div className="px-3 py-3 border-b border-gray-100 space-y-2">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Functions ({functions.length})</p>
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                checked={showAllFunctions}
+                onChange={(e) => setShowAllFunctions(e.target.checked)}
+              />
+              <span className="text-xs text-gray-600">Show all in emulator</span>
+            </label>
+            {!showAllFunctions && (
+              <p className="text-[10px] text-gray-400 leading-snug">
+                Scoped to <span className="font-mono">{projectName}-*</span>. Turn on to list every function (e.g. names without that prefix).
+              </p>
+            )}
           </div>
           {loading ? (
             <div className="p-4 space-y-2">

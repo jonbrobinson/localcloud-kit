@@ -4,7 +4,11 @@ import path from "path";
 import { execAsync, userEndpoint, awsRegion } from "../lib/aws.js";
 import { state, addLog } from "../lib/context.js";
 import { listResources } from "../lib/resources.js";
-import { getCachedResources, setCachedResources } from "../lib/resourceCache.js";
+import {
+  getCachedResources,
+  setCachedResources,
+  scheduleResourceCacheRefresh,
+} from "../lib/resourceCache.js";
 import db from "../db.js";
 
 const router = express.Router();
@@ -42,24 +46,16 @@ router.get("/dashboard", async (req, res) => {
 
     const MAILPIT_URL = process.env.MAILPIT_INTERNAL_URL || "http://mailpit:8025";
 
-    const cached = getCachedResources(projectConfig.projectName);
+    const bypassCache = req.query.refresh === "1";
+    const cached = bypassCache ? null : getCachedResources(projectConfig.projectName);
 
-    // Fire background refresh — does not block the response
-    const refreshCache = () =>
-      listResources(projectConfig.projectName)
-        .then((fresh) => setCachedResources(projectConfig.projectName, fresh))
-        .catch((err) =>
-          addLog("warn", `Background resource cache refresh failed: ${err.message}`, "api")
-        );
-
-    // Use cached resources immediately; fall back to a blocking fetch on cold start
+    // Use cached resources immediately; throttled background refresh (see resourceCache.js)
     let resources;
     let fromCache = false;
     if (cached) {
       resources = cached.resources;
       fromCache = true;
-      // Kick off background refresh without awaiting
-      refreshCache();
+      void scheduleResourceCacheRefresh(projectConfig.projectName);
     } else {
       resources = await listResources(projectConfig.projectName);
       setCachedResources(projectConfig.projectName, resources);

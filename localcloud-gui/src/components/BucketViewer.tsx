@@ -24,6 +24,7 @@ import { highlightThemes, HighlightTheme } from "./highlightThemes";
 import { Icon } from "@iconify/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "react-hot-toast";
+import { listS3ObjectsAtPrefix } from "@/lib/s3PrefixListing";
 
 const panelVariants = {
   hidden:  { opacity: 0, y: 10 },
@@ -120,22 +121,8 @@ export default function BucketViewer({
       try {
         const response = await s3Api.getBucketContents(projectName, bucketName);
         if (response.success) {
-          let contents = response.data || [];
-
-          // Filter contents based on current path
-          if (path) {
-            contents = contents.filter((item) => {
-              const key = item.Key || "";
-              // Show items that start with the current path
-              if (key.startsWith(path)) {
-                // Remove the prefix for display
-                const relativeKey = key.slice(path.length);
-                // Only show items in the current directory level (not nested deeper)
-                return !relativeKey.includes("/") || relativeKey.endsWith("/");
-              }
-              return false;
-            });
-          }
+          const all = response.data || [];
+          const contents = listS3ObjectsAtPrefix(all, path);
 
           setBucketContents(contents);
           setSelectedBucket(bucketName);
@@ -249,7 +236,7 @@ export default function BucketViewer({
       );
       if (response.success) {
         // Refresh bucket contents
-        await loadBucketContents(selectedBucket);
+        await loadBucketContents(selectedBucket, currentPath);
       } else {
         setError(response.error || "Failed to delete file");
       }
@@ -543,7 +530,7 @@ export default function BucketViewer({
                 <button
                   onClick={
                     selectedBucket
-                      ? () => loadBucketContents(selectedBucket)
+                      ? () => loadBucketContents(selectedBucket, currentPath)
                       : loadBuckets
                   }
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -785,7 +772,7 @@ export default function BucketViewer({
         projectName={projectName}
         bucketName={selectedBucket}
         onUploadSuccess={() => {
-          loadBucketContents(selectedBucket);
+          loadBucketContents(selectedBucket, currentPath);
         }}
       />
     )}

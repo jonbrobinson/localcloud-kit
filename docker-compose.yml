@@ -14,7 +14,7 @@ services:
       - lck-network
     restart: unless-stopped
 
-  # AWS Emulator - MiniStack (drop-in LocalStack replacement, no account required)
+  # AWS Emulator - MiniStack (no account required)
   # Port overrides for running alongside other projects:
   #   EMULATOR_PORT=4567 docker compose up        → changes host-side AWS emulator port
   #   RDS_BASE_PORT=15500 docker compose up        → shifts RDS instance ports up

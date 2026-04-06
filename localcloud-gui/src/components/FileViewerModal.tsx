@@ -96,6 +96,37 @@ function getViewerType(
   return "binary";
 }
 
+function guessMimeFromObjectKey(objectKey: string): string | undefined {
+  const ext = objectKey.split(".").pop()?.toLowerCase() || "";
+  const m: Record<string, string> = {
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    gif: "image/gif",
+    webp: "image/webp",
+    svg: "image/svg+xml",
+    bmp: "image/bmp",
+    pdf: "application/pdf",
+  };
+  return m[ext];
+}
+
+/** Strip whitespace/newlines from shell base64 so atob + Blob URLs work. */
+function createBlobUrlFromBase64Payload(rawContent: string, mime: string): string | null {
+  const cleaned = rawContent.replace(/\s/g, "");
+  if (!cleaned) return null;
+  try {
+    const bin = atob(cleaned);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return URL.createObjectURL(
+      new Blob([bytes], { type: mime || "application/octet-stream" })
+    );
+  } catch {
+    return null;
+  }
+}
+
 // Custom Tooltip Component
 function Tooltip({
   children,
@@ -142,6 +173,7 @@ export default function FileViewerModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<HighlightTheme>(theme);
+  const [binaryPreviewUrl, setBinaryPreviewUrl] = useState<string | null>(null);
 
   const loadFileContent = useCallback(async () => {
     if (!isOpen) return;
@@ -183,6 +215,28 @@ export default function FileViewerModal({
     setSelectedTheme(theme);
   }, [theme]);
 
+  useEffect(() => {
+    if (!isOpen || !fileContent) {
+      setBinaryPreviewUrl(null);
+      return;
+    }
+    const vt = getViewerType(fileContent.metadata.ContentType, objectKey);
+    if (vt !== "image" && vt !== "pdf") {
+      setBinaryPreviewUrl(null);
+      return;
+    }
+    const declared = (fileContent.metadata.ContentType || "").split(";")[0].trim();
+    const mime =
+      declared ||
+      guessMimeFromObjectKey(objectKey) ||
+      (vt === "image" ? "image/png" : "application/pdf");
+    const url = createBlobUrlFromBase64Payload(fileContent.content, mime);
+    setBinaryPreviewUrl(url);
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [isOpen, fileContent, objectKey]);
+
   // Only show theme selector for these types
   const themeableTypes = ["code", "json", "markdown"];
   const showThemeSelector = themeableTypes.includes(
@@ -211,15 +265,14 @@ export default function FileViewerModal({
   const handleDownload = () => {
     if (!fileContent) return;
 
-    // Check if content is base64 encoded (for binary files)
+    const normalized = fileContent.content.replace(/\s/g, "");
     const isBase64 =
-      /^[A-Za-z0-9+/]*={0,2}$/.test(fileContent.content) &&
-      fileContent.content.length > 0;
+      /^[A-Za-z0-9+/]+=*$/.test(normalized) && normalized.length > 0;
 
     let blob;
     if (isBase64) {
       // Convert base64 to binary for download
-      const binaryString = atob(fileContent.content);
+      const binaryString = atob(normalized);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
@@ -502,21 +555,31 @@ export default function FileViewerModal({
                     )}
                   </div>
                 )}
-                {viewerType === "image" && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={`data:${fileContent.metadata.ContentType};base64,${fileContent.content}`}
-                    alt={objectKey}
-                    className="max-w-full max-h-[60vh] mx-auto rounded shadow"
-                  />
-                )}
-                {viewerType === "pdf" && (
-                  <iframe
-                    src={`data:application/pdf;base64,${fileContent.content}`}
-                    title={objectKey}
-                    className="w-full h-[60vh] border rounded"
-                  />
-                )}
+                {viewerType === "image" &&
+                  (binaryPreviewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={binaryPreviewUrl}
+                      alt={objectKey}
+                      className="max-h-[60vh] max-w-full rounded object-contain mx-auto shadow"
+                    />
+                  ) : (
+                    <p className="text-center text-sm text-gray-600">
+                      Could not decode this image for preview. Use Download to open the file locally.
+                    </p>
+                  ))}
+                {viewerType === "pdf" &&
+                  (binaryPreviewUrl ? (
+                    <iframe
+                      src={binaryPreviewUrl}
+                      title={objectKey}
+                      className="w-full h-[60vh] border rounded"
+                    />
+                  ) : (
+                    <p className="text-center text-sm text-gray-600">
+                      Could not decode this PDF for preview. Use Download to open the file locally.
+                    </p>
+                  ))}
                 {viewerType === "markdown" && (
                   <div
                     className="prose max-w-none"

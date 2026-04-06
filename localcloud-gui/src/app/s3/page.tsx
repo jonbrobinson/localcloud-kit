@@ -252,6 +252,29 @@ export default function S3DocPage() {
           </div>
         </section>
 
+        {/* Manage S3 */}
+        <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Manage S3</h2>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            Use{" "}
+            <Link href="/manage/s3" className="text-indigo-600 hover:underline font-medium">
+              Manage S3
+            </Link>{" "}
+            (<code className="bg-gray-100 px-1 rounded font-mono text-xs">/manage/s3</code>) for a full-page bucket browser with the same prefix-based folders as the dashboard.
+          </p>
+          <ul className="mt-3 text-sm text-gray-600 list-disc list-inside space-y-1">
+            <li>
+              <strong className="text-gray-800">Bucket name</strong> in the breadcrumb bar returns to that bucket&apos;s root (top-level listing).
+            </li>
+            <li>
+              Each <strong className="text-gray-800">folder segment</strong> before the current one is clickable and opens that prefix; the last segment is the current folder only.
+            </li>
+            <li>
+              <strong className="text-gray-800">Back</strong> moves up one level and stays consistent with the breadcrumb path.
+            </li>
+          </ul>
+        </section>
+
         {/* SDK Examples */}
         <section className="bg-white rounded-lg shadow p-6 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-1">SDK Examples</h2>

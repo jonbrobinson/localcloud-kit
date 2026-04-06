@@ -15,13 +15,14 @@ import {
   ChevronRightIcon,
   ArrowLeftIcon as BackIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
 import { s3Api, resourceApi } from "@/services/api";
+import ManageHeaderBrand from "@/components/ManageHeaderBrand";
 import { S3BucketConfig } from "@/types";
 import S3ConfigModal from "@/components/S3ConfigModal";
 import FileViewerModal from "@/components/FileViewerModal";
 import UploadFileModal from "@/components/UploadFileModal";
 import SystemLogsButton from "@/components/SystemLogsButton";
+import { listS3ObjectsAtPrefix } from "@/lib/s3PrefixListing";
 
 interface BucketItem {
   Name?: string;
@@ -40,6 +41,35 @@ const formatSize = (bytes?: number) => {
 
 const formatDate = (d?: string) => (d ? new Date(d).toLocaleString() : "—");
 const isFolder = (key: string) => key.endsWith("/");
+
+/** Stack for the Back button when jumping to `prefix` via breadcrumbs (e.g. photos/2024/ → ['', 'photos/']). */
+function pathHistoryForPrefix(prefix: string): string[] {
+  const trim = prefix.replace(/\/$/, "");
+  if (!trim) return [];
+  const parts = trim.split("/").filter(Boolean);
+  if (parts.length <= 1) return [""];
+  const history: string[] = [""];
+  let acc = "";
+  for (let i = 0; i < parts.length - 1; i++) {
+    acc += `${parts[i]}/`;
+    history.push(acc);
+  }
+  return history;
+}
+
+/** Folder segments under the bucket (prefix includes trailing slash). */
+function breadcrumbFolderSegments(currentPath: string): { label: string; prefix: string }[] {
+  const trim = currentPath.replace(/\/$/, "");
+  if (!trim) return [];
+  const parts = trim.split("/").filter(Boolean);
+  const out: { label: string; prefix: string }[] = [];
+  let acc = "";
+  for (const part of parts) {
+    acc += `${part}/`;
+    out.push({ label: part, prefix: acc });
+  }
+  return out;
+}
 
 const projectName = "default";
 
@@ -76,21 +106,8 @@ export default function ManageS3Page() {
     try {
       const res = await s3Api.getBucketContents(projectName, bucket);
       if (res.success) {
-        let items = res.data || [];
-        if (path) {
-          items = items.filter((item: BucketItem) => {
-            const key = item.Key || "";
-            if (!key.startsWith(path)) return false;
-            const rel = key.slice(path.length);
-            return !rel.includes("/") || rel.endsWith("/");
-          });
-        } else {
-          items = items.filter((item: BucketItem) => {
-            const key = item.Key || "";
-            return !key.includes("/") || key.endsWith("/");
-          });
-        }
-        setContents(items);
+        const all = res.data || [];
+        setContents(listS3ObjectsAtPrefix(all, path));
         setCurrentPath(path);
       } else {
         toast.error("Failed to load contents");
@@ -122,6 +139,17 @@ export default function ManageS3Page() {
     setPathHistory((h) => h.slice(0, -1));
     loadContents(selectedBucket, prev);
   };
+
+  const navigateToPrefix = useCallback(
+    (targetPrefix: string) => {
+      if (!selectedBucket) return;
+      const norm =
+        targetPrefix === "" ? "" : targetPrefix.endsWith("/") ? targetPrefix : `${targetPrefix}/`;
+      setPathHistory(pathHistoryForPrefix(norm));
+      void loadContents(selectedBucket, norm);
+    },
+    [selectedBucket, loadContents]
+  );
 
   const handleCreate = async (config: S3BucketConfig) => {
     setCreateLoading(true);
@@ -164,7 +192,7 @@ export default function ManageS3Page() {
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">
-              <Image src="/icon.svg" alt="LocalCloud Kit" width={36} height={36} />
+              <ManageHeaderBrand />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">LocalCloud Kit</h1>
                 <p className="text-xs text-gray-500">Manage buckets</p>
@@ -180,8 +208,18 @@ export default function ManageS3Page() {
                 <BookOpenIcon className="h-4 w-4" />
                 <span>Docs</span>
               </Link>
-              <button onClick={loadBuckets} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg" title="Refresh">
-                <ArrowPathIcon className={`h-4 w-4 ${loadingBuckets ? "animate-spin" : ""}`} />
+              <button
+                type="button"
+                onClick={() => {
+                  void loadBuckets();
+                  if (selectedBucket) void loadContents(selectedBucket, currentPath);
+                }}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                title="Refresh buckets and current folder"
+              >
+                <ArrowPathIcon
+                  className={`h-4 w-4 ${loadingBuckets || loadingContents ? "animate-spin" : ""}`}
+                />
               </button>
               <button
                 onClick={() => setShowCreate(true)}
@@ -242,37 +280,65 @@ export default function ManageS3Page() {
           ) : (
             <div>
               {/* Toolbar */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
+              <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
                   {pathHistory.length > 0 && (
-                    <button onClick={goBack} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded">
+                    <button
+                      type="button"
+                      onClick={goBack}
+                      className="shrink-0 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+                      title="Go to parent folder"
+                    >
                       <BackIcon className="h-4 w-4" />
                     </button>
                   )}
-                  <div className="flex items-center text-sm text-gray-600 space-x-1">
-                    <span className="font-medium text-gray-900">{selectedBucket}</span>
-                    {currentPath && (
-                      <>
-                        <ChevronRightIcon className="h-3.5 w-3.5 text-gray-400" />
-                        <span className="text-gray-500 font-mono text-xs">{currentPath}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => loadContents(selectedBucket, currentPath)}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                    title="Refresh"
+                  <nav
+                    aria-label="Bucket path"
+                    className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-0.5 text-sm"
                   >
-                    <ArrowPathIcon className={`h-4 w-4 ${loadingContents ? "animate-spin" : ""}`} />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => navigateToPrefix("")}
+                      className="shrink-0 max-w-[40vw] truncate text-left font-medium text-indigo-700 hover:text-indigo-900 hover:underline sm:max-w-xs"
+                      title="Bucket root"
+                    >
+                      {selectedBucket}
+                    </button>
+                    {breadcrumbFolderSegments(currentPath).map((seg, idx, arr) => {
+                      const isLast = idx === arr.length - 1;
+                      return (
+                        <span key={seg.prefix} className="flex min-w-0 items-center gap-1">
+                          <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden />
+                          {isLast ? (
+                            <span
+                              className="truncate font-mono text-xs font-medium text-gray-900"
+                              title={seg.prefix}
+                            >
+                              {seg.label}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => navigateToPrefix(seg.prefix)}
+                              className="truncate font-mono text-xs text-indigo-600 hover:text-indigo-800 hover:underline"
+                              title={seg.prefix}
+                            >
+                              {seg.label}
+                            </button>
+                          )}
+                        </span>
+                      );
+                    })}
+                  </nav>
+                </div>
+                <div className="flex shrink-0 items-center justify-end">
                   <button
+                    type="button"
                     onClick={() => setShowUpload(true)}
-                    className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="flex items-center space-x-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-indigo-700"
                   >
                     <ArrowUpTrayIcon className="h-3.5 w-3.5" />
-                    <span>Upload</span>
+                    <span>Upload file</span>
                   </button>
                 </div>
               </div>
@@ -302,6 +368,7 @@ export default function ManageS3Page() {
                       {contents.map((item, i) => {
                         const key = item.Key || item.Name || "";
                         const displayName = currentPath ? key.slice(currentPath.length) : key;
+                        const displayLabel = displayName.replace(/\/$/, "") || displayName;
                         const folder = isFolder(key);
                         return (
                           <tr key={`${key}-${i}`} className="hover:bg-gray-50">
@@ -317,10 +384,10 @@ export default function ManageS3Page() {
                                     onClick={() => openFolder(key)}
                                     className="text-indigo-600 hover:text-indigo-800 font-mono text-xs hover:underline"
                                   >
-                                    {displayName}
+                                    {displayLabel}
                                   </button>
                                 ) : (
-                                  <span className="font-mono text-xs text-gray-700">{displayName}</span>
+                                  <span className="font-mono text-xs text-gray-700">{displayLabel}</span>
                                 )}
                               </div>
                             </td>

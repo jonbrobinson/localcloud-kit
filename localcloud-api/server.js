@@ -6,8 +6,7 @@ import cron from "node-cron";
 
 import { setIo, addLog } from "./lib/context.js";
 import { internalEndpoint } from "./lib/aws.js";
-import { listResources } from "./lib/resources.js";
-import { getCachedResources, setCachedResources } from "./lib/resourceCache.js";
+import { getCachedResources, scheduleResourceCacheRefresh } from "./lib/resourceCache.js";
 import db from "./db.js";
 
 import healthRouter from "./routes/health.js";
@@ -87,8 +86,7 @@ cron.schedule("*/30 * * * * *", () => {
   checkEmulatorStatus();
 });
 
-// Background resource cache refresh — runs every 30 seconds server-side
-// so dashboard requests always hit a warm cache
+// Background resource cache refresh — runs every 30 seconds (force refresh, deduped in resourceCache)
 cron.schedule("*/30 * * * * *", async () => {
   try {
     const profileRow = db
@@ -100,12 +98,32 @@ cron.schedule("*/30 * * * * *", async () => {
       )
       .get();
     const projectName = profileRow?.projectName || "default";
-    const resources = await listResources(projectName);
-    setCachedResources(projectName, resources);
+    await scheduleResourceCacheRefresh(projectName, { force: true });
   } catch (err) {
     addLog("warn", `Resource cache background refresh failed: ${err.message}`, "api");
   }
 });
+
+// Prime cache shortly after boot so the first /dashboard hit usually avoids a cold list_resources
+setTimeout(() => {
+  void (async () => {
+    try {
+      const profileRow = db
+        .prepare(
+          `SELECT p.name AS projectName
+           FROM user_profile u
+           LEFT JOIN projects p ON u.active_project_id = p.id
+           WHERE u.id = 1`
+        )
+        .get();
+      const projectName = profileRow?.projectName || "default";
+      if (getCachedResources(projectName)) return;
+      await scheduleResourceCacheRefresh(projectName, { force: true });
+    } catch (err) {
+      addLog("warn", `Initial resource cache prime failed: ${err.message}`, "api");
+    }
+  })();
+}, 6000);
 
 // Initial status check
 setTimeout(checkEmulatorStatus, 2000);

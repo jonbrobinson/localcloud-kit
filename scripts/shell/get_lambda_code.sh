@@ -22,23 +22,33 @@ FUNC_JSON=$(aws --endpoint-url="$AWS_ENDPOINT" --region="$AWS_REGION" lambda get
 
 CODE_LOCATION=$(echo "$FUNC_JSON" | jq -r '.Code.Location // empty')
 if [ -z "$CODE_LOCATION" ] || [ "$CODE_LOCATION" = "null" ]; then
-  echo '{"error":"No code location in response"}' >&2
-  exit 1
+  # Success shape so the GUI can explain — create-flow still uploaded a package; some emulators omit Location
+  jq -nc \
+    --arg msg "This emulator did not return a code download URL (Code.Location). The function may still have a deployment package from create; try update-function-code from your machine or the manage page." \
+    '{files:[],unavailableReason:$msg}'
+  exit 0
 fi
 
-CODE_URL=$(echo "$CODE_LOCATION" | sed 's|http://localhost:|http://aws-emulator:|g' | sed 's|https://localhost:|https://aws-emulator:|g')
+# Rewrite URLs so curl from the API container hits the emulator on the Docker network (not localhost/127.0.0.1)
+EMULATOR_HOSTPORT=$(printf '%s' "$AWS_ENDPOINT" | sed -e 's|^https\{0,1\}://||')
+CODE_URL=$(printf '%s' "$CODE_LOCATION" | sed "s#http://localhost:[0-9]*/#http://${EMULATOR_HOSTPORT}/#g" | sed "s#http://127.0.0.1:[0-9]*/#http://${EMULATOR_HOSTPORT}/#g" | sed "s#https://localhost:[0-9]*/#http://${EMULATOR_HOSTPORT}/#g" | sed "s#https://127.0.0.1:[0-9]*/#http://${EMULATOR_HOSTPORT}/#g")
 
 ZIP_FILE="$TMP_DIR/code.zip"
-curl -sS -o "$ZIP_FILE" "$CODE_URL" 2>/dev/null || {
-  echo '{"error":"Failed to download code package"}' >&2
-  exit 1
-}
+if ! curl -fsS -o "$ZIP_FILE" "$CODE_URL" 2>/dev/null; then
+  jq -nc \
+    --arg url "$CODE_URL" \
+    --arg msg "Could not download the deployment package from the emulator. The URL from get-function may not be reachable from the API container." \
+    '{files:[],unavailableReason:($msg + " (URL host was adjusted for Docker networking.)")}'
+  exit 0
+fi
 
 mkdir -p "$TMP_DIR/extracted"
-unzip -q -o "$ZIP_FILE" -d "$TMP_DIR/extracted" 2>/dev/null || {
-  echo '{"error":"Failed to unzip code package"}' >&2
-  exit 1
-}
+if ! unzip -t "$ZIP_FILE" >/dev/null 2>&1 || ! unzip -q -o "$ZIP_FILE" -d "$TMP_DIR/extracted" 2>/dev/null; then
+  jq -nc \
+    --arg msg "Downloaded payload is not a valid zip (or is empty). The emulator may return a non-standard code package format." \
+    '{files:[],unavailableReason:$msg}'
+  exit 0
+fi
 
 # Build JSON array
 OUT="$TMP_DIR/out.json"
