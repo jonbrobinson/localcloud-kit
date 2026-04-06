@@ -8,7 +8,7 @@
 
 Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Lambda, API Gateway, SSM Parameter Store, Secrets Manager, Redis cache, email testing with Mailpit, and optional beta product analytics with PostHog.
 
-[![Version](https://img.shields.io/badge/version-0.13.2-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.13.2)
+[![Version](https://img.shields.io/badge/version-0.13.3-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.13.3)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 [![Docker](https://img.shields.io/badge/Docker-Containerized-0db7ed?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)

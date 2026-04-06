@@ -6,6 +6,18 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+### Security
+
+## [0.13.3] - 2026-04-05
+
+### Added
+
 - **AWS Emulator (MiniStack)**: Docker service `aws-emulator` using `nahuelnucera/ministack` — free, no-account AWS emulation (replaces LocalStack Community requirement)
 - **docs/S3.md**: S3 and Manage S3 guide — breadcrumbs, dashboard vs manager, REST reference, links to CONNECT and shell scripts
 - **Manage S3**: Clickable breadcrumbs — bucket name returns to bucket root; folder segments navigate by prefix; **Back** stays aligned with the path
