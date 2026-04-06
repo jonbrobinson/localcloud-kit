@@ -10,6 +10,14 @@ export AWS_PAGER=""
 PROJECT_NAME=${1:-"localcloud-kit"}
 ENVIRONMENT=${2:-"dev"}
 BUCKET_NAME=${3:-""}
+# When the API passes --all-buckets, list every bucket in the emulator (GUI). Bucket names from
+# the create modal are not required to start with the project prefix, so prefix-only filtering
+# hides buckets that still appear in the dashboard resource list.
+ALL_BUCKETS=false
+if [ "$BUCKET_NAME" = "--all-buckets" ]; then
+    ALL_BUCKETS=true
+    BUCKET_NAME=""
+fi
 AWS_ENDPOINT=${AWS_ENDPOINT_URL:-"http://aws-emulator:4566"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
@@ -57,11 +65,17 @@ list_bucket_contents() {
         --output json 2>/dev/null | tr -d '\n\r' || echo '[]'
 }
 
-# Function to list buckets for project
+# Function to list buckets for project (prefix filter) or all buckets (--all-buckets for API/GUI)
 list_project_buckets() {
-    $AWS_CMD s3api list-buckets \
-        --query "Buckets[?starts_with(Name, '$NAME_PREFIX')].{Name:Name,CreationDate:CreationDate}" \
-        --output json 2>/dev/null | tr -d '\n\r' || echo '[]'
+    if [ "$ALL_BUCKETS" = "true" ]; then
+        $AWS_CMD s3api list-buckets \
+            --query 'Buckets[].{Name:Name,CreationDate:CreationDate}' \
+            --output json 2>/dev/null | tr -d '\n\r' || echo '[]'
+    else
+        $AWS_CMD s3api list-buckets \
+            --query "Buckets[?starts_with(Name, '$NAME_PREFIX')].{Name:Name,CreationDate:CreationDate}" \
+            --output json 2>/dev/null | tr -d '\n\r' || echo '[]'
+    fi
 }
 
 # Main execution

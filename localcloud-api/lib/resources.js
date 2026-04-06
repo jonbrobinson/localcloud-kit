@@ -236,10 +236,11 @@ export async function listResources(projectName) {
 
 export async function listAllBuckets(projectName) {
   try {
-    // Fast path: only S3 list-buckets (same prefix filter as list_resources). Avoids
-    // list_resources.sh --all which queries every AWS service and is very slow.
+    // Fast path: S3 list-buckets only (no full list_resources scan). GUI passes
+    // --all-buckets so every emulator bucket is shown; create-modal names are not
+    // required to start with the project prefix.
     const { stdout, stderr } = await execAsync(
-      `./list_bucket_contents.sh ${projectName} dev`,
+      `./list_bucket_contents.sh ${projectName} dev --all-buckets`,
       { cwd: "/app/scripts/shell", env: awsEnv(), maxBuffer: 1024 * 1024 }
     );
 
