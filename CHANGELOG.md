@@ -18,6 +18,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Changed
 
+- **docker-compose.yml**: Pinned Traefik `v3.6`, Nginx `1.27-alpine`, standalone Redis `7.4-alpine`; PostHog profile — Zookeeper `3.9`, Redpanda `v25.3.1` (ClickHouse remains `25.10` for PostHog compatibility)
+- **docs/DOCKER.md**: Image tags aligned with compose pins (Traefik, Nginx, Redis; PostHog Redpanda / Zookeeper called out in the PostHog section)
 - **Docs & copy**: LocalStack → AWS Emulator / MiniStack across README, **/connect**, **/aws-emulator**, **docs/AWS_EMULATOR.md**, **docs/LAMBDA.md** (Manage Lambda + **Show all in emulator**), **samples/README**
 - **README**: Centered **logo** (`localcloud-gui/public/logo.svg`); S3 feature bullets and Documentation link to **docs/S3.md**; Manage S3 breadcrumb note under screenshots
 - **/s3** doc page: **Manage S3** section describing breadcrumb and **Back** behavior
