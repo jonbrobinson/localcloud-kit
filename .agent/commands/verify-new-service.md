@@ -97,11 +97,12 @@ The service being verified is: **$ARGUMENTS**
 - [ ] CHANGELOG entry uses bold component name format: `- **ServiceName**: description`
 - [ ] CHANGELOG entry is user-facing language (not implementation details)
 
-## 12. CLAUDE.md
+## 12. AGENTS.md and IDE entry
 
-- [ ] Service added to the **Services** table in the Architecture section
+- [ ] Service added to the **Services** table in `AGENTS.md` (Architecture section)
 - [ ] Subdomain listed in the Networking & Routing section
-- [ ] "Adding a New Service" checklist still accurate (update if steps changed)
+- [ ] "Adding a New Service" checklist in `AGENTS.md` still accurate (update if steps changed)
+- [ ] If your tool reads `CLAUDE.md`, that file still points at `AGENTS.md` as the source of truth
 
 ---
 

@@ -1,7 +1,7 @@
 # LocalCloud Kit — AGENTS.md
 
 This file is the single source of truth for project context and standards in
-this repository. All AI coding agents (and `CLAUDE.md`) read from this file.
+this repository. All AI coding agents read from this file.
 
 ---
 
@@ -198,10 +198,10 @@ Entries go under `## [Unreleased]` at the top of the file. Use these subsections
 
 ## Attribution
 
-- **Author**: The commit author must always be a human. No AI agent (Claude, Copilot, Cursor, or any other) may appear as the commit author.
+- **Author**: The commit author must always be a human. No automated coding tool or AI agent may appear as the commit author.
 - **Co-author**: Use `Co-Authored-By:` only for human collaborators. Never include AI agents in author or co-author fields.
-- **No AI attribution**: Do not add `Co-Authored-By: Claude`, `Co-Authored-By: GitHub Copilot`, or any other AI attribution in commit messages or footers.
-- **No AI badges**: Do not add `🤖 Generated with [Claude Code]`, `Built with Copilot`, or similar AI-generation lines in PR descriptions, commit bodies, or other output.
+- **No AI attribution**: Do not add `Co-Authored-By:` lines for bots, assistants, or AI products in commit messages or footers.
+- **No AI badges**: Do not add vendor AI-generation lines (for example “generated with … assistant”) in PR descriptions, commit bodies, or other output.
 - **Default author**: The correct git author for this repo is `Jonathan Robinson <jonrobinson.codes@gmail.com>`. Before committing, verify `git config user.name` and `git config user.email` match this identity.
 
 ---
@@ -430,7 +430,7 @@ const handleTabChange = (tab: PageTab) => {
 
 ## Git Branch Convention
 
-- All agent work happens on branches prefixed `claude/` followed by a short description and a unique session ID suffix
-- Example: `claude/add-iam-roles-localstack-OWviN`
+- All agent work happens on branches prefixed `agents/` followed by a short description and a unique session ID suffix
+- Example: `agents/add-iam-roles-emulator-OWviN`
 - **Never push to `main` directly**
 - Always push with `git push -u origin <branch-name>`
