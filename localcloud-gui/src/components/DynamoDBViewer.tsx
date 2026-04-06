@@ -429,7 +429,7 @@ export default function DynamoDBViewer({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">DynamoDB Tables</h2>
             <p className="text-xs text-gray-500">View and manage table contents</p>
@@ -462,7 +462,7 @@ export default function DynamoDBViewer({
         {/* Content */}
         <div className="flex-1 flex flex-col p-6 gap-4 min-h-0">
           {/* Table Selection */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
               Select Table
             </label>
@@ -559,7 +559,7 @@ export default function DynamoDBViewer({
           {selectedTable && (
             <>
               {/* Query Controls */}
-              <div className="bg-gray-50 rounded-lg px-4 py-3 flex-shrink-0">
+              <div className="bg-gray-50 rounded-lg px-4 py-3 shrink-0">
                 <div className="flex items-center space-x-4 mb-3">
                   <div className="flex items-center space-x-2">
                     <input
@@ -712,7 +712,7 @@ export default function DynamoDBViewer({
 
               {/* Results Info */}
               {scanResult && (
-                <div className="flex items-center justify-between text-sm text-gray-600 flex-shrink-0">
+                <div className="flex items-center justify-between text-sm text-gray-600 shrink-0">
                   <span>
                     Showing {items.length} items (scanned:{" "}
                     {scanResult.scannedCount})
@@ -722,7 +722,7 @@ export default function DynamoDBViewer({
               )}
 
               {/* Add Item Button */}
-              <div className="flex justify-between items-center flex-shrink-0">
+              <div className="flex justify-between items-center shrink-0">
                 <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Items</h3>
                 <button
                   onClick={() => setAddModalOpen(true)}
@@ -825,7 +825,7 @@ export default function DynamoDBViewer({
                                     className="flex items-center gap-1.5 text-left text-xs bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded border border-blue-200 font-mono text-gray-800 transition-colors cursor-pointer max-w-[200px]"
                                     title="Click to view full JSON"
                                   >
-                                    <ArrowsPointingOutIcon className="h-3.5 w-3.5 text-blue-600 flex-shrink-0" />
+                                    <ArrowsPointingOutIcon className="h-3.5 w-3.5 text-blue-600 shrink-0" />
                                     <span className="truncate">
                                       {formatValue(item[header])}
                                     </span>
@@ -930,7 +930,7 @@ export default function DynamoDBViewer({
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
         <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">JSON Viewer</h2>
               <p className="text-xs text-gray-500">{selectedJsonTitle}</p>

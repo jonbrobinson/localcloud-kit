@@ -349,7 +349,7 @@ export default function BucketViewer({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
+        <div className="px-6 py-4 border-b border-gray-200 shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 min-w-0 flex-1">
               {selectedBucket && (
@@ -360,7 +360,7 @@ export default function BucketViewer({
                     setCurrentPath("");
                     setPathHistory([]);
                   }}
-                  className="p-2 text-gray-400 hover:text-gray-600 flex-shrink-0"
+                  className="p-2 text-gray-400 hover:text-gray-600 shrink-0"
                 >
                   <ArrowLeftIcon className="h-5 w-5" />
                 </button>
@@ -405,7 +405,7 @@ export default function BucketViewer({
                 )}
               </div>
             </div>
-            <div className="flex items-center space-x-4 flex-shrink-0 ml-4">
+            <div className="flex items-center space-x-4 shrink-0 ml-4">
               {selectedBucket && currentPath && pathHistory.length > 0 && (
                 <button
                   onClick={handleBackClick}
@@ -477,7 +477,7 @@ export default function BucketViewer({
                   style={{ opacity: op }}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded bg-blue-100 flex-shrink-0" />
+                    <div className="h-8 w-8 rounded bg-blue-100 shrink-0" />
                     <div className="space-y-1.5">
                       <div className="h-4 w-44 bg-gray-200 rounded" />
                       <div className="h-3 w-32 bg-gray-100 rounded" />
@@ -513,7 +513,7 @@ export default function BucketViewer({
                   style={{ opacity: 1 - i * 0.09 }}
                 >
                   <div className="flex items-center gap-2 w-2/5">
-                    <div className="h-5 w-5 rounded bg-gray-200 flex-shrink-0" />
+                    <div className="h-5 w-5 rounded bg-gray-200 shrink-0" />
                     <div className="h-3 flex-1 bg-gray-200 rounded" />
                   </div>
                   <div className="h-3 w-16 bg-gray-100 rounded" />
@@ -621,9 +621,9 @@ export default function BucketViewer({
                             <td className="px-6 py-4">
                               <div className="flex items-center">
                                 {isFolder(item.Key || "") ? (
-                                  <FolderIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" />
+                                  <FolderIcon className="h-5 w-5 text-blue-500 mr-2 shrink-0" />
                                 ) : (
-                                  <DocumentIcon className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0" />
+                                  <DocumentIcon className="h-5 w-5 text-gray-400 mr-2 shrink-0" />
                                 )}
                                 <div className="flex flex-col min-w-0 flex-1">
                                   {isFolder(item.Key || "") ? (

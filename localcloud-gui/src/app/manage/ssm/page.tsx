@@ -167,7 +167,7 @@ export default function ManageSSMPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
+      <header className="bg-white border-b border-gray-200 shadow-sm shrink-0">
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">

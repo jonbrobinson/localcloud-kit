@@ -285,7 +285,7 @@ export default function APIGatewayDocPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-pink-50 to-rose-100">
+    <main className="min-h-screen bg-linear-to-br from-pink-50 to-rose-100">
       <DocPageNav title="LocalCloud Kit" subtitle="API Gateway">
         <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
@@ -447,7 +447,7 @@ export default function APIGatewayDocPage() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center text-blue-600 hover:underline font-medium"
                       >
-                        <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                        <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
                         {r.name}
                       </a>
                     </td>

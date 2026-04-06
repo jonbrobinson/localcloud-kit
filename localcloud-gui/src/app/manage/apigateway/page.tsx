@@ -100,7 +100,7 @@ export default function ManageAPIGatewayPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
+      <header className="bg-white border-b border-gray-200 shadow-sm shrink-0">
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">
@@ -137,7 +137,7 @@ export default function ManageAPIGatewayPage() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* API sidebar */}
-        <aside className="w-72 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+        <aside className="w-72 bg-white border-r border-gray-200 overflow-y-auto shrink-0">
           <div className="px-3 py-3 border-b border-gray-100">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">APIs ({apis.length})</p>
           </div>
@@ -162,7 +162,7 @@ export default function ManageAPIGatewayPage() {
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <GlobeAltIcon className="h-4 w-4 flex-shrink-0" />
+                    <GlobeAltIcon className="h-4 w-4 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="truncate text-sm">{api.name}</p>
                       <p className="text-xs text-gray-400 font-mono">{api.id}</p>

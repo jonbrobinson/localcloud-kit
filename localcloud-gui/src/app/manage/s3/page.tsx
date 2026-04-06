@@ -188,7 +188,7 @@ export default function ManageS3Page() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
+      <header className="bg-white border-b border-gray-200 shadow-sm shrink-0">
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">
@@ -236,7 +236,7 @@ export default function ManageS3Page() {
       {/* Body — two-panel layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar: bucket list */}
-        <aside className="w-64 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+        <aside className="w-64 bg-white border-r border-gray-200 overflow-y-auto shrink-0">
           <div className="px-3 py-3 border-b border-gray-100">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Buckets ({buckets.length})</p>
           </div>
@@ -261,7 +261,7 @@ export default function ManageS3Page() {
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <FolderIcon className="h-4 w-4 flex-shrink-0" />
+                    <FolderIcon className="h-4 w-4 shrink-0" />
                     <span className="truncate">{b.Name}</span>
                   </button>
                 </li>
@@ -375,9 +375,9 @@ export default function ManageS3Page() {
                             <td className="px-4 py-2.5">
                               <div className="flex items-center space-x-2">
                                 {folder ? (
-                                  <FolderIcon className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                                  <FolderIcon className="h-4 w-4 text-amber-500 shrink-0" />
                                 ) : (
-                                  <DocumentIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                  <DocumentIcon className="h-4 w-4 text-gray-400 shrink-0" />
                                 )}
                                 {folder ? (
                                   <button

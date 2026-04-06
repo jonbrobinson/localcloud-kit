@@ -72,7 +72,7 @@ aws s3 ls --endpoint-url ${projectConfig.awsEndpoint}
 alias awslocal='aws --endpoint-url ${projectConfig.awsEndpoint}'`;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <main className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       <DocPageNav title="LocalCloud Kit" subtitle="AWS Emulator">
         <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
       </DocPageNav>

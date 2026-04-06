@@ -291,7 +291,7 @@ export default function ResourceList({
                           onClick={() => { onAddS3(); setShowAddMenu(false); }}
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <Icon icon="logos:aws-s3" className="w-5 h-5 mr-3 flex-shrink-0" />
+                          <Icon icon="logos:aws-s3" className="w-5 h-5 mr-3 shrink-0" />
                           S3 Bucket
                         </button>
                       </>
@@ -303,7 +303,7 @@ export default function ResourceList({
                           onClick={() => { onAddDynamoDB(); setShowAddMenu(false); }}
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <Icon icon="logos:aws-dynamodb" className="w-5 h-5 mr-3 flex-shrink-0" />
+                          <Icon icon="logos:aws-dynamodb" className="w-5 h-5 mr-3 shrink-0" />
                           DynamoDB Table
                         </button>
                       </>
@@ -315,7 +315,7 @@ export default function ResourceList({
                           onClick={() => { onAddLambda(); setShowAddMenu(false); }}
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <Icon icon="logos:aws-lambda" className="w-5 h-5 mr-3 flex-shrink-0" />
+                          <Icon icon="logos:aws-lambda" className="w-5 h-5 mr-3 shrink-0" />
                           Lambda Function
                         </button>
                       </>
@@ -327,7 +327,7 @@ export default function ResourceList({
                           onClick={() => { onAddAPIGateway(); setShowAddMenu(false); }}
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                          <Icon icon="logos:aws-api-gateway" className="w-5 h-5 mr-3 flex-shrink-0" />
+                          <Icon icon="logos:aws-api-gateway" className="w-5 h-5 mr-3 shrink-0" />
                           API Gateway
                         </button>
                       </>
@@ -340,7 +340,7 @@ export default function ResourceList({
                             onClick={() => { onAddSecrets(); setShowAddMenu(false); }}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           >
-                            <Icon icon="logos:aws-secrets-manager" className="w-5 h-5 mr-3 flex-shrink-0" />
+                            <Icon icon="logos:aws-secrets-manager" className="w-5 h-5 mr-3 shrink-0" />
                             Secrets Manager
                           </button>
                         )}
@@ -349,7 +349,7 @@ export default function ResourceList({
                             onClick={() => { onAddSSM(); setShowAddMenu(false); }}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           >
-                            <Icon icon="logos:aws-systems-manager" className="w-5 h-5 mr-3 flex-shrink-0" />
+                            <Icon icon="logos:aws-systems-manager" className="w-5 h-5 mr-3 shrink-0" />
                             Parameter Store
                           </button>
                         )}
@@ -358,7 +358,7 @@ export default function ResourceList({
                             onClick={() => { onAddIAM(); setShowAddMenu(false); }}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                           >
-                            <Icon icon="logos:aws-iam" className="w-5 h-5 mr-3 flex-shrink-0" />
+                            <Icon icon="logos:aws-iam" className="w-5 h-5 mr-3 shrink-0" />
                             IAM Role
                           </button>
                         )}
@@ -404,7 +404,7 @@ export default function ResourceList({
                     disabled={addLoading}
                     className="flex items-center p-3 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/40 transition-colors disabled:opacity-50"
                   >
-                    <Icon icon={action.icon} className="w-8 h-8 mr-3 flex-shrink-0" />
+                    <Icon icon={action.icon} className="w-8 h-8 mr-3 shrink-0" />
                     <span className="min-w-0">
                       <span className="block text-sm font-medium text-gray-900">{action.title}</span>
                       <span className="block text-xs text-gray-500">{action.description}</span>
@@ -570,7 +570,7 @@ export default function ResourceList({
                                   className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
                                   title="Browse S3 Bucket"
                                 >
-                                  <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  <EyeIcon className="h-3 w-3 mr-1 shrink-0" />
                                   Open
                                 </button>
                               )}
@@ -580,7 +580,7 @@ export default function ResourceList({
                                   className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
                                   title="Browse DynamoDB Table"
                                 >
-                                  <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  <EyeIcon className="h-3 w-3 mr-1 shrink-0" />
                                   Open
                                 </button>
                               )}
@@ -590,7 +590,7 @@ export default function ResourceList({
                                   className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
                                   title="View secret"
                                 >
-                                  <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  <EyeIcon className="h-3 w-3 mr-1 shrink-0" />
                                   View
                                 </button>
                               )}
@@ -600,7 +600,7 @@ export default function ResourceList({
                                   className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
                                   title="Edit parameter"
                                 >
-                                  <PencilSquareIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  <PencilSquareIcon className="h-3 w-3 mr-1 shrink-0" />
                                   Edit
                                 </button>
                               )}
@@ -610,7 +610,7 @@ export default function ResourceList({
                                   className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
                                   title="View code"
                                 >
-                                  <CodeBracketIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  <CodeBracketIcon className="h-3 w-3 mr-1 shrink-0" />
                                   Code
                                 </button>
                               )}
@@ -620,7 +620,7 @@ export default function ResourceList({
                                   className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
                                   title="View role policies"
                                 >
-                                  <EyeIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  <EyeIcon className="h-3 w-3 mr-1 shrink-0" />
                                   Policies
                                 </button>
                               )}
@@ -630,7 +630,7 @@ export default function ResourceList({
                                   className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
                                   title="Configure API"
                                 >
-                                  <Cog6ToothIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                                  <Cog6ToothIcon className="h-3 w-3 mr-1 shrink-0" />
                                   Config
                                 </button>
                               )}
@@ -689,7 +689,7 @@ export default function ResourceList({
                                           resource.details?.arn &&
                                           copyArnToClipboard(resource.details.arn)
                                         }
-                                        className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                                        className="shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                                         title="Copy ARN"
                                       >
                                         <ClipboardDocumentIcon className="h-4 w-4" />
@@ -727,7 +727,7 @@ export default function ResourceList({
                                         <code className="flex-1 min-w-0">{resource.details.arn}</code>
                                         <button
                                           onClick={() => resource.details?.arn && copyArnToClipboard(resource.details.arn)}
-                                          className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                                          className="shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
                                           title="Copy ARN"
                                         >
                                           <ClipboardDocumentIcon className="h-4 w-4" />

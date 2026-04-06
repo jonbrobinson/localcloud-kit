@@ -220,7 +220,7 @@ export default function LambdaDocPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-100">
+    <main className="min-h-screen bg-linear-to-br from-orange-50 to-amber-100">
       <DocPageNav title="LocalCloud Kit" subtitle="Lambda">
         <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
@@ -460,7 +460,7 @@ cat response.json`}
                         rel="noopener noreferrer"
                         className="inline-flex items-center text-blue-600 hover:underline font-medium"
                       >
-                        <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                        <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
                         {r.name}
                       </a>
                     </td>

@@ -131,7 +131,7 @@ export default function RedisDocPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <main className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       <DocPageNav title="LocalCloud Kit" subtitle="Redis">
         <ServiceStatusBadge service="redis" name="Redis" />
         <button
@@ -276,7 +276,7 @@ export default function RedisDocPage() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center text-blue-600 hover:underline font-medium"
                       >
-                        <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                        <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
                         {r.name}
                       </a>
                     </td>

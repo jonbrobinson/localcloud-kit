@@ -155,12 +155,12 @@ export default function IAMRolePoliciesModal({
                 <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
                   {role.Arn && (
                     <div className="flex items-center px-5 py-3">
-                      <dt className="w-24 text-xs font-medium text-gray-500 flex-shrink-0">ARN</dt>
+                      <dt className="w-24 text-xs font-medium text-gray-500 shrink-0">ARN</dt>
                       <dd className="flex items-center space-x-2 flex-1 min-w-0">
                         <code className="text-xs font-mono text-gray-700 truncate flex-1">{role.Arn}</code>
                         <button
                           onClick={handleCopyArn}
-                          className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+                          className="shrink-0 text-gray-400 hover:text-gray-600"
                           title="Copy ARN"
                         >
                           {copiedArn ? (

@@ -118,7 +118,7 @@ export default function ManageLambdaPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
+      <header className="bg-white border-b border-gray-200 shadow-sm shrink-0">
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">
@@ -155,7 +155,7 @@ export default function ManageLambdaPage() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Function sidebar */}
-        <aside className="w-72 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+        <aside className="w-72 bg-white border-r border-gray-200 overflow-y-auto shrink-0">
           <div className="px-3 py-3 border-b border-gray-100 space-y-2">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Functions ({functions.length})</p>
             <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -194,7 +194,7 @@ export default function ManageLambdaPage() {
                         : "text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    <BoltIcon className="h-4 w-4 flex-shrink-0" />
+                    <BoltIcon className="h-4 w-4 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="truncate text-sm">{fn.FunctionName}</p>
                       {fn.Runtime && <p className="text-xs text-gray-400">{fn.Runtime}</p>}

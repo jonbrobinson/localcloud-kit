@@ -56,7 +56,7 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
       </div>
     );
@@ -143,7 +143,7 @@ export default function ProfilePage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       <Toaster position="top-right" />
 
       {/* Header */}
@@ -302,7 +302,7 @@ export default function ProfilePage() {
                   }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${isActive ? "bg-blue-500" : "bg-gray-300"}`} />
+                    <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${isActive ? "bg-blue-500" : "bg-gray-300"}`} />
                     <div>
                       <p className={`text-sm font-medium ${isActive ? "text-blue-900" : "text-gray-900"}`}>
                         {project.label}

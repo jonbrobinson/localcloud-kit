@@ -75,7 +75,7 @@ export default function QuickInspectModal({
           <ul className="space-y-2">
             {quickChecks.map((item, idx) => (
               <li key={`${item}-${idx}`} className="flex items-start text-sm text-gray-700">
-                <CheckCircleIcon className="h-4 w-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
+                <CheckCircleIcon className="h-4 w-4 text-green-500 mt-0.5 mr-2 shrink-0" />
                 {item}
               </li>
             ))}

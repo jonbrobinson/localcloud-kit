@@ -195,7 +195,7 @@ export default function DynamoDBDocPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <main className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       <DocPageNav title="LocalCloud Kit" subtitle="DynamoDB">
         <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
@@ -321,7 +321,7 @@ export default function DynamoDBDocPage() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center text-blue-600 hover:underline font-medium"
                       >
-                        <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                        <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
                         {r.name}
                       </a>
                     </td>

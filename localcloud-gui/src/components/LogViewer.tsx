@@ -125,7 +125,7 @@ export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
           <div className="flex items-center space-x-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Log Viewer</h2>
@@ -217,7 +217,7 @@ export default function LogViewer({ isOpen, onClose }: LogViewerProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 flex-shrink-0">
+        <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 shrink-0">
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span>{filteredLogs.length} of {logs.length} logs</span>
             {lastUpdated && <span>Updated {lastUpdated}</span>}
