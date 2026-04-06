@@ -267,7 +267,7 @@ export default function SecretsManagerViewer({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-indigo-50 rounded-lg">
               <KeyIcon className="h-5 w-5 text-indigo-600" />
@@ -633,7 +633,7 @@ export default function SecretsManagerViewer({
           >
             <div className="p-6">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <TrashIcon className="h-8 w-8 text-red-600" />
                 </div>
                 <div>

@@ -276,7 +276,7 @@ export default function ManageSecretsPage() {
                         </div>
                         {secret.Description && (
                           <p className="flex items-center space-x-1.5 text-sm text-gray-600 mb-1">
-                            <DocumentTextIcon className="h-4 w-4 flex-shrink-0 text-gray-400" />
+                            <DocumentTextIcon className="h-4 w-4 shrink-0 text-gray-400" />
                             <span>{secret.Description}</span>
                           </p>
                         )}
@@ -286,7 +286,7 @@ export default function ManageSecretsPage() {
                           </p>
                         )}
                       </div>
-                      <div className="flex items-center space-x-1 ml-4 flex-shrink-0">
+                      <div className="flex items-center space-x-1 ml-4 shrink-0">
                         <button
                           onClick={() => isSelected && !isEditing ? setSelectedSecret(null) : openEdit(secret)}
                           className="p-2 text-gray-400 hover:text-indigo-600 transition-colors"

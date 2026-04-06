@@ -373,7 +373,7 @@ export default function DynamoDBAddItemModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header — always visible */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Add Item</h2>
             <p className="text-xs text-gray-500">{tableName}</p>
@@ -468,7 +468,7 @@ export default function DynamoDBAddItemModal({
 
         {/* Footer — always visible, pinned to bottom */}
         {schema && !schemaLoading && (
-          <div className="flex justify-end space-x-3 px-6 py-4 border-t border-gray-200 flex-shrink-0">
+          <div className="flex justify-end space-x-3 px-6 py-4 border-t border-gray-200 shrink-0">
             <button
               type="button"
               onClick={onClose}

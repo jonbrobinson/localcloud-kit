@@ -106,7 +106,7 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
           <div className="flex items-center space-x-3">
             <EnvelopeIcon className="h-5 w-5 text-gray-500" />
             <div>

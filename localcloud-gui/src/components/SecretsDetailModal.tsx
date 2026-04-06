@@ -240,7 +240,7 @@ export default function SecretsDetailModal({
                   <p className="text-xs font-medium text-gray-500 mb-1">ARN</p>
                   <div className="flex items-center space-x-2 bg-gray-50 rounded-md px-3 py-2">
                     <code className="text-xs text-gray-700 flex-1 break-all font-mono">{secret.ARN}</code>
-                    <button onClick={copyArn} className="flex-shrink-0 text-gray-400 hover:text-gray-600" title="Copy ARN">
+                    <button onClick={copyArn} className="shrink-0 text-gray-400 hover:text-gray-600" title="Copy ARN">
                       {copied ? <CheckIcon className="h-4 w-4 text-green-500" /> : <ClipboardDocumentIcon className="h-4 w-4" />}
                     </button>
                   </div>
@@ -250,7 +250,7 @@ export default function SecretsDetailModal({
               {/* Description */}
               {secret.Description && (
                 <div className="flex items-start space-x-2 text-sm text-gray-600">
-                  <DocumentTextIcon className="h-4 w-4 mt-0.5 flex-shrink-0 text-gray-400" />
+                  <DocumentTextIcon className="h-4 w-4 mt-0.5 shrink-0 text-gray-400" />
                   <span>{secret.Description}</span>
                 </div>
               )}
