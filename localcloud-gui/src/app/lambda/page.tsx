@@ -225,7 +225,7 @@ export default function LambdaDocPage() {
         <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
           href="/manage/lambda"
-          className="flex items-center px-3 py-1.5 text-sm font-medium text-orange-700 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
+          className="inline-flex items-center whitespace-nowrap px-3 py-1.5 text-sm font-semibold text-orange-700 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 hover:border-orange-300 transition-colors"
         >
           <BoltIcon className="h-4 w-4 mr-1.5" />
           Open Manager

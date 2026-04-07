@@ -237,7 +237,7 @@ export default function SSMDocPage() {
         <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
           href="/manage/ssm"
-          className="flex items-center px-3 py-1.5 text-sm font-medium text-teal-700 bg-teal-50 rounded-lg hover:bg-teal-100 transition-colors"
+          className="inline-flex items-center whitespace-nowrap px-3 py-1.5 text-sm font-semibold text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 hover:border-teal-300 transition-colors"
         >
           <AdjustmentsHorizontalIcon className="h-4 w-4 mr-1.5" />
           Open Manager

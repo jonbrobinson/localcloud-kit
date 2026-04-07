@@ -200,7 +200,7 @@ export default function DynamoDBDocPage() {
         <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
           href="/manage/dynamodb"
-          className="flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+          className="inline-flex items-center whitespace-nowrap px-3 py-1.5 text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 hover:border-indigo-300 transition-colors"
         >
           <CircleStackIcon className="h-4 w-4 mr-1.5" />
           Open Manager
