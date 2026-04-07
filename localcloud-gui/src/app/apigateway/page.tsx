@@ -290,7 +290,7 @@ export default function APIGatewayDocPage() {
         <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
           href="/manage/apigateway"
-          className="flex items-center px-3 py-1.5 text-sm font-medium text-pink-700 bg-pink-50 rounded-lg hover:bg-pink-100 transition-colors"
+          className="inline-flex items-center whitespace-nowrap px-3 py-1.5 text-sm font-semibold text-pink-700 bg-pink-50 border border-pink-200 rounded-lg hover:bg-pink-100 hover:border-pink-300 transition-colors"
         >
           <GlobeAltIcon className="h-4 w-4 mr-1.5" />
           Open Manager

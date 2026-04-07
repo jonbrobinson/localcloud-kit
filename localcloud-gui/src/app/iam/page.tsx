@@ -410,7 +410,7 @@ export default function IAMDocPage() {
         <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
           href="/manage/iam"
-          className="flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+          className="inline-flex items-center whitespace-nowrap px-3 py-1.5 text-sm font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-colors"
         >
           <ShieldCheckIcon className="h-4 w-4 mr-1.5" />
           Open Manager
