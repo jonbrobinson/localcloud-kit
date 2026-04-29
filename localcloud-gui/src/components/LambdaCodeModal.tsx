@@ -139,14 +139,19 @@ export default function LambdaCodeModal({
     </button>
   );
 
+  const handleBackdropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={onClose}
+      onMouseDown={handleBackdropMouseDown}
     >
       <div
         className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
-        onClick={(ev) => ev.stopPropagation()}
       >
         <input
           ref={fileInputRef}

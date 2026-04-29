@@ -192,10 +192,16 @@ export default function SecretsDetailModal({
 
   if (!isOpen) return null;
 
+  const handleBackdropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
+      onMouseDown={handleBackdropMouseDown}
     >
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -203,7 +209,6 @@ export default function SecretsDetailModal({
         exit={{ opacity: 0, y: 8, scale: 0.98 }}
         transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] as const }}
         className="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col"
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">

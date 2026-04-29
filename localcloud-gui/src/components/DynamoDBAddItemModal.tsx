@@ -361,16 +361,21 @@ export default function DynamoDBAddItemModal({
     onSubmit(item);
   };
 
+  const handleBackdropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4"
-      onClick={onClose}
+      onMouseDown={handleBackdropMouseDown}
     >
       <div
         className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Header — always visible */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
