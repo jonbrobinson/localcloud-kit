@@ -251,12 +251,27 @@ export default function SecretsManagerViewer({
     setShowDeleteModal(true);
   };
 
+  const handleBackdropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  const handleNestedBackdropMouseDown = (
+    e: React.MouseEvent<HTMLDivElement>,
+    close: () => void
+  ) => {
+    if (e.target === e.currentTarget) {
+      close();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
+      onMouseDown={handleBackdropMouseDown}
     >
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -264,7 +279,6 @@ export default function SecretsManagerViewer({
         exit={{ opacity: 0, y: 8, scale: 0.98 }}
         transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] as const }}
         className="bg-white rounded-xl shadow-2xl w-full max-w-2xl h-[74vh] min-h-[500px] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
@@ -496,14 +510,12 @@ export default function SecretsManagerViewer({
       {showEditModal && selectedSecret && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 p-4"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowEditModal(false);
-          }}
+          onMouseDown={(e) =>
+            handleNestedBackdropMouseDown(e, () => setShowEditModal(false))
+          }
         >
           <div
             className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
               <div>
@@ -622,14 +634,12 @@ export default function SecretsManagerViewer({
       {showDeleteModal && selectedSecret && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 p-4"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowDeleteModal(false);
-          }}
+          onMouseDown={(e) =>
+            handleNestedBackdropMouseDown(e, () => setShowDeleteModal(false))
+          }
         >
           <div
             className="bg-white rounded-xl shadow-2xl w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6">
               <div className="flex items-center space-x-3 mb-4">

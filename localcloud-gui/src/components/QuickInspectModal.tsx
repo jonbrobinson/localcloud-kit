@@ -50,12 +50,18 @@ export default function QuickInspectModal({
     }
   };
 
+  const handleBackdropMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
-      <div
-        className="w-full max-w-xl bg-white rounded-xl shadow-2xl overflow-hidden"
-        onClick={(event) => event.stopPropagation()}
-      >
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      onMouseDown={handleBackdropMouseDown}
+    >
+      <div className="w-full max-w-xl bg-white rounded-xl shadow-2xl overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 flex items-start justify-between">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">{title}</h2>

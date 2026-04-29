@@ -414,11 +414,17 @@ export default function DynamoDBViewer({
 
   if (!isOpen) return <></>;
 
+  const handleBackdropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
   <>
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={onClose}
+      onMouseDown={handleBackdropMouseDown}
     >
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -426,7 +432,6 @@ export default function DynamoDBViewer({
         exit={{ opacity: 0, y: 8, scale: 0.98 }}
         transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] as const }}
         className="bg-white rounded-xl shadow-2xl w-full max-w-7xl h-[88vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
