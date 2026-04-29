@@ -11,6 +11,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 ### Fixed
 
 - **DocPageNav / AWS resource docs**: "Open Manager" buttons now remain visible on smaller screens and use higher-contrast styling across S3, DynamoDB, Lambda, API Gateway, IAM, Secrets Manager, and Parameter Store pages.
+- **Create resource modals**: Backdrop close behavior now only triggers on direct backdrop clicks, preventing DynamoDB and other create forms from closing when inputs lose focus.
 
 ### Removed
 
