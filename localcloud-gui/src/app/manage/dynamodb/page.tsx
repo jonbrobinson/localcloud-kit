@@ -191,7 +191,11 @@ export default function ManageDynamoDBPage() {
 
   const loadTableSchema = async (tableName: string) => {
     try {
-      const res = await fetch(`/api/dynamodb/table/${encodeURIComponent(tableName)}/schema`);
+      const res = await fetch(
+        `/api/dynamodb/table/${encodeURIComponent(
+          tableName
+        )}/schema?projectName=${encodeURIComponent(projectName)}`
+      );
       const result = await res.json();
       if (result.success && result.data?.Table?.KeySchema) {
         const ks = result.data.Table.KeySchema;
@@ -207,7 +211,11 @@ export default function ManageDynamoDBPage() {
   const loadItems = useCallback(async (tableName: string) => {
     setLoadingItems(true);
     try {
-      const res = await fetch(`/api/dynamodb/table/${encodeURIComponent(tableName)}/scan`);
+      const res = await fetch(
+        `/api/dynamodb/table/${encodeURIComponent(
+          tableName
+        )}/scan?projectName=${encodeURIComponent(projectName)}`
+      );
       const result = await res.json();
       if (result.success) {
         // AWS CLI returns "Items" (uppercase); normalize to handle either casing
@@ -248,11 +256,19 @@ export default function ManageDynamoDBPage() {
   };
 
   const handleDeleteItem = async () => {
-    if (!selectedTable || !deleteItemTarget || !schema) return;
+    if (!selectedTable || !deleteItemTarget) return;
+    if (!schema) {
+      toast.error("Unable to load table key schema. Refresh and try again.");
+      return;
+    }
     setDeleteLoading(true);
     try {
       const partitionValue = extractDynamoDBKeyValue(deleteItemTarget[schema.pk]);
-      const sortValue = schema.sk ? extractDynamoDBKeyValue(deleteItemTarget[schema.sk]) : undefined;
+      const sortKeyName = schema.sk;
+      const hasSortKey = typeof sortKeyName === "string" && sortKeyName.length > 0;
+      const sortValue = hasSortKey
+        ? extractDynamoDBKeyValue(deleteItemTarget[sortKeyName])
+        : undefined;
       const res = await fetch(`/api/dynamodb/table/${encodeURIComponent(selectedTable)}/item`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -260,7 +276,7 @@ export default function ManageDynamoDBPage() {
           projectName,
           partitionKey: schema.pk,
           partitionValue,
-          ...(schema.sk && sortValue ? { sortKey: schema.sk, sortValue } : {}),
+          ...(hasSortKey ? { sortKey: sortKeyName, sortValue } : {}),
         }),
       });
       const result = await res.json();
