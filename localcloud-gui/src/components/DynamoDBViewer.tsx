@@ -23,6 +23,7 @@ import DynamoDBConfigModal from "./DynamoDBConfigModal";
 import { Icon } from "@iconify/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "react-hot-toast";
+import ThemeableCodeBlock from "./ThemeableCodeBlock";
 
 interface DynamoDBViewerProps {
   isOpen: boolean;
@@ -951,9 +952,10 @@ export default function DynamoDBViewer({
 
           {/* JSON Content */}
           <div className="flex-1 p-6 overflow-auto">
-            <pre className="text-sm font-mono text-gray-800 bg-gray-50 p-4 rounded border overflow-auto h-full whitespace-pre-wrap">
-              {JSON.stringify(selectedJsonData, null, 2)}
-            </pre>
+            <ThemeableCodeBlock
+              code={JSON.stringify(selectedJsonData, null, 2)}
+              language="javascript"
+            />
           </div>
         </div>
       </div>

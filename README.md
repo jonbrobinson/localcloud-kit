@@ -198,6 +198,8 @@ The header contains three primary dropdowns:
 - **Global Secondary Indexes**: Complete GSI support with proper provisioning
 - **Query & Scan**: Advanced querying with GSI support
 - **Schema Validation**: Interactive forms for adding items with type checking
+- **Syntax-highlighted JSON viewer**: Dashboard DynamoDB viewer uses the same themed code highlighting as docs pages
+- **Nested map/list explorer**: Manage DynamoDB supports expand/collapse for `M` and `L` attribute values
 
 #### Lambda Functions
 
