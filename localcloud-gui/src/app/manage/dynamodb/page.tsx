@@ -10,8 +10,8 @@ import {
   BookOpenIcon,
   TrashIcon,
   MagnifyingGlassIcon,
-  ChevronRightIcon,
-  ChevronDownIcon,
+  ArrowsPointingOutIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { resourceApi } from "@/services/api";
 import ManageHeaderBrand from "@/components/ManageHeaderBrand";
@@ -19,124 +19,17 @@ import { DynamoDBTableConfig } from "@/types";
 import DynamoDBConfigModal from "@/components/DynamoDBConfigModal";
 import DynamoDBAddItemModal from "@/components/DynamoDBAddItemModal";
 import SystemLogsButton from "@/components/SystemLogsButton";
+import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
+import { parseDynamoDBItem } from "@/lib/dynamodbValue";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DynamoDBItem = Record<string, any>;
 
-// Extract a human-readable string from a DynamoDB typed value, e.g. {S:"foo"} → "foo"
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function displayDynamoDBValue(val: any): string {
-  if (val === undefined || val === null) return "—";
-  if (typeof val !== "object") return String(val);
-  if ("S" in val) return val.S;
-  if ("N" in val) return val.N;
-  if ("BOOL" in val) return String(val.BOOL);
-  if ("NULL" in val) return "null";
-  if ("SS" in val) return JSON.stringify(val.SS);
-  if ("NS" in val) return JSON.stringify(val.NS);
-  if ("M" in val && val.M && typeof val.M === "object") {
-    return `Map(${Object.keys(val.M).length})`;
-  }
-  if ("L" in val && Array.isArray(val.L)) {
-    return `List(${val.L.length})`;
-  }
-  return JSON.stringify(val);
-}
-
-type ValueEntry = { label: string; value: unknown };
-
-function getExpandableEntries(value: unknown): ValueEntry[] | null {
-  if (value === null || value === undefined || typeof value !== "object") {
-    return null;
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((item, index) => ({ label: `[${index}]`, value: item }));
-  }
-
-  const typed = value as Record<string, unknown>;
-  const scalarTypedKeys = ["S", "N", "BOOL", "NULL", "SS", "NS", "BS", "B"];
-  if (scalarTypedKeys.some((key) => key in typed)) {
-    return null;
-  }
-
-  if ("M" in typed && typed.M && typeof typed.M === "object" && !Array.isArray(typed.M)) {
-    return Object.entries(typed.M as Record<string, unknown>).map(([label, child]) => ({
-      label,
-      value: child,
-    }));
-  }
-
-  if ("L" in typed && Array.isArray(typed.L)) {
-    return (typed.L as unknown[]).map((item, index) => ({
-      label: `[${index}]`,
-      value: item,
-    }));
-  }
-
-  const objectEntries = Object.entries(typed);
-  if (objectEntries.length === 0) {
-    return null;
-  }
-
-  return objectEntries.map(([label, child]) => ({ label, value: child }));
-}
-
-function getContainerLabel(value: unknown, childCount: number): string {
-  if (value && typeof value === "object" && !Array.isArray(value)) {
-    const typed = value as Record<string, unknown>;
-    if ("M" in typed) return `Map (${childCount})`;
-    if ("L" in typed) return `List (${childCount})`;
-  }
-
-  if (Array.isArray(value)) return `Array (${childCount})`;
-  return `Object (${childCount})`;
-}
-
-function DynamoValueTree({ value, depth = 0 }: { value: unknown; depth?: number }) {
-  const entries = getExpandableEntries(value);
-  const [expanded, setExpanded] = useState(depth === 0);
-
-  if (!entries) {
-    const rendered = displayDynamoDBValue(value);
-    return (
-      <span className="font-mono text-xs text-gray-700 break-all" title={rendered}>
-        {rendered}
-      </span>
-    );
-  }
-
-  return (
-    <div className="min-w-[11rem]">
-      <button
-        type="button"
-        onClick={() => setExpanded((prev) => !prev)}
-        className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
-      >
-        {expanded ? (
-          <ChevronDownIcon className="h-3.5 w-3.5 shrink-0" />
-        ) : (
-          <ChevronRightIcon className="h-3.5 w-3.5 shrink-0" />
-        )}
-        <span className="font-mono">{getContainerLabel(value, entries.length)}</span>
-      </button>
-
-      {expanded && (
-        <div className="mt-1 ml-2 border-l border-indigo-100 pl-2 space-y-1">
-          {entries.map((entry, index) => (
-            <div key={`${entry.label}-${index}`} className="flex items-start gap-1.5">
-              <span className="font-mono text-[11px] font-semibold text-gray-500 shrink-0">
-                {entry.label}:
-              </span>
-              <div className="min-w-0">
-                <DynamoValueTree value={entry.value} depth={depth + 1} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+function formatDisplayValue(value: unknown): string {
+  if (value === undefined || value === null) return "—";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return JSON.stringify(value);
 }
 
 // Extract the raw string/number value from a DynamoDB typed attribute for use in key expressions
@@ -169,6 +62,9 @@ export default function ManageDynamoDBPage() {
   const [deleteItemTarget, setDeleteItemTarget] = useState<DynamoDBItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [schema, setSchema] = useState<{ pk: string; sk?: string } | null>(null);
+  const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
+  const [selectedJsonData, setSelectedJsonData] = useState<unknown>(null);
+  const [selectedJsonTitle, setSelectedJsonTitle] = useState("");
 
   const loadTables = useCallback(async () => {
     setLoadingTables(true);
@@ -218,8 +114,9 @@ export default function ManageDynamoDBPage() {
       );
       const result = await res.json();
       if (result.success) {
-        // AWS CLI returns "Items" (uppercase); normalize to handle either casing
-        setItems(result.data?.Items || result.data?.items || []);
+        // Parse DynamoDB typed values recursively for consistent map/list rendering.
+        const parsedItems = (result.data?.Items || result.data?.items || []).map(parseDynamoDBItem);
+        setItems(parsedItems);
       } else {
         toast.error("Failed to load items");
       }
@@ -295,6 +192,12 @@ export default function ManageDynamoDBPage() {
   };
 
   const allKeys = items.length > 0 ? Array.from(new Set(items.flatMap(Object.keys))) : [];
+
+  const handleJsonClick = (data: unknown, title: string) => {
+    setSelectedJsonData(data);
+    setSelectedJsonTitle(title);
+    setJsonViewerOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -447,19 +350,27 @@ export default function ManageDynamoDBPage() {
                         <tr key={i} className="hover:bg-gray-50">
                           {allKeys.map((k) => {
                             const value = item[k];
-                            const expandable = Boolean(getExpandableEntries(value));
+                            const isComplexValue = value !== null && typeof value === "object";
                             return (
                               <td
                                 key={k}
                                 className={`px-4 py-2.5 align-top ${
-                                  expandable ? "text-gray-700" : "text-xs font-mono text-gray-700"
+                                  isComplexValue ? "text-gray-700" : "text-xs font-mono text-gray-700"
                                 }`}
                               >
-                                {expandable ? (
-                                  <DynamoValueTree value={value} />
+                                {isComplexValue ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleJsonClick(value, `${k} - ${selectedTable}`)}
+                                    className="flex max-w-xs items-center gap-1.5 rounded border border-indigo-200 bg-indigo-50 px-2 py-1 text-left font-mono text-xs text-gray-800 transition-colors hover:bg-indigo-100"
+                                    title="Click to view full JSON"
+                                  >
+                                    <ArrowsPointingOutIcon className="h-3.5 w-3.5 shrink-0 text-indigo-600" />
+                                    <span className="truncate">{formatDisplayValue(value)}</span>
+                                  </button>
                                 ) : (
-                                  <span className="block max-w-xs truncate" title={displayDynamoDBValue(value)}>
-                                    {displayDynamoDBValue(value)}
+                                  <span className="block max-w-xs truncate" title={formatDisplayValue(value)}>
+                                    {formatDisplayValue(value)}
                                   </span>
                                 )}
                               </td>
@@ -498,6 +409,32 @@ export default function ManageDynamoDBPage() {
               <button onClick={() => setDeleteItemTarget(null)} className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {jsonViewerOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
+          <div className="flex max-h-[80vh] w-full max-w-3xl flex-col rounded-xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 shrink-0">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">JSON Viewer</h2>
+                <p className="text-xs text-gray-500">{selectedJsonTitle}</p>
+              </div>
+              <button
+                onClick={() => setJsonViewerOpen(false)}
+                className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                aria-label="Close"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-6">
+              <ThemeableCodeBlock
+                code={JSON.stringify(selectedJsonData, null, 2)}
+                language="javascript"
+              />
             </div>
           </div>
         </div>
