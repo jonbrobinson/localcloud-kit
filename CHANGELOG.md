@@ -15,6 +15,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **Resource viewer/edit modals**: Non-create modals now use the same direct-backdrop click guard, preventing accidental closes during focus and click interactions inside viewer and edit dialogs.
 - **DynamoDB viewer and manager**: JSON values now use docs-style syntax highlighting in the viewer modal, and map/list attributes in `/manage/dynamodb` now support nested expand/collapse inspection.
 - **Manage DynamoDB delete action**: Item deletion now works in `/manage/dynamodb` by loading table schema and scan data with the active project context before issuing delete requests.
+- **DynamoDB nested JSON rendering**: Dashboard and `/manage/dynamodb` now use shared recursive DynamoDB deserialization for deep map/list values, and complex map/list cells in the manager now open the same full JSON review modal as the dashboard.
 
 ### Removed
 

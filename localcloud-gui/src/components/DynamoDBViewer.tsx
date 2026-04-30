@@ -24,6 +24,7 @@ import { Icon } from "@iconify/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import ThemeableCodeBlock from "./ThemeableCodeBlock";
+import { parseDynamoDBItem } from "@/lib/dynamodbValue";
 
 interface DynamoDBViewerProps {
   isOpen: boolean;
@@ -194,29 +195,6 @@ export default function DynamoDBViewer({
     }
   };
 
-  // Helper to flatten DynamoDB item format
-  const flattenDynamoDBItem = (item: unknown): Record<string, unknown> => {
-    const flat: Record<string, unknown> = {};
-    if (typeof item !== "object" || item === null) return flat;
-    const obj = item as Record<string, unknown>;
-    for (const key in obj) {
-      const value = obj[key];
-      if (typeof value === "object" && value !== null) {
-        const v = value as Record<string, unknown>;
-        if ("S" in v) flat[key] = v.S;
-        else if ("N" in v) flat[key] = Number(v.N);
-        else if ("BOOL" in v) flat[key] = v.BOOL;
-        else if ("NULL" in v) flat[key] = null;
-        else if ("L" in v) flat[key] = (v.L as unknown[]).map(flattenDynamoDBItem);
-        else if ("M" in v) flat[key] = flattenDynamoDBItem(v.M);
-        else flat[key] = value;
-      } else {
-        flat[key] = value;
-      }
-    }
-    return flat;
-  };
-
   const loadTableContents = async () => {
     if (!selectedTable) return;
 
@@ -235,9 +213,9 @@ export default function DynamoDBViewer({
       }
       const data = await response.json();
       if (data.success) {
-        // Flatten DynamoDB items for display
+        // Parse DynamoDB typed values recursively for display and JSON viewer.
         const items = (data.data.Items || data.data.items || []).map(
-          flattenDynamoDBItem
+          parseDynamoDBItem
         );
         setItems(items);
         setScanResult(data.data);
@@ -282,9 +260,9 @@ export default function DynamoDBViewer({
       }
       const data = await response.json();
       if (data.success) {
-        // Flatten DynamoDB items for display
+        // Parse DynamoDB typed values recursively for display and JSON viewer.
         const items = (data.data.Items || data.data.items || []).map(
-          flattenDynamoDBItem
+          parseDynamoDBItem
         );
         setItems(items);
         setScanResult(data.data);
