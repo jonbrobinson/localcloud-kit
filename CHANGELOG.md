@@ -14,6 +14,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **Create resource modals**: Backdrop close behavior now only triggers on direct backdrop clicks, preventing DynamoDB and other create forms from closing when inputs lose focus.
 - **Resource viewer/edit modals**: Non-create modals now use the same direct-backdrop click guard, preventing accidental closes during focus and click interactions inside viewer and edit dialogs.
 - **DynamoDB viewer and manager**: JSON values now use docs-style syntax highlighting in the viewer modal, and map/list attributes in `/manage/dynamodb` now support nested expand/collapse inspection.
+- **Manage DynamoDB delete action**: Item deletion now works in `/manage/dynamodb` by loading table schema and scan data with the active project context before issuing delete requests.
 
 ### Removed
 
