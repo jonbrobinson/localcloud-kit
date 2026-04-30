@@ -10,6 +10,8 @@ import {
   BookOpenIcon,
   TrashIcon,
   MagnifyingGlassIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { resourceApi } from "@/services/api";
 import ManageHeaderBrand from "@/components/ManageHeaderBrand";
@@ -32,8 +34,109 @@ function displayDynamoDBValue(val: any): string {
   if ("NULL" in val) return "null";
   if ("SS" in val) return JSON.stringify(val.SS);
   if ("NS" in val) return JSON.stringify(val.NS);
-  if ("L" in val || "M" in val) return JSON.stringify(val);
+  if ("M" in val && val.M && typeof val.M === "object") {
+    return `Map(${Object.keys(val.M).length})`;
+  }
+  if ("L" in val && Array.isArray(val.L)) {
+    return `List(${val.L.length})`;
+  }
   return JSON.stringify(val);
+}
+
+type ValueEntry = { label: string; value: unknown };
+
+function getExpandableEntries(value: unknown): ValueEntry[] | null {
+  if (value === null || value === undefined || typeof value !== "object") {
+    return null;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item, index) => ({ label: `[${index}]`, value: item }));
+  }
+
+  const typed = value as Record<string, unknown>;
+  const scalarTypedKeys = ["S", "N", "BOOL", "NULL", "SS", "NS", "BS", "B"];
+  if (scalarTypedKeys.some((key) => key in typed)) {
+    return null;
+  }
+
+  if ("M" in typed && typed.M && typeof typed.M === "object" && !Array.isArray(typed.M)) {
+    return Object.entries(typed.M as Record<string, unknown>).map(([label, child]) => ({
+      label,
+      value: child,
+    }));
+  }
+
+  if ("L" in typed && Array.isArray(typed.L)) {
+    return (typed.L as unknown[]).map((item, index) => ({
+      label: `[${index}]`,
+      value: item,
+    }));
+  }
+
+  const objectEntries = Object.entries(typed);
+  if (objectEntries.length === 0) {
+    return null;
+  }
+
+  return objectEntries.map(([label, child]) => ({ label, value: child }));
+}
+
+function getContainerLabel(value: unknown, childCount: number): string {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const typed = value as Record<string, unknown>;
+    if ("M" in typed) return `Map (${childCount})`;
+    if ("L" in typed) return `List (${childCount})`;
+  }
+
+  if (Array.isArray(value)) return `Array (${childCount})`;
+  return `Object (${childCount})`;
+}
+
+function DynamoValueTree({ value, depth = 0 }: { value: unknown; depth?: number }) {
+  const entries = getExpandableEntries(value);
+  const [expanded, setExpanded] = useState(depth === 0);
+
+  if (!entries) {
+    const rendered = displayDynamoDBValue(value);
+    return (
+      <span className="font-mono text-xs text-gray-700 break-all" title={rendered}>
+        {rendered}
+      </span>
+    );
+  }
+
+  return (
+    <div className="min-w-[11rem]">
+      <button
+        type="button"
+        onClick={() => setExpanded((prev) => !prev)}
+        className="inline-flex items-center gap-1 rounded px-1 py-0.5 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+      >
+        {expanded ? (
+          <ChevronDownIcon className="h-3.5 w-3.5 shrink-0" />
+        ) : (
+          <ChevronRightIcon className="h-3.5 w-3.5 shrink-0" />
+        )}
+        <span className="font-mono">{getContainerLabel(value, entries.length)}</span>
+      </button>
+
+      {expanded && (
+        <div className="mt-1 ml-2 border-l border-indigo-100 pl-2 space-y-1">
+          {entries.map((entry, index) => (
+            <div key={`${entry.label}-${index}`} className="flex items-start gap-1.5">
+              <span className="font-mono text-[11px] font-semibold text-gray-500 shrink-0">
+                {entry.label}:
+              </span>
+              <div className="min-w-0">
+                <DynamoValueTree value={entry.value} depth={depth + 1} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Extract the raw string/number value from a DynamoDB typed attribute for use in key expressions
@@ -326,11 +429,26 @@ export default function ManageDynamoDBPage() {
                     <tbody className="divide-y divide-gray-50">
                       {items.map((item, i) => (
                         <tr key={i} className="hover:bg-gray-50">
-                          {allKeys.map((k) => (
-                            <td key={k} className="px-4 py-2.5 text-xs font-mono text-gray-700 max-w-xs truncate">
-                              {displayDynamoDBValue(item[k])}
-                            </td>
-                          ))}
+                          {allKeys.map((k) => {
+                            const value = item[k];
+                            const expandable = Boolean(getExpandableEntries(value));
+                            return (
+                              <td
+                                key={k}
+                                className={`px-4 py-2.5 align-top ${
+                                  expandable ? "text-gray-700" : "text-xs font-mono text-gray-700"
+                                }`}
+                              >
+                                {expandable ? (
+                                  <DynamoValueTree value={value} />
+                                ) : (
+                                  <span className="block max-w-xs truncate" title={displayDynamoDBValue(value)}>
+                                    {displayDynamoDBValue(value)}
+                                  </span>
+                                )}
+                              </td>
+                            );
+                          })}
                           <td className="px-4 py-2.5 text-right">
                             <button
                               onClick={() => setDeleteItemTarget(item)}
