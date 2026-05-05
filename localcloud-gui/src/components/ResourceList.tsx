@@ -423,9 +423,9 @@ export default function ResourceList({
             transition={listTransition}
             className="px-6 py-12 min-h-[23rem] flex flex-col justify-center"
           >
-            <h4 className="text-sm font-semibold text-gray-900 mb-1 text-center">Building your first AWS resource...</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-1 text-center">Resource creation in progress...</h4>
             <p className="text-sm text-gray-500 text-center">
-              This can take a few seconds while the emulator provisions and saves it.
+              Setting up your resource for the active project.
             </p>
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
               {[0, 1, 2, 3].map((idx) => (
@@ -442,7 +442,7 @@ export default function ResourceList({
               ))}
             </div>
             <p className="mt-4 text-xs text-gray-500 text-center">
-              Your new resource will appear here automatically.
+              It will appear here automatically when ready.
             </p>
           </motion.div>
         )}
