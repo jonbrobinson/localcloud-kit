@@ -383,16 +383,9 @@ export default function ResourceList({
             transition={listTransition}
             className="px-6 py-12 min-h-[23rem] flex flex-col justify-center"
           >
-            <div className="flex items-center justify-center space-x-4 mb-6 opacity-20">
-              <Icon icon="logos:aws-s3" className="w-10 h-10" />
-              <Icon icon="logos:aws-dynamodb" className="w-10 h-10" />
-              <Icon icon="logos:aws-lambda" className="w-10 h-10" />
-              <Icon icon="logos:aws-api-gateway" className="w-10 h-10" />
-              <Icon icon="logos:aws-secrets-manager" className="w-10 h-10" />
-            </div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-1 text-center">Create your first AWS resource</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-1 text-center">No AWS resources yet</h4>
             <p className="text-sm text-gray-500 text-center">
-              Start with S3 or DynamoDB, or pick from other resource types.
+              Create resources for your active project.
             </p>
 
             {emptyStateActions.length > 0 && (
@@ -415,7 +408,7 @@ export default function ResourceList({
             )}
 
             <p className="mt-4 text-xs text-gray-500 text-center">
-              You can also use the <span className="font-medium">+ Add</span> menu for Secrets Manager, Parameter Store, and IAM.
+              Pick any service; there&apos;s no required order.
             </p>
           </motion.div>
         )}
@@ -430,13 +423,6 @@ export default function ResourceList({
             transition={listTransition}
             className="px-6 py-12 min-h-[23rem] flex flex-col justify-center"
           >
-            <div className="flex items-center justify-center space-x-4 mb-6 opacity-20">
-              <Icon icon="logos:aws-s3" className="w-10 h-10" />
-              <Icon icon="logos:aws-dynamodb" className="w-10 h-10" />
-              <Icon icon="logos:aws-lambda" className="w-10 h-10" />
-              <Icon icon="logos:aws-api-gateway" className="w-10 h-10" />
-              <Icon icon="logos:aws-secrets-manager" className="w-10 h-10" />
-            </div>
             <h4 className="text-sm font-semibold text-gray-900 mb-1 text-center">Building your first AWS resource...</h4>
             <p className="text-sm text-gray-500 text-center">
               This can take a few seconds while the emulator provisions and saves it.
