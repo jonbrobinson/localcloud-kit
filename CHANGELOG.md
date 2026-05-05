@@ -8,6 +8,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Changed
 
+- **ResourceList empty/building states**: Dashboard AWS resources panel now uses a single colored icon card set (removed decorative faded icons) with neutral status copy: no resources yet, create resources for the active project, no required order, and "Resource creation in progress" messaging while provisioning.
+
 ### Fixed
 
 - **DocPageNav / AWS resource docs**: "Open Manager" buttons now remain visible on smaller screens and use higher-contrast styling across S3, DynamoDB, Lambda, API Gateway, IAM, Secrets Manager, and Parameter Store pages.
