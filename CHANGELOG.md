@@ -6,6 +6,18 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+### Security
+
+## [0.13.4] - 2026-05-06
+
+### Added
+
 - **Agent IDE rules**: `.cursor/rules/localcloud-agents.mdc` (always apply) reinforces **AGENTS.md**, forbids AI `Co-Authored-By` / vendor attribution in commits, and requires agent branches `agents-<description>-<suffix>` with no vendor/tool names in the branch string.
 
 ### Changed
