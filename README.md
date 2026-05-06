@@ -122,45 +122,37 @@ The dashboard shows your local cloud environment at a glance:
 - **Services Status Bar** — health indicators for Keycloak, AWS Emulator, Mailpit, PostgreSQL, PostHog, and Redis. Click any service to open its management panel or docs.
 - **AWS Resources** — categorized view (Storage, Database, Security & Identity) with add/destroy actions and inline inspection.
 
-![Main Dashboard](docs/screenshots/01-main-dashboard.png)
+![Dashboard - Empty Resources](docs/screenshots/01-dashboard-empty-resources.png)
 
 ---
 
-### S3 Storage
-
-#### Create S3 Bucket
-
-Create buckets with region selection, optional versioning, encryption, and save-as-config.
-
-![Create S3 Bucket](docs/screenshots/02-s3-bucket-configuration.png)
-
-#### Bucket Management
-
-Browse bucket contents, upload files, and manage objects directly from the GUI. On **Manage S3** (`/manage/s3`), use **breadcrumbs** to jump to the bucket root or any parent folder; the bucket name returns to the bucket home.
-
-![Bucket Management](docs/screenshots/03-s3-bucket-management.png)
-
-#### Empty Bucket
-
-Empty buckets show an upload prompt. Use + Upload File to add your first object.
-
-![Empty Bucket](docs/screenshots/06-s3-file-viewer-detail.png)
-
----
-
-### DynamoDB
+### Resource Creation Flow
 
 #### Create DynamoDB Table
 
-Configure tables with partition key, sort key, billing mode, and Global Secondary Indexes.
+Configure tables with partition key, sort key, billing mode, and optional GSIs.
 
-![Create DynamoDB Table](docs/screenshots/05-dynamodb-table-configuration.png)
+![Create DynamoDB Table](docs/screenshots/02-dashboard-create-dynamodb-table.png)
 
-#### DynamoDB Table Data
+#### Table Appears in Dashboard
 
-Scan and query items, add new entries, and manage table contents from the dashboard.
+After creation, the table appears in the Database section with status and action controls.
 
-![DynamoDB Table Data](docs/screenshots/04-dynamodb-table-data.png)
+![DynamoDB Resource in Dashboard](docs/screenshots/03-dashboard-dynamodb-resource.png)
+
+#### Add Resource Options
+
+Use the **+ Add** dropdown to create AWS resources by category.
+
+![Add Resource Options](docs/screenshots/04-dashboard-add-resource-options.png)
+
+---
+
+### Multiple Resources
+
+Storage and Database resources are grouped and displayed together in the main list.
+
+![Multiple Resources in Dashboard](docs/screenshots/05-dashboard-multiple-resources.png)
 
 ## 🏗️ Project Structure
 

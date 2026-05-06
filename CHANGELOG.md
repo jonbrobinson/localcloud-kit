@@ -8,6 +8,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Changed
 
+- **README screenshots**: Replaced previous dashboard/S3/DynamoDB screenshot set with updated dashboard flow images covering empty state, DynamoDB table creation, add-resource options, and grouped multi-resource view.
+
 ### Fixed
 
 ### Removed
