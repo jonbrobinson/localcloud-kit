@@ -430,7 +430,8 @@ const handleTabChange = (tab: PageTab) => {
 
 ## Git Branch Convention
 
-- All agent work happens on branches prefixed `agents/` followed by a short description and a unique session ID suffix
-- Example: `agents/add-iam-roles-emulator-OWviN`
+- All agent work happens on branches prefixed `agents-` (hyphen, not slash) followed by a short description and a unique session ID suffix, with segments separated by hyphens
+- Example: `agents-add-iam-roles-emulator-OWviN`
+- **Branch names must not include vendor or tool branding** (for example `cursor`, `claude`, `chatgpt`, `copilot`, `codex`). Only the `agents-` prefix identifies agent-created work — not the product used to create it.
 - **Never push to `main` directly**
 - Always push with `git push -u origin <branch-name>`

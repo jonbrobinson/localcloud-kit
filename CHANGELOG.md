@@ -6,6 +6,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+- **Agent IDE rules**: `.cursor/rules/localcloud-agents.mdc` (always apply) reinforces **AGENTS.md**, forbids AI `Co-Authored-By` / vendor attribution in commits, and requires agent branches `agents-<description>-<suffix>` with no vendor/tool names in the branch string.
+
 ### Changed
 
 - **ResourceList empty/building states**: Dashboard AWS resources panel now uses a single colored icon card set (removed decorative faded icons) with neutral status copy: no resources yet, create resources for the active project, no required order, and "Resource creation in progress" messaging while provisioning.
