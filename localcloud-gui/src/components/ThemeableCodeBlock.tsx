@@ -35,12 +35,14 @@ interface ThemeableCodeBlockProps {
   code: string;
   language: string;
   showThemeSelector?: boolean;
+  showCopyButton?: boolean;
 }
 
 export default function ThemeableCodeBlock({
   code,
   language,
   showThemeSelector = true,
+  showCopyButton = true,
 }: ThemeableCodeBlockProps) {
   const { profile, updateProfile } = usePreferences();
   const defaultTheme = (profile?.highlight_theme as HighlightTheme) || "github";
@@ -86,6 +88,7 @@ export default function ThemeableCodeBlock({
 
   return (
     <div className="relative group">
+      {(showThemeSelector || showCopyButton) && (
       <div className="flex items-center justify-end gap-2 mb-2">
         {showThemeSelector && (
           <>
@@ -113,6 +116,7 @@ export default function ThemeableCodeBlock({
             </select>
           </>
         )}
+        {showCopyButton && (
         <button
           onClick={copy}
           className="p-1.5 rounded text-gray-500 hover:text-gray-700 hover:bg-gray-100"
@@ -120,7 +124,9 @@ export default function ThemeableCodeBlock({
         >
           <ClipboardDocumentIcon className="h-4 w-4" />
         </button>
+        )}
       </div>
+      )}
       <pre
         className={`rounded-lg p-4 overflow-x-auto text-sm whitespace-pre-wrap ${
           isDarkTheme ? "bg-gray-900" : "bg-gray-100"

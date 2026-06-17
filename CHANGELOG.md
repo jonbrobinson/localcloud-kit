@@ -6,6 +6,9 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+- **Profile CLI Playbook**: portable `aws` CLI rebuild commands per project (LCK AWS CLI / AWS CLI env blocks, live inventory, saved-config recipes, copy all, download `.sh`); saved configurations managed separately with bulk delete.
+- **DashboardNavBar**: shared dashboard navbar on Profile (Resources, Services, Docs, project switcher) via extracted `DashboardNavBar` and `DashboardNavContext`.
+
 ### Changed
 
 - **README screenshots**: Replaced previous dashboard/S3/DynamoDB screenshot set with updated dashboard flow images covering empty state, DynamoDB table creation, add-resource options, and grouped multi-resource view.
