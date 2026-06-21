@@ -172,6 +172,15 @@ The header contains three primary dropdowns:
 | **Services** | Platform services (Keycloak, Mailpit, PostgreSQL, PostHog, Redis) with quick **Inspect** actions and links to manager/admin tools |
 | **Docs** | Opens the **Docs Hub** (`/docs`) with all documentation pages, verification checklists, and manager/admin links |
 
+### Profile CLI Playbook
+
+The **Profile** page (`/profile`) includes a **CLI Playbook** for the active project:
+
+- **Live inventory** — resource counts from the AWS emulator
+- **Portable `aws` commands** — no `--endpoint-url` in resource lines; **LCK AWS CLI** sets `AWS_ENDPOINT_URL` for MiniStack; **AWS CLI** includes a note to unset it when targeting real AWS
+- **Saved configs** — full recreate commands from configs saved in creation modals
+- **Copy all** or **Download `.sh`** — one script with environment setup plus all rebuild commands
+
 ### AWS Service Emulation
 
 #### S3 Storage

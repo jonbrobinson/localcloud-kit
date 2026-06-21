@@ -2,15 +2,9 @@
 
 import { usePreferences } from "@/context/PreferencesContext";
 import { HighlightTheme, PreferredLanguage, Project } from "@/types";
-import ManageHeaderBrand from "@/components/ManageHeaderBrand";
-import {
-  CircleStackIcon,
-  FolderIcon,
-  KeyIcon,
-  PlusIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
-import Link from "next/link";
+import CliPlaybookSection from "@/components/CliPlaybookSection";
+import DashboardNavBar from "@/components/DashboardNavBar";
+import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
@@ -32,12 +26,6 @@ const THEMES: { value: HighlightTheme; label: string }[] = [
   { value: "atom-one-light", label: "Atom One Light" },
 ];
 
-const RESOURCE_ICONS: Record<string, React.ReactNode> = {
-  s3: <FolderIcon className="h-4 w-4 text-yellow-600" />,
-  dynamodb: <CircleStackIcon className="h-4 w-4 text-indigo-600" />,
-  secrets: <KeyIcon className="h-4 w-4 text-green-600" />,
-};
-
 export default function ProfilePage() {
   const {
     profile,
@@ -56,8 +44,11 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
+        <DashboardNavBar activePage="profile" />
+        <div className="flex items-center justify-center py-24">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+        </div>
       </div>
     );
   }
@@ -138,35 +129,10 @@ export default function ProfilePage() {
     }
   };
 
-  const activeProjectConfigs = savedConfigs.filter(
-    (c) => c.project_id === profile.active_project_id
-  );
-
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
       <Toaster position="top-right" />
-
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-3">
-              <ManageHeaderBrand />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">LocalCloud Kit</h1>
-                <p className="text-xs text-gray-500">Profile</p>
-              </div>
-              <div className="h-5 w-px bg-gray-200" />
-              <Link
-                href="/"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Dashboard
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <DashboardNavBar activePage="profile" />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
@@ -338,43 +304,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Saved Configs Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">Saved Configurations</h2>
-          <p className="text-sm text-gray-500 mb-5">
-            Scoped to active project: <span className="font-medium text-gray-700">{profile.active_project_label || "Default"}</span>
-          </p>
-
-          {activeProjectConfigs.length === 0 ? (
-            <p className="text-sm text-gray-400 italic">
-              No saved configs yet. Open a DynamoDB or S3 creation form and click &quot;Save config&quot; to add one.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {activeProjectConfigs.map((cfg) => (
-                <div
-                  key={cfg.id}
-                  className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-lg border border-gray-200"
-                >
-                  <div className="flex items-center space-x-3">
-                    <span>{RESOURCE_ICONS[cfg.resource_type] ?? null}</span>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{cfg.name}</p>
-                      <p className="text-xs text-gray-500 capitalize">{cfg.resource_type}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteConfig(cfg.id)}
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                    title="Delete saved config"
-                  >
-                    <TrashIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <CliPlaybookSection onDeleteSavedConfig={handleDeleteConfig} />
 
       </div>
     </div>
