@@ -18,6 +18,8 @@ import ManageHeaderBrand from "@/components/ManageHeaderBrand";
 import { DynamoDBTableConfig } from "@/types";
 import DynamoDBConfigModal from "@/components/DynamoDBConfigModal";
 import DynamoDBAddItemModal from "@/components/DynamoDBAddItemModal";
+import DynamoDBCompoundKeyCell from "@/components/DynamoDBCompoundKeyCell";
+import DynamoDBItemDetailPanel from "@/components/DynamoDBItemDetailPanel";
 import SystemLogsButton from "@/components/SystemLogsButton";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { parseDynamoDBItem } from "@/lib/dynamodbValue";
@@ -65,6 +67,7 @@ export default function ManageDynamoDBPage() {
   const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
   const [selectedJsonData, setSelectedJsonData] = useState<unknown>(null);
   const [selectedJsonTitle, setSelectedJsonTitle] = useState("");
+  const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
 
   const loadTables = useCallback(async () => {
     setLoadingTables(true);
@@ -131,6 +134,7 @@ export default function ManageDynamoDBPage() {
     setSelectedTable(name);
     setItems([]);
     setSchema(null);
+    setSelectedItemIndex(null);
     await Promise.all([loadItems(name), loadTableSchema(name)]);
   };
 
@@ -191,7 +195,75 @@ export default function ManageDynamoDBPage() {
     }
   };
 
-  const allKeys = items.length > 0 ? Array.from(new Set(items.flatMap(Object.keys))) : [];
+  useEffect(() => {
+    setSelectedItemIndex((prev) => {
+      if (items.length === 0) return null;
+      if (prev === null) return 0;
+      if (prev >= items.length) return items.length - 1;
+      return prev;
+    });
+  }, [items]);
+
+  const getOrderedKeys = (): string[] => {
+    if (items.length === 0) return [];
+    const all = Array.from(new Set(items.flatMap(Object.keys)));
+    if (schema) {
+      const keyNames = [schema.pk, schema.sk].filter(
+        (name): name is string => typeof name === "string" && all.includes(name)
+      );
+      const rest = all.filter((name) => !keyNames.includes(name)).sort();
+      return [...keyNames, ...rest];
+    }
+    return all.sort();
+  };
+
+  const isKeyColumn = (columnName: string): boolean =>
+    schema?.pk === columnName || schema?.sk === columnName;
+
+  const getKeyType = (columnName: string): string => {
+    if (schema?.pk === columnName) return "Partition Key";
+    if (schema?.sk === columnName) return "Sort Key";
+    return "";
+  };
+
+  const getKeyColumnNames = (): string[] => {
+    if (!schema) return [];
+    return [schema.pk, schema.sk].filter((name): name is string => typeof name === "string");
+  };
+
+  const renderCellValue = (columnName: string, value: unknown) => {
+    if (isKeyColumn(columnName) && (typeof value === "string" || typeof value === "number")) {
+      return <DynamoDBCompoundKeyCell value={String(value)} />;
+    }
+
+    const isComplexValue = value !== null && typeof value === "object";
+    if (isComplexValue) {
+      return (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleJsonClick(value, `${columnName} - ${selectedTable}`);
+          }}
+          className="mx-auto flex max-w-xs items-center justify-center gap-1.5 rounded border border-indigo-200 bg-indigo-50 px-2 py-1 text-left font-mono text-xs text-gray-800 transition-colors hover:bg-indigo-100"
+          title="Click to view full JSON"
+        >
+          <ArrowsPointingOutIcon className="h-3.5 w-3.5 shrink-0 text-indigo-600" />
+          <span className="truncate">{formatDisplayValue(value)}</span>
+        </button>
+      );
+    }
+
+    return (
+      <span className="mx-auto block max-w-xs truncate text-center" title={formatDisplayValue(value)}>
+        {formatDisplayValue(value)}
+      </span>
+    );
+  };
+
+  const orderedKeys = getOrderedKeys();
+  const selectedItem =
+    selectedItemIndex !== null && items[selectedItemIndex] ? items[selectedItemIndex] : null;
 
   const handleJsonClick = (data: unknown, title: string) => {
     setSelectedJsonData(data);
@@ -333,13 +405,26 @@ export default function ManageDynamoDBPage() {
                   </button>
                 </div>
               ) : (
-                <div className="bg-white border border-gray-200 rounded-lg overflow-x-auto">
+                <div className="flex min-h-[28rem] gap-4">
+                  <div className="min-w-0 flex-1 overflow-x-auto rounded-lg border border-gray-200 bg-white">
                   <table className="min-w-full divide-y divide-gray-100 text-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        {allKeys.map((k) => (
-                          <th key={k} className="px-4 py-2.5 text-left font-medium text-gray-500 whitespace-nowrap">
-                            {k}
+                        {orderedKeys.map((k) => (
+                          <th
+                            key={k}
+                            className={`px-4 py-2.5 font-medium whitespace-nowrap ${
+                              isKeyColumn(k)
+                                ? "min-w-[200px] bg-indigo-50 text-left text-indigo-800"
+                                : "text-center text-gray-500"
+                            }`}
+                          >
+                            <span>{k}</span>
+                            {isKeyColumn(k) ? (
+                              <span className="ml-1.5 text-xs font-normal text-indigo-500 normal-case">
+                                ({getKeyType(k)})
+                              </span>
+                            ) : null}
                           </th>
                         ))}
                         <th className="px-4 py-2.5 text-right font-medium text-gray-500">Actions</th>
@@ -347,38 +432,34 @@ export default function ManageDynamoDBPage() {
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       {items.map((item, i) => (
-                        <tr key={i} className="hover:bg-gray-50">
-                          {allKeys.map((k) => {
-                            const value = item[k];
-                            const isComplexValue = value !== null && typeof value === "object";
-                            return (
-                              <td
-                                key={k}
-                                className={`px-4 py-2.5 align-top ${
-                                  isComplexValue ? "text-gray-700" : "text-xs font-mono text-gray-700"
-                                }`}
-                              >
-                                {isComplexValue ? (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleJsonClick(value, `${k} - ${selectedTable}`)}
-                                    className="flex max-w-xs items-center gap-1.5 rounded border border-indigo-200 bg-indigo-50 px-2 py-1 text-left font-mono text-xs text-gray-800 transition-colors hover:bg-indigo-100"
-                                    title="Click to view full JSON"
-                                  >
-                                    <ArrowsPointingOutIcon className="h-3.5 w-3.5 shrink-0 text-indigo-600" />
-                                    <span className="truncate">{formatDisplayValue(value)}</span>
-                                  </button>
-                                ) : (
-                                  <span className="block max-w-xs truncate" title={formatDisplayValue(value)}>
-                                    {formatDisplayValue(value)}
-                                  </span>
-                                )}
-                              </td>
-                            );
-                          })}
+                        <tr
+                          key={i}
+                          onClick={() => setSelectedItemIndex(i)}
+                          className={`cursor-pointer transition-colors hover:bg-gray-50 ${
+                            selectedItemIndex === i
+                              ? "bg-indigo-50 ring-2 ring-inset ring-indigo-400"
+                              : ""
+                          }`}
+                        >
+                          {orderedKeys.map((k) => (
+                            <td
+                              key={k}
+                              className={`px-4 py-2.5 ${
+                                isKeyColumn(k)
+                                  ? "min-w-[200px] max-w-[240px] align-top bg-indigo-50/60 text-left"
+                                  : "text-center align-middle text-xs font-mono text-gray-700"
+                              }`}
+                            >
+                              {renderCellValue(k, item[k])}
+                            </td>
+                          ))}
                           <td className="px-4 py-2.5 text-right">
                             <button
-                              onClick={() => setDeleteItemTarget(item)}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteItemTarget(item);
+                              }}
                               className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
                               title="Delete item"
                             >
@@ -389,6 +470,20 @@ export default function ManageDynamoDBPage() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
+
+                  {selectedItem && selectedTable ? (
+                    <DynamoDBItemDetailPanel
+                      item={selectedItem}
+                      tableName={selectedTable}
+                      keyColumnNames={getKeyColumnNames()}
+                      getKeyType={getKeyType}
+                      onDelete={() => setDeleteItemTarget(selectedItem)}
+                      onClose={() => setSelectedItemIndex(null)}
+                      onJsonClick={handleJsonClick}
+                      accent="indigo"
+                    />
+                  ) : null}
                 </div>
               )}
             </div>

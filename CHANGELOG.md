@@ -6,6 +6,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+- **DynamoDB**: compound PK/SK cells with delimiter-aware two-line layout, row detail panel with copy, and improved key scanning in the dashboard viewer and manage page.
 - **Profile CLI Playbook**: portable `aws` CLI rebuild commands per project (LCK AWS CLI / AWS CLI env blocks, live inventory, saved-config recipes, copy all, download `.sh`); saved configurations managed separately with bulk delete.
 - **DashboardNavBar**: shared dashboard navbar on Profile (Resources, Services, Docs, project switcher) via extracted `DashboardNavBar` and `DashboardNavContext`.
 
