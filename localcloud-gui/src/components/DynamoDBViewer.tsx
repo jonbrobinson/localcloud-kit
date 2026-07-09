@@ -19,7 +19,9 @@ import {
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import DynamoDBAddItemModal from "./DynamoDBAddItemModal";
+import DynamoDBCompoundKeyCell from "./DynamoDBCompoundKeyCell";
 import DynamoDBConfigModal from "./DynamoDBConfigModal";
+import DynamoDBItemDetailPanel from "./DynamoDBItemDetailPanel";
 import { Icon } from "@iconify/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "react-hot-toast";
@@ -90,6 +92,7 @@ export default function DynamoDBViewer({
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [showCreateTableModal, setShowCreateTableModal] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
 
   const handleCreateTable = async (dynamodbConfig: DynamoDBTableConfig) => {
     setCreateLoading(true);
@@ -154,8 +157,22 @@ export default function DynamoDBViewer({
       setTableSchema(null);
       setScanResult(null);
       setError("");
+      setSelectedItemIndex(null);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    setSelectedItemIndex(null);
+  }, [selectedTable]);
+
+  useEffect(() => {
+    setSelectedItemIndex((prev) => {
+      if (items.length === 0) return null;
+      if (prev === null) return 0;
+      if (prev >= items.length) return items.length - 1;
+      return prev;
+    });
+  }, [items]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -338,6 +355,45 @@ export default function DynamoDBViewer({
     );
     return key ? (key.KeyType === "HASH" ? "Partition Key" : "Sort Key") : "";
   };
+
+  const getKeyColumnNames = (): string[] => {
+    if (tableSchema) {
+      return tableSchema.Table.KeySchema.map((key) => key.AttributeName);
+    }
+    return getTableHeaders().filter((header) => header === "pk" || header === "sk");
+  };
+
+  const renderCellValue = (header: string, value: unknown) => {
+    if (isKeyColumn(header) && (typeof value === "string" || typeof value === "number")) {
+      return <DynamoDBCompoundKeyCell value={String(value)} />;
+    }
+
+    if (typeof value === "object" && value !== null) {
+      return (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleJsonClick(value, `${header} - ${selectedTable}`);
+          }}
+          className="mx-auto flex max-w-[200px] items-center justify-center gap-1.5 rounded border border-blue-200 bg-blue-50 px-2 py-1 text-left font-mono text-xs text-gray-800 transition-colors hover:bg-blue-100"
+          title="Click to view full JSON"
+        >
+          <ArrowsPointingOutIcon className="h-3.5 w-3.5 shrink-0 text-blue-600" />
+          <span className="truncate">{formatValue(value)}</span>
+        </button>
+      );
+    }
+
+    return (
+      <span className="mx-auto block max-w-[220px] truncate text-center" title={formatValue(value)}>
+        {formatValue(value)}
+      </span>
+    );
+  };
+
+  const selectedItem =
+    selectedItemIndex !== null && items[selectedItemIndex] ? items[selectedItemIndex] : null;
 
   const handleJsonClick = (data: unknown, title: string) => {
     setSelectedJsonData(data);
@@ -717,7 +773,7 @@ export default function DynamoDBViewer({
                 </button>
               </div>
 
-              {/* Items Table */}
+              {/* Items Table + Detail Panel */}
               <AnimatePresence mode="wait">
               <motion.div
                 key={`${selectedTable}-${loading ? "loading" : "loaded"}`}
@@ -725,8 +781,9 @@ export default function DynamoDBViewer({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.18 }}
-                className="flex-1 min-h-0 overflow-auto border border-gray-200 rounded-lg pb-4"
+                className="flex min-h-0 flex-1 gap-4"
               >
+                <div className="min-h-0 min-w-0 flex-1 overflow-auto rounded-lg border border-gray-200 pb-4">
                 {loading ? (
                   /* Skeleton rows that match the real table layout */
                   <div className="animate-pulse">
@@ -766,10 +823,10 @@ export default function DynamoDBViewer({
                           {getTableHeaders().map((header, hi) => (
                             <th
                               key={`${selectedTable}-header-${header}-${hi}`}
-                              className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap ${
+                              className={`px-3 py-2 text-xs font-medium uppercase tracking-wider whitespace-nowrap ${
                                 isKeyColumn(header)
-                                  ? "bg-blue-100 text-blue-800 border-r border-blue-200"
-                                  : "text-gray-500"
+                                  ? "min-w-[200px] bg-blue-100 text-left text-blue-800 border-r border-blue-200"
+                                  : "text-center text-gray-500"
                               }`}
                             >
                               <span>{header}</span>
@@ -787,43 +844,34 @@ export default function DynamoDBViewer({
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {items.map((item, index) => (
-                          <tr key={`${selectedTable}-row-${index}`} className="hover:bg-gray-50">
+                          <tr
+                            key={`${selectedTable}-row-${index}`}
+                            onClick={() => setSelectedItemIndex(index)}
+                            className={`cursor-pointer transition-colors hover:bg-gray-50 ${
+                              selectedItemIndex === index
+                                ? "bg-blue-50 ring-2 ring-inset ring-blue-400"
+                                : ""
+                            }`}
+                          >
                             {getTableHeaders().map((header, hj) => (
                               <td
                                 key={`${header}-${hj}`}
                                 className={`px-3 py-2 text-sm ${
                                   isKeyColumn(header)
-                                    ? "bg-blue-50 text-blue-900 border-r border-blue-200 font-medium"
-                                    : "text-gray-900"
+                                    ? "min-w-[200px] max-w-[240px] align-top bg-blue-50 text-left text-blue-900 border-r border-blue-200 font-medium"
+                                    : "text-center align-middle text-gray-900"
                                 }`}
                               >
-                                {typeof item[header] === "object" &&
-                                item[header] !== null ? (
-                                  <button
-                                    onClick={() =>
-                                      handleJsonClick(
-                                        item[header],
-                                        `${header} - ${selectedTable}`
-                                      )
-                                    }
-                                    className="flex items-center gap-1.5 text-left text-xs bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded border border-blue-200 font-mono text-gray-800 transition-colors cursor-pointer max-w-[200px]"
-                                    title="Click to view full JSON"
-                                  >
-                                    <ArrowsPointingOutIcon className="h-3.5 w-3.5 text-blue-600 shrink-0" />
-                                    <span className="truncate">
-                                      {formatValue(item[header])}
-                                    </span>
-                                  </button>
-                                ) : (
-                                  <span className="block max-w-[220px] truncate" title={formatValue(item[header])}>
-                                    {formatValue(item[header])}
-                                  </span>
-                                )}
+                                {renderCellValue(header, item[header])}
                               </td>
                             ))}
                             <td className="px-3 py-2 text-center">
                               <button
-                                onClick={() => handleDeleteClick(item)}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteClick(item);
+                                }}
                                 className="text-red-600 hover:text-red-800 transition-colors"
                                 title="Delete item"
                               >
@@ -836,6 +884,20 @@ export default function DynamoDBViewer({
                     </table>
                   </>
                 )}
+                </div>
+
+                {selectedItem ? (
+                  <DynamoDBItemDetailPanel
+                    item={selectedItem}
+                    tableName={selectedTable}
+                    keyColumnNames={getKeyColumnNames()}
+                    getKeyType={getKeyType}
+                    onDelete={() => handleDeleteClick(selectedItem)}
+                    onClose={() => setSelectedItemIndex(null)}
+                    onJsonClick={handleJsonClick}
+                    accent="blue"
+                  />
+                ) : null}
               </motion.div>
               </AnimatePresence>
             </>
