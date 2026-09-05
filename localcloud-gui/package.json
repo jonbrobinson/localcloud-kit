@@ -6,17 +6,17 @@
     "dev": "next dev -p ${PORT:-3000}",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@heroicons/react": "^2.0.18",
     "@iconify/react": "^6.0.2",
     "axios": "^1.20.0",
     "fflate": "^0.8.3",
-    "framer-motion": "^12.43.0",
+    "framer-motion": "^13.2.0",
     "highlight.js": "^11.12.0",
-    "marked": "^15.0.12",
-    "next": "15.5.12",
+    "marked": "^18.0.11",
+    "next": "^16.3.4",
     "papaparse": "^5.7.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
@@ -29,7 +29,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "eslint": "^9.39.5",
-    "eslint-config-next": "15.5.12",
+    "eslint-config-next": "^16.3.4",
     "postcss": "^8.5.28",
     "tailwindcss": "^4.3.3",
     "typescript": "5.9.3"

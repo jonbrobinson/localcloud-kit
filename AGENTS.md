@@ -218,8 +218,9 @@ cd localcloud-gui && npm run lint
 ```
 
 - Must pass with **zero errors** — fix all errors before committing
+- Runs the ESLint CLI (`eslint .`); Next.js 16 removed `next lint`
 - `@typescript-eslint/no-unused-vars` is set to **error**: remove every unused import, variable, and function before committing
-- Warnings (e.g. `no-explicit-any`, `react-hooks/exhaustive-deps`) are acceptable; errors are not
+- Warnings (e.g. `no-explicit-any`, `react-hooks/exhaustive-deps`, React Compiler hook advisories) are acceptable; errors are not
 - Skip only for backend-only or shell-script-only changes; run it when in doubt
 
 ### 2 — GUI Build (required for any `localcloud-gui/` change)
