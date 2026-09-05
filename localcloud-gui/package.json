@@ -1,6 +1,6 @@
 {
   "name": "localcloud-gui",
-  "version": "0.13.5",
+  "version": "0.13.6",
   "private": true,
   "scripts": {
     "dev": "next dev -p ${PORT:-3000}",

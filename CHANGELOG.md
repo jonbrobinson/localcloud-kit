@@ -8,6 +8,18 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Changed
 
+### Fixed
+
+### Removed
+
+### Security
+
+## [0.13.6] - 2026-09-04
+
+### Added
+
+### Changed
+
 - **deps**: Batch A low-risk updates for GUI (axios, react, framer-motion 12.x, Tailwind 4.3, postcss, highlight.js, papaparse, fflate, eslint 9.x, types) and API (axios, better-sqlite3 12.x, mammoth, multer, node-cron, nodemailer 8.x) — closes #68
 
 ### Fixed
