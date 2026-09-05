@@ -8,7 +8,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Changed
 
-- **deps (Batch B / #69)**: upgrade GUI to Next.js 16.3 + `eslint-config-next` 16.3 (lint via ESLint CLI), framer-motion 13, marked 18; API `better-sqlite3` 13 and `nodemailer` 10. Intentionally deferred: ESLint 10 (peer conflict with eslint-config-next), TypeScript 7, `@types/node` 26 (Node 22 engines).
+- **deps (Batch B / #69)**: upgrade GUI to Next.js 16.3 + `eslint-config-next` 16.3 (lint via ESLint CLI), TypeScript 6.0, framer-motion 13, marked 18; API `better-sqlite3` 13 and `nodemailer` 10. Intentionally deferred: ESLint 10 (peer conflict with eslint-config-next), TypeScript 7 (native compiler / API gap), `@types/node` 26 (Node 22 engines).
 
 ### Fixed
 
