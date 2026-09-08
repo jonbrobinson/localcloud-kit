@@ -2,9 +2,10 @@
 
 import { usePreferences } from "@/context/PreferencesContext";
 import { SavedConfig } from "@/types";
-import { BookmarkIcon, CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { Button, Input } from "./ui";
 
 interface SavedConfigPickerProps {
   resourceType: "s3" | "dynamodb" | "secrets" | "iam";
@@ -51,59 +52,62 @@ export default function SavedConfigPicker({
   if (!profile?.active_project_id) return null;
 
   return (
-    <div className="mb-5 p-4 bg-gray-50 rounded-lg border border-gray-200">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <BookmarkIcon className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">Saved configs</span>
-          <span className="text-xs text-gray-400">({profile.active_project_label})</span>
-        </div>
+    <div className="flex flex-col gap-1.5 p-3 border border-border rounded-lg bg-surface-2">
+      <div className="flex items-center gap-1.5">
+        <Icon icon="lucide:bookmark" width={13} className="text-muted" />
+        <span className="text-xs font-medium text-ink-2">Saved configs</span>
+        <span className="text-[11px] text-faint">{profile.active_project_label}</span>
         {!hideSave && (
           <button
             type="button"
             onClick={() => setShowSaveInput((v) => !v)}
-            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+            className="ml-auto text-[11px] font-medium text-primary hover:text-primary-hover cursor-pointer"
           >
             {showSaveInput ? "Cancel" : `Save ${configLabel}`}
           </button>
         )}
       </div>
 
-      {/* Save input */}
       {!hideSave && showSaveInput && (
-        <div className="flex items-center space-x-2 mb-3">
-          <input
-            type="text"
-            placeholder={`Name this ${configLabel.toLowerCase()} config...`}
+        <div className="flex items-center gap-1.5">
+          <Input
+            placeholder={`Name this ${configLabel.toLowerCase()} config…`}
             value={saveName}
             onChange={(e) => setSaveName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSave(); } }}
-            className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSave();
+              }
+            }}
+            className="flex-1"
             autoFocus
           />
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="sm"
+            icon="lucide:check"
             onClick={handleSave}
             disabled={!saveName.trim() || saving}
-            className="p-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-          >
-            <CheckIcon className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => { setShowSaveInput(false); setSaveName(""); }}
-            className="p-1.5 text-gray-400 hover:text-gray-600 border border-gray-200 rounded-md"
-          >
-            <XMarkIcon className="h-4 w-4" />
-          </button>
+            aria-label="Save config"
+          />
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="lucide:x"
+            onClick={() => {
+              setShowSaveInput(false);
+              setSaveName("");
+            }}
+            aria-label="Cancel"
+          />
         </div>
       )}
 
-      {/* Saved config list */}
       {projectConfigs.length === 0 ? (
-        <p className="text-xs text-gray-400 italic">No saved configs yet for this project.</p>
+        <p className="text-[11px] text-faint italic">No saved configs yet for this project.</p>
       ) : (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {projectConfigs.map((cfg) => (
             <button
               key={cfg.id}
@@ -112,7 +116,7 @@ export default function SavedConfigPicker({
                 onLoad(cfg.config);
                 toast.success(`Loaded "${cfg.name}"`);
               }}
-              className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:border-blue-400 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+              className="h-[26px] px-2.5 rounded-full border border-border bg-surface text-ink-2 text-xs font-medium cursor-pointer transition-colors hover:border-primary hover:text-primary hover:bg-primary-soft"
             >
               {cfg.name}
             </button>

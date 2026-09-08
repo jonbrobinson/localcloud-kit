@@ -9,6 +9,7 @@ import {
   keycloakApi,
   posthogApi,
 } from "@/services/api";
+import { StatusDot, type StatusTone } from "./ui";
 
 export type ServiceKey =
   | "aws-emulator"
@@ -76,22 +77,31 @@ async function fetchStatus(service: ServiceKey): Promise<StatusState> {
   }
 }
 
-const dotClass: Record<StatusLevel, string> = {
-  running: "bg-green-500 animate-pulse",
-  degraded: "bg-yellow-500 animate-pulse",
-  starting: "bg-yellow-400 animate-pulse",
-  stopped: "bg-gray-400",
-  failed: "bg-red-500",
-  unknown: "bg-gray-400",
+const levelTone: Record<StatusLevel, StatusTone> = {
+  running: "success",
+  degraded: "warn",
+  starting: "warn",
+  stopped: "neutral",
+  failed: "danger",
+  unknown: "neutral",
 };
 
-const badgeClass: Record<StatusLevel, string> = {
-  running: "bg-green-100 text-green-800",
-  degraded: "bg-yellow-100 text-yellow-800",
-  starting: "bg-yellow-100 text-yellow-700",
-  stopped: "bg-gray-100 text-gray-600",
-  failed: "bg-red-100 text-red-800",
-  unknown: "bg-gray-100 text-gray-600",
+const levelPulse: Record<StatusLevel, boolean> = {
+  running: false,
+  degraded: true,
+  starting: true,
+  stopped: false,
+  failed: false,
+  unknown: false,
+};
+
+const levelTextTone: Record<StatusLevel, string> = {
+  running: "text-ink-2",
+  degraded: "text-warn-ink",
+  starting: "text-warn-ink",
+  stopped: "text-muted",
+  failed: "text-danger-ink",
+  unknown: "text-muted",
 };
 
 interface ServiceStatusBadgeProps {
@@ -127,14 +137,10 @@ export default function ServiceStatusBadge({
   }, [service, refreshMs]);
 
   return (
-    <div className="flex items-center space-x-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full">
-      <span
-        className={`h-2 w-2 rounded-full shrink-0 ${dotClass[status.level]}`}
-      />
-      <span className="text-xs font-medium text-gray-600">{name}</span>
-      <span
-        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${badgeClass[status.level]}`}
-      >
+    <div className="inline-flex items-center gap-2 h-8 px-3 bg-surface border border-border rounded-full">
+      <StatusDot tone={levelTone[status.level]} pulse={levelPulse[status.level]} />
+      <span className="text-xs font-medium text-ink-2">{name}</span>
+      <span className={`text-xs font-semibold ${levelTextTone[status.level]}`}>
         {status.label}
       </span>
     </div>

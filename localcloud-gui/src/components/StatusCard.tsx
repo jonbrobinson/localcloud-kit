@@ -1,94 +1,64 @@
 import { EmulatorStatus } from "@/types";
-import {
-  CheckCircleIcon,
-  XCircleIcon,
-  QuestionMarkCircleIcon,
-  ClockIcon,
-} from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
+import { Card, Badge } from "./ui";
+import type { StatusTone } from "./ui";
 
 interface StatusCardProps {
   status: EmulatorStatus;
 }
 
 export default function StatusCard({ status }: StatusCardProps) {
-  const getStatusIcon = () => {
-    switch (status.health) {
-      case "healthy":
-        return <CheckCircleIcon className="h-6 w-6 text-green-500" />;
-      case "unhealthy":
-        return <XCircleIcon className="h-6 w-6 text-red-500" />;
-      default:
-        return <QuestionMarkCircleIcon className="h-6 w-6 text-gray-400" />;
-    }
-  };
+  const tone: StatusTone =
+    status.health === "healthy"
+      ? "success"
+      : status.health === "unhealthy"
+        ? "danger"
+        : "neutral";
 
-  const getStatusColor = () => {
-    switch (status.health) {
-      case "healthy":
-        return "text-green-600 bg-green-50 border-green-200";
-      case "unhealthy":
-        return "text-red-600 bg-red-50 border-red-200";
-      default:
-        return "text-gray-600 bg-gray-50 border-gray-200";
-    }
-  };
-
-  const getStatusText = () => {
-    if (!status.running) return "Stopped";
-    switch (status.health) {
-      case "healthy":
-        return "Running";
-      case "unhealthy":
-        return "Unhealthy";
-      default:
-        return "Unknown";
-    }
-  };
+  const statusText = !status.running
+    ? "Stopped"
+    : status.health === "healthy"
+      ? "Running"
+      : status.health === "unhealthy"
+        ? "Unhealthy"
+        : "Unknown";
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          {getStatusIcon()}
+    <Card className="p-6">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-4">
+          <span className="flex items-center justify-center w-11 h-11 rounded-lg bg-primary-soft text-primary">
+            <Icon icon="lucide:server" width={22} />
+          </span>
           <div>
-            <h3 className="text-lg font-medium text-gray-900">AWS Emulator</h3>
-            <p className="text-sm text-gray-500">{status.endpoint}</p>
+            <h3 className="text-base font-semibold text-ink">AWS Emulator</h3>
+            <p className="text-sm text-muted font-mono">{status.endpoint}</p>
           </div>
         </div>
-        <div className="text-right">
-          <span
-            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor()}`}
-          >
-            {getStatusText()}
-          </span>
-        </div>
+        <Badge tone={tone}>{statusText}</Badge>
       </div>
 
       {status.running && status.uptime && (
-        <div className="mt-4 flex items-center text-sm text-gray-500">
-          <ClockIcon className="h-4 w-4 mr-2" />
+        <div className="mt-4 flex items-center gap-2 text-sm text-muted">
+          <Icon icon="lucide:clock" width={15} />
           Uptime: {status.uptime}
         </div>
       )}
 
       <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <dt className="text-sm font-medium text-gray-500">Status</dt>
-          <dd className="mt-1 text-sm text-gray-900">{getStatusText()}</dd>
+          <dt className="text-xs font-medium text-muted">Status</dt>
+          <dd className="mt-1 text-sm text-ink">{statusText}</dd>
         </div>
         <div>
-          <dt className="text-sm font-medium text-gray-500">Health</dt>
-          <dd className="mt-1 text-sm text-gray-900 capitalize">
-            {status.health}
-          </dd>
+          <dt className="text-xs font-medium text-muted">Health</dt>
+          <dd className="mt-1 text-sm text-ink capitalize">{status.health}</dd>
         </div>
         <div>
-          <dt className="text-sm font-medium text-gray-500">Endpoint</dt>
-          <dd className="mt-1 text-sm text-gray-900 font-mono">
-            {status.endpoint}
-          </dd>
+          <dt className="text-xs font-medium text-muted">Endpoint</dt>
+          <dd className="mt-1 text-sm text-ink font-mono">{status.endpoint}</dd>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
