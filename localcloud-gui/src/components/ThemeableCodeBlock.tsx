@@ -13,6 +13,8 @@ import "highlight.js/lib/languages/typescript";
 import "highlight.js/lib/languages/python";
 import "highlight.js/lib/languages/bash";
 import "highlight.js/lib/languages/php";
+import "highlight.js/lib/languages/go";
+import "highlight.js/lib/languages/java";
 
 const THEME_LINK_ID = "hljs-theme-docs";
 
@@ -29,6 +31,8 @@ const languageMap: Record<string, string> = {
   laravel: "php",
   django: "python",
   flask: "python",
+  go: "go",
+  java: "java",
 };
 
 interface ThemeableCodeBlockProps {
