@@ -7,15 +7,6 @@ import {
   resourceApi,
 } from "@/services/api";
 import { DynamoDBTableConfig } from "@/types";
-import {
-  ArrowsPointingOutIcon,
-  ChevronDownIcon,
-  MagnifyingGlassIcon,
-  PlusIcon,
-  TrashIcon,
-  XMarkIcon,
-  ArrowTopRightOnSquareIcon,
-} from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import DynamoDBAddItemModal from "./DynamoDBAddItemModal";
@@ -27,6 +18,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import ThemeableCodeBlock from "./ThemeableCodeBlock";
 import { parseDynamoDBItem } from "@/lib/dynamodbValue";
+import { Button, IconButton, Input, SegmentedControl } from "./ui";
 
 interface DynamoDBViewerProps {
   isOpen: boolean;
@@ -376,17 +368,17 @@ export default function DynamoDBViewer({
             e.stopPropagation();
             handleJsonClick(value, `${header} - ${selectedTable}`);
           }}
-          className="mx-auto flex max-w-[200px] items-center justify-center gap-1.5 rounded border border-blue-200 bg-blue-50 px-2 py-1 text-left font-mono text-xs text-gray-800 transition-colors hover:bg-blue-100"
+          className="mx-auto flex max-w-[200px] cursor-pointer items-center justify-center gap-1.5 rounded border border-primary bg-primary-soft px-2 py-1 text-left font-mono text-xs text-ink transition-colors hover:bg-primary/10"
           title="Click to view full JSON"
         >
-          <ArrowsPointingOutIcon className="h-3.5 w-3.5 shrink-0 text-blue-600" />
+          <Icon icon="lucide:maximize-2" width={13} className="shrink-0 text-primary" />
           <span className="truncate">{formatValue(value)}</span>
         </button>
       );
     }
 
     return (
-      <span className="mx-auto block max-w-[220px] truncate text-center" title={formatValue(value)}>
+      <span className="mx-auto block max-w-[220px] truncate text-center text-ink-2" title={formatValue(value)}>
         {formatValue(value)}
       </span>
     );
@@ -458,7 +450,7 @@ export default function DynamoDBViewer({
   return (
   <>
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4"
       onMouseDown={handleBackdropMouseDown}
     >
       <motion.div
@@ -466,52 +458,43 @@ export default function DynamoDBViewer({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 8, scale: 0.98 }}
         transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] as const }}
-        className="bg-white rounded-xl shadow-2xl w-full max-w-7xl h-[88vh] flex flex-col"
+        className="flex h-[88vh] w-full max-w-7xl flex-col rounded-xl border border-border bg-surface shadow-e3"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">DynamoDB Tables</h2>
-            <p className="text-xs text-gray-500">View and manage table contents</p>
+        <div className="flex items-center justify-between gap-3 border-b border-divider px-5 py-3.5 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <Icon icon="logos:aws-dynamodb" width={18} />
+            <div>
+              <h2 className="text-[15px] font-semibold text-ink">DynamoDB tables</h2>
+              <p className="text-[11px] text-muted">View and manage table contents</p>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setShowCreateTableModal(true)}
-              className="flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              <PlusIcon className="h-4 w-4 mr-1.5" />
-              Create Table
-            </button>
+          <div className="flex items-center gap-2">
+            <Button variant="primary" size="sm" icon="lucide:plus" onClick={() => setShowCreateTableModal(true)}>
+              Create table
+            </Button>
             <Link
               href="/manage/dynamodb"
-              className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary-soft"
             >
-              <span>Open Manager</span>
-              <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+              Open manager
+              <Icon icon="lucide:external-link" width={13} />
             </Link>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-              aria-label="Close"
-            >
-              <XMarkIcon className="h-5 w-5" />
-            </button>
+            <IconButton icon="lucide:x" variant="ghost" label="Close" onClick={onClose} />
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex flex-col p-6 gap-4 min-h-0">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 p-5">
           {/* Table Selection */}
-          <div className="flex items-center gap-3 shrink-0">
-            <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
-              Select Table
-            </label>
+          <div className="flex shrink-0 items-center gap-2.5">
+            <label className="whitespace-nowrap text-xs font-medium text-ink-2">Table</label>
             <div className="relative">
               <select
                 value={selectedTable}
                 onChange={(e) => setSelectedTable(e.target.value)}
-                className="appearance-none pl-3 pr-8 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={loading}
+                className="h-8 min-w-[200px] cursor-pointer appearance-none rounded-lg border border-border-strong bg-surface pl-2.5 pr-8 font-mono text-[13px] text-ink outline-none transition-colors focus:border-primary focus:ring-3 focus:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="">Choose a table…</option>
                 {tables.map((table) => (
@@ -520,15 +503,20 @@ export default function DynamoDBViewer({
                   </option>
                 ))}
               </select>
-              <ChevronDownIcon className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+              <Icon
+                icon="lucide:chevron-down"
+                width={14}
+                className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-faint"
+              />
             </div>
-            <button
+            <IconButton
+              icon="lucide:refresh-cw"
+              variant="outline"
+              label="Refresh"
               onClick={refreshData}
               disabled={loading}
-              className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
-              Refresh
-            </button>
+              className={loading ? "[&_svg]:animate-spin" : ""}
+            />
           </div>
 
           {/* Below-selector area — switches between initial loading / empty / table content */}
@@ -542,23 +530,23 @@ export default function DynamoDBViewer({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="flex-1 min-h-0 overflow-hidden border border-gray-200 rounded-lg animate-pulse"
+              className="min-h-0 flex-1 animate-pulse overflow-hidden rounded-xl border border-border"
             >
               {/* Fake table header */}
-              <div className="flex bg-gray-50 border-b border-gray-200 px-3 py-2 gap-6">
+              <div className="flex gap-6 border-b border-divider bg-surface-2 px-3 py-2">
                 {[40, 28, 20, 12].map((w, i) => (
-                  <div key={i} className={`h-3 bg-gray-200 rounded`} style={{ width: `${w}%` }} />
+                  <div key={i} className="h-3 rounded bg-skeleton" style={{ width: `${w}%` }} />
                 ))}
               </div>
               {/* Fake rows */}
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex items-center border-b border-gray-100 px-3 py-3 gap-6"
+                  className="flex items-center gap-6 border-b border-divider px-3 py-3"
                   style={{ opacity: 1 - i * 0.09 }}
                 >
                   {[40, 28, 20, 12].map((w, j) => (
-                    <div key={j} className="h-3 bg-gray-100 rounded" style={{ width: `${w}%` }} />
+                    <div key={j} className="h-3 rounded bg-skeleton" style={{ width: `${w}%` }} />
                   ))}
                 </div>
               ))}
@@ -572,18 +560,14 @@ export default function DynamoDBViewer({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] as const }}
-              className="flex-1 flex flex-col items-center justify-center text-center"
+              className="flex flex-1 flex-col items-center justify-center text-center"
             >
-              <Icon icon="logos:aws-dynamodb" className="w-20 h-20 mb-4 opacity-20" />
-              <p className="text-sm font-medium text-gray-700 mb-1">No DynamoDB tables found</p>
-              <p className="text-xs text-gray-400 mb-5">Create your first table to start storing data.</p>
-              <button
-                onClick={() => setShowCreateTableModal(true)}
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
-              >
-                <PlusIcon className="h-4 w-4 mr-1.5" />
-                Create Table
-              </button>
+              <Icon icon="logos:aws-dynamodb" className="mb-4 h-20 w-20 opacity-20" />
+              <p className="mb-1 text-sm font-medium text-ink-2">No DynamoDB tables found</p>
+              <p className="mb-5 text-xs text-faint">Create your first table to start storing data.</p>
+              <Button variant="primary" size="sm" icon="lucide:plus" onClick={() => setShowCreateTableModal(true)}>
+                Create table
+              </Button>
             </motion.div>
 
           ) : tables.length > 0 && (
@@ -593,184 +577,106 @@ export default function DynamoDBViewer({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="flex-1 flex flex-col gap-4 min-h-0"
+            className="flex min-h-0 flex-1 flex-col gap-4"
           >
 
           {selectedTable && (
             <>
               {/* Query Controls */}
-              <div className="bg-gray-50 rounded-lg px-4 py-3 shrink-0">
-                <div className="flex items-center space-x-4 mb-3">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="scan"
-                      name="queryMode"
-                      value="scan"
-                      checked={queryMode === "scan"}
-                      onChange={(e) =>
-                        setQueryMode(e.target.value as "scan" | "query")
-                      }
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              <div className="flex shrink-0 flex-col gap-3 rounded-xl border border-border bg-surface p-3.5 shadow-e1">
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-xs font-medium text-ink-2">Read mode</span>
+                    <SegmentedControl
+                      value={queryMode}
+                      onChange={setQueryMode}
+                      options={[
+                        { value: "scan", label: "Scan" },
+                        { value: "query", label: "Query" },
+                      ]}
                     />
-                    <label
-                      htmlFor="scan"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Scan
-                    </label>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="query"
-                      name="queryMode"
-                      value="query"
-                      checked={queryMode === "query"}
-                      onChange={(e) =>
-                        setQueryMode(e.target.value as "scan" | "query")
-                      }
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                    />
-                    <label
-                      htmlFor="query"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Query
-                    </label>
-                  </div>
-                </div>
 
-                {queryMode === "query" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Partition Key
+                  {queryMode === "query" && (
+                    <>
+                      <label className="flex min-w-[110px] flex-1 flex-col gap-1.5">
+                        <span className="text-xs font-medium text-ink-2">Partition key</span>
+                        <Input
+                          mono
+                          value={queryParams.partitionKey}
+                          onChange={(e) => setQueryParams({ ...queryParams, partitionKey: e.target.value })}
+                          placeholder="pk"
+                        />
                       </label>
-                      <input
-                        type="text"
-                        value={queryParams.partitionKey}
-                        onChange={(e) =>
-                          setQueryParams({
-                            ...queryParams,
-                            partitionKey: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="pk"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Partition Value
+                      <label className="flex min-w-[130px] flex-1 flex-col gap-1.5">
+                        <span className="text-xs font-medium text-ink-2">Value</span>
+                        <Input
+                          mono
+                          value={queryParams.partitionValue}
+                          onChange={(e) => setQueryParams({ ...queryParams, partitionValue: e.target.value })}
+                          placeholder="value"
+                        />
                       </label>
-                      <input
-                        type="text"
-                        value={queryParams.partitionValue}
-                        onChange={(e) =>
-                          setQueryParams({
-                            ...queryParams,
-                            partitionValue: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="value"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Sort Key (optional)
+                      <label className="flex min-w-[100px] flex-1 flex-col gap-1.5">
+                        <span className="text-xs font-medium text-ink-2">Sort key</span>
+                        <Input
+                          mono
+                          value={queryParams.sortKey}
+                          onChange={(e) => setQueryParams({ ...queryParams, sortKey: e.target.value })}
+                          placeholder="sk"
+                        />
                       </label>
-                      <input
-                        type="text"
-                        value={queryParams.sortKey}
-                        onChange={(e) =>
-                          setQueryParams({
-                            ...queryParams,
-                            sortKey: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="sk"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Sort Value (optional)
+                      <label className="flex min-w-[100px] flex-1 flex-col gap-1.5">
+                        <span className="text-xs font-medium text-ink-2">Sort value</span>
+                        <Input
+                          mono
+                          value={queryParams.sortValue}
+                          onChange={(e) => setQueryParams({ ...queryParams, sortValue: e.target.value })}
+                          placeholder="value"
+                        />
                       </label>
-                      <input
-                        type="text"
-                        value={queryParams.sortValue}
-                        onChange={(e) =>
-                          setQueryParams({
-                            ...queryParams,
-                            sortValue: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="value"
-                      />
-                    </div>
-                  </div>
-                )}
+                    </>
+                  )}
 
-                <div className="flex items-center space-x-4 mt-3">
-                  <div className="flex items-center space-x-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      Limit:
-                    </label>
-                    <input
+                  <label className="flex w-[84px] flex-col gap-1.5">
+                    <span className="text-xs font-medium text-ink-2">Limit</span>
+                    <Input
+                      mono
                       type="number"
-                      value={queryParams.limit}
-                      onChange={(e) =>
-                        setQueryParams({
-                          ...queryParams,
-                          limit: e.target.value,
-                        })
-                      }
-                      className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                       min="1"
                       max="1000"
+                      value={queryParams.limit}
+                      onChange={(e) => setQueryParams({ ...queryParams, limit: e.target.value })}
                     />
-                  </div>
-                  <button
-                    onClick={
-                      queryMode === "scan" ? loadTableContents : executeQuery
-                    }
-                    disabled={loading}
-                    className="flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  </label>
+
+                  <Button
+                    variant="primary"
+                    icon="lucide:play"
+                    loading={loading}
+                    onClick={queryMode === "scan" ? loadTableContents : executeQuery}
                   >
-                    <MagnifyingGlassIcon className="h-4 w-4 mr-1.5" />
-                    {loading
-                      ? "Loading…"
-                      : queryMode === "scan"
-                      ? "Scan Table"
-                      : "Execute Query"}
-                  </button>
+                    {loading ? "Loading…" : queryMode === "scan" ? "Scan table" : "Execute query"}
+                  </Button>
                 </div>
+
+                {scanResult && (
+                  <div className="flex items-center gap-2 border-t border-divider pt-2.5 text-[11px] text-muted">
+                    <span>
+                      Showing <strong className="text-ink-2">{items.length} items</strong> · scanned{" "}
+                      {scanResult.scannedCount}
+                    </span>
+                    <span className="ml-auto font-mono">{selectedTable}</span>
+                  </div>
+                )}
               </div>
 
-              {/* Results Info */}
-              {scanResult && (
-                <div className="flex items-center justify-between text-sm text-gray-600 shrink-0">
-                  <span>
-                    Showing {items.length} items (scanned:{" "}
-                    {scanResult.scannedCount})
-                  </span>
-                  <span>Table: {selectedTable}</span>
-                </div>
-              )}
-
               {/* Add Item Button */}
-              <div className="flex justify-between items-center shrink-0">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Items</h3>
-                <button
-                  onClick={() => setAddModalOpen(true)}
-                  className="flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  <PlusIcon className="h-4 w-4 mr-1.5" />
-                  Add Item
-                </button>
+              <div className="flex shrink-0 items-center justify-between">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-faint">Items</h3>
+                <Button variant="primary" size="sm" icon="lucide:plus" onClick={() => setAddModalOpen(true)}>
+                  Add item
+                </Button>
               </div>
 
               {/* Items Table + Detail Panel */}
@@ -783,106 +689,98 @@ export default function DynamoDBViewer({
                 transition={{ duration: 0.18 }}
                 className="flex min-h-0 flex-1 gap-4"
               >
-                <div className="min-h-0 min-w-0 flex-1 overflow-auto rounded-lg border border-gray-200 pb-4">
+                <div className="min-h-0 min-w-0 flex-1 overflow-auto rounded-xl border border-border bg-surface shadow-e1">
                 {loading ? (
                   /* Skeleton rows that match the real table layout */
                   <div className="animate-pulse">
-                    <div className="flex bg-gray-50 border-b border-gray-200 px-3 py-2 gap-4">
+                    <div className="flex gap-4 border-b border-divider bg-surface-2 px-3 py-2">
                       {[35, 25, 20, 15].map((w, i) => (
-                        <div key={i} className="h-3 bg-gray-200 rounded" style={{ width: `${w}%` }} />
+                        <div key={i} className="h-3 rounded bg-skeleton" style={{ width: `${w}%` }} />
                       ))}
-                      <div className="h-3 w-10 bg-gray-100 rounded ml-auto" />
+                      <div className="ml-auto h-3 w-10 rounded bg-skeleton" />
                     </div>
                     {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="flex items-center border-b border-gray-100 px-3 py-3 gap-4" style={{ opacity: 1 - i * 0.12 }}>
+                      <div key={i} className="flex items-center gap-4 border-b border-divider px-3 py-3" style={{ opacity: 1 - i * 0.12 }}>
                         {[35, 25, 20, 15].map((w, j) => (
-                          <div key={j} className="h-3 bg-gray-100 rounded" style={{ width: `${w}%` }} />
+                          <div key={j} className="h-3 rounded bg-skeleton" style={{ width: `${w}%` }} />
                         ))}
-                        <div className="h-5 w-5 bg-gray-100 rounded ml-auto" />
+                        <div className="ml-auto h-5 w-5 rounded bg-skeleton" />
                       </div>
                     ))}
                   </div>
                 ) : items.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                    <Icon icon="logos:aws-dynamodb" className="w-20 h-20 mb-4 opacity-20" />
-                    <p className="text-sm font-medium text-gray-700 mb-1">No items found</p>
-                    <p className="text-xs text-gray-400 mb-5">Add your first item to this table.</p>
-                    <button
-                      onClick={() => setAddModalOpen(true)}
-                      className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
-                    >
-                      <PlusIcon className="h-4 w-4 mr-1.5" />
-                      Add Item
-                    </button>
+                  <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+                    <Icon icon="logos:aws-dynamodb" className="mb-4 h-20 w-20 opacity-20" />
+                    <p className="mb-1 text-sm font-medium text-ink-2">No items found</p>
+                    <p className="mb-5 text-xs text-faint">Add your first item to this table.</p>
+                    <Button variant="primary" size="sm" icon="lucide:plus" onClick={() => setAddModalOpen(true)}>
+                      Add item
+                    </Button>
                   </div>
                 ) : (
-                  <>
-                    <table className="w-full divide-y divide-gray-200 table-auto">
-                      <thead className="bg-gray-50 sticky top-0 z-1">
-                        <tr>
-                          {getTableHeaders().map((header, hi) => (
-                            <th
-                              key={`${selectedTable}-header-${header}-${hi}`}
-                              className={`px-3 py-2 text-xs font-medium uppercase tracking-wider whitespace-nowrap ${
-                                isKeyColumn(header)
-                                  ? "min-w-[200px] bg-blue-100 text-left text-blue-800 border-r border-blue-200"
-                                  : "text-center text-gray-500"
-                              }`}
-                            >
-                              <span>{header}</span>
-                              {isKeyColumn(header) && (
-                                <span className="ml-1.5 text-xs font-normal text-blue-500 normal-case">
-                                  ({getKeyType(header)})
-                                </span>
-                              )}
-                            </th>
-                          ))}
-                          <th className="px-3 py-2 text-center text-xs font-medium uppercase tracking-wider text-gray-500 w-14">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {items.map((item, index) => (
-                          <tr
-                            key={`${selectedTable}-row-${index}`}
-                            onClick={() => setSelectedItemIndex(index)}
-                            className={`cursor-pointer transition-colors hover:bg-gray-50 ${
-                              selectedItemIndex === index
-                                ? "bg-blue-50 ring-2 ring-inset ring-blue-400"
-                                : ""
+                  <table className="w-full table-auto border-collapse">
+                    <thead className="sticky top-0 z-1 bg-surface-2">
+                      <tr>
+                        {getTableHeaders().map((header, hi) => (
+                          <th
+                            key={`${selectedTable}-header-${header}-${hi}`}
+                            className={`whitespace-nowrap border-b border-divider px-3 py-2 text-[10px] font-semibold uppercase tracking-wide ${
+                              isKeyColumn(header)
+                                ? "min-w-[200px] bg-primary-soft text-left text-primary-ink"
+                                : "text-center text-faint"
                             }`}
                           >
-                            {getTableHeaders().map((header, hj) => (
-                              <td
-                                key={`${header}-${hj}`}
-                                className={`px-3 py-2 text-sm ${
-                                  isKeyColumn(header)
-                                    ? "min-w-[200px] max-w-[240px] align-top bg-blue-50 text-left text-blue-900 border-r border-blue-200 font-medium"
-                                    : "text-center align-middle text-gray-900"
-                                }`}
-                              >
-                                {renderCellValue(header, item[header])}
-                              </td>
-                            ))}
-                            <td className="px-3 py-2 text-center">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteClick(item);
-                                }}
-                                className="text-red-600 hover:text-red-800 transition-colors"
-                                title="Delete item"
-                              >
-                                <TrashIcon className="h-4 w-4" />
-                              </button>
-                            </td>
-                          </tr>
+                            <span>{header}</span>
+                            {isKeyColumn(header) && (
+                              <span className="ml-1.5 text-[10px] font-normal normal-case text-primary">
+                                ({getKeyType(header)})
+                              </span>
+                            )}
+                          </th>
                         ))}
-                      </tbody>
-                    </table>
-                  </>
+                        <th className="px-3 py-2 text-center text-[10px] font-semibold uppercase tracking-wide text-faint w-14">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((item, index) => (
+                        <tr
+                          key={`${selectedTable}-row-${index}`}
+                          onClick={() => setSelectedItemIndex(index)}
+                          className={`cursor-pointer border-b border-divider transition-colors last:border-b-0 hover:bg-surface-2 ${
+                            selectedItemIndex === index ? "bg-primary-soft" : ""
+                          }`}
+                        >
+                          {getTableHeaders().map((header, hj) => (
+                            <td
+                              key={`${header}-${hj}`}
+                              className={`px-3 py-2 text-sm ${
+                                isKeyColumn(header)
+                                  ? "min-w-[200px] max-w-[240px] bg-primary-soft/60 text-left align-top font-medium"
+                                  : "text-center align-middle"
+                              }`}
+                            >
+                              {renderCellValue(header, item[header])}
+                            </td>
+                          ))}
+                          <td className="px-3 py-2 text-center">
+                            <IconButton
+                              icon="lucide:trash-2"
+                              variant="ghost"
+                              size="sm"
+                              label="Delete item"
+                              className="!text-danger hover:!bg-danger-soft hover:!text-danger"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(item);
+                              }}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 )}
                 </div>
 
@@ -895,7 +793,6 @@ export default function DynamoDBViewer({
                     onDelete={() => handleDeleteClick(selectedItem)}
                     onClose={() => setSelectedItemIndex(null)}
                     onJsonClick={handleJsonClick}
-                    accent="blue"
                   />
                 ) : null}
               </motion.div>
@@ -920,51 +817,35 @@ export default function DynamoDBViewer({
 
     {/* Delete Confirmation Modal */}
     {deleteModalOpen && (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-scrim p-4">
+        <div className="w-full max-w-md rounded-xl border border-border bg-surface shadow-e3">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center justify-between border-b border-divider px-5 py-4">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Delete Item</h2>
-              <p className="text-xs text-gray-500">This action cannot be undone</p>
+              <h2 className="text-[15px] font-semibold text-ink">Delete item</h2>
+              <p className="text-[11px] text-muted">This action cannot be undone</p>
             </div>
-            <button
-              onClick={() => setDeleteModalOpen(false)}
-              className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-              aria-label="Close"
-            >
-              <XMarkIcon className="h-5 w-5" />
-            </button>
+            <IconButton icon="lucide:x" variant="ghost" label="Close" onClick={() => setDeleteModalOpen(false)} />
           </div>
 
           {/* Content */}
-          <div className="p-6">
-            <div className="text-sm text-gray-700 mb-4">
-              <p>The item will be permanently deleted from the table.</p>
-            </div>
+          <div className="p-5">
+            <p className="mb-4 text-sm text-ink-2">The item will be permanently deleted from the table.</p>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+              <div className="mb-4 rounded-lg border border-danger bg-danger-soft px-3 py-2.5 text-sm text-danger-ink">
                 {error}
               </div>
             )}
 
             {/* Actions */}
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setDeleteModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                disabled={deleteLoading}
-              >
+            <div className="flex justify-end gap-2.5">
+              <Button variant="secondary" onClick={() => setDeleteModalOpen(false)} disabled={deleteLoading}>
                 Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                disabled={deleteLoading}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
-              >
-                {deleteLoading ? "Deleting..." : "Delete"}
-              </button>
+              </Button>
+              <Button variant="danger" icon="lucide:trash-2" loading={deleteLoading} onClick={handleDeleteConfirm}>
+                {deleteLoading ? "Deleting…" : "Delete"}
+              </Button>
             </div>
           </div>
         </div>
@@ -973,25 +854,19 @@ export default function DynamoDBViewer({
 
     {/* JSON Viewer Modal */}
     {jsonViewerOpen && (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-scrim p-4">
+        <div className="flex max-h-[80vh] w-full max-w-3xl flex-col rounded-xl border border-border bg-surface shadow-e3">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
+          <div className="flex items-center justify-between border-b border-divider px-5 py-4 shrink-0">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">JSON Viewer</h2>
-              <p className="text-xs text-gray-500">{selectedJsonTitle}</p>
+              <h2 className="text-[15px] font-semibold text-ink">JSON viewer</h2>
+              <p className="text-[11px] text-muted">{selectedJsonTitle}</p>
             </div>
-            <button
-              onClick={() => setJsonViewerOpen(false)}
-              className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-              aria-label="Close"
-            >
-              <XMarkIcon className="h-5 w-5" />
-            </button>
+            <IconButton icon="lucide:x" variant="ghost" label="Close" onClick={() => setJsonViewerOpen(false)} />
           </div>
 
           {/* JSON Content */}
-          <div className="flex-1 p-6 overflow-auto">
+          <div className="flex-1 overflow-auto p-5">
             <ThemeableCodeBlock
               code={JSON.stringify(selectedJsonData, null, 2)}
               language="javascript"

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { XMarkIcon, PlusIcon, TrashIcon, CircleStackIcon } from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import { DynamoDBTableConfig, DynamoDBGSI } from "@/types";
 import { usePreferences } from "@/context/PreferencesContext";
 import { toast } from "react-hot-toast";
+import { Button, IconButton, Input, SegmentedControl } from "./ui";
 
 interface DynamoDBConfigModalProps {
   isOpen: boolean;
@@ -138,37 +139,35 @@ export default function DynamoDBConfigModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-scrim p-4 py-10"
       onMouseDown={handleBackdropMouseDown}
     >
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-xl shrink-0 rounded-xl border border-border bg-surface shadow-e3">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-indigo-50 rounded-lg">
-              <CircleStackIcon className="h-5 w-5 text-indigo-600" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">Create DynamoDB Table</h2>
-              <p className="text-xs text-gray-500">Primary key, billing mode &amp; GSIs</p>
-            </div>
+        <div className="flex items-start gap-2.5 border-b border-divider px-4.5 py-4">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-soft">
+            <Icon icon="logos:aws-dynamodb" width={18} />
+          </span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[15px] font-semibold text-ink">Create DynamoDB table</span>
+            <span className="text-[11px] text-muted">
+              Primary key, billing mode &amp; GSIs · runs{" "}
+              <span className="font-mono">awslocal dynamodb create-table</span>
+            </span>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-            aria-label="Close"
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
+          <IconButton icon="lucide:x" variant="ghost" size="sm" label="Close" className="ml-auto" onClick={onClose} />
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-
+        <form id="dynamodb-config-form" onSubmit={handleSubmit} className="flex flex-col gap-5 px-4.5 py-4">
           {/* Saved config pills — only shown if configs exist */}
           {profile?.active_project_id && projectConfigs.length > 0 && (
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Load saved config</p>
-              <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface-2 p-3">
+              <div className="flex items-center gap-1.5">
+                <Icon icon="lucide:bookmark" width={13} className="text-muted" />
+                <span className="text-xs font-medium text-ink-2">Saved configs</span>
+                <span className="text-[11px] text-faint">{profile.active_project_label}</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
                 {projectConfigs.map((cfg) => (
                   <button
                     key={cfg.id}
@@ -177,7 +176,7 @@ export default function DynamoDBConfigModal({
                       loadSavedConfig(cfg.config as DynamoDBTableConfig);
                       toast.success(`Loaded "${cfg.name}"`);
                     }}
-                    className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:border-blue-400 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                    className="h-[26px] cursor-pointer rounded-full border border-border bg-surface px-2.5 text-xs font-medium text-ink-2 transition-colors hover:border-primary hover:bg-primary-soft hover:text-primary"
                   >
                     {cfg.name}
                   </button>
@@ -186,185 +185,167 @@ export default function DynamoDBConfigModal({
             </div>
           )}
 
-          {/* Basic Configuration */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Table Name
-              </label>
-              <input
-                type="text"
-                value={tableName}
-                onChange={(e) => setTableName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Billing Mode
-              </label>
-              <select
-                value={billingMode}
-                onChange={(e) => setBillingMode(e.target.value as "PAY_PER_REQUEST" | "PROVISIONED")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-              >
-                <option value="PAY_PER_REQUEST">Pay Per Request</option>
-                <option value="PROVISIONED">Provisioned</option>
-              </select>
-            </div>
+          {/* Table name + billing mode */}
+          <div className="grid grid-cols-2 gap-3">
+            <label className="col-span-2 flex flex-col gap-1.5">
+              <span className="text-xs font-medium text-ink-2">
+                Table name <span className="text-danger">*</span>
+              </span>
+              <Input mono value={tableName} onChange={(e) => setTableName(e.target.value)} required />
+              <span className="text-[11px] text-muted">Lowercase, hyphens, 3–255 chars</span>
+            </label>
           </div>
 
           {/* Primary Key */}
-          <div className="border-t pt-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Primary Key</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Partition Key (PK)
-                </label>
-                <input
-                  type="text"
-                  value={partitionKey}
-                  onChange={(e) => setPartitionKey(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sort Key (SK) <span className="text-gray-400 font-normal">(optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={sortKey}
-                  onChange={(e) => setSortKey(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                  placeholder="Leave empty for simple primary key"
-                />
-              </div>
-            </div>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-medium text-ink-2">
+                Partition key <span className="text-danger">*</span>
+              </span>
+              <Input mono value={partitionKey} onChange={(e) => setPartitionKey(e.target.value)} required />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-medium text-ink-2">Sort key</span>
+              <Input
+                mono
+                value={sortKey}
+                onChange={(e) => setSortKey(e.target.value)}
+                placeholder="Leave empty for simple primary key"
+              />
+            </label>
+          </div>
+
+          {/* Billing mode */}
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-medium text-ink-2">Billing mode</span>
+            <SegmentedControl
+              value={billingMode}
+              onChange={setBillingMode}
+              options={[
+                { value: "PAY_PER_REQUEST", label: "On-demand" },
+                { value: "PROVISIONED", label: "Provisioned" },
+              ]}
+            />
           </div>
 
           {/* Provisioned Capacity */}
           {billingMode === "PROVISIONED" && (
-            <div className="border-t pt-5">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Provisioned Capacity</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Read Capacity Units
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={readCapacity}
-                    onChange={(e) => setReadCapacity(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Write Capacity Units
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={writeCapacity}
-                    onChange={(e) => setWriteCapacity(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-                    required
-                  />
-                </div>
-              </div>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-medium text-ink-2">Read capacity units</span>
+                <Input
+                  type="number"
+                  min="1"
+                  value={readCapacity}
+                  onChange={(e) => setReadCapacity(parseInt(e.target.value))}
+                  required
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-medium text-ink-2">Write capacity units</span>
+                <Input
+                  type="number"
+                  min="1"
+                  value={writeCapacity}
+                  onChange={(e) => setWriteCapacity(parseInt(e.target.value))}
+                  required
+                />
+              </label>
             </div>
           )}
 
           {/* Global Secondary Indexes */}
-          <div className="border-t pt-5">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-700">Global Secondary Indexes</h3>
-              <button
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-border-strong px-3 py-2.5">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs font-medium text-ink-2">Global secondary indexes</span>
+                <span className="text-[11px] text-muted">
+                  {gsis.length === 0
+                    ? "None yet — add one if you query by another attribute"
+                    : `${gsis.length} configured`}
+                </span>
+              </div>
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
+                icon="lucide:plus"
                 onClick={addGSI}
                 disabled={gsis.length >= 5}
-                className="flex items-center px-3 py-1 text-xs font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <PlusIcon className="h-3.5 w-3.5 mr-1" />
                 Add GSI ({gsis.length}/5)
-              </button>
+              </Button>
             </div>
 
-            {gsis.length === 0 && (
-              <p className="text-xs text-gray-400 italic">
-                No GSIs configured. Click &quot;Add GSI&quot; to create up to 5 Global Secondary Indexes.
-              </p>
-            )}
-
             {gsis.map((gsi, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 mb-3">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="text-sm font-medium text-gray-900">GSI {index + 1}</h4>
-                  <button
-                    type="button"
+              <div key={index} className="flex flex-col gap-3 rounded-lg border border-border bg-surface-2 p-3.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-ink-2">GSI {index + 1}</span>
+                  <IconButton
+                    icon="lucide:trash-2"
+                    variant="ghost"
+                    size="sm"
+                    label="Remove GSI"
+                    className="!text-danger hover:!bg-danger-soft hover:!text-danger"
                     onClick={() => removeGSI(index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <TrashIcon className="h-4 w-4" />
-                  </button>
+                  />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Index Name</label>
-                    <input
-                      type="text"
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-[11px] font-medium text-muted">Index name</span>
+                    <Input
+                      mono
                       value={gsi.indexName}
                       onChange={(e) => updateGSI(index, "indexName", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-sm"
                       required
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Partition Key</label>
-                    <input
-                      type="text"
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-[11px] font-medium text-muted">Partition key</span>
+                    <Input
+                      mono
                       value={gsi.partitionKey}
                       onChange={(e) => updateGSI(index, "partitionKey", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-sm"
                       required
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Sort Key <span className="text-gray-400">(optional)</span></label>
-                    <input
-                      type="text"
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-[11px] font-medium text-muted">Sort key <span className="text-faint">(optional)</span></span>
+                    <Input
+                      mono
                       value={gsi.sortKey || ""}
                       onChange={(e) => updateGSI(index, "sortKey", e.target.value || undefined)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-sm"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Projection Type</label>
-                    <select
-                      value={gsi.projectionType}
-                      onChange={(e) => updateGSI(index, "projectionType", e.target.value as "ALL" | "KEYS_ONLY" | "INCLUDE")}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-sm"
-                    >
-                      <option value="ALL">All</option>
-                      <option value="KEYS_ONLY">Keys Only</option>
-                      <option value="INCLUDE">Include</option>
-                    </select>
-                  </div>
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-[11px] font-medium text-muted">Projection type</span>
+                    <div className="relative">
+                      <select
+                        value={gsi.projectionType}
+                        onChange={(e) =>
+                          updateGSI(index, "projectionType", e.target.value as "ALL" | "KEYS_ONLY" | "INCLUDE")
+                        }
+                        className="h-8 w-full cursor-pointer appearance-none rounded-lg border border-border-strong bg-surface pl-2.5 pr-7 text-[13px] text-ink outline-none transition-colors focus:border-primary focus:ring-3 focus:ring-focus"
+                      >
+                        <option value="ALL">All</option>
+                        <option value="KEYS_ONLY">Keys only</option>
+                        <option value="INCLUDE">Include</option>
+                      </select>
+                      <Icon
+                        icon="lucide:chevron-down"
+                        width={13}
+                        className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-faint"
+                      />
+                    </div>
+                  </label>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Save as config */}
-          <div className="border-t pt-4">
-            <label className="flex items-center space-x-3 cursor-pointer">
+          <div className="flex flex-col gap-2.5 border-t border-divider pt-4">
+            <label className="flex cursor-pointer items-center gap-2.5">
               <input
                 type="checkbox"
                 checked={saveConfig_}
@@ -372,51 +353,49 @@ export default function DynamoDBConfigModal({
                   setSaveConfig_(e.target.checked);
                   if (!e.target.checked) setConfigName("");
                 }}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 cursor-pointer rounded border-border-strong text-primary focus:ring-focus"
               />
-              <span className="text-sm text-gray-700">Save as config</span>
+              <span className="text-sm text-ink-2">Save as config for future use</span>
             </label>
             {saveConfig_ && (
-              <div className="mt-3">
-                <input
-                  type="text"
+              <div>
+                <Input
                   value={configName}
                   onChange={(e) => setConfigName(e.target.value)}
                   onBlur={() => setConfigNameTouched(true)}
                   placeholder="e.g. my-app-table"
-                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
-                    configNameError
-                      ? "border-red-400 focus:ring-red-400 focus:border-red-400 bg-red-50"
-                      : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                  }`}
+                  invalid={!!configNameError}
+                  className="w-full"
                   autoFocus
                 />
-                {configNameError && (
-                  <p className="text-xs text-red-600 mt-1">{configNameError}</p>
-                )}
+                {configNameError && <p className="mt-1 text-[11px] text-danger">{configNameError}</p>}
               </div>
             )}
           </div>
+        </form>
 
-          {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              disabled={loading}
-            >
+        {/* Actions */}
+        <div className="flex items-center gap-2.5 border-t border-divider bg-surface-2 px-4.5 py-3.5">
+          <span className="hidden items-center gap-1.5 text-[11px] text-muted sm:flex">
+            <Icon icon="lucide:terminal" width={13} />
+            Runs <span className="font-mono">awslocal dynamodb create-table</span>
+          </span>
+          <div className="ml-auto flex items-center gap-2.5">
+            <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              form="dynamodb-config-form"
+              variant="primary"
+              icon="lucide:plus"
+              loading={loading}
               disabled={loading || (saveConfig_ && !configName.trim())}
             >
-              {loading ? "Creating..." : "Create Table"}
-            </button>
+              {loading ? "Creating…" : "Create table"}
+            </Button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

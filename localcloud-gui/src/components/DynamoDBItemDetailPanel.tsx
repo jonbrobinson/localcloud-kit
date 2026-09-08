@@ -1,13 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ArrowsPointingOutIcon,
-  CheckIcon,
-  ClipboardDocumentIcon,
-  TrashIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
+import { IconButton } from "./ui";
 
 type DynamoDBItem = Record<string, unknown>;
 
@@ -28,14 +23,23 @@ function formatScalar(value: unknown): string {
   return String(value);
 }
 
+function typeLetter(value: unknown): string {
+  if (value === null || value === undefined) return "S";
+  if (typeof value === "number") return "N";
+  if (typeof value === "boolean") return "BOOL";
+  if (Array.isArray(value)) return "L";
+  if (typeof value === "object") return "M";
+  return "S";
+}
+
 function CopyableField({
   label,
+  type,
   value,
-  emphasize = false,
 }: {
   label: string;
+  type: string;
   value: string;
-  emphasize?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -48,36 +52,25 @@ function CopyableField({
   };
 
   return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between gap-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{label}</p>
-        {value ? (
+    <div className="grid grid-cols-[100px_1fr] items-start gap-2.5 border-b border-divider px-3.5 py-2.5 last:border-b-0">
+      <span className="flex items-center gap-1.5 text-[11px] text-muted">
+        {label}
+        <span className="text-faint">{type}</span>
+      </span>
+      {value ? (
+        <div className="flex min-w-0 items-start justify-between gap-2">
+          <span className="min-w-0 break-all font-mono text-xs leading-relaxed text-ink">{value}</span>
           <button
             type="button"
             onClick={handleCopy}
-            className="shrink-0 rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className="shrink-0 cursor-pointer rounded p-0.5 text-faint transition-colors hover:bg-surface-3 hover:text-ink"
             title={copied ? "Copied" : `Copy ${label}`}
           >
-            {copied ? (
-              <CheckIcon className="h-3.5 w-3.5 text-green-500" />
-            ) : (
-              <ClipboardDocumentIcon className="h-3.5 w-3.5" />
-            )}
+            <Icon icon={copied ? "lucide:check" : "lucide:copy"} width={12} className={copied ? "text-success" : ""} />
           </button>
-        ) : null}
-      </div>
-      {value ? (
-        <div
-          className={`break-all font-mono text-xs leading-relaxed ${
-            emphasize
-              ? "rounded-md border border-blue-200 bg-blue-50 px-2.5 py-2 text-blue-900"
-              : "text-gray-700"
-          }`}
-        >
-          {value}
         </div>
       ) : (
-        <p className="text-xs italic text-gray-400">empty</p>
+        <span className="text-xs italic text-faint">empty</span>
       )}
     </div>
   );
@@ -93,111 +86,107 @@ export default function DynamoDBItemDetailPanel({
   onJsonClick,
   accent = "blue",
 }: DynamoDBItemDetailPanelProps) {
+  void accent;
+
   const keySet = new Set(keyColumnNames);
   const attributeNames = Object.keys(item)
     .filter((name) => !keySet.has(name))
     .sort();
 
-  const headerAccent =
-    accent === "indigo"
-      ? "border-indigo-100 bg-indigo-50 text-indigo-900"
-      : "border-blue-100 bg-blue-50 text-blue-900";
+  const summary = keyColumnNames
+    .map((name) => formatScalar(item[name]))
+    .filter(Boolean)
+    .join(" / ");
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white">
-      <div className={`flex items-start justify-between gap-2 border-b px-4 py-3 ${headerAccent}`}>
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide opacity-70">Item detail</p>
-          <p className="truncate text-sm font-medium">{tableName}</p>
-        </div>
-        {onClose ? (
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 rounded p-1 text-gray-400 transition-colors hover:bg-white/60 hover:text-gray-600"
-            aria-label="Close item detail"
-          >
-            <XMarkIcon className="h-4 w-4" />
-          </button>
+    <aside className="flex w-80 shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-e1">
+      <div className="flex items-center gap-2.5 border-b border-divider px-3.5 py-3">
+        <span className="text-sm font-semibold text-ink">Item</span>
+        {summary ? (
+          <span className="truncate font-mono text-[11px] text-muted">{summary}</span>
         ) : null}
-      </div>
-
-      <div className="flex-1 space-y-4 overflow-y-auto p-4">
-        {keyColumnNames.map((name) => {
-          const keyType = getKeyType?.(name);
-          const label = keyType ? `${name} (${keyType})` : name;
-          return (
-            <CopyableField
-              key={name}
-              label={label}
-              value={formatScalar(item[name])}
-              emphasize
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          <IconButton
+            icon="lucide:copy"
+            variant="ghost"
+            size="sm"
+            label="Copy item JSON"
+            onClick={() => {
+              void navigator.clipboard.writeText(JSON.stringify(item, null, 2));
+            }}
+          />
+          {onDelete ? (
+            <IconButton
+              icon="lucide:trash-2"
+              variant="ghost"
+              size="sm"
+              label="Delete item"
+              className="!text-danger hover:!bg-danger-soft hover:!text-danger"
+              onClick={onDelete}
             />
-          );
-        })}
-
-        {attributeNames.length > 0 ? (
-          <div className="border-t border-gray-100 pt-4">
-            <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-              Attributes
-            </p>
-            <div className="space-y-4">
-              {attributeNames.map((name) => {
-                const value = item[name];
-                const isComplex = value !== null && typeof value === "object";
-
-                if (isComplex && onJsonClick) {
-                  return (
-                    <div key={name}>
-                      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                        {name}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => onJsonClick(value, `${name} - ${tableName}`)}
-                        className={`flex max-w-full items-center gap-1.5 rounded border px-2 py-1 text-left font-mono text-xs transition-colors ${
-                          accent === "indigo"
-                            ? "border-indigo-200 bg-indigo-50 text-gray-800 hover:bg-indigo-100"
-                            : "border-blue-200 bg-blue-50 text-gray-800 hover:bg-blue-100"
-                        }`}
-                        title="Click to view full JSON"
-                      >
-                        <ArrowsPointingOutIcon
-                          className={`h-3.5 w-3.5 shrink-0 ${
-                            accent === "indigo" ? "text-indigo-600" : "text-blue-600"
-                          }`}
-                        />
-                        <span className="truncate">{formatScalar(value)}</span>
-                      </button>
-                    </div>
-                  );
-                }
-
-                return (
-                  <CopyableField
-                    key={name}
-                    label={name}
-                    value={formatScalar(value)}
-                  />
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
+          ) : null}
+          {onClose ? (
+            <IconButton icon="lucide:x" variant="ghost" size="sm" label="Close item detail" onClick={onClose} />
+          ) : null}
+        </div>
       </div>
 
-      {onDelete ? (
-        <div className="border-t border-gray-100 p-4">
-          <button
-            type="button"
-            onClick={onDelete}
-            className="flex w-full items-center justify-center gap-1.5 rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
-          >
-            <TrashIcon className="h-4 w-4" />
-            Delete item
-          </button>
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col">
+          {keyColumnNames.map((name) => {
+            const keyType = getKeyType?.(name);
+            const value = item[name];
+            return (
+              <div
+                key={name}
+                className="grid grid-cols-[100px_1fr] items-start gap-2.5 border-b border-divider px-3.5 py-2.5"
+              >
+                <span className="flex items-center gap-1.5 text-[11px] text-muted" title={keyType}>
+                  {name}
+                  <span className="text-faint">{typeLetter(value)}</span>
+                </span>
+                <span className="break-all font-mono text-xs text-ink">{formatScalar(value)}</span>
+              </div>
+            );
+          })}
+
+          {attributeNames.map((name) => {
+            const value = item[name];
+            const isComplex = value !== null && typeof value === "object";
+
+            if (isComplex && onJsonClick) {
+              return (
+                <div
+                  key={name}
+                  className="grid grid-cols-[100px_1fr] items-center gap-2.5 border-b border-divider px-3.5 py-2.5"
+                >
+                  <span className="flex items-center gap-1.5 text-[11px] text-muted">
+                    {name}
+                    <span className="text-faint">{typeLetter(value)}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onJsonClick(value, `${name} - ${tableName}`)}
+                    className="flex max-w-full cursor-pointer items-center gap-1.5 justify-self-start rounded border border-primary bg-primary-soft px-2 py-1 text-left font-mono text-xs text-primary-ink transition-colors hover:bg-primary/10"
+                    title="Click to view full JSON"
+                  >
+                    <Icon icon="lucide:maximize-2" width={12} className="shrink-0 text-primary" />
+                    <span className="truncate">{formatScalar(value)}</span>
+                  </button>
+                </div>
+              );
+            }
+
+            return (
+              <CopyableField key={name} label={name} type={typeLetter(value)} value={formatScalar(value)} />
+            );
+          })}
         </div>
-      ) : null}
+
+        <pre className="m-0 max-h-[220px] overflow-auto border-t border-divider bg-surface-2 px-3.5 py-3 font-mono text-[11px] leading-relaxed text-ink-2">
+          {JSON.stringify(item, null, 2)}
+        </pre>
+      </div>
     </aside>
   );
 }
