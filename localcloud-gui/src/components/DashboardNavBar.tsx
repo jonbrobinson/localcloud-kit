@@ -7,21 +7,9 @@ import {
 } from "@/context/DashboardNavContext";
 import { PLATFORM_SERVICES, PLATFORM_SERVICE_KINDS, SERVICE_KIND_LABEL } from "@/constants/platformServices";
 import { useServicesData } from "@/hooks/useServicesData";
-import {
-  ArrowTopRightOnSquareIcon,
-  Bars3Icon,
-  BookOpenIcon,
-  ChevronDownIcon,
-  ClipboardDocumentCheckIcon,
-  DocumentTextIcon,
-  EyeIcon,
-  ServerIcon,
-  Squares2X2Icon,
-  UserCircleIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { cn, SegmentedControl, type SegmentedOption } from "@/components/ui";
+import type { PreferredLanguage, ThemePreference } from "@/types";
 import { Icon } from "@iconify/react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -30,12 +18,35 @@ import packageJson from "../../package.json";
 import LogViewer from "./LogViewer";
 import MailpitModal from "./MailpitModal";
 import RedisModal from "./RedisModal";
+import ManageHeaderBrand from "./ManageHeaderBrand";
 
 const DOC_ROUTES = [
   "/docs", "/aws-emulator", "/s3", "/dynamodb", "/lambda",
   "/apigateway", "/secrets", "/ssm", "/iam",
   "/redis", "/mailpit", "/postgres", "/keycloak",
 ];
+
+const LANGUAGE_LABEL: Record<PreferredLanguage, string> = {
+  typescript: "TypeScript",
+  node: "Node.js",
+  python: "Python",
+  go: "Go",
+  java: "Java",
+  cli: "CLI",
+};
+
+const THEME_OPTIONS: SegmentedOption<ThemePreference>[] = [
+  { value: "auto", label: "Auto" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
+
+function getInitials(name?: string | null): string {
+  const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "U";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 type DashboardNavBarProps = {
   activePage?: "dashboard" | "profile";
@@ -50,6 +61,23 @@ type ResourceActionOptions = {
 
 const INSPECT_FALLBACK_HREF = "/";
 const DASHBOARD_FALLBACK_HREF = "/";
+
+const navPillClass = (active: boolean) =>
+  cn(
+    "flex items-center gap-1.5 h-8 px-3 rounded-lg text-[13px] font-medium transition-colors",
+    active ? "bg-primary-soft text-primary-ink" : "text-muted hover:bg-surface-3 hover:text-ink"
+  );
+
+const dropdownPanelClass = (widthClass: string) =>
+  cn(
+    "absolute right-0 mt-1.5 bg-surface border border-border rounded-xl shadow-e2 z-50 py-1.5",
+    widthClass
+  );
+
+const sectionLabelClass = "px-3 pt-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-faint";
+const dividerClass = "h-px bg-divider mx-1.5 my-1";
+const menuItemClass =
+  "flex items-center flex-1 px-2.5 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink rounded-lg transition-colors";
 
 export default function DashboardNavBar({
   activePage = "dashboard",
@@ -198,12 +226,16 @@ export default function DashboardNavBar({
     }
   };
 
+  const handleThemeChange = (theme: ThemePreference) => {
+    updateProfile({ theme }).catch(() => toast.error("Failed to update theme"));
+  };
+
   const previewActionClass =
-    "inline-flex items-center justify-center p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors";
+    "inline-flex items-center justify-center p-1.5 text-primary hover:text-primary-hover hover:bg-primary-soft rounded-md transition-colors";
   const inspectActionClass =
-    "inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors";
+    "inline-flex items-center justify-center p-1.5 text-muted hover:text-ink hover:bg-surface-3 rounded-md transition-colors";
   const manageActionClass =
-    "inline-flex items-center justify-center p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors";
+    "inline-flex items-center justify-center p-1.5 text-primary hover:text-primary-hover hover:bg-primary-soft rounded-md transition-colors";
 
   const renderResourceActions = ({
     label,
@@ -219,7 +251,7 @@ export default function DashboardNavBar({
           title={`Open ${label} viewer`}
           aria-label={`Open ${label} viewer`}
         >
-          <EyeIcon className="h-4 w-4" />
+          <Icon icon="lucide:eye" width={15} />
         </button>
       )}
       <button
@@ -228,7 +260,7 @@ export default function DashboardNavBar({
         title={`Inspect ${label} checks`}
         aria-label={`Inspect ${label} checks`}
       >
-        <ClipboardDocumentCheckIcon className="h-4 w-4" />
+        <Icon icon="lucide:clipboard-check" width={15} />
       </button>
       <Link
         href={manageHref}
@@ -237,7 +269,7 @@ export default function DashboardNavBar({
         title={`Open ${label} page`}
         aria-label={`Open ${label} page`}
       >
-        <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+        <Icon icon="lucide:external-link" width={15} />
       </Link>
     </div>
   );
@@ -249,49 +281,49 @@ export default function DashboardNavBar({
       title={`Inspect ${label} checks`}
       aria-label={`Inspect ${label} checks`}
     >
-      <ClipboardDocumentCheckIcon className="h-4 w-4" />
+      <Icon icon="lucide:clipboard-check" width={15} />
     </button>
   );
 
+  const displayName = profile?.display_name;
+  const initials = getInitials(displayName);
+  const profileSubtitle = profile
+    ? `${LANGUAGE_LABEL[profile.preferred_language] ?? profile.preferred_language} · ${profile.highlight_theme}`
+    : undefined;
+
   return (
     <>
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-surface border-b border-border shadow-e1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-3">
-              <Link href="/" onClick={closeAllMenus} aria-label="Go to dashboard">
-                <Image src="/logo.svg" alt="LocalCloud Kit" width={90} height={36} />
-              </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">LocalCloud Kit</h1>
-                <p className="text-xs text-gray-500">
-                  Local Cloud Development Environment
-                  {" "}
-                  •
-                  {" "}
-                  v
+          <div className="flex justify-between items-center py-3 gap-3">
+            <Link href="/" onClick={closeAllMenus} aria-label="Go to dashboard" className="flex items-center gap-3 min-w-0">
+              <ManageHeaderBrand size="sm" />
+              <div className="hidden sm:flex flex-col min-w-0">
+                <span className="text-[15px] font-semibold tracking-tight text-ink truncate">LocalCloud Kit</span>
+                <span className="text-[11px] text-muted truncate">
+                  Local cloud development environment · v
                   {packageJson.version}
-                </p>
+                </span>
               </div>
-            </div>
+            </Link>
 
             <div className="hidden md:flex items-center gap-0.5">
               <div className="relative" ref={resourcesMenuRef}>
                 <button
                   onClick={() => toggleMenu(setShowResourcesMenu, showResourcesMenu)}
-                  className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  className={navPillClass(showResourcesMenu)}
                 >
-                  <Squares2X2Icon className="h-4 w-4 mr-2" />
+                  <Icon icon="lucide:layers" width={14} />
                   Resources
-                  <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showResourcesMenu ? "rotate-180" : ""}`} />
+                  <Icon icon="lucide:chevron-down" width={14} className={cn("transition-transform", showResourcesMenu && "rotate-180")} />
                 </button>
                 {showResourcesMenu && (
-                  <div className="absolute right-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1.5">
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Storage</p>
-                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
+                  <div className={dropdownPanelClass("w-80")}>
+                    <p className={sectionLabelClass}>Storage</p>
+                    <div className="flex items-center justify-between gap-2 px-1.5 py-0.5">
                       <button
                         onClick={() => openActionOrFallback(actions?.openS3Buckets, "/manage/s3")}
-                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className={menuItemClass}
                       >
                         <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 shrink-0" />
                         S3 Buckets
@@ -304,12 +336,12 @@ export default function DashboardNavBar({
                       })}
                     </div>
 
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Database</p>
-                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
+                    <div className={dividerClass} />
+                    <p className={sectionLabelClass}>Database</p>
+                    <div className="flex items-center justify-between gap-2 px-1.5 py-0.5">
                       <button
                         onClick={() => openActionOrFallback(actions?.openDynamoDBViewer, "/manage/dynamodb")}
-                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className={menuItemClass}
                       >
                         <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 shrink-0" />
                         DynamoDB
@@ -322,12 +354,12 @@ export default function DashboardNavBar({
                       })}
                     </div>
 
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Compute</p>
-                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
+                    <div className={dividerClass} />
+                    <p className={sectionLabelClass}>Compute</p>
+                    <div className="flex items-center justify-between gap-2 px-1.5 py-0.5">
                       <button
                         onClick={() => openActionOrFallback(actions?.openLambdaConfig, DASHBOARD_FALLBACK_HREF)}
-                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className={menuItemClass}
                       >
                         <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 shrink-0" />
                         Lambda
@@ -340,12 +372,12 @@ export default function DashboardNavBar({
                       })}
                     </div>
 
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Networking</p>
-                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
+                    <div className={dividerClass} />
+                    <p className={sectionLabelClass}>Networking</p>
+                    <div className="flex items-center justify-between gap-2 px-1.5 py-0.5">
                       <button
                         onClick={() => openActionOrFallback(actions?.openAPIGatewayConfig, DASHBOARD_FALLBACK_HREF)}
-                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className={menuItemClass}
                       >
                         <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 shrink-0" />
                         API Gateway
@@ -358,12 +390,12 @@ export default function DashboardNavBar({
                       })}
                     </div>
 
-                    <div className="border-t border-gray-100 mt-1" />
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Security & Identity</p>
-                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
+                    <div className={dividerClass} />
+                    <p className={sectionLabelClass}>Security &amp; Identity</p>
+                    <div className="flex items-center justify-between gap-2 px-1.5 py-0.5">
                       <button
                         onClick={() => openActionOrFallback(actions?.openSecretsConfig, DASHBOARD_FALLBACK_HREF)}
-                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className={menuItemClass}
                       >
                         <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 shrink-0" />
                         Secrets Manager
@@ -375,10 +407,10 @@ export default function DashboardNavBar({
                         onPreview: () => openActionOrFallback(actions?.openSecretsViewer, "/manage/secrets"),
                       })}
                     </div>
-                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
+                    <div className="flex items-center justify-between gap-2 px-1.5 py-0.5">
                       <button
                         onClick={() => openActionOrFallback(actions?.openSSMConfig, DASHBOARD_FALLBACK_HREF)}
-                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className={menuItemClass}
                       >
                         <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 shrink-0" />
                         Parameter Store
@@ -390,10 +422,10 @@ export default function DashboardNavBar({
                         onPreview: () => openActionOrFallback(actions?.openSSMViewer, "/manage/ssm"),
                       })}
                     </div>
-                    <div className="flex items-center justify-between gap-2 px-2.5 py-0.5">
+                    <div className="flex items-center justify-between gap-2 px-1.5 py-0.5">
                       <button
                         onClick={() => openActionOrFallback(actions?.openIAMConfig, DASHBOARD_FALLBACK_HREF)}
-                        className="flex items-center flex-1 px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                        className={menuItemClass}
                       >
                         <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 shrink-0" />
                         IAM Roles
@@ -412,35 +444,35 @@ export default function DashboardNavBar({
               <div className="relative" ref={servicesMenuRef}>
                 <button
                   onClick={() => toggleMenu(setShowServicesMenu, showServicesMenu)}
-                  className="relative flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  className={cn("relative", navPillClass(showServicesMenu))}
                 >
-                  <ServerIcon className="h-4 w-4 mr-2" />
+                  <Icon icon="lucide:server" width={14} />
                   Services
-                  <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showServicesMenu ? "rotate-180" : ""}`} />
+                  <Icon icon="lucide:chevron-down" width={14} className={cn("transition-transform", showServicesMenu && "rotate-180")} />
                   {mailpit.unread > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-xs font-bold bg-red-500 text-white leading-none">
+                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-[10px] font-bold bg-danger text-white leading-none">
                       {mailpit.unread > 99 ? "99+" : mailpit.unread}
                     </span>
                   )}
                 </button>
                 {showServicesMenu && (
-                  <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                  <div className={dropdownPanelClass("w-56")}>
                     {PLATFORM_SERVICE_KINDS.map((kind, i) => {
                       const items = PLATFORM_SERVICES.filter((service) => service.kind === kind);
                       return (
                         <div key={kind}>
-                          {i > 0 && <div className="border-t border-gray-100 mt-1" />}
-                          <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                          {i > 0 && <div className={dividerClass} />}
+                          <p className={sectionLabelClass}>
                             {SERVICE_KIND_LABEL[kind]}
                           </p>
                           {items.map((service) => {
                             const ServiceIcon = service.icon;
                             const itemContent = (
                               <>
-                                <ServiceIcon className="h-4 w-4 mr-3 text-gray-400 shrink-0" />
+                                <ServiceIcon className="h-4 w-4 mr-3 text-faint shrink-0" />
                                 {service.label}
                                 {service.id === "mailpit" && mailpit.unread > 0 && (
-                                  <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-xs font-bold bg-red-500 text-white leading-none">
+                                  <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-[10px] font-bold bg-danger text-white leading-none">
                                     {mailpit.unread > 99 ? "99+" : mailpit.unread}
                                   </span>
                                 )}
@@ -448,19 +480,19 @@ export default function DashboardNavBar({
                             );
                             const action = service.action;
                             return (
-                              <div key={service.id} className="flex items-center justify-between px-2">
+                              <div key={service.id} className="flex items-center justify-between px-1.5">
                                 {action.type === "link" ? (
                                   <Link
                                     href={action.href}
                                     onClick={closeAllMenus}
-                                    className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                                    className={menuItemClass}
                                   >
                                     {itemContent}
                                   </Link>
                                 ) : (
                                   <button
                                     onClick={() => openModal(action.modalKey)}
-                                    className="flex items-center flex-1 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                                    className={menuItemClass}
                                   >
                                     {itemContent}
                                   </button>
@@ -481,70 +513,70 @@ export default function DashboardNavBar({
                   onClick={() => toggleMenu(setShowDocsMenu, showDocsMenu)}
                   onMouseEnter={prefetchDocRoutes}
                   onFocus={prefetchDocRoutes}
-                  className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  className={navPillClass(showDocsMenu)}
                 >
-                  <BookOpenIcon className="h-4 w-4 mr-2" />
+                  <Icon icon="lucide:book-open" width={14} />
                   Docs
-                  <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showDocsMenu ? "rotate-180" : ""}`} />
+                  <Icon icon="lucide:chevron-down" width={14} className={cn("transition-transform", showDocsMenu && "rotate-180")} />
                 </button>
                 {showDocsMenu && (
-                  <div className="absolute right-0 mt-1 w-176 max-w-[calc(100vw-2rem)] bg-white border border-gray-200 rounded-md shadow-lg z-50 p-3">
+                  <div className="absolute right-0 mt-1.5 w-176 max-w-[calc(100vw-2rem)] bg-surface border border-border rounded-xl shadow-e2 z-50 p-3">
                     <Link
                       href="/docs"
                       onClick={() => setShowDocsMenu(false)}
-                      className="flex items-center rounded-md px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 transition-colors"
+                      className="flex items-center rounded-lg px-3 py-2 text-sm font-medium text-primary-ink hover:bg-primary-soft transition-colors"
                     >
-                      <BookOpenIcon className="h-4 w-4 mr-3 text-indigo-500" />
+                      <Icon icon="lucide:book-open" width={16} className="mr-3 text-primary" />
                       Docs Hub
                     </Link>
 
                     <div className="mt-3 grid grid-cols-3 gap-3 max-h-[65vh] overflow-y-auto">
-                      <div className="rounded-md border border-gray-100 py-1">
-                        <p className="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Infrastructure</p>
+                      <div className="rounded-lg border border-border py-1">
+                        <p className={sectionLabelClass}>Infrastructure</p>
                         <Link
                           href="/aws-emulator"
                           onClick={() => setShowDocsMenu(false)}
-                          className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          className="flex items-center px-3 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors"
                         >
-                          <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />
+                          <Icon icon="lucide:cloud" width={16} className="mr-3 text-faint" />
                           AWS Emulator
                         </Link>
                       </div>
 
-                      <div className="rounded-md border border-gray-100 py-1">
-                        <p className="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">AWS Resources</p>
-                        <Link href="/dynamodb" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                      <div className="rounded-lg border border-border py-1">
+                        <p className={sectionLabelClass}>AWS Resources</p>
+                        <Link href="/dynamodb" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors">
                           <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 shrink-0" />
                           DynamoDB
                         </Link>
-                        <Link href="/s3" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <Link href="/s3" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors">
                           <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 shrink-0" />
                           S3 Buckets
                         </Link>
-                        <Link href="/lambda" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <Link href="/lambda" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors">
                           <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 shrink-0" />
                           Lambda
                         </Link>
-                        <Link href="/apigateway" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <Link href="/apigateway" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors">
                           <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 shrink-0" />
                           API Gateway
                         </Link>
-                        <Link href="/secrets" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <Link href="/secrets" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors">
                           <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 shrink-0" />
                           Secrets Manager
                         </Link>
-                        <Link href="/ssm" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <Link href="/ssm" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors">
                           <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 shrink-0" />
                           Parameter Store
                         </Link>
-                        <Link href="/iam" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <Link href="/iam" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors">
                           <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 shrink-0" />
                           IAM &amp; STS
                         </Link>
                       </div>
 
-                      <div className="rounded-md border border-gray-100 py-1">
-                        <p className="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Platform Services</p>
+                      <div className="rounded-lg border border-border py-1">
+                        <p className={sectionLabelClass}>Platform Services</p>
                         {PLATFORM_SERVICES.map((service) => {
                           const ServiceIcon = service.icon;
                           const href = service.action.type === "link" ? service.action.href : `/${service.id}`;
@@ -553,9 +585,9 @@ export default function DashboardNavBar({
                               key={service.id}
                               href={href}
                               onClick={() => setShowDocsMenu(false)}
-                              className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                              className="flex items-center px-3 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors"
                             >
-                              <ServiceIcon className="h-4 w-4 mr-3 text-gray-400" />
+                              <ServiceIcon className="h-4 w-4 mr-3 text-faint" />
                               {service.label}
                             </Link>
                           );
@@ -569,74 +601,90 @@ export default function DashboardNavBar({
               <div className="relative" ref={devToolsMenuRef}>
                 <button
                   onClick={() => toggleMenu(setShowDevToolsMenu, showDevToolsMenu)}
-                  className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  className={navPillClass(showDevToolsMenu)}
                 >
-                  <ServerIcon className="h-4 w-4 mr-2" />
+                  <Icon icon="lucide:wrench" width={14} />
                   Dev Tools
-                  <ChevronDownIcon className={`h-4 w-4 ml-2 transition-transform ${showDevToolsMenu ? "rotate-180" : ""}`} />
+                  <Icon icon="lucide:chevron-down" width={14} className={cn("transition-transform", showDevToolsMenu && "rotate-180")} />
                 </button>
                 {showDevToolsMenu && (
-                  <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Logs</p>
-                    <button
-                      onClick={() => openModal("logs")}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />
-                      System Logs
-                    </button>
+                  <div className={dropdownPanelClass("w-48")}>
+                    <p className={sectionLabelClass}>Logs</p>
+                    <div className="px-1.5">
+                      <button
+                        onClick={() => openModal("logs")}
+                        className={cn(menuItemClass, "w-full")}
+                      >
+                        <Icon icon="lucide:scroll-text" width={16} className="mr-3 text-faint" />
+                        System Logs
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
 
-              <div className="h-5 w-px bg-gray-200 mx-1.5" />
+              <div className="w-px h-[18px] bg-border mx-1.5" />
 
               <div className="relative" ref={projectMenuRef}>
                 <button
                   onClick={() => toggleMenu(setShowProjectMenu, showProjectMenu)}
-                  className="flex items-center gap-1.5 px-2 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  className={cn(
+                    "flex items-center gap-1.5 h-8 px-2.5 rounded-lg border text-xs font-medium whitespace-nowrap transition-colors",
+                    showProjectMenu
+                      ? "border-primary bg-surface text-ink-2 ring-2 ring-focus"
+                      : "border-border-strong bg-surface text-ink-2 hover:bg-surface-2"
+                  )}
                 >
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-xs font-semibold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
-                    {profile?.active_project_label || "Default"}
-                  </span>
-                  <ChevronDownIcon className={`h-3.5 w-3.5 text-gray-400 transition-transform ${showProjectMenu ? "rotate-180" : ""}`} />
+                  <Icon icon="lucide:box" width={13} className={showProjectMenu ? "text-primary" : "text-muted"} />
+                  {profile?.active_project_label || "Default"}
+                  <Icon icon="lucide:chevron-down" width={13} className={cn("text-faint transition-transform", showProjectMenu && "rotate-180")} />
                 </button>
                 {showProjectMenu && (
-                  <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
-                    <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Projects</p>
-                    {projects.map((project) => (
+                  <div className={dropdownPanelClass("w-56")}>
+                    <p className={sectionLabelClass}>Projects</p>
+                    <div className="px-1.5">
+                      {projects.map((project) => {
+                        const isActive = project.id === profile?.active_project_id;
+                        return (
+                          <button
+                            key={project.id}
+                            onClick={() => handleSwitchProject(project.id)}
+                            className={cn(
+                              "flex items-center w-full gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors",
+                              isActive
+                                ? "bg-primary-soft text-primary-ink font-medium"
+                                : "text-ink-2 hover:bg-surface-3 hover:text-ink"
+                            )}
+                          >
+                            <Icon icon="lucide:box" width={15} className={isActive ? "text-primary shrink-0" : "text-muted shrink-0"} />
+                            <span className="flex-1 text-left truncate">{project.label}</span>
+                            {isActive && <Icon icon="lucide:check" width={15} className="text-primary shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className={dividerClass} />
+                    <div className="px-1.5">
                       <button
-                        key={project.id}
-                        onClick={() => handleSwitchProject(project.id)}
-                        className={`flex items-center w-full px-4 py-2 text-sm transition-colors ${
-                          project.id === profile?.active_project_id
-                            ? "text-blue-700 bg-blue-50 font-medium"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
+                        onClick={handleCreateProject}
+                        className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-lg text-sm font-medium text-primary hover:bg-primary-soft transition-colors"
                       >
-                        <span className={`h-2 w-2 rounded-full mr-3 shrink-0 ${project.id === profile?.active_project_id ? "bg-blue-500" : "bg-gray-300"}`} />
-                        {project.label}
+                        <Icon icon="lucide:plus" width={15} />
+                        New project
                       </button>
-                    ))}
-                    <div className="border-t border-gray-100 mt-1" />
-                    <button
-                      onClick={handleCreateProject}
-                      className="flex items-center w-full px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
-                    >
-                      + New project
-                    </button>
-                    <Link
-                      href="/profile"
-                      onClick={() => setShowProjectMenu(false)}
-                      className={`flex items-center w-full px-4 py-2 text-sm transition-colors ${
-                        activePage === "profile"
-                          ? "text-blue-700 bg-blue-50 font-medium"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      Manage projects...
-                    </Link>
+                      <Link
+                        href="/profile"
+                        onClick={() => setShowProjectMenu(false)}
+                        className={cn(
+                          "flex items-center w-full px-2.5 py-2 rounded-lg text-sm transition-colors",
+                          activePage === "profile"
+                            ? "text-primary-ink bg-primary-soft font-medium"
+                            : "text-ink-2 hover:bg-surface-3 hover:text-ink"
+                        )}
+                      >
+                        Manage projects...
+                      </Link>
+                    </div>
                   </div>
                 )}
               </div>
@@ -647,34 +695,76 @@ export default function DashboardNavBar({
                     toggleMenu(setShowProfileMenu, showProfileMenu);
                     dismissVersionDot();
                   }}
-                  className="relative p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  className={cn(
+                    "relative flex items-center justify-center w-8 h-8 rounded-lg text-xs font-semibold transition-colors",
+                    activePage === "profile"
+                      ? "bg-primary-soft text-primary-ink"
+                      : "bg-surface-3 text-ink-2 hover:bg-surface-2"
+                  )}
                   title="Profile & Settings"
                 >
-                  <UserCircleIcon className={`h-6 w-6 ${activePage === "profile" ? "text-blue-600" : ""}`} />
+                  {initials}
                   {hasNewVersion && (
-                    <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+                    <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-danger ring-2 ring-surface" />
                   )}
                 </button>
                 {showProfileMenu && (
-                  <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                  <div className={dropdownPanelClass("w-56")}>
                     {hasNewVersion && (
-                      <div className="mx-2 mb-1 px-3 py-2 bg-blue-50 rounded-md border border-blue-100">
-                        <p className="text-xs font-semibold text-blue-700">v{packageJson.version} — What&apos;s new</p>
-                        <Link href="https://github.com/localcloud-kit/localcloud-kit/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline">View changelog →</Link>
+                      <div className="mx-1.5 mb-1.5 px-3 py-2 bg-primary-soft rounded-lg border border-primary/20">
+                        <p className="text-xs font-semibold text-primary-ink">
+                          v
+                          {packageJson.version}
+                          {" "}
+                          — What&apos;s new
+                        </p>
+                        <Link href="https://github.com/localcloud-kit/localcloud-kit/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">View changelog →</Link>
                       </div>
                     )}
-                    <Link
-                      href="/profile"
-                      onClick={() => setShowProfileMenu(false)}
-                      className={`flex items-center w-full px-4 py-2 text-sm transition-colors ${
-                        activePage === "profile"
-                          ? "text-blue-700 bg-blue-50 font-medium"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      <UserCircleIcon className={`h-4 w-4 mr-3 ${activePage === "profile" ? "text-blue-500" : "text-gray-400"}`} />
-                      Profile & Preferences
-                    </Link>
+                    <div className="flex items-center gap-2.5 px-3 py-2">
+                      <span className="flex items-center justify-center w-[30px] h-[30px] rounded-lg bg-surface-3 text-ink-2 text-xs font-semibold shrink-0">
+                        {initials}
+                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium text-ink truncate">{displayName || "Local user"}</span>
+                        {profileSubtitle && <span className="text-[11px] text-muted truncate">{profileSubtitle}</span>}
+                      </div>
+                    </div>
+                    <div className={dividerClass} />
+                    <div className="px-1.5">
+                      <Link
+                        href="/profile"
+                        onClick={() => setShowProfileMenu(false)}
+                        className={cn(
+                          "flex items-center gap-2.5 w-full px-2.5 py-2 rounded-lg text-sm transition-colors",
+                          activePage === "profile"
+                            ? "text-primary-ink bg-primary-soft font-medium"
+                            : "text-ink-2 hover:bg-surface-3 hover:text-ink"
+                        )}
+                      >
+                        <Icon icon="lucide:user-cog" width={15} className={activePage === "profile" ? "text-primary" : "text-faint"} />
+                        Preferences
+                      </Link>
+                      <div className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-sm text-ink-2">
+                        <span className="flex items-center gap-2.5">
+                          <Icon icon="lucide:sun-moon" width={15} className="text-faint" />
+                          Theme
+                        </span>
+                        <SegmentedControl
+                          options={THEME_OPTIONS}
+                          value={profile?.theme ?? "auto"}
+                          onChange={handleThemeChange}
+                        />
+                      </div>
+                      <Link
+                        href="/docs"
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-lg text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors"
+                      >
+                        <Icon icon="lucide:external-link" width={15} className="text-faint" />
+                        Docs hub
+                      </Link>
+                    </div>
                   </div>
                 )}
               </div>
@@ -682,108 +772,108 @@ export default function DashboardNavBar({
 
             <div className="flex md:hidden items-center gap-2">
               {hasNewVersion && (
-                <span className="h-2 w-2 rounded-full bg-red-500" />
+                <span className="h-2 w-2 rounded-full bg-danger" />
               )}
               {mailpit.unread > 0 && (
-                <span className="flex items-center justify-center h-5 min-w-5 px-1 rounded-full text-xs font-bold bg-red-500 text-white">
+                <span className="flex items-center justify-center h-5 min-w-5 px-1 rounded-full text-xs font-bold bg-danger text-white">
                   {mailpit.unread > 99 ? "99+" : mailpit.unread}
                 </span>
               )}
               <button
                 onClick={() => setShowMobileMenu((value) => !value)}
-                className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                className="p-1.5 rounded-lg text-muted hover:text-ink hover:bg-surface-3 transition-colors"
                 aria-label="Open menu"
               >
-                {showMobileMenu ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+                <Icon icon={showMobileMenu ? "lucide:x" : "lucide:menu"} width={22} />
               </button>
             </div>
           </div>
 
           {showMobileMenu && (
-            <div className="md:hidden border-t border-gray-100 pb-3">
+            <div className="md:hidden border-t border-divider pb-3">
               <div className="pt-3 px-2">
-                <p className="px-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">AWS Resources</p>
+                <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-faint">AWS Resources</p>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => openActionOrFallback(actions?.openS3Buckets, "/manage/s3")} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button onClick={() => openActionOrFallback(actions?.openS3Buckets, "/manage/s3")} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 shrink-0" />
                     S3 Buckets
                   </button>
-                  <button onClick={() => openInspectTarget("s3")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                  <button onClick={() => openInspectTarget("s3")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
                     Inspect
                   </button>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => openActionOrFallback(actions?.openDynamoDBViewer, "/manage/dynamodb")} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button onClick={() => openActionOrFallback(actions?.openDynamoDBViewer, "/manage/dynamodb")} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 shrink-0" />
                     DynamoDB Tables
                   </button>
-                  <button onClick={() => openInspectTarget("dynamodb")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                  <button onClick={() => openInspectTarget("dynamodb")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
                     Inspect
                   </button>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => openActionOrFallback(actions?.openLambdaConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button onClick={() => openActionOrFallback(actions?.openLambdaConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 shrink-0" />
                     Lambda Functions
                   </button>
-                  <button onClick={() => openInspectTarget("lambda")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                  <button onClick={() => openInspectTarget("lambda")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
                     Inspect
                   </button>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => openActionOrFallback(actions?.openAPIGatewayConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button onClick={() => openActionOrFallback(actions?.openAPIGatewayConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 shrink-0" />
                     API Gateway
                   </button>
-                  <button onClick={() => openInspectTarget("apigateway")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                  <button onClick={() => openInspectTarget("apigateway")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
                     Inspect
                   </button>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => openActionOrFallback(actions?.openSecretsConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button onClick={() => openActionOrFallback(actions?.openSecretsConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 shrink-0" />
                     Secrets Manager
                   </button>
-                  <button onClick={() => openInspectTarget("secretsmanager")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                  <button onClick={() => openInspectTarget("secretsmanager")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
                     Inspect
                   </button>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => openActionOrFallback(actions?.openSSMConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button onClick={() => openActionOrFallback(actions?.openSSMConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 shrink-0" />
                     Parameter Store
                   </button>
-                  <button onClick={() => openInspectTarget("ssm")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                  <button onClick={() => openInspectTarget("ssm")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
                     Inspect
                   </button>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => openActionOrFallback(actions?.openIAMConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button onClick={() => openActionOrFallback(actions?.openIAMConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 shrink-0" />
                     IAM Roles
                   </button>
-                  <button onClick={() => openInspectTarget("iam")} className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap">
+                  <button onClick={() => openInspectTarget("iam")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
                     Inspect
                   </button>
                 </div>
               </div>
 
-              <div className="pt-2 px-2 border-t border-gray-100 mt-2">
+              <div className="pt-2 px-2 border-t border-divider mt-2">
                 {PLATFORM_SERVICE_KINDS.map((kind, i) => {
                   const items = PLATFORM_SERVICES.filter((service) => service.kind === kind);
                   return (
                     <div key={kind}>
-                      <p className={`px-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider ${i > 0 ? "pt-2" : "py-1"}`}>
+                      <p className={`px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-faint ${i > 0 ? "pt-2" : "py-1"}`}>
                         {SERVICE_KIND_LABEL[kind]}
                       </p>
                       {items.map((service) => {
                         const ServiceIcon = service.icon;
                         const itemContent = (
                           <>
-                            <ServiceIcon className="h-4 w-4 mr-3 text-gray-400 shrink-0" />
+                            <ServiceIcon className="h-4 w-4 mr-3 text-faint shrink-0" />
                             {service.label}
                             {service.id === "mailpit" && mailpit.unread > 0 && (
-                              <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-xs font-bold bg-red-500 text-white">
+                              <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-[10px] font-bold bg-danger text-white">
                                 {mailpit.unread > 99 ? "99+" : mailpit.unread}
                               </span>
                             )}
@@ -796,21 +886,21 @@ export default function DashboardNavBar({
                               <Link
                                 href={action.href}
                                 onClick={closeAllMenus}
-                                className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                                className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors"
                               >
                                 {itemContent}
                               </Link>
                             ) : (
                               <button
                                 onClick={() => openModal(action.modalKey)}
-                                className="flex items-center flex-1 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                                className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors"
                               >
                                 {itemContent}
                               </button>
                             )}
                             <button
                               onClick={() => openInspectTarget(service.id)}
-                              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded whitespace-nowrap"
+                              className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap"
                             >
                               Inspect
                             </button>
@@ -822,41 +912,41 @@ export default function DashboardNavBar({
                 })}
               </div>
 
-              <div className="pt-2 px-2 border-t border-gray-100 mt-2">
-                <p className="px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Docs</p>
-                <Link href="/docs" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm font-medium text-indigo-700 rounded-lg hover:bg-indigo-50 transition-colors">
-                  <BookOpenIcon className="h-4 w-4 mr-3 text-indigo-500" />
+              <div className="pt-2 px-2 border-t border-divider mt-2">
+                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-faint">Docs</p>
+                <Link href="/docs" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm font-medium text-primary-ink rounded-lg hover:bg-primary-soft transition-colors">
+                  <Icon icon="lucide:book-open" width={16} className="mr-3 text-primary" />
                   Docs Hub
                 </Link>
-                <Link href="/aws-emulator" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <Squares2X2Icon className="h-4 w-4 mr-3 text-gray-400" />
+                <Link href="/aws-emulator" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
+                  <Icon icon="lucide:cloud" width={16} className="mr-3 text-faint" />
                   AWS Emulator
                 </Link>
-                <Link href="/s3" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <Link href="/s3" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                   <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 shrink-0" />
                   S3 Buckets
                 </Link>
-                <Link href="/dynamodb" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <Link href="/dynamodb" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                   <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 shrink-0" />
                   DynamoDB
                 </Link>
-                <Link href="/lambda" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <Link href="/lambda" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                   <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 shrink-0" />
                   Lambda
                 </Link>
-                <Link href="/apigateway" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <Link href="/apigateway" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                   <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 shrink-0" />
                   API Gateway
                 </Link>
-                <Link href="/secrets" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <Link href="/secrets" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                   <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 shrink-0" />
                   Secrets Manager
                 </Link>
-                <Link href="/ssm" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <Link href="/ssm" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                   <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 shrink-0" />
                   Parameter Store
                 </Link>
-                <Link href="/iam" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <Link href="/iam" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                   <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 shrink-0" />
                   IAM &amp; STS
                 </Link>
@@ -864,36 +954,54 @@ export default function DashboardNavBar({
                   const ServiceIcon = service.icon;
                   const href = service.action.type === "link" ? service.action.href : `/${service.id}`;
                   return (
-                    <Link key={service.id} href={href} onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                      <ServiceIcon className="h-4 w-4 mr-3 text-gray-400 shrink-0" />
+                    <Link key={service.id} href={href} onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
+                      <ServiceIcon className="h-4 w-4 mr-3 text-faint shrink-0" />
                       {service.label}
                     </Link>
                   );
                 })}
               </div>
 
-              <div className="pt-2 px-2 border-t border-gray-100 mt-2">
-                <p className="px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Dev Tools</p>
-                <button onClick={() => openModal("logs")} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                  <DocumentTextIcon className="h-4 w-4 mr-3 text-gray-400" />
+              <div className="pt-2 px-2 border-t border-divider mt-2">
+                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-faint">Dev Tools</p>
+                <button onClick={() => openModal("logs")} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
+                  <Icon icon="lucide:scroll-text" width={16} className="mr-3 text-faint" />
                   System Logs
                 </button>
               </div>
 
-              <div className="pt-2 px-2 border-t border-gray-100 mt-2">
-                <p className="px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Account</p>
-                <div className="px-3 py-2">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-xs font-semibold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                    {profile?.active_project_label || "Default"}
+              <div className="pt-2 px-2 border-t border-divider mt-2">
+                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-faint">Account</p>
+                <div className="flex items-center gap-2.5 px-3 py-2">
+                  <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-surface-3 text-ink-2 text-xs font-semibold shrink-0">
+                    {initials}
                   </span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-medium text-ink truncate">{displayName || "Local user"}</span>
+                    <span className="text-[11px] text-muted truncate flex items-center gap-1">
+                      <Icon icon="lucide:box" width={11} className="text-primary" />
+                      {profile?.active_project_label || "Default"}
+                    </span>
+                  </div>
                 </div>
-                <Link href="/profile" onClick={closeAllMenus} className={`flex items-center w-full px-3 py-2 text-sm rounded-lg transition-colors ${
+                <div className="px-3 py-1.5 flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2 text-sm text-ink-2">
+                    <Icon icon="lucide:sun-moon" width={15} className="text-faint" />
+                    Theme
+                  </span>
+                  <SegmentedControl
+                    options={THEME_OPTIONS}
+                    value={profile?.theme ?? "auto"}
+                    onChange={handleThemeChange}
+                  />
+                </div>
+                <Link href="/profile" onClick={closeAllMenus} className={cn(
+                  "flex items-center w-full px-3 py-2 text-sm rounded-lg transition-colors",
                   activePage === "profile"
-                    ? "text-blue-700 bg-blue-50"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}>
-                  <UserCircleIcon className={`h-4 w-4 mr-3 ${activePage === "profile" ? "text-blue-500" : "text-gray-400"}`} />
+                    ? "text-primary-ink bg-primary-soft"
+                    : "text-ink-2 hover:bg-surface-3"
+                )}>
+                  <Icon icon="lucide:user-cog" width={16} className={cn("mr-3", activePage === "profile" ? "text-primary" : "text-faint")} />
                   Profile & Preferences
                 </Link>
               </div>
