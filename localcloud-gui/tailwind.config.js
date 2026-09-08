@@ -4,6 +4,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: [
+          "var(--font-plex-sans)",
           "system-ui",
           "-apple-system",
           "BlinkMacSystemFont",
@@ -14,6 +15,7 @@ module.exports = {
           "sans-serif",
         ],
         mono: [
+          "var(--font-plex-mono)",
           "SF Mono",
           "Monaco",
           "Inconsolata",
