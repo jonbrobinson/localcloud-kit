@@ -266,6 +266,8 @@ The **Profile** page (`/profile`) includes a **CLI Playbook** for the active pro
 - **Live Monitoring**: Real-time status tracking and health checks
 - **Log Viewer**: Stream logs with filtering and search capabilities
 - **Hot Reloading**: Instant updates during development
+- **Design System**: Consistent IBM Plex typography, indigo accent, and light/dark theming across every screen
+- **Theme Preference**: Auto/Light/Dark toggle from the profile menu, synced across sessions
 
 #### Shell Automation
 
