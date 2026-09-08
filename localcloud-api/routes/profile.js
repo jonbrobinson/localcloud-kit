@@ -16,11 +16,12 @@ router.get("/profile", (req, res) => {
 });
 
 router.put("/profile", (req, res) => {
-  const { preferred_language, highlight_theme, display_name, active_project_id } = req.body;
+  const { preferred_language, highlight_theme, theme, display_name, active_project_id } = req.body;
   const sets = [];
   const vals = [];
   if (preferred_language !== undefined) { sets.push("preferred_language = ?"); vals.push(preferred_language); }
   if (highlight_theme !== undefined) { sets.push("highlight_theme = ?"); vals.push(highlight_theme); }
+  if (theme !== undefined) { sets.push("theme = ?"); vals.push(theme); }
   if (display_name !== undefined) { sets.push("display_name = ?"); vals.push(display_name); }
   if (active_project_id !== undefined) { sets.push("active_project_id = ?"); vals.push(active_project_id); }
   if (sets.length === 0) return res.status(400).json({ success: false, error: "No fields to update" });
