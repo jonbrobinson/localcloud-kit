@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { XMarkIcon, FolderIcon } from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import { S3BucketConfig } from "@/types";
 import { usePreferences } from "@/context/PreferencesContext";
 import { toast } from "react-hot-toast";
+import { Button, IconButton, Input } from "@/components/ui";
 
 interface S3ConfigModalProps {
   isOpen: boolean;
@@ -119,179 +120,173 @@ export default function S3ConfigModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4"
       onMouseDown={handleBackdropMouseDown}
     >
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface border border-border rounded-xl shadow-e3 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-indigo-50 rounded-lg">
-              <FolderIcon className="h-5 w-5 text-indigo-600" />
-            </div>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-divider shrink-0">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-soft text-primary">
+              <Icon icon="logos:aws-s3" width={18} />
+            </span>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Create S3 Bucket</h2>
-              <p className="text-xs text-gray-500">Configure bucket settings</p>
+              <h2 className="text-base font-semibold text-ink">Create S3 bucket</h2>
+              <p className="text-xs text-muted">Configure bucket settings</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-            aria-label="Close"
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
+          <IconButton icon="lucide:x" label="Close" variant="ghost" onClick={onClose} />
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden flex-1">
+          <div className="px-6 py-5 space-y-5 overflow-y-auto">
 
-          {/* Saved config pills */}
-          {profile?.active_project_id && projectConfigs.length > 0 && (
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Load saved config</p>
-              <div className="flex flex-wrap gap-2">
-                {projectConfigs.map((cfg) => (
-                  <button
-                    key={cfg.id}
-                    type="button"
-                    onClick={() => {
-                      loadSavedConfig(cfg.config as S3BucketConfig);
-                      toast.success(`Loaded "${cfg.name}"`);
-                    }}
-                    className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:border-blue-400 hover:text-blue-700 hover:bg-blue-50 transition-colors"
-                  >
-                    {cfg.name}
-                  </button>
-                ))}
+            {/* Saved config pills */}
+            {profile?.active_project_id && projectConfigs.length > 0 && (
+              <div>
+                <p className="text-[11px] font-semibold text-faint mb-2 uppercase tracking-wide">
+                  Load saved config
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {projectConfigs.map((cfg) => (
+                    <button
+                      key={cfg.id}
+                      type="button"
+                      onClick={() => {
+                        loadSavedConfig(cfg.config as S3BucketConfig);
+                        toast.success(`Loaded "${cfg.name}"`);
+                      }}
+                      className="h-[26px] px-2.5 rounded-full border border-border bg-surface text-ink-2 text-xs font-medium cursor-pointer transition-colors hover:border-primary hover:text-primary hover:bg-primary-soft"
+                    >
+                      {cfg.name}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Bucket Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Bucket Name
-            </label>
-            <input
-              type="text"
-              value={bucketName}
-              onChange={(e) => setBucketName(e.target.value.toLowerCase())}
-              onBlur={() => setTouched((t) => ({ ...t, bucketName: true }))}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
-                bucketNameError
-                  ? "border-red-400 focus:ring-red-400 focus:border-red-400 bg-red-50"
-                  : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-              }`}
-              placeholder="my-bucket-name"
-            />
-            {bucketNameError ? (
-              <p className="text-xs text-red-600 mt-1">{bucketNameError}</p>
-            ) : (
-              <p className="text-xs text-gray-400 mt-1">
-                Lowercase letters, numbers, and hyphens · 3–63 characters
-              </p>
             )}
-          </div>
 
-          {/* Region */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Region
+            {/* Bucket Name */}
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-medium text-ink-2">Bucket name</span>
+              <Input
+                mono
+                type="text"
+                value={bucketName}
+                onChange={(e) => setBucketName(e.target.value.toLowerCase())}
+                onBlur={() => setTouched((t) => ({ ...t, bucketName: true }))}
+                invalid={!!bucketNameError}
+                placeholder="my-bucket-name"
+                className="h-9"
+              />
+              {bucketNameError ? (
+                <p className="text-xs text-danger">{bucketNameError}</p>
+              ) : (
+                <p className="text-xs text-faint">
+                  Lowercase letters, numbers, and hyphens · 3–63 characters
+                </p>
+              )}
             </label>
-            <select
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-            >
-              <option value="us-east-1">US East (N. Virginia) — us-east-1</option>
-              <option value="us-west-2">US West (Oregon) — us-west-2</option>
-              <option value="eu-west-1">Europe (Ireland) — eu-west-1</option>
-              <option value="ap-southeast-1">Asia Pacific (Singapore) — ap-southeast-1</option>
-            </select>
-          </div>
 
-          {/* Advanced Options */}
-          <div className="border-t pt-4 space-y-3">
-            <h3 className="text-sm font-semibold text-gray-700">Advanced Options</h3>
-            <label className="flex items-center space-x-3 cursor-pointer text-gray-900">
-              <input
-                type="checkbox"
-                checked={versioning}
-                onChange={(e) => setVersioning(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <div>
-                <span className="text-sm font-medium">Enable Versioning</span>
-                <p className="text-xs text-gray-500">Keep multiple versions of objects</p>
-              </div>
+            {/* Region */}
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-medium text-ink-2">Region</span>
+              <select
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                className="h-9 px-2.5 rounded-lg border border-border-strong bg-surface-2 text-[13px] text-ink outline-none transition-colors focus:bg-surface focus:border-primary focus:ring-3 focus:ring-focus"
+              >
+                <option value="us-east-1">US East (N. Virginia) — us-east-1</option>
+                <option value="us-west-2">US West (Oregon) — us-west-2</option>
+                <option value="eu-west-1">Europe (Ireland) — eu-west-1</option>
+                <option value="ap-southeast-1">Asia Pacific (Singapore) — ap-southeast-1</option>
+              </select>
             </label>
-            <label className="flex items-center space-x-3 cursor-pointer text-gray-900">
-              <input
-                type="checkbox"
-                checked={encryption}
-                onChange={(e) => setEncryption(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <div>
-                <span className="text-sm font-medium">Enable Encryption</span>
-                <p className="text-xs text-gray-500">Encrypt objects at rest using AES-256</p>
-              </div>
-            </label>
-          </div>
 
-          {/* Save config toggle */}
-          <div className="border-t pt-4">
-            <label className="flex items-center space-x-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={saveConfig_}
-                onChange={(e) => {
-                  setSaveConfig_(e.target.checked);
-                  if (!e.target.checked) setConfigName("");
-                }}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <span className="text-sm text-gray-700">Save as config</span>
-            </label>
-            {saveConfig_ && (
-              <div className="mt-3">
+            {/* Advanced Options */}
+            <div className="border-t border-divider pt-4 space-y-2.5">
+              <h3 className="text-xs font-semibold text-ink-2 uppercase tracking-wide">Advanced options</h3>
+              <label className="flex items-start gap-3 p-2.5 rounded-lg border border-border cursor-pointer hover:bg-surface-2 transition-colors">
                 <input
-                  type="text"
-                  value={configName}
-                  onChange={(e) => setConfigName(e.target.value)}
-                  onBlur={() => setTouched((t) => ({ ...t, configName: true }))}
-                  placeholder="e.g. my-app-assets"
-                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
-                    configNameError
-                      ? "border-red-400 focus:ring-red-400 focus:border-red-400 bg-red-50"
-                      : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                  }`}
-                  autoFocus
+                  type="checkbox"
+                  checked={versioning}
+                  onChange={(e) => setVersioning(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-primary shrink-0"
                 />
-                {configNameError && (
-                  <p className="text-xs text-red-600 mt-1">{configNameError}</p>
-                )}
-              </div>
-            )}
+                <span>
+                  <span className="block text-[13px] font-medium text-ink">Enable versioning</span>
+                  <span className="block text-xs text-muted">Keep multiple versions of objects</span>
+                </span>
+              </label>
+              <label className="flex items-start gap-3 p-2.5 rounded-lg border border-border cursor-pointer hover:bg-surface-2 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={encryption}
+                  onChange={(e) => setEncryption(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-primary shrink-0"
+                />
+                <span>
+                  <span className="block text-[13px] font-medium text-ink">Enable encryption</span>
+                  <span className="block text-xs text-muted">Encrypt objects at rest using AES-256</span>
+                </span>
+              </label>
+            </div>
+
+            {/* Save config toggle */}
+            <div className="border-t border-divider pt-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={saveConfig_}
+                  onChange={(e) => {
+                    setSaveConfig_(e.target.checked);
+                    if (!e.target.checked) setConfigName("");
+                  }}
+                  className="h-4 w-4 accent-primary shrink-0"
+                />
+                <span className="text-[13px] text-ink-2">Save as config for future use</span>
+              </label>
+              {saveConfig_ && (
+                <div className="mt-3">
+                  <Input
+                    type="text"
+                    value={configName}
+                    onChange={(e) => setConfigName(e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, configName: true }))}
+                    placeholder="e.g. my-app-assets"
+                    invalid={!!configNameError}
+                    className="w-full h-9"
+                    autoFocus
+                  />
+                  {configNameError && (
+                    <p className="text-xs text-danger mt-1">{configNameError}</p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-              disabled={loading || (saveConfig_ && !configName.trim())}
-            >
-              {loading ? "Creating..." : "Create Bucket"}
-            </button>
+          {/* Footer */}
+          <div className="flex items-center gap-2 px-6 py-3.5 border-t border-divider bg-surface-2 shrink-0">
+            <span className="flex items-center gap-1.5 text-[11px] text-muted min-w-0">
+              <Icon icon="lucide:terminal" width={13} className="shrink-0" />
+              <span className="truncate">
+                Runs <span className="font-mono">awslocal s3 mb s3://{bucketName || "…"}</span>
+              </span>
+            </span>
+            <div className="flex items-center gap-2.5 ml-auto shrink-0">
+              <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                icon={loading ? undefined : "lucide:plus"}
+                loading={loading}
+                disabled={loading || (saveConfig_ && !configName.trim())}
+              >
+                {loading ? "Creating…" : "Create bucket"}
+              </Button>
+            </div>
           </div>
         </form>
       </div>

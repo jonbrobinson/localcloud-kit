@@ -1,19 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  XMarkIcon,
-  FolderIcon,
-  DocumentIcon,
-  ArrowLeftIcon,
-  EyeIcon,
-  TrashIcon,
-  PlusIcon,
-  ArrowPathIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
-  ArrowTopRightOnSquareIcon,
-} from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { s3Api, resourceApi } from "@/services/api";
 import { S3BucketConfig } from "@/types";
@@ -22,6 +9,7 @@ import UploadFileModal from "./UploadFileModal";
 import S3ConfigModal from "./S3ConfigModal";
 import { highlightThemes, HighlightTheme } from "./highlightThemes";
 import { Icon } from "@iconify/react";
+import { Button, IconButton } from "@/components/ui";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { listS3ObjectsAtPrefix } from "@/lib/s3PrefixListing";
@@ -46,6 +34,36 @@ interface BucketItem {
   LastModified?: string;
   StorageClass?: string;
   CreationDate?: string;
+}
+
+/** Iconify name + short mime-ish label shown in the Type column, guessed from the key's extension. */
+const FILE_TYPE_BY_EXT: Record<string, { icon: string; label: string }> = {
+  json: { icon: "lucide:file-json", label: "app/json" },
+  png: { icon: "lucide:file-image", label: "image/png" },
+  jpg: { icon: "lucide:file-image", label: "image/jpeg" },
+  jpeg: { icon: "lucide:file-image", label: "image/jpeg" },
+  gif: { icon: "lucide:file-image", label: "image/gif" },
+  svg: { icon: "lucide:file-image", label: "image/svg" },
+  webp: { icon: "lucide:file-image", label: "image/webp" },
+  bmp: { icon: "lucide:file-image", label: "image/bmp" },
+  csv: { icon: "lucide:file-text", label: "text/csv" },
+  txt: { icon: "lucide:file-text", label: "text/plain" },
+  md: { icon: "lucide:file-text", label: "text/markdown" },
+  pdf: { icon: "lucide:file-text", label: "app/pdf" },
+  xml: { icon: "lucide:file-code", label: "app/xml" },
+  yml: { icon: "lucide:file-code", label: "text/yaml" },
+  yaml: { icon: "lucide:file-code", label: "text/yaml" },
+  js: { icon: "lucide:file-code", label: "text/js" },
+  ts: { icon: "lucide:file-code", label: "text/ts" },
+  tsx: { icon: "lucide:file-code", label: "text/tsx" },
+  html: { icon: "lucide:file-code", label: "text/html" },
+  css: { icon: "lucide:file-code", label: "text/css" },
+};
+const DEFAULT_FILE_TYPE = { icon: "lucide:file", label: "binary" };
+
+function getFileTypeInfo(key: string) {
+  const ext = key.split(".").pop()?.toLowerCase() || "";
+  return FILE_TYPE_BY_EXT[ext] || DEFAULT_FILE_TYPE;
 }
 
 export default function BucketViewer({
@@ -340,10 +358,15 @@ export default function BucketViewer({
     }
   };
 
+  const sortIcon = (key: "name" | "size" | "modified" | "storage") =>
+    sortConfig?.key === key ? (
+      <Icon icon={sortConfig.direction === "asc" ? "lucide:chevron-up" : "lucide:chevron-down"} width={13} />
+    ) : null;
+
   return (
   <>
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4"
       onMouseDown={handleBackdropMouseDown}
     >
       <motion.div
@@ -351,48 +374,54 @@ export default function BucketViewer({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 8, scale: 0.98 }}
         transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] as const }}
-        className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[88vh] flex flex-col"
+        className="bg-surface border border-border rounded-xl shadow-e3 w-full max-w-4xl h-[88vh] flex flex-col overflow-hidden"
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 shrink-0">
+        <div className="px-6 py-4 border-b border-divider shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 min-w-0 flex-1">
               {selectedBucket && (
-                <button
+                <IconButton
+                  icon="lucide:arrow-left"
+                  label="Back to bucket list"
+                  variant="ghost"
                   onClick={() => {
                     setSelectedBucket(null);
                     setBucketContents([]);
                     setCurrentPath("");
                     setPathHistory([]);
                   }}
-                  className="p-2 text-gray-400 hover:text-gray-600 shrink-0"
-                >
-                  <ArrowLeftIcon className="h-5 w-5" />
-                </button>
+                  className="shrink-0"
+                />
               )}
               <div className="min-w-0 flex-1">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {selectedBucket ? `Bucket: ${selectedBucket}` : "S3 Buckets"}
+                <h2 className="text-lg font-semibold text-ink flex items-center gap-2">
+                  {!selectedBucket && <Icon icon="logos:aws-s3" width={18} />}
+                  {selectedBucket ? (
+                    <span className="font-mono">{selectedBucket}</span>
+                  ) : (
+                    "S3 Buckets"
+                  )}
                 </h2>
                 {selectedBucket && currentPath && (
-                  <div className="flex items-center space-x-2 text-sm text-gray-600 mt-2 flex-wrap">
-                    <span className="text-gray-400">Path:</span>
+                  <div className="flex items-center space-x-2 text-sm text-muted mt-1.5 flex-wrap">
+                    <span className="text-faint">Path:</span>
                     <button
                       onClick={handleRootClick}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="text-primary hover:text-primary-hover"
                     >
                       root
                     </button>
                     {pathHistory.map((path, index) => (
                       <div key={index} className="flex items-center space-x-2">
-                        <span>/</span>
+                        <Icon icon="lucide:chevron-right" width={12} className="text-faint" />
                         <button
                           onClick={() => {
                             const newHistory = pathHistory.slice(0, index + 1);
                             setPathHistory(newHistory);
                             loadBucketContents(selectedBucket, path);
                           }}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="font-mono text-primary hover:text-primary-hover"
                         >
                           {getDisplayName(path)}
                         </button>
@@ -400,8 +429,8 @@ export default function BucketViewer({
                     ))}
                     {currentPath && (
                       <>
-                        <span>/</span>
-                        <span className="text-gray-900 font-medium">
+                        <Icon icon="lucide:chevron-right" width={12} className="text-faint" />
+                        <span className="font-mono font-medium text-ink">
                           {getDisplayName(currentPath)}
                         </span>
                       </>
@@ -410,54 +439,38 @@ export default function BucketViewer({
                 )}
               </div>
             </div>
-            <div className="flex items-center space-x-4 shrink-0 ml-4">
+            <div className="flex items-center gap-2 shrink-0 ml-4">
               {selectedBucket && currentPath && pathHistory.length > 0 && (
-                <button
-                  onClick={handleBackClick}
-                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                >
-                  <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                <Button variant="secondary" size="sm" icon="lucide:arrow-left" onClick={handleBackClick}>
                   Back
-                </button>
+                </Button>
               )}
               {selectedBucket && (
-                <button
-                  onClick={() =>
-                    loadBucketContents(selectedBucket, currentPath)
-                  }
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon="lucide:refresh-cw"
+                  onClick={() => loadBucketContents(selectedBucket, currentPath)}
                   disabled={loading}
-                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Refresh bucket contents"
                 >
-                  <ArrowPathIcon
-                    className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
-                  />
                   Refresh
-                </button>
+                </Button>
               )}
               <Link
                 href="/manage/s3"
-                className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors"
+                onClick={onClose}
+                className="no-underline inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-primary text-xs font-medium hover:bg-primary-soft transition-colors"
               >
-                <span>Open Manager</span>
-                <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+                Open Manager
+                <Icon icon="lucide:external-link" width={13} />
               </Link>
               {selectedBucket && (
-                <button
-                  onClick={() => setUploadModalOpen(true)}
-                  className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <PlusIcon className="h-4 w-4 mr-2" />
+                <Button variant="primary" size="sm" icon="lucide:upload" onClick={() => setUploadModalOpen(true)}>
                   Upload File
-                </button>
+                </Button>
               )}
-              <button
-                onClick={onClose}
-                className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                aria-label="Close"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </button>
+              <IconButton icon="lucide:x" label="Close" variant="ghost" onClick={onClose} />
             </div>
           </div>
         </div>
@@ -478,17 +491,17 @@ export default function BucketViewer({
               {[1, 0.85, 0.7, 0.55].map((op, i) => (
                 <div
                   key={i}
-                  className="border border-gray-200 rounded-lg p-4 flex items-center justify-between"
+                  className="border border-border rounded-lg p-4 flex items-center justify-between"
                   style={{ opacity: op }}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded bg-blue-100 shrink-0" />
+                    <div className="h-8 w-8 rounded bg-skeleton shrink-0" />
                     <div className="space-y-1.5">
-                      <div className="h-4 w-44 bg-gray-200 rounded" />
-                      <div className="h-3 w-32 bg-gray-100 rounded" />
+                      <div className="h-4 w-44 bg-skeleton rounded" />
+                      <div className="h-3 w-32 bg-skeleton rounded" />
                     </div>
                   </div>
-                  <div className="h-3 w-24 bg-gray-100 rounded" />
+                  <div className="h-3 w-24 bg-skeleton rounded" />
                 </div>
               ))}
             </motion.div>
@@ -503,45 +516,45 @@ export default function BucketViewer({
               className="h-full overflow-auto animate-pulse"
             >
               {/* Fake table header */}
-              <div className="flex bg-gray-50 border-b border-gray-200 px-6 py-3 gap-6">
-                <div className="h-3 w-2/5 bg-gray-200 rounded" />
-                <div className="h-3 w-16 bg-gray-100 rounded" />
-                <div className="h-3 w-32 bg-gray-100 rounded" />
-                <div className="h-3 w-28 bg-gray-100 rounded" />
-                <div className="h-3 w-16 bg-gray-100 rounded ml-auto" />
+              <div className="flex bg-surface-2 border-b border-divider px-6 py-3 gap-6">
+                <div className="h-3 w-2/5 bg-skeleton rounded" />
+                <div className="h-3 w-16 bg-skeleton rounded" />
+                <div className="h-3 w-32 bg-skeleton rounded" />
+                <div className="h-3 w-28 bg-skeleton rounded" />
+                <div className="h-3 w-16 bg-skeleton rounded ml-auto" />
               </div>
               {/* Fake rows */}
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex items-center border-b border-gray-100 px-6 py-4 gap-6"
+                  className="flex items-center border-b border-divider px-6 py-4 gap-6"
                   style={{ opacity: 1 - i * 0.09 }}
                 >
                   <div className="flex items-center gap-2 w-2/5">
-                    <div className="h-5 w-5 rounded bg-gray-200 shrink-0" />
-                    <div className="h-3 flex-1 bg-gray-200 rounded" />
+                    <div className="h-5 w-5 rounded bg-skeleton shrink-0" />
+                    <div className="h-3 flex-1 bg-skeleton rounded" />
                   </div>
-                  <div className="h-3 w-16 bg-gray-100 rounded" />
-                  <div className="h-3 w-32 bg-gray-100 rounded" />
-                  <div className="h-3 w-20 bg-gray-100 rounded" />
-                  <div className="h-3 w-12 bg-gray-100 rounded ml-auto" />
+                  <div className="h-3 w-16 bg-skeleton rounded" />
+                  <div className="h-3 w-32 bg-skeleton rounded" />
+                  <div className="h-3 w-20 bg-skeleton rounded" />
+                  <div className="h-3 w-12 bg-skeleton rounded ml-auto" />
                 </div>
               ))}
             </motion.div>
           ) : error ? (
             <motion.div key="error" variants={panelVariants} initial="hidden" animate="visible" exit="exit" className="flex items-center justify-center h-full">
               <div className="text-center">
-                <p className="text-red-600 mb-4">{error}</p>
-                <button
+                <p className="text-danger mb-4">{error}</p>
+                <Button
+                  variant="primary"
                   onClick={
                     selectedBucket
                       ? () => loadBucketContents(selectedBucket, currentPath)
                       : loadBuckets
                   }
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
                   Retry
-                </button>
+                </Button>
               </div>
             </motion.div>
           ) : selectedBucket ? (
@@ -550,100 +563,83 @@ export default function BucketViewer({
               {bucketContents.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-16 px-6">
                   <Icon icon="logos:aws-s3" className="w-20 h-20 mb-4 opacity-20" />
-                  <p className="text-sm font-medium text-gray-700">This bucket is empty</p>
-                  <p className="text-xs text-gray-400 mt-1">Upload a file using the button above to get started.</p>
+                  <p className="text-sm font-medium text-ink-2">This bucket is empty</p>
+                  <p className="text-xs text-faint mt-1">Upload a file using the button above to get started.</p>
                 </div>
               ) : (
                 <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                  <div className="overflow-x-auto rounded-lg border border-border">
+                    <table className="min-w-full divide-y divide-divider">
+                      <thead className="bg-surface-2">
                         <tr>
                           <th
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5 cursor-pointer hover:bg-gray-100 select-none"
+                            className="px-6 py-3 text-left text-[10px] font-semibold text-faint uppercase tracking-wider w-2/5 cursor-pointer hover:bg-surface-3 select-none"
                             onClick={() => handleSort("name")}
                           >
                             <div className="flex items-center space-x-1">
-                              <span>Name</span>
-                              {sortConfig?.key === "name" &&
-                                (sortConfig.direction === "asc" ? (
-                                  <ChevronUpIcon className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDownIcon className="h-4 w-4" />
-                                ))}
+                              <span>Key</span>
+                              {sortIcon("name")}
                             </div>
                           </th>
                           <th
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20 cursor-pointer hover:bg-gray-100 select-none"
+                            className="px-6 py-3 text-left text-[10px] font-semibold text-faint uppercase tracking-wider w-20 cursor-pointer hover:bg-surface-3 select-none"
                             onClick={() => handleSort("size")}
                           >
                             <div className="flex items-center space-x-1">
                               <span>Size</span>
-                              {sortConfig?.key === "size" &&
-                                (sortConfig.direction === "asc" ? (
-                                  <ChevronUpIcon className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDownIcon className="h-4 w-4" />
-                                ))}
+                              {sortIcon("size")}
                             </div>
                           </th>
                           <th
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-44 cursor-pointer hover:bg-gray-100 select-none"
+                            className="px-6 py-3 text-left text-[10px] font-semibold text-faint uppercase tracking-wider w-44 cursor-pointer hover:bg-surface-3 select-none"
                             onClick={() => handleSort("modified")}
                           >
                             <div className="flex items-center space-x-1">
                               <span>Last Modified</span>
-                              {sortConfig?.key === "modified" &&
-                                (sortConfig.direction === "asc" ? (
-                                  <ChevronUpIcon className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDownIcon className="h-4 w-4" />
-                                ))}
+                              {sortIcon("modified")}
                             </div>
                           </th>
                           <th
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32 cursor-pointer hover:bg-gray-100 select-none"
+                            className="px-6 py-3 text-left text-[10px] font-semibold text-faint uppercase tracking-wider w-32 cursor-pointer hover:bg-surface-3 select-none"
                             onClick={() => handleSort("storage")}
                           >
                             <div className="flex items-center space-x-1">
                               <span>Storage Class</span>
-                              {sortConfig?.key === "storage" &&
-                                (sortConfig.direction === "asc" ? (
-                                  <ChevronUpIcon className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDownIcon className="h-4 w-4" />
-                                ))}
+                              {sortIcon("storage")}
                             </div>
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                          <th className="px-6 py-3 text-left text-[10px] font-semibold text-faint uppercase tracking-wider w-24">
                             Actions
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {getSortedContents().map((item, index) => (
-                          <tr key={item.Key ?? `obj-${index}`} className="hover:bg-gray-50">
+                      <tbody className="bg-surface divide-y divide-divider">
+                        {getSortedContents().map((item, index) => {
+                          const folder = isFolder(item.Key || "");
+                          const typeInfo = getFileTypeInfo(item.Key || "");
+                          return (
+                          <tr key={item.Key ?? `obj-${index}`} className="hover:bg-surface-2 transition-colors">
                             <td className="px-6 py-4">
                               <div className="flex items-center">
-                                {isFolder(item.Key || "") ? (
-                                  <FolderIcon className="h-5 w-5 text-blue-500 mr-2 shrink-0" />
-                                ) : (
-                                  <DocumentIcon className="h-5 w-5 text-gray-400 mr-2 shrink-0" />
-                                )}
+                                <Icon
+                                  icon={folder ? "lucide:folder" : typeInfo.icon}
+                                  width={16}
+                                  className={`mr-2 shrink-0 ${folder ? "text-muted" : "text-faint"}`}
+                                />
                                 <div className="flex flex-col min-w-0 flex-1">
-                                  {isFolder(item.Key || "") ? (
+                                  {folder ? (
                                     <button
                                       onClick={() =>
                                         handleFolderClick(item.Key || "")
                                       }
-                                      className="text-left text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer truncate"
+                                      className="text-left text-sm text-primary hover:text-primary-hover font-mono font-medium cursor-pointer truncate"
                                       title={getDisplayName(item.Key || "")}
                                     >
                                       {getDisplayName(item.Key || "")}
                                     </button>
                                   ) : (
                                     <span
-                                      className="text-sm text-gray-900 font-medium truncate"
+                                      className="text-sm text-ink font-mono font-medium truncate"
                                       title={getDisplayName(item.Key || "")}
                                     >
                                       {getDisplayName(item.Key || "")}
@@ -651,7 +647,7 @@ export default function BucketViewer({
                                   )}
                                   {item.Key && item.Key.includes("/") && (
                                     <span
-                                      className="text-xs text-gray-500 truncate max-w-xs"
+                                      className="text-xs text-faint truncate max-w-xs"
                                       title={item.Key}
                                     >
                                       {item.Key}
@@ -660,44 +656,42 @@ export default function BucketViewer({
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {isFolder(item.Key || "")
-                                ? "-"
-                                : formatFileSize(item.Size)}
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted">
+                              {folder ? "-" : formatFileSize(item.Size)}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted">
                               {formatDate(item.LastModified)}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted">
                               {item.StorageClass || "STANDARD"}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {!isFolder(item.Key || "") && (
-                                <div className="flex items-center space-x-2">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              {!folder && (
+                                <div className="flex items-center space-x-1">
                                   <button
                                     onClick={() =>
                                       handleViewFile(item.Key || "")
                                     }
-                                    className="p-1 text-blue-600 hover:text-blue-800"
+                                    className="p-1 rounded text-muted hover:text-primary hover:bg-primary-soft transition-colors"
                                     title="View file"
                                   >
-                                    <EyeIcon className="h-4 w-4" />
+                                    <Icon icon="lucide:eye" width={15} />
                                   </button>
                                   <button
                                     onClick={() =>
                                       handleDeleteFile(item.Key || "")
                                     }
                                     disabled={deletingFile === item.Key}
-                                    className="p-1 text-red-600 hover:text-red-800 disabled:opacity-50"
+                                    className="p-1 rounded text-muted hover:text-danger hover:bg-danger-soft transition-colors disabled:opacity-50"
                                     title="Delete file"
                                   >
-                                    <TrashIcon className="h-4 w-4" />
+                                    <Icon icon="lucide:trash-2" width={15} />
                                   </button>
                                 </div>
                               )}
                             </td>
                           </tr>
-                        ))}
+                        );})}
                       </tbody>
                     </table>
                   </div>
@@ -710,15 +704,11 @@ export default function BucketViewer({
               {buckets.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-16 px-6">
                   <Icon icon="logos:aws-s3" className="w-24 h-24 mb-4 opacity-20" />
-                  <p className="text-sm font-medium text-gray-700">No S3 buckets found</p>
-                  <p className="text-xs text-gray-400 mt-1 mb-5">Create your first bucket to start storing files.</p>
-                  <button
-                    onClick={() => setShowCreateBucket(true)}
-                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors shadow-sm"
-                  >
-                    <PlusIcon className="h-4 w-4 mr-1.5" />
+                  <p className="text-sm font-medium text-ink-2">No S3 buckets found</p>
+                  <p className="text-xs text-faint mt-1 mb-5">Create your first bucket to start storing files.</p>
+                  <Button variant="primary" icon="lucide:plus" onClick={() => setShowCreateBucket(true)}>
                     Create Bucket
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="p-6">
@@ -726,23 +716,26 @@ export default function BucketViewer({
                     {buckets.map((bucket, index) => (
                       <div
                         key={bucket.Name ?? `bucket-${index}`}
-                        className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+                        className="border border-border rounded-lg p-4 hover:bg-surface-2 hover:border-border-strong cursor-pointer transition-colors"
                         onClick={() => loadBucketContents(bucket.Name || "")}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <FolderIcon className="h-8 w-8 text-blue-500 mr-3" />
+                            <span className="flex items-center justify-center w-11 h-11 rounded-lg bg-primary-soft mr-3 shrink-0">
+                              <Icon icon="logos:aws-s3" width={20} />
+                            </span>
                             <div>
-                              <h3 className="text-lg font-medium text-gray-900">
+                              <h3 className="text-base font-mono font-medium text-ink">
                                 {bucket.Name}
                               </h3>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-muted">
                                 Created: {formatDate(bucket.CreationDate)}
                               </p>
                             </div>
                           </div>
-                          <div className="text-sm text-gray-500">
-                            Click to view contents
+                          <div className="text-sm text-faint flex items-center gap-1">
+                            View contents
+                            <Icon icon="lucide:chevron-right" width={14} />
                           </div>
                         </div>
                       </div>

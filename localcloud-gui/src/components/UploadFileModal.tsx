@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { XMarkIcon, DocumentIcon } from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import { s3Api } from "@/services/api";
 import { toast } from "react-hot-toast";
+import { Button, IconButton } from "@/components/ui";
 
 interface UploadFileModalProps {
   isOpen: boolean;
@@ -125,87 +126,83 @@ export default function UploadFileModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4">
+      <div className="bg-surface border border-border rounded-xl shadow-e3 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <DocumentIcon className="h-6 w-6 text-blue-500" />
-            <h2 className="text-xl font-bold text-gray-900">
-              Upload File to {bucketName}
-            </h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-divider shrink-0">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-soft text-primary">
+              <Icon icon="lucide:upload" width={17} />
+            </span>
+            <div>
+              <h2 className="text-base font-semibold text-ink">Upload file</h2>
+              <p className="text-xs text-muted font-mono">{bucketName}</p>
+            </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-            aria-label="Close"
-          >
-            <XMarkIcon className="h-6 w-6" />
-          </button>
+          <IconButton icon="lucide:x" label="Close" variant="ghost" onClick={onClose} />
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 overflow-y-auto">
           {/* File Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Upload File
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">
+              Choose file
             </label>
             <input
               type="file"
               onChange={handleFileUpload}
-              className="block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="block w-full text-sm text-ink-2 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary-soft file:text-primary-ink hover:file:bg-primary-soft/80 cursor-pointer"
             />
           </div>
 
           {/* Object Key */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              File Name (Object Key)
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">
+              File name (object key)
             </label>
             <input
               type="text"
               value={objectKey}
               onChange={(e) => setObjectKey(e.target.value)}
-              placeholder="Enter file name (e.g., myfile.txt)"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+              placeholder="e.g. seed/users.json"
+              className="w-full h-9 px-3 rounded-lg border border-border-strong bg-surface-2 font-mono text-[13px] text-ink outline-none transition-colors placeholder:text-faint focus:bg-surface focus:border-primary focus:ring-3 focus:ring-focus"
             />
           </div>
 
           {/* Content */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              File Content
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">
+              File content
             </label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Enter file content..."
+              placeholder="Enter file content…"
               rows={10}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm text-gray-900 placeholder-gray-500"
+              className="w-full px-3 py-2 rounded-lg border border-border-strong bg-surface-2 font-mono text-[13px] leading-relaxed text-ink outline-none transition-colors placeholder:text-faint focus:bg-surface focus:border-primary focus:ring-3 focus:ring-focus resize-vertical"
             />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
+        <div className="flex items-center justify-end gap-2.5 px-6 py-4 border-t border-divider shrink-0">
+          <Button variant="secondary" onClick={onClose} disabled={uploading}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
+            icon={uploading ? undefined : "lucide:upload"}
+            loading={uploading}
             onClick={handleUpload}
             disabled={
               uploading ||
               !objectKey.trim() ||
               (!selectedFile && !content.trim())
             }
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {uploading ? "Uploading..." : "Upload File"}
-          </button>
+            {uploading ? "Uploading…" : "Upload file"}
+          </Button>
         </div>
       </div>
     </div>

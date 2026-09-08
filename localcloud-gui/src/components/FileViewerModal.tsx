@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { XMarkIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import hljs from "highlight.js";
 import { highlightThemes, HighlightTheme } from "./highlightThemes";
 import { marked } from "marked";
 import Papa from "papaparse";
+import { Button, IconButton } from "@/components/ui";
 
 // Register highlight.js languages
 import javascript from "highlight.js/lib/languages/javascript";
@@ -150,11 +151,11 @@ function Tooltip({
       </div>
       {isVisible && (
         <div
-          className="absolute z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg left-0 bottom-full mb-2 max-w-xs w-max"
+          className="absolute z-50 px-3 py-2 text-sm text-white bg-ink rounded-lg shadow-e2 left-0 bottom-full mb-2 max-w-xs w-max"
           style={{ maxWidth: "300px", wordBreak: "break-all" }}
         >
           <div className="break-all whitespace-normal">{content}</div>
-          <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-ink"></div>
         </div>
       )}
     </div>
@@ -380,14 +381,15 @@ export default function FileViewerModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-5/6 flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4">
+      <div className="bg-surface border border-border rounded-xl shadow-e3 w-full max-w-6xl h-5/6 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-divider shrink-0">
           <div className="flex-1 min-w-0">
-            <div className="mb-2">
-              <Tooltip content={objectKey} className="cursor-help">
-                <h2 className="text-xl font-bold text-gray-900 truncate">
+            <div className="mb-1.5 flex items-center gap-2">
+              <Icon icon="lucide:file" width={17} className="shrink-0 text-muted" />
+              <Tooltip content={objectKey} className="cursor-help min-w-0">
+                <h2 className="text-lg font-semibold text-ink font-mono truncate">
                   {objectKey.split("/").pop() || objectKey}
                 </h2>
               </Tooltip>
@@ -398,9 +400,8 @@ export default function FileViewerModal({
                   content={`Full path: ${objectKey}`}
                   className="cursor-help"
                 >
-                  <div className="text-sm text-gray-600">
+                  <div className="text-xs text-muted font-mono">
                     <div className="truncate">
-                      Path:{" "}
                       {objectKey.length > 75
                         ? `${objectKey.substring(0, 75)}...`
                         : objectKey}
@@ -409,36 +410,46 @@ export default function FileViewerModal({
                 </Tooltip>
               </div>
             )}
-            <div className="mt-1 text-sm text-gray-500">
-              <div>Bucket: {bucketName}</div>
-              {fileContent?.metadata.ContentLength && (
-                <div>
-                  Size: {formatFileSize(fileContent.metadata.ContentLength)}
-                </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-muted">
+              <span>
+                Bucket: <span className="font-mono text-ink-2">{bucketName}</span>
+              </span>
+              {fileContent?.metadata.ContentLength !== undefined && (
+                <span>
+                  Size:{" "}
+                  <span className="font-mono text-ink-2">
+                    {formatFileSize(fileContent.metadata.ContentLength)}
+                  </span>
+                </span>
               )}
               {fileContent?.metadata.LastModified && (
-                <div>
-                  Modified: {formatDate(fileContent.metadata.LastModified)}
-                </div>
+                <span>
+                  Modified:{" "}
+                  <span className="font-mono text-ink-2">
+                    {formatDate(fileContent.metadata.LastModified)}
+                  </span>
+                </span>
               )}
               {fileContent?.metadata.ContentType && (
-                <div>Type: {fileContent.metadata.ContentType}</div>
+                <span>
+                  Type: <span className="font-mono text-ink-2">{fileContent.metadata.ContentType}</span>
+                </span>
               )}
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2.5 shrink-0">
             {/* Theme Selector (only for code/json/markdown) */}
             {showThemeSelector && (
               <>
                 <label
-                  className="text-xs font-semibold text-gray-700 mr-2"
+                  className="text-xs font-medium text-ink-2"
                   htmlFor="hljs-theme-select-modal"
                 >
-                  Theme:
+                  Theme
                 </label>
                 <select
                   id="hljs-theme-select-modal"
-                  className="border-2 border-gray-500 bg-white text-gray-900 font-semibold rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="h-8 px-2.5 rounded-lg border border-border-strong bg-surface-2 text-[13px] text-ink outline-none transition-colors focus:bg-surface focus:border-primary focus:ring-3 focus:ring-focus"
                   value={selectedTheme}
                   onChange={(e) =>
                     setSelectedTheme(e.target.value as HighlightTheme)
@@ -456,21 +467,14 @@ export default function FileViewerModal({
               </>
             )}
             {fileContent && (
-              <button
+              <IconButton
+                icon="lucide:download"
+                label="Download file"
+                variant="outline"
                 onClick={handleDownload}
-                className="p-2 text-gray-400 hover:text-gray-600"
-                title="Download file"
-              >
-                <ArrowDownTrayIcon className="h-5 w-5" />
-              </button>
+              />
             )}
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-              aria-label="Close"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
+            <IconButton icon="lucide:x" label="Close" variant="ghost" onClick={onClose} />
           </div>
         </div>
 
@@ -478,18 +482,15 @@ export default function FileViewerModal({
         <div className="flex-1 overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <Icon icon="lucide:loader-2" width={28} className="animate-spin text-primary" />
             </div>
           ) : error ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <p className="text-red-600 mb-4">{error}</p>
-                <button
-                  onClick={loadFileContent}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
+                <p className="text-danger mb-4">{error}</p>
+                <Button variant="primary" onClick={loadFileContent}>
                   Retry
-                </button>
+                </Button>
               </div>
             </div>
           ) : fileContent ? (
@@ -497,11 +498,7 @@ export default function FileViewerModal({
               <div className="p-6">
                 {viewerType === "plain" && (
                   <pre
-                    className="bg-gray-100 text-gray-900 p-4 rounded-lg overflow-x-auto text-sm leading-relaxed font-mono shadow"
-                    style={{
-                      fontFamily:
-                        'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-                    }}
+                    className="bg-surface-2 border border-border text-ink-2 p-4 rounded-lg overflow-x-auto text-sm leading-relaxed font-mono shadow-e1"
                   >
                     {fileContent.content}
                   </pre>
@@ -512,18 +509,14 @@ export default function FileViewerModal({
                   <div
                     className={
                       isDarkTheme
-                        ? "bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm leading-relaxed font-mono shadow"
-                        : "bg-gray-100 text-gray-900 p-4 rounded-lg overflow-x-auto text-sm leading-relaxed font-mono shadow"
+                        ? "bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm leading-relaxed font-mono shadow-e1"
+                        : "bg-surface-2 border border-border text-ink-2 p-4 rounded-lg overflow-x-auto text-sm leading-relaxed font-mono shadow-e1"
                     }
-                    style={{
-                      fontFamily:
-                        'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-                    }}
                   >
                     {viewerType === "json" ? (
                       <>
                         {jsonParseError && (
-                          <div className="mb-2 text-red-600 text-sm font-semibold">
+                          <div className="mb-2 text-danger text-sm font-semibold">
                             JSON Parse Error: {jsonParseError}
                           </div>
                         )}
@@ -561,10 +554,10 @@ export default function FileViewerModal({
                     <img
                       src={binaryPreviewUrl}
                       alt={objectKey}
-                      className="max-h-[60vh] max-w-full rounded object-contain mx-auto shadow"
+                      className="max-h-[60vh] max-w-full rounded object-contain mx-auto shadow-e1"
                     />
                   ) : (
-                    <p className="text-center text-sm text-gray-600">
+                    <p className="text-center text-sm text-muted">
                       Could not decode this image for preview. Use Download to open the file locally.
                     </p>
                   ))}
@@ -573,10 +566,10 @@ export default function FileViewerModal({
                     <iframe
                       src={binaryPreviewUrl}
                       title={objectKey}
-                      className="w-full h-[60vh] border rounded"
+                      className="w-full h-[60vh] border border-border rounded"
                     />
                   ) : (
-                    <p className="text-center text-sm text-gray-600">
+                    <p className="text-center text-sm text-muted">
                       Could not decode this PDF for preview. Use Download to open the file locally.
                     </p>
                   ))}
@@ -589,16 +582,16 @@ export default function FileViewerModal({
                   />
                 )}
                 {viewerType === "csv" && (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-xs border border-gray-400">
+                  <div className="overflow-x-auto rounded-lg border border-border">
+                    <table className="min-w-full text-xs">
                       <tbody>
                         {Papa.parse<string[]>(fileContent.content.trim()).data.map(
                           (row, i) => (
-                            <tr key={i}>
+                            <tr key={i} className="even:bg-surface-2">
                               {row.map((cell, j) => (
                                 <td
                                   key={j}
-                                  className="border border-gray-400 px-2 py-1 whitespace-nowrap text-gray-800 font-medium"
+                                  className="border border-divider px-2 py-1 whitespace-nowrap text-ink-2 font-mono"
                                 >
                                   {cell}
                                 </td>
@@ -611,16 +604,16 @@ export default function FileViewerModal({
                   </div>
                 )}
                 {viewerType === "document" && (
-                  <div className="bg-white text-gray-900 p-6 rounded-lg shadow border">
+                  <div className="bg-surface text-ink p-6 rounded-lg shadow-e1 border border-border">
                     <div className="prose max-w-none">
-                      <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                      <h1 className="text-2xl font-bold text-ink mb-4">
                         {objectKey
                           .split("/")
                           .pop()
                           ?.replace(/\.(doc|docx)$/i, "") || "Document"}
                       </h1>
                       <div
-                        className="text-gray-800 leading-relaxed"
+                        className="text-ink-2 leading-relaxed"
                         style={{
                           fontFamily: 'Georgia, "Times New Roman", serif',
                           lineHeight: "1.6",
@@ -642,7 +635,7 @@ export default function FileViewerModal({
                             return (
                               <h3
                                 key={index}
-                                className="text-lg font-semibold text-gray-900 mt-4 mb-2"
+                                className="text-lg font-semibold text-ink mt-4 mb-2"
                               >
                                 {line}
                               </h3>
@@ -666,23 +659,20 @@ export default function FileViewerModal({
                   </div>
                 )}
                 {viewerType === "binary" && (
-                  <div className="text-center text-gray-500">
+                  <div className="text-center text-muted">
                     <p>
                       This file type cannot be previewed. Please download to
                       view.
                     </p>
-                    <button
-                      onClick={handleDownload}
-                      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    >
+                    <Button variant="primary" className="mt-4" icon="lucide:download" onClick={handleDownload}>
                       Download
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="flex items-center justify-center h-full text-muted">
               <p>No content available</p>
             </div>
           )}
