@@ -458,8 +458,7 @@ export default function CachePage() {
                   variant="outline"
                   size="sm"
                   onClick={handleShowAllKeys}
-                  disabled={loading}
-                  className={loading ? "animate-spin" : undefined}
+                  loading={loading}
                 />
               </div>
 

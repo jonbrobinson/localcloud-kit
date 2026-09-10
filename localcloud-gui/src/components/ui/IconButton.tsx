@@ -23,15 +23,18 @@ export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
   variant?: IconButtonVariant;
   size?: IconButtonSize;
   label: string;
+  /** Spins the icon in place and disables the button — use while the action it triggers is in flight. */
+  loading?: boolean;
 }
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ icon, variant = "outline", size = "md", label, className, ...props }, ref) => {
+  ({ icon, variant = "outline", size = "md", label, loading = false, disabled, className, ...props }, ref) => {
     return (
       <button
         ref={ref}
         aria-label={label}
         title={label}
+        disabled={disabled || loading}
         className={cn(
           "inline-flex items-center justify-center cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-50",
           variantClasses[variant],
@@ -40,7 +43,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         )}
         {...props}
       >
-        <Icon icon={icon} width={size === "sm" ? 13 : 15} />
+        <Icon icon={icon} width={size === "sm" ? 13 : 15} className={loading ? "animate-spin" : undefined} />
       </button>
     );
   }

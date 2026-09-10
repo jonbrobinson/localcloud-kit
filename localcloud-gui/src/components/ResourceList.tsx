@@ -302,8 +302,7 @@ export default function ResourceList({
               icon="lucide:refresh-cw"
               label="Refresh resources"
               onClick={onRefresh}
-              disabled={refreshLoading}
-              className={refreshLoading ? "animate-spin" : ""}
+              loading={refreshLoading}
             />
           )}
 

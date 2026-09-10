@@ -45,9 +45,11 @@ export function useServicesData() {
     keycloak: { status: "unknown" },
   });
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const loadData = useCallback(async () => {
+    setRefreshing(true);
     try {
       setError(null);
       const [payloadResult, postgresResult, keycloakResult] = await Promise.allSettled([
@@ -86,6 +88,7 @@ export function useServicesData() {
       console.error("Failed to load data:", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
@@ -95,5 +98,5 @@ export function useServicesData() {
     return () => clearInterval(interval);
   }, [loadData]);
 
-  return { ...data, loading, error, refetch: loadData };
+  return { ...data, loading, refreshing, error, refetch: loadData };
 }

@@ -54,6 +54,7 @@ export default function Dashboard() {
     postgres,
     keycloak,
     loading,
+    refreshing,
     error,
     refetch: loadInitialData,
   } = useServicesData();
@@ -923,7 +924,7 @@ export default function Dashboard() {
               onAddAPIGateway={() => handleCreateSingleResource("apigateway")}
               onAddSSM={() => handleCreateSingleResource("ssm")}
               onAddIAM={() => setShowIAMConfig(true)}
-              refreshLoading={loading}
+              refreshLoading={refreshing}
               addLoading={createLoading}
               onViewS3={(bucketName) => {
                 setSelectedS3Bucket(bucketName);
