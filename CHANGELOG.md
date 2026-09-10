@@ -6,6 +6,18 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+### Security
+
+## [0.14.0] - 2026-09-13
+
+### Added
+
 - **Design System**: IBM Plex Sans/Mono typography, indigo-accent design tokens with light/dark palettes, and a shared UI primitives set (buttons, badges, inputs, cards) applied across the Dashboard, Create Resource, S3, DynamoDB, Redis, Connect, and header/navigation screens.
 - **Profile**: Auto/Light/Dark theme preference, toggleable from the profile menu and persisted per user.
 
@@ -16,6 +28,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 ### Fixed
 
 - **AppNavBar**: unified the top nav bar into a single `AppNavBar` component used by every screen (Dashboard, all per-service doc pages, all `/manage/*` pages, Connect, Docs Hub, Profile), replacing five drifted, partly hardcoded header implementations. The nav and page backgrounds now render correctly in dark mode everywhere instead of only on the Dashboard.
+- **ResourceList**: Refresh resources button now spins while a refetch is in flight.
+- **DashboardNavBar**: Auto/Light/Dark theme control stays inside the profile menu instead of overflowing.
 
 ### Removed
 

@@ -12,7 +12,7 @@ cloud services using MiniStack (a free AWS emulator), managed through a Next.js 
 Express.js API backend, all orchestrated via Docker Compose. No AWS account is
 required.
 
-- **Version**: 0.13.6
+- **Version**: 0.14.0
 - **License**: MIT
 - **Primary URL**: https://app-local.localcloudkit.com:3030
 
