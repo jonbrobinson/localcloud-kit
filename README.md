@@ -440,6 +440,7 @@ docker compose up -d --scale api=3 # Scale services
 - **[docs/SETUP_SCRIPTS.md](docs/SETUP_SCRIPTS.md)** — Setup and cleanup scripts
 - **[docs/DOCKER.md](docs/DOCKER.md)** — Container deployment
 - **[docs/CONNECT.md](docs/CONNECT.md)** — AWS SDK integration (JS, Python, Go, Java)
+- **[DESIGN.md](DESIGN.md)** — GUI design system: tokens, components, icons, theming
 
 ### Certificate & Security
 

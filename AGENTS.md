@@ -330,6 +330,14 @@ chore(deps): upgrade next.js to 15.2
 
 ---
 
+## Design System
+
+GUI visual conventions — color tokens, typography, the `ui/` component
+primitives, icon rules, theming, and layout patterns — are documented in
+[`DESIGN.md`](./DESIGN.md). Read it before touching anything visual;
+don't hardcode colors or invent new spacing/radius scales when a token or
+primitive already covers it.
+
 ## Dashboard UI Architecture
 
 The dashboard (`localcloud-gui/src/components/Dashboard.tsx`) is organized around
