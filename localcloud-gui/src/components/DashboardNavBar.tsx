@@ -745,7 +745,7 @@ export default function DashboardNavBar({
                         <Icon icon="lucide:user-cog" width={15} className={activePage === "profile" ? "text-primary" : "text-faint"} />
                         Preferences
                       </Link>
-                      <div className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-sm text-ink-2">
+                      <div className="flex flex-col gap-1.5 px-2.5 py-2 rounded-lg text-sm text-ink-2">
                         <span className="flex items-center gap-2.5">
                           <Icon icon="lucide:sun-moon" width={15} className="text-faint" />
                           Theme
@@ -754,6 +754,7 @@ export default function DashboardNavBar({
                           options={THEME_OPTIONS}
                           value={profile?.theme ?? "auto"}
                           onChange={handleThemeChange}
+                          fullWidth
                         />
                       </div>
                       <Link
@@ -984,7 +985,7 @@ export default function DashboardNavBar({
                     </span>
                   </div>
                 </div>
-                <div className="px-3 py-1.5 flex items-center justify-between gap-2">
+                <div className="px-3 py-1.5 flex flex-col gap-1.5">
                   <span className="flex items-center gap-2 text-sm text-ink-2">
                     <Icon icon="lucide:sun-moon" width={15} className="text-faint" />
                     Theme
@@ -993,6 +994,7 @@ export default function DashboardNavBar({
                     options={THEME_OPTIONS}
                     value={profile?.theme ?? "auto"}
                     onChange={handleThemeChange}
+                    className="w-full [&>button]:flex-1"
                   />
                 </div>
                 <Link href="/profile" onClick={closeAllMenus} className={cn(
