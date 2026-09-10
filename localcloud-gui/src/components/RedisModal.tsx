@@ -1,12 +1,10 @@
 "use client";
 
 import { cacheApi } from "@/services/api";
-import {
-  ArrowRightIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { Badge, IconButton } from "@/components/ui";
 
 interface RedisInfo {
   status: string;
@@ -19,9 +17,9 @@ interface RedisModalProps {
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">
-      <span className="text-xs text-gray-500">{label}</span>
-      <span className="text-xs font-mono text-gray-900">{value}</span>
+    <div className="flex items-center justify-between py-1.5 border-b border-divider last:border-0">
+      <span className="text-xs text-muted">{label}</span>
+      <span className="text-xs font-mono text-ink-2">{value}</span>
     </div>
   );
 }
@@ -89,63 +87,63 @@ export default function RedisModal({ onClose }: RedisModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-scrim"
       onMouseDown={handleBackdropMouseDown}
     >
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+      <div className="bg-surface border border-border rounded-xl shadow-e3 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
-          <div className="flex items-center space-x-3">
-            <span className="text-2xl">🧊</span>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-divider shrink-0">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-soft text-primary">
+              <Icon icon="logos:redis" width={18} />
+            </span>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Redis Cache</h2>
-              <p className="text-xs text-gray-500">Local cache service</p>
+              <h2 className="text-base font-semibold text-ink">Redis Cache</h2>
+              <p className="text-xs text-muted">Local cache service</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <Link
               href="/cache"
               onClick={onClose}
-              className="flex items-center px-3 py-1.5 text-xs font-medium text-cyan-700 bg-cyan-50 border border-cyan-200 rounded-md hover:bg-cyan-100 transition-colors"
+              className="no-underline inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md border border-border-strong bg-surface text-ink-2 text-xs font-medium transition-colors hover:bg-surface-2"
             >
-              <ArrowRightIcon className="h-3.5 w-3.5 mr-1" />
+              <Icon icon="lucide:arrow-right" width={13} />
               Manage Cache
             </Link>
-            <button
+            <IconButton
+              icon="lucide:x"
+              label="Close"
+              variant="ghost"
+              size="sm"
               onClick={onClose}
-              className="p-1.5 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
-            >
-              <XMarkIcon className="h-5 w-5" />
-            </button>
+            />
           </div>
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto flex-1 divide-y divide-gray-100">
+        <div className="overflow-y-auto flex-1 divide-y divide-divider">
 
           {/* Status bar */}
-          <div className="px-6 py-4 bg-gray-50 flex items-center justify-between">
-            <div className="flex items-center space-x-6">
+          <div className="px-6 py-4 bg-surface-2 flex items-center justify-between">
+            <div className="flex items-center gap-6">
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide">Status</p>
-                <span className={`inline-flex items-center text-sm font-medium ${
-                  isRunning ? "text-green-700" : "text-gray-500"
-                }`}>
-                  <span className={`h-2 w-2 rounded-full mr-1.5 ${
-                    isRunning ? "bg-green-500 animate-pulse" : "bg-gray-300"
-                  }`} />
-                  {isRunning ? "Running" : "Unavailable"}
-                </span>
+                <p className="text-[11px] text-faint uppercase tracking-wide">Status</p>
+                <div className="mt-0.5">
+                  <Badge tone={isRunning ? "success" : "neutral"} pulse={isRunning}>
+                    {isRunning ? "Running" : "Unavailable"}
+                  </Badge>
+                </div>
               </div>
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide">Keys</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-[11px] text-faint uppercase tracking-wide">Keys</p>
+                <p className="text-2xl font-bold text-ink font-mono">
                   {loading ? "—" : totalKeys}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide">Memory</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-[11px] text-faint uppercase tracking-wide">Memory</p>
+                <p className="text-2xl font-bold text-ink font-mono">
                   {loading ? "—" : usedMemory}
                 </p>
               </div>
@@ -155,8 +153,8 @@ export default function RedisModal({ onClose }: RedisModalProps) {
           {/* Server info */}
           {isRunning && !loading && (
             <div className="px-6 py-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Server Info</h3>
-              <div className="rounded-lg border border-gray-200 px-4 py-2">
+              <h3 className="text-sm font-semibold text-ink mb-3">Server Info</h3>
+              <div className="rounded-lg border border-border px-4 py-2">
                 <InfoRow label="Redis Version" value={redisVersion} />
                 <InfoRow label="Uptime" value={uptime} />
                 <InfoRow label="Connected Clients" value={connectedClients} />
@@ -168,27 +166,27 @@ export default function RedisModal({ onClose }: RedisModalProps) {
           {/* Key sample */}
           <div className="px-6 py-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-900">Keys</h3>
-              <span className="text-xs text-gray-400">
+              <h3 className="text-sm font-semibold text-ink">Keys</h3>
+              <span className="text-xs text-faint">
                 {totalKeys === 0 ? "No keys" : `${totalKeys} total`}
               </span>
             </div>
             {loading ? (
-              <div className="text-center py-4 text-gray-400 text-sm">Loading…</div>
+              <div className="text-center py-4 text-muted text-sm">Loading…</div>
             ) : keys.length === 0 ? (
-              <div className="text-center py-4 text-gray-400 text-sm">
+              <div className="text-center py-4 text-muted text-sm">
                 No keys stored yet.
               </div>
             ) : (
-              <div className="rounded-lg border border-gray-200 overflow-hidden">
-                <div className="divide-y divide-gray-100 max-h-40 overflow-y-auto">
+              <div className="rounded-lg border border-border overflow-hidden">
+                <div className="divide-y divide-divider max-h-40 overflow-y-auto">
                   {keys.slice(0, 20).map((key) => (
-                    <div key={key} className="px-3 py-2 text-xs font-mono text-gray-700 bg-white hover:bg-gray-50">
+                    <div key={key} className="px-3 py-2 text-xs font-mono text-ink-2 bg-surface hover:bg-surface-2">
                       {key}
                     </div>
                   ))}
                   {keys.length > 20 && (
-                    <div className="px-3 py-2 text-xs text-gray-400 bg-gray-50">
+                    <div className="px-3 py-2 text-xs text-faint bg-surface-2">
                       +{keys.length - 20} more — open Redis Management for full view
                     </div>
                   )}
@@ -198,14 +196,14 @@ export default function RedisModal({ onClose }: RedisModalProps) {
           </div>
 
           {/* CTA */}
-          <div className="px-6 py-4 bg-gray-50">
+          <div className="px-6 py-4 bg-surface-2">
             <Link
               href="/cache"
               onClick={onClose}
-              className="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-white bg-cyan-600 rounded-md hover:bg-cyan-700 transition-colors"
+              className="no-underline inline-flex items-center justify-center gap-1.5 w-full h-9 rounded-lg bg-primary text-white text-[13px] font-medium transition-colors hover:bg-primary-hover"
             >
               Go to Redis Management
-              <ArrowRightIcon className="h-4 w-4 ml-2" />
+              <Icon icon="lucide:arrow-right" width={15} />
             </Link>
           </div>
 

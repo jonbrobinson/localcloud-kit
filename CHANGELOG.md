@@ -6,7 +6,12 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+- **Design System**: IBM Plex Sans/Mono typography, indigo-accent design tokens with light/dark palettes, and a shared UI primitives set (buttons, badges, inputs, cards) applied across the Dashboard, Create Resource, S3, DynamoDB, Redis, Connect, and header/navigation screens.
+- **Profile**: Auto/Light/Dark theme preference, toggleable from the profile menu and persisted per user.
+
 ### Changed
+
+- **GUI**: Redesigned the Dashboard, create-resource flow, S3 browser, DynamoDB viewer, Redis cache browser, Connect page, and app header/status bar onto the new design system — no changes to underlying data flow or API calls.
 
 ### Fixed
 

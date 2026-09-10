@@ -1,20 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
-import {
-  PlusIcon,
-  FolderIcon,
-  DocumentIcon,
-  ArrowPathIcon,
-  BookOpenIcon,
-  TrashIcon,
-  ArrowUpTrayIcon,
-  EyeIcon,
-  ChevronRightIcon,
-  ArrowLeftIcon as BackIcon,
-} from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import { s3Api, resourceApi } from "@/services/api";
 import ManageHeaderBrand from "@/components/ManageHeaderBrand";
 import { useProjectName } from "@/hooks/useProjectName";
@@ -24,6 +13,7 @@ import FileViewerModal from "@/components/FileViewerModal";
 import UploadFileModal from "@/components/UploadFileModal";
 import SystemLogsButton from "@/components/SystemLogsButton";
 import { listS3ObjectsAtPrefix } from "@/lib/s3PrefixListing";
+import { Button, Card, SearchInput } from "@/components/ui";
 
 interface BucketItem {
   Name?: string;
@@ -42,6 +32,36 @@ const formatSize = (bytes?: number) => {
 
 const formatDate = (d?: string) => (d ? new Date(d).toLocaleString() : "—");
 const isFolder = (key: string) => key.endsWith("/");
+
+/** Iconify name + short mime-ish label shown in the Type column, guessed from the key's extension. */
+const FILE_TYPE_BY_EXT: Record<string, { icon: string; label: string }> = {
+  json: { icon: "lucide:file-json", label: "app/json" },
+  png: { icon: "lucide:file-image", label: "image/png" },
+  jpg: { icon: "lucide:file-image", label: "image/jpeg" },
+  jpeg: { icon: "lucide:file-image", label: "image/jpeg" },
+  gif: { icon: "lucide:file-image", label: "image/gif" },
+  svg: { icon: "lucide:file-image", label: "image/svg" },
+  webp: { icon: "lucide:file-image", label: "image/webp" },
+  bmp: { icon: "lucide:file-image", label: "image/bmp" },
+  csv: { icon: "lucide:file-text", label: "text/csv" },
+  txt: { icon: "lucide:file-text", label: "text/plain" },
+  md: { icon: "lucide:file-text", label: "text/markdown" },
+  pdf: { icon: "lucide:file-text", label: "app/pdf" },
+  xml: { icon: "lucide:file-code", label: "app/xml" },
+  yml: { icon: "lucide:file-code", label: "text/yaml" },
+  yaml: { icon: "lucide:file-code", label: "text/yaml" },
+  js: { icon: "lucide:file-code", label: "text/js" },
+  ts: { icon: "lucide:file-code", label: "text/ts" },
+  tsx: { icon: "lucide:file-code", label: "text/tsx" },
+  html: { icon: "lucide:file-code", label: "text/html" },
+  css: { icon: "lucide:file-code", label: "text/css" },
+};
+const DEFAULT_FILE_TYPE = { icon: "lucide:file", label: "binary" };
+
+function getFileTypeInfo(key: string) {
+  const ext = key.split(".").pop()?.toLowerCase() || "";
+  return FILE_TYPE_BY_EXT[ext] || DEFAULT_FILE_TYPE;
+}
 
 /** Stack for the Back button when jumping to `prefix` via breadcrumbs (e.g. photos/2024/ → ['', 'photos/']). */
 function pathHistoryForPrefix(prefix: string): string[] {
@@ -77,6 +97,7 @@ export default function ManageS3Page() {
   const [buckets, setBuckets] = useState<BucketItem[]>([]);
   const [selectedBucket, setSelectedBucket] = useState<string | null>(null);
   const [contents, setContents] = useState<BucketItem[]>([]);
+  const [rawContents, setRawContents] = useState<BucketItem[]>([]);
   const [currentPath, setCurrentPath] = useState("");
   const [pathHistory, setPathHistory] = useState<string[]>([]);
   const [loadingBuckets, setLoadingBuckets] = useState(false);
@@ -85,6 +106,20 @@ export default function ManageS3Page() {
   const [createLoading, setCreateLoading] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [fileViewer, setFileViewer] = useState<{ bucketName: string; objectKey: string } | null>(null);
+  const [filterText, setFilterText] = useState("");
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [bucketMenuOpen, setBucketMenuOpen] = useState(false);
+  const bucketMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (bucketMenuRef.current && !bucketMenuRef.current.contains(e.target as Node)) {
+        setBucketMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
 
   const loadBuckets = useCallback(async () => {
     setLoadingBuckets(true);
@@ -107,6 +142,7 @@ export default function ManageS3Page() {
       const res = await s3Api.getBucketContents(projectName, bucket);
       if (res.success) {
         const all = res.data || [];
+        setRawContents(all);
         setContents(listS3ObjectsAtPrefix(all, path));
         setCurrentPath(path);
       } else {
@@ -123,6 +159,9 @@ export default function ManageS3Page() {
     setSelectedBucket(name);
     setCurrentPath("");
     setPathHistory([]);
+    setSelectedKey(null);
+    setFilterText("");
+    setBucketMenuOpen(false);
     loadContents(name, "");
   };
 
@@ -130,6 +169,7 @@ export default function ManageS3Page() {
     if (!selectedBucket) return;
     const newPath = key;
     setPathHistory((h) => [...h, currentPath]);
+    setSelectedKey(null);
     loadContents(selectedBucket, newPath);
   };
 
@@ -137,6 +177,7 @@ export default function ManageS3Page() {
     if (!selectedBucket) return;
     const prev = pathHistory[pathHistory.length - 1] ?? "";
     setPathHistory((h) => h.slice(0, -1));
+    setSelectedKey(null);
     loadContents(selectedBucket, prev);
   };
 
@@ -146,6 +187,7 @@ export default function ManageS3Page() {
       const norm =
         targetPrefix === "" ? "" : targetPrefix.endsWith("/") ? targetPrefix : `${targetPrefix}/`;
       setPathHistory(pathHistoryForPrefix(norm));
+      setSelectedKey(null);
       void loadContents(selectedBucket, norm);
     },
     [selectedBucket, loadContents]
@@ -176,6 +218,7 @@ export default function ManageS3Page() {
       const res = await s3Api.deleteObject(projectName, selectedBucket, key);
       if (res.success) {
         toast.success("Object deleted");
+        if (selectedKey === key) setSelectedKey(null);
         loadContents(selectedBucket, currentPath);
       } else {
         toast.error(res.error || "Failed to delete object");
@@ -185,121 +228,144 @@ export default function ManageS3Page() {
     }
   };
 
+  const folderObjectCount = (folderPrefix: string) =>
+    rawContents.filter((i) => (i.Key || "").startsWith(folderPrefix) && i.Key !== folderPrefix).length;
+
+  const visibleContents = filterText.trim()
+    ? contents.filter((item) => {
+        const key = item.Key || item.Name || "";
+        const displayName = currentPath ? key.slice(currentPath.length) : key;
+        return displayName.toLowerCase().includes(filterText.trim().toLowerCase());
+      })
+    : contents;
+
+  const selectedItem = selectedKey
+    ? contents.find((c) => (c.Key || c.Name) === selectedKey)
+    : undefined;
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-bg flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm shrink-0">
-        <div className="max-w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-3">
-              <ManageHeaderBrand />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">LocalCloud Kit</h1>
-                <p className="text-xs text-gray-500">Manage buckets</p>
-              </div>
-              <div className="h-5 w-px bg-gray-200" />
-              <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                Dashboard
-              </Link>
-            </div>
-            <div className="flex items-center space-x-3">
-              <SystemLogsButton />
-              <Link href="/s3" className="flex items-center space-x-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-                <BookOpenIcon className="h-4 w-4" />
-                <span>Docs</span>
-              </Link>
+      <header className="bg-surface border-b border-border shrink-0">
+        <div className="max-w-[1180px] mx-auto w-full px-6 py-4 flex items-center gap-3 flex-wrap">
+          <ManageHeaderBrand />
+          <span className="w-px h-[18px] bg-border shrink-0" />
+          <div className="flex items-center gap-2 shrink-0">
+            <Icon icon="logos:aws-s3" width={18} />
+            <h1 className="text-lg font-semibold tracking-tight text-ink">Manage S3</h1>
+          </div>
+          <Link href="/" className="text-sm font-medium text-muted hover:text-ink transition-colors shrink-0">
+            Dashboard
+          </Link>
+
+          <div className="flex items-center gap-2 ml-auto flex-wrap">
+            <SystemLogsButton />
+            <Link
+              href="/s3"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium text-muted hover:text-ink hover:bg-surface-2 transition-colors"
+            >
+              <Icon icon="lucide:book-open" width={14} />
+              Docs
+            </Link>
+            <Button variant="secondary" icon="lucide:plus" onClick={() => setShowCreate(true)}>
+              Create bucket
+            </Button>
+
+            <span className="w-px h-[18px] bg-border shrink-0" />
+
+            {/* Bucket selector */}
+            <div className="relative shrink-0" ref={bucketMenuRef}>
               <button
                 type="button"
-                onClick={() => {
-                  void loadBuckets();
-                  if (selectedBucket) void loadContents(selectedBucket, currentPath);
-                }}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-                title="Refresh buckets and current folder"
+                onClick={() => setBucketMenuOpen((v) => !v)}
+                disabled={buckets.length === 0}
+                className="flex items-center justify-between gap-2 h-8 min-w-[200px] px-2.5 rounded-lg border border-border-strong bg-surface text-sm hover:border-ink-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <ArrowPathIcon
-                  className={`h-4 w-4 ${loadingBuckets || loadingContents ? "animate-spin" : ""}`}
-                />
+                <span className="font-mono text-[13px] text-ink truncate">
+                  {selectedBucket || "Select a bucket"}
+                </span>
+                <Icon icon="lucide:chevron-down" width={14} className="text-faint shrink-0" />
               </button>
-              <button
-                onClick={() => setShowCreate(true)}
-                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-              >
-                <PlusIcon className="h-4 w-4" />
-                <span>Create Bucket</span>
-              </button>
+              {bucketMenuOpen && buckets.length > 0 && (
+                <div className="absolute right-0 z-20 mt-1 w-64 max-h-72 overflow-y-auto rounded-lg border border-border bg-surface shadow-e2 py-1">
+                  {buckets.map((b) => (
+                    <button
+                      key={b.Name}
+                      type="button"
+                      onClick={() => selectBucket(b.Name!)}
+                      className={`flex w-full items-center gap-2 px-3 py-2 text-left font-mono text-[13px] transition-colors ${
+                        selectedBucket === b.Name
+                          ? "bg-primary-soft text-primary-ink"
+                          : "text-ink-2 hover:bg-surface-2"
+                      }`}
+                    >
+                      <Icon icon="lucide:folder" width={14} className="shrink-0 text-faint" />
+                      <span className="truncate">{b.Name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                void loadBuckets();
+                if (selectedBucket) void loadContents(selectedBucket, currentPath);
+              }}
+              className="flex items-center justify-center w-8 h-8 rounded-lg border border-border-strong bg-surface text-ink-2 hover:bg-surface-2 transition-colors shrink-0"
+              title="Refresh buckets and current folder"
+              aria-label="Refresh buckets and current folder"
+            >
+              <Icon
+                icon="lucide:refresh-cw"
+                width={15}
+                className={loadingBuckets || loadingContents ? "animate-spin" : ""}
+              />
+            </button>
+
+            <Button
+              variant="primary"
+              icon="lucide:upload"
+              onClick={() => setShowUpload(true)}
+              disabled={!selectedBucket}
+            >
+              Upload file
+            </Button>
           </div>
         </div>
       </header>
 
-      {/* Body — two-panel layout */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar: bucket list */}
-        <aside className="w-64 bg-white border-r border-gray-200 overflow-y-auto shrink-0">
-          <div className="px-3 py-3 border-b border-gray-100">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Buckets ({buckets.length})</p>
-          </div>
-          {loadingBuckets ? (
-            <div className="p-4 space-y-2">
-              {[0,1,2].map((i) => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
-            </div>
-          ) : buckets.length === 0 ? (
-            <div className="p-6 text-center">
-              <FolderIcon className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-xs text-gray-500">No buckets</p>
-            </div>
-          ) : (
-            <ul className="py-1">
-              {buckets.map((b) => (
-                <li key={b.Name}>
-                  <button
-                    onClick={() => selectBucket(b.Name!)}
-                    className={`w-full flex items-center space-x-2 px-4 py-2 text-sm text-left transition-colors ${
-                      selectedBucket === b.Name
-                        ? "bg-indigo-50 text-indigo-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    <FolderIcon className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{b.Name}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </aside>
-
-        {/* Main content: object browser */}
-        <main className="flex-1 overflow-y-auto p-6">
+      {/* Body */}
+      <main className="flex-1 px-6 py-6">
+        <div className="max-w-[1180px] mx-auto w-full flex flex-col gap-4">
           {!selectedBucket ? (
-            <div className="flex flex-col items-center justify-center h-full text-center py-24">
-              <FolderIcon className="h-16 w-16 text-gray-200 mb-4" />
-              <p className="text-sm text-gray-400">Select a bucket to browse its contents</p>
+            <div className="flex flex-col items-center justify-center text-center py-24">
+              <Icon icon="logos:aws-s3" width={64} className="mb-4 opacity-30" />
+              <p className="text-sm text-muted">
+                {buckets.length === 0
+                  ? "No buckets yet — create one to get started."
+                  : "Select a bucket to browse its contents."}
+              </p>
+              {buckets.length === 0 && (
+                <Button variant="primary" icon="lucide:plus" className="mt-4" onClick={() => setShowCreate(true)}>
+                  Create bucket
+                </Button>
+              )}
             </div>
           ) : (
-            <div>
-              {/* Toolbar */}
-              <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex min-w-0 flex-1 items-center gap-2">
-                  {pathHistory.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={goBack}
-                      className="shrink-0 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                      title="Go to parent folder"
-                    >
-                      <BackIcon className="h-4 w-4" />
-                    </button>
-                  )}
+            <div className="grid grid-cols-1 lg:grid-cols-[1.7fr_1fr] gap-4 items-start">
+              {/* Object table */}
+              <Card className="overflow-hidden">
+                <div className="flex items-center gap-2.5 px-3.5 py-2.5 border-b border-divider flex-wrap">
                   <nav
                     aria-label="Bucket path"
-                    className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-0.5 text-sm"
+                    className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted"
                   >
                     <button
                       type="button"
                       onClick={() => navigateToPrefix("")}
-                      className="shrink-0 max-w-[40vw] truncate text-left font-medium text-indigo-700 hover:text-indigo-900 hover:underline sm:max-w-xs"
+                      className="shrink-0 font-medium text-primary hover:text-primary-hover"
                       title="Bucket root"
                     >
                       {selectedBucket}
@@ -307,123 +373,270 @@ export default function ManageS3Page() {
                     {breadcrumbFolderSegments(currentPath).map((seg, idx, arr) => {
                       const isLast = idx === arr.length - 1;
                       return (
-                        <span key={seg.prefix} className="flex min-w-0 items-center gap-1">
-                          <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden />
+                        <span key={seg.prefix} className="flex min-w-0 items-center gap-1.5">
+                          <Icon icon="lucide:chevron-right" width={13} className="shrink-0 text-faint" />
                           {isLast ? (
-                            <span
-                              className="truncate font-mono text-xs font-medium text-gray-900"
-                              title={seg.prefix}
-                            >
-                              {seg.label}
+                            <span className="truncate font-mono text-ink" title={seg.prefix}>
+                              {seg.label}/
                             </span>
                           ) : (
                             <button
                               type="button"
                               onClick={() => navigateToPrefix(seg.prefix)}
-                              className="truncate font-mono text-xs text-indigo-600 hover:text-indigo-800 hover:underline"
+                              className="truncate font-mono text-primary hover:text-primary-hover"
                               title={seg.prefix}
                             >
-                              {seg.label}
+                              {seg.label}/
                             </button>
                           )}
                         </span>
                       );
                     })}
                   </nav>
+                  <SearchInput
+                    placeholder="Filter by prefix…"
+                    value={filterText}
+                    onChange={(e) => setFilterText(e.target.value)}
+                    containerClassName="h-7 min-w-[160px] shrink-0"
+                  />
                 </div>
-                <div className="flex shrink-0 items-center justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setShowUpload(true)}
-                    className="flex items-center space-x-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-indigo-700"
-                  >
-                    <ArrowUpTrayIcon className="h-3.5 w-3.5" />
-                    <span>Upload file</span>
-                  </button>
-                </div>
-              </div>
 
-              {/* Object table */}
-              {loadingContents ? (
-                <div className="space-y-2">
-                  {[0,1,2,3].map((i) => <div key={i} className="h-10 bg-gray-100 rounded animate-pulse" />)}
+                <div className="grid grid-cols-[22px_1fr_120px_110px_96px] gap-3 items-center px-3.5 py-2 bg-surface-2 border-b border-divider text-[10px] font-semibold uppercase tracking-wider text-faint">
+                  <span />
+                  <span>Key</span>
+                  <span>Type</span>
+                  <span>Size</span>
+                  <span>Modified</span>
                 </div>
-              ) : contents.length === 0 ? (
-                <div className="text-center py-16">
-                  <DocumentIcon className="h-12 w-12 text-gray-200 mx-auto mb-3" />
-                  <p className="text-sm text-gray-400">Bucket is empty</p>
-                </div>
-              ) : (
-                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-100 text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-2.5 text-left font-medium text-gray-500">Name</th>
-                        <th className="px-4 py-2.5 text-left font-medium text-gray-500">Size</th>
-                        <th className="px-4 py-2.5 text-left font-medium text-gray-500">Last Modified</th>
-                        <th className="px-4 py-2.5 text-right font-medium text-gray-500">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {contents.map((item, i) => {
-                        const key = item.Key || item.Name || "";
-                        const displayName = currentPath ? key.slice(currentPath.length) : key;
-                        const displayLabel = displayName.replace(/\/$/, "") || displayName;
-                        const folder = isFolder(key);
+
+                {loadingContents ? (
+                  <div className="p-3.5 space-y-2">
+                    {[0, 1, 2, 3].map((i) => (
+                      <div key={i} className="h-9 rounded bg-skeleton animate-pulse" />
+                    ))}
+                  </div>
+                ) : visibleContents.length === 0 && pathHistory.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center text-center py-14 px-6">
+                    <Icon icon="lucide:folder-open" width={36} className="mb-3 text-faint" />
+                    <p className="text-sm text-muted">
+                      {filterText ? "No objects match this filter." : "Bucket is empty."}
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    {pathHistory.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={goBack}
+                        className="grid w-full grid-cols-[22px_1fr_120px_110px_96px] gap-3 items-center h-9 px-3.5 border-b border-divider text-left hover:bg-surface-2 transition-colors"
+                      >
+                        <span />
+                        <span className="flex items-center gap-2">
+                          <Icon icon="lucide:corner-left-up" width={14} className="text-faint" />
+                          <span className="text-sm text-muted">..</span>
+                        </span>
+                        <span />
+                        <span />
+                        <span />
+                      </button>
+                    )}
+                    {visibleContents.map((item, i) => {
+                      const key = item.Key || item.Name || "";
+                      const displayName = currentPath ? key.slice(currentPath.length) : key;
+                      const displayLabel = displayName.replace(/\/$/, "") || displayName;
+                      const folder = isFolder(key);
+
+                      if (folder) {
                         return (
-                          <tr key={`${key}-${i}`} className="hover:bg-gray-50">
-                            <td className="px-4 py-2.5">
-                              <div className="flex items-center space-x-2">
-                                {folder ? (
-                                  <FolderIcon className="h-4 w-4 text-amber-500 shrink-0" />
-                                ) : (
-                                  <DocumentIcon className="h-4 w-4 text-gray-400 shrink-0" />
-                                )}
-                                {folder ? (
-                                  <button
-                                    onClick={() => openFolder(key)}
-                                    className="text-indigo-600 hover:text-indigo-800 font-mono text-xs hover:underline"
-                                  >
-                                    {displayLabel}
-                                  </button>
-                                ) : (
-                                  <span className="font-mono text-xs text-gray-700">{displayLabel}</span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-4 py-2.5 text-xs text-gray-500">{folder ? "—" : formatSize(item.Size)}</td>
-                            <td className="px-4 py-2.5 text-xs text-gray-500">{formatDate(item.LastModified)}</td>
-                            <td className="px-4 py-2.5 text-right">
-                              {!folder && (
-                                <div className="flex items-center justify-end space-x-1">
-                                  <button
-                                    onClick={() => setFileViewer({ bucketName: selectedBucket, objectKey: key })}
-                                    className="p-1.5 text-gray-400 hover:text-indigo-600 transition-colors"
-                                    title="View file"
-                                  >
-                                    <EyeIcon className="h-4 w-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteObject(key)}
-                                    className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
-                                    title="Delete file"
-                                  >
-                                    <TrashIcon className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              )}
-                            </td>
-                          </tr>
+                          <button
+                            key={`${key}-${i}`}
+                            type="button"
+                            onClick={() => openFolder(key)}
+                            className="grid w-full grid-cols-[22px_1fr_120px_110px_96px] gap-3 items-center h-9 px-3.5 border-b border-divider text-left hover:bg-surface-2 transition-colors"
+                          >
+                            <span />
+                            <span className="flex items-center gap-2 min-w-0">
+                              <Icon icon="lucide:folder" width={14} className="shrink-0 text-muted" />
+                              <span className="truncate font-mono text-[13px] text-ink">{displayLabel}/</span>
+                            </span>
+                            <span className="text-xs text-faint">prefix</span>
+                            <span className="text-xs text-faint">{folderObjectCount(key)} objects</span>
+                            <span className="text-xs text-muted">—</span>
+                          </button>
                         );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      }
+
+                      const selected = selectedKey === key;
+                      const typeInfo = getFileTypeInfo(key);
+
+                      return (
+                        <div
+                          key={`${key}-${i}`}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setSelectedKey(key)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") setSelectedKey(key);
+                          }}
+                          className={`group grid grid-cols-[22px_1fr_120px_110px_96px] gap-3 items-center h-9 px-3.5 border-b border-divider cursor-pointer transition-colors ${
+                            selected ? "bg-primary-soft" : "hover:bg-surface-2"
+                          }`}
+                        >
+                          <span className="flex items-center justify-center">
+                            {selected ? (
+                              <span className="flex items-center justify-center w-3.5 h-3.5 rounded bg-primary text-white">
+                                <Icon icon="lucide:check" width={10} />
+                              </span>
+                            ) : (
+                              <span className="w-3.5 h-3.5 rounded border border-border-strong bg-surface" />
+                            )}
+                          </span>
+                          <span className="flex items-center gap-2 min-w-0">
+                            <Icon
+                              icon={typeInfo.icon}
+                              width={14}
+                              className={`shrink-0 ${selected ? "text-primary" : "text-muted"}`}
+                            />
+                            <span
+                              className={`truncate font-mono text-[13px] ${
+                                selected ? "text-primary-ink" : "text-ink"
+                              }`}
+                            >
+                              {displayLabel}
+                            </span>
+                          </span>
+                          <span
+                            className={`truncate font-mono text-[11px] ${
+                              selected ? "text-primary" : "text-muted"
+                            }`}
+                          >
+                            {typeInfo.label}
+                          </span>
+                          <span className={`text-xs ${selected ? "text-primary" : "text-muted"}`}>
+                            {formatSize(item.Size)}
+                          </span>
+                          <span
+                            className={`flex items-center justify-between gap-1 text-xs ${
+                              selected ? "text-primary" : "text-muted"
+                            }`}
+                          >
+                            <span className="truncate">{formatDate(item.LastModified)}</span>
+                            <span className="hidden shrink-0 items-center gap-0.5 group-hover:flex">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setFileViewer({ bucketName: selectedBucket, objectKey: key });
+                                }}
+                                className="p-1 rounded text-faint hover:text-primary hover:bg-surface-3"
+                                title="View file"
+                                aria-label="View file"
+                              >
+                                <Icon icon="lucide:eye" width={13} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteObject(key);
+                                }}
+                                className="p-1 rounded text-faint hover:text-danger hover:bg-danger-soft"
+                                title="Delete file"
+                                aria-label="Delete file"
+                              >
+                                <Icon icon="lucide:trash-2" width={13} />
+                              </button>
+                            </span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </Card>
+
+              {/* Details panel */}
+              <div className="flex flex-col gap-4">
+                <Card className="overflow-hidden">
+                  {selectedItem ? (
+                    <>
+                      <div className="flex items-center gap-2.5 px-3.5 py-3 border-b border-divider">
+                        <Icon
+                          icon={getFileTypeInfo(selectedItem.Key || "").icon}
+                          width={16}
+                          className="shrink-0 text-muted"
+                        />
+                        <span className="truncate font-mono text-[13px] font-medium text-ink">
+                          {(selectedItem.Key || "").slice(currentPath.length)}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1.5 px-3.5 py-3">
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-muted">Type</span>
+                          <span className="font-mono text-ink-2">
+                            {getFileTypeInfo(selectedItem.Key || "").label}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-muted">Size</span>
+                          <span className="font-mono text-ink-2">{formatSize(selectedItem.Size)}</span>
+                        </div>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-muted">Modified</span>
+                          <span className="font-mono text-ink-2">{formatDate(selectedItem.LastModified)}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 px-3.5 py-3 border-t border-divider">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          icon="lucide:eye"
+                          onClick={() =>
+                            setFileViewer({ bucketName: selectedBucket, objectKey: selectedItem.Key || "" })
+                          }
+                        >
+                          Preview
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          icon="lucide:trash-2"
+                          className="ml-auto"
+                          onClick={() => handleDeleteObject(selectedItem.Key || "")}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center px-6 py-10 text-center">
+                      <Icon icon="lucide:file" width={28} className="mb-2 text-faint" />
+                      <p className="text-xs text-muted">Select an object to see its details.</p>
+                    </div>
+                  )}
+                </Card>
+
+                {selectedItem && (
+                  <Card className="flex flex-col gap-2.5 p-3.5">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-faint">
+                      Read it from your app
+                    </span>
+                    <pre className="m-0 overflow-auto rounded-lg border border-border bg-surface-2 p-2.5 font-mono text-[11px] leading-relaxed text-ink-2">
+{`await s3.send(new GetObjectCommand({
+  Bucket: "${selectedBucket}",
+  Key: "${selectedItem.Key || ""}",
+}));`}
+                    </pre>
+                    <Link href="/s3" className="text-[11px] font-medium">
+                      Full connection guide →
+                    </Link>
+                  </Card>
+                )}
+              </div>
             </div>
           )}
-        </main>
-      </div>
+        </div>
+      </main>
 
       {/* Modals */}
       <S3ConfigModal

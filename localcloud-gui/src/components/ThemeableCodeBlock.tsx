@@ -5,14 +5,16 @@ import hljs from "highlight.js";
 import { highlightThemes, HighlightTheme } from "./highlightThemes";
 import { usePreferences } from "@/context/PreferencesContext";
 import type { HighlightTheme as ProfileHighlightTheme } from "@/types";
-import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
+import { IconButton } from "./ui";
 
 import "highlight.js/lib/languages/javascript";
 import "highlight.js/lib/languages/typescript";
 import "highlight.js/lib/languages/python";
 import "highlight.js/lib/languages/bash";
 import "highlight.js/lib/languages/php";
+import "highlight.js/lib/languages/go";
+import "highlight.js/lib/languages/java";
 
 const THEME_LINK_ID = "hljs-theme-docs";
 
@@ -29,6 +31,8 @@ const languageMap: Record<string, string> = {
   laravel: "php",
   django: "python",
   flask: "python",
+  go: "go",
+  java: "java",
 };
 
 interface ThemeableCodeBlockProps {
@@ -94,7 +98,7 @@ export default function ThemeableCodeBlock({
           <>
             <label
               htmlFor="samples-theme-select"
-              className="text-xs font-medium text-gray-600"
+              className="text-xs font-medium text-muted"
             >
               Theme:
             </label>
@@ -106,7 +110,7 @@ export default function ThemeableCodeBlock({
                 setSelectedTheme(theme);
                 updateProfile({ highlight_theme: theme as ProfileHighlightTheme }).catch(() => {});
               }}
-              className="text-sm border border-gray-300 rounded px-2 py-1 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="text-xs border border-border-strong rounded-md px-2 py-1 bg-surface text-ink outline-none focus:border-primary focus:ring-3 focus:ring-focus"
             >
               {Object.keys(highlightThemes).map((key) => (
                 <option key={key} value={key}>
@@ -117,13 +121,7 @@ export default function ThemeableCodeBlock({
           </>
         )}
         {showCopyButton && (
-        <button
-          onClick={copy}
-          className="p-1.5 rounded text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-          title="Copy"
-        >
-          <ClipboardDocumentIcon className="h-4 w-4" />
-        </button>
+          <IconButton icon="lucide:copy" variant="outline" size="sm" label="Copy" onClick={copy} />
         )}
       </div>
       )}

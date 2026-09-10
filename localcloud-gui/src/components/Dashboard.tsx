@@ -8,6 +8,8 @@ import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayCo
 import { Icon } from "@iconify/react";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import { Button, StatusDot } from "@/components/ui";
+import type { StatusTone } from "@/components/ui";
 import ResourceList from "./ResourceList";
 
 import Link from "next/link";
@@ -52,6 +54,7 @@ export default function Dashboard() {
     postgres,
     keycloak,
     loading,
+    refreshing,
     error,
     refetch: loadInitialData,
   } = useServicesData();
@@ -572,17 +575,17 @@ export default function Dashboard() {
     onAfterProjectSwitch: loadInitialData,
   };
 
-  const serviceStatusClass = (status: string) => {
-    if (status === "running") return "bg-green-100 text-green-800";
-    if (status === "starting") return "bg-yellow-100 text-yellow-700";
-    if (status === "failed") return "bg-red-100 text-red-800";
-    return "bg-gray-100 text-gray-600";
+  const serviceTone = (status: string): StatusTone => {
+    if (status === "running") return "success";
+    if (status === "starting") return "warn";
+    if (status === "failed") return "danger";
+    return "neutral";
   };
-  const serviceDotClass = (status: string) => {
-    if (status === "running") return "bg-green-500";
-    if (status === "starting") return "bg-yellow-400 animate-pulse";
-    if (status === "failed") return "bg-red-500";
-    return "bg-gray-400";
+  const serviceTextTone: Record<StatusTone, string> = {
+    success: "text-ink-2",
+    warn: "text-warn-ink",
+    danger: "text-danger-ink",
+    neutral: "text-muted",
   };
   const serviceLabel = (status: string) => {
     if (status === "running") return "Running";
@@ -791,18 +794,15 @@ export default function Dashboard() {
           key="error"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex items-center justify-center min-h-screen bg-linear-to-br from-red-50 to-pink-100"
+          className="flex items-center justify-center min-h-screen bg-bg"
         >
           <div className="text-center">
-            <div className="text-red-600 text-6xl mb-4">⚠️</div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Failed to Load Data</h2>
-            <p className="text-gray-600 mb-4">{error.message}</p>
-            <button
-              onClick={loadInitialData}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
+            <Icon icon="lucide:alert-triangle" width={48} className="text-danger mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-ink mb-2">Failed to Load Data</h2>
+            <p className="text-muted mb-4">{error.message}</p>
+            <Button variant="primary" onClick={loadInitialData}>
               Retry
-            </button>
+            </Button>
           </div>
         </motion.div>
       </AnimatePresence>
@@ -811,7 +811,7 @@ export default function Dashboard() {
 
   return (
     <DashboardNavProvider actions={dashboardNavActions}>
-      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen bg-bg">
         <DashboardNavBar activePage="dashboard" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -820,75 +820,87 @@ export default function Dashboard() {
         {loading ? (
           <ServicesBarSkeleton />
         ) : (
-        <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center flex-wrap gap-y-2 gap-x-0">
+        <div className="mb-6 bg-surface rounded-lg shadow-e1 border border-border px-2 py-2 flex items-center flex-wrap gap-y-1">
 
           {/* Keycloak */}
-          <Link href="/keycloak" className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="Keycloak">
-            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${serviceDotClass(keycloak.status)}`} />
-            <span className="text-sm font-medium text-gray-700">Keycloak</span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(keycloak.status)}`}>
+          <Link href="/keycloak" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-3 transition-colors" title="Keycloak">
+            <StatusDot tone={serviceTone(keycloak.status)} pulse={keycloak.status === "starting"} />
+            <span className="text-xs font-medium text-ink-2">Keycloak</span>
+            <span className={`text-[11px] font-medium ${serviceTextTone[serviceTone(keycloak.status)]}`}>
               {serviceLabel(keycloak.status)}
             </span>
           </Link>
 
-          <div className="h-4 w-px bg-gray-200" />
+          <div className="h-4 w-px bg-border" />
 
           {/* AWS Emulator */}
-          <div className="flex items-center space-x-2 px-3">
-            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${
-              emulatorStatus.health === "healthy" ? "bg-green-500" :
-              emulatorStatus.health === "unhealthy" ? "bg-red-500" : "bg-gray-400"
-            }`} />
-            <span className="text-sm font-medium text-gray-700">AWS Emulator</span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-              emulatorStatus.running && emulatorStatus.health === "healthy"
-                ? "bg-green-100 text-green-800"
-                : emulatorStatus.running ? "bg-yellow-100 text-yellow-800"
-                : "bg-gray-100 text-gray-600"
-            }`}>
-              {emulatorStatus.running
-                ? emulatorStatus.health === "healthy" ? "Running" : "Unhealthy"
-                : "Stopped"}
+          <div className="flex items-center gap-1.5 px-3 py-1.5" title="AWS Emulator">
+            <StatusDot
+              tone={
+                emulatorStatus.health === "healthy" ? "success" : emulatorStatus.health === "unhealthy" ? "danger" : "neutral"
+              }
+            />
+            <span className="text-xs font-medium text-ink-2">AWS Emulator</span>
+            <span
+              className={`text-[11px] font-medium ${
+                emulatorStatus.running && emulatorStatus.health === "healthy"
+                  ? "text-ink-2"
+                  : emulatorStatus.running
+                    ? "text-warn-ink"
+                    : "text-muted"
+              }`}
+            >
+              {emulatorStatus.running ? (emulatorStatus.health === "healthy" ? "Running" : "Unhealthy") : "Stopped"}
             </span>
           </div>
 
-          <div className="h-4 w-px bg-gray-200" />
+          <div className="h-4 w-px bg-border" />
 
           {/* Mailpit */}
-          <button onClick={() => setShowMailpit(true)} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="Open Mailpit Inbox">
-            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${mailpit.status === "healthy" ? "bg-green-500" : "bg-gray-400"}`} />
-            <span className="text-sm font-medium text-gray-700">Mailpit</span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${mailpit.status === "healthy" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
+          <button onClick={() => setShowMailpit(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-3 transition-colors cursor-pointer" title="Open Mailpit Inbox">
+            <StatusDot tone={mailpit.status === "healthy" ? "success" : "neutral"} />
+            <span className="text-xs font-medium text-ink-2">Mailpit</span>
+            <span className={`text-[11px] font-medium ${mailpit.status === "healthy" ? "text-ink-2" : "text-muted"}`}>
               {mailpit.status === "healthy" ? "Running" : "Unavailable"}
             </span>
             {mailpit.unread > 0 && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-danger-soft text-danger-ink">
                 {mailpit.unread} unread
               </span>
             )}
           </button>
 
-          <div className="h-4 w-px bg-gray-200" />
+          <div className="h-4 w-px bg-border" />
 
           {/* PostgreSQL */}
-          <Link href="/postgres" className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="PostgreSQL">
-            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${serviceDotClass(postgres.status)}`} />
-            <span className="text-sm font-medium text-gray-700">PostgreSQL</span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(postgres.status)}`}>
+          <Link href="/postgres" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-3 transition-colors" title="PostgreSQL">
+            <StatusDot tone={serviceTone(postgres.status)} />
+            <span className="text-xs font-medium text-ink-2">PostgreSQL</span>
+            <span className={`text-[11px] font-medium ${serviceTextTone[serviceTone(postgres.status)]}`}>
               {serviceLabel(postgres.status)}
             </span>
           </Link>
 
-          <div className="h-4 w-px bg-gray-200" />
+          <div className="h-4 w-px bg-border" />
 
           {/* Redis */}
-          <button onClick={() => setShowRedis(true)} className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" title="Open Redis Cache">
-            <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${serviceDotClass(redis.status)}`} />
-            <span className="text-sm font-medium text-gray-700">Redis</span>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${serviceStatusClass(redis.status)}`}>
+          <button onClick={() => setShowRedis(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-3 transition-colors cursor-pointer" title="Open Redis Cache">
+            <StatusDot tone={serviceTone(redis.status)} />
+            <span className="text-xs font-medium text-ink-2">Redis</span>
+            <span className={`text-[11px] font-medium ${serviceTextTone[serviceTone(redis.status)]}`}>
               {serviceLabel(redis.status)}
             </span>
           </button>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="lucide:scroll-text"
+            onClick={() => setShowLogs(true)}
+            className="ml-auto"
+          >
+            System logs
+          </Button>
 
         </div>
         )}
@@ -912,7 +924,7 @@ export default function Dashboard() {
               onAddAPIGateway={() => handleCreateSingleResource("apigateway")}
               onAddSSM={() => handleCreateSingleResource("ssm")}
               onAddIAM={() => setShowIAMConfig(true)}
-              refreshLoading={loading}
+              refreshLoading={refreshing}
               addLoading={createLoading}
               onViewS3={(bucketName) => {
                 setSelectedS3Bucket(bucketName);
@@ -936,20 +948,20 @@ export default function Dashboard() {
               firstResourceLoading={firstResourceLoading}
             />
           ) : (
-            <div className="bg-white rounded-lg shadow border border-gray-200">
+            <div className="bg-surface rounded-xl shadow-e1 border border-border overflow-hidden">
               {/* Same header structure as ResourceList */}
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <div className="px-4 py-3.5 border-b border-divider flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">AWS Resources</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">AWS Emulator is not running</p>
+                  <h3 className="text-[15px] font-semibold text-ink">AWS resources</h3>
+                  <p className="text-[11px] text-muted mt-0.5">AWS Emulator is not running</p>
                 </div>
               </div>
               {/* Stopped state */}
               <div className="px-6 py-14 text-center">
                 <Icon icon="logos:aws" className="w-14 h-14 opacity-10 mx-auto mb-4" />
-                <h4 className="text-sm font-semibold text-gray-700 mb-1">AWS Emulator is stopped</h4>
-                <p className="text-sm text-gray-500 mb-4">Start the stack to manage your AWS resources.</p>
-                <code className="inline-block bg-gray-100 text-gray-700 text-xs font-mono px-3 py-1.5 rounded-md">
+                <h4 className="text-sm font-semibold text-ink-2 mb-1">AWS Emulator is stopped</h4>
+                <p className="text-sm text-muted mb-4">Start the stack to manage your AWS resources.</p>
+                <code className="inline-block bg-surface-2 text-ink-2 text-xs font-mono px-3 py-1.5 rounded-md border border-border">
                   docker compose up -d
                 </code>
               </div>
@@ -960,7 +972,7 @@ export default function Dashboard() {
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-faint">
             LocalCloud Kit v{packageJson.version} • Local Cloud Development Environment
           </p>
         </div>

@@ -201,6 +201,8 @@ export type HighlightTheme =
   | "atom-one-dark"
   | "atom-one-light";
 
+export type ThemePreference = "auto" | "light" | "dark";
+
 export interface Project {
   id: number;
   name: string;
@@ -213,6 +215,7 @@ export interface UserProfile {
   id: number;
   preferred_language: PreferredLanguage;
   highlight_theme: HighlightTheme;
+  theme: ThemePreference;
   display_name: string;
   active_project_id: number | null;
   active_project_name: string | null;

@@ -24,6 +24,7 @@ db.exec(`
     id                 INTEGER PRIMARY KEY DEFAULT 1,
     preferred_language TEXT NOT NULL DEFAULT 'typescript',
     highlight_theme    TEXT NOT NULL DEFAULT 'github-dark',
+    theme              TEXT NOT NULL DEFAULT 'auto',
     display_name       TEXT DEFAULT 'Developer',
     active_project_id  INTEGER REFERENCES projects(id) ON DELETE SET NULL,
     created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -46,6 +47,14 @@ db.exec(`
     fetched_at    DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+
+// Migrate existing databases created before the `theme` column existed
+const profileColumns = db.prepare("PRAGMA table_info(user_profile)").all();
+if (!profileColumns.some((col) => col.name === "theme")) {
+  db.exec(
+    "ALTER TABLE user_profile ADD COLUMN theme TEXT NOT NULL DEFAULT 'auto'"
+  );
+}
 
 // Seed default project
 let defaultProject = db

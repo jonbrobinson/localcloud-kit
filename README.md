@@ -266,6 +266,8 @@ The **Profile** page (`/profile`) includes a **CLI Playbook** for the active pro
 - **Live Monitoring**: Real-time status tracking and health checks
 - **Log Viewer**: Stream logs with filtering and search capabilities
 - **Hot Reloading**: Instant updates during development
+- **Design System**: Consistent IBM Plex typography, indigo accent, and light/dark theming across every screen
+- **Theme Preference**: Auto/Light/Dark toggle from the profile menu, synced across sessions
 
 #### Shell Automation
 
@@ -438,6 +440,7 @@ docker compose up -d --scale api=3 # Scale services
 - **[docs/SETUP_SCRIPTS.md](docs/SETUP_SCRIPTS.md)** — Setup and cleanup scripts
 - **[docs/DOCKER.md](docs/DOCKER.md)** — Container deployment
 - **[docs/CONNECT.md](docs/CONNECT.md)** — AWS SDK integration (JS, Python, Go, Java)
+- **[DESIGN.md](DESIGN.md)** — GUI design system: tokens, components, icons, theming
 
 ### Certificate & Security
 

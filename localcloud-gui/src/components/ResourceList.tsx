@@ -1,24 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Resource } from "@/types";
 import { Icon } from "@iconify/react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  TrashIcon,
-  EyeIcon,
-  PencilSquareIcon,
-  CodeBracketIcon,
-  Cog6ToothIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-  ClipboardDocumentIcon,
-  ArrowPathIcon,
-  PlusIcon,
-  ChevronDownIcon,
-} from "@heroicons/react/24/outline";
+import { Badge, Button, IconButton, SearchInput } from "@/components/ui";
+import type { StatusTone } from "@/components/ui";
 
 interface ResourceListProps {
   resources: Resource[];
@@ -46,11 +33,11 @@ interface ResourceListProps {
 }
 
 const AWS_CATEGORIES = [
-  { name: "Storage", types: ["s3"] },
-  { name: "Database", types: ["dynamodb"] },
-  { name: "Compute", types: ["lambda"] },
-  { name: "Networking", types: ["apigateway"] },
-  { name: "Security & Identity", types: ["iam", "secretsmanager", "ssm"] },
+  { name: "Storage", types: ["s3"] as Resource["type"][] },
+  { name: "Database", types: ["dynamodb"] as Resource["type"][] },
+  { name: "Compute", types: ["lambda"] as Resource["type"][] },
+  { name: "Networking", types: ["apigateway"] as Resource["type"][] },
+  { name: "Security & Identity", types: ["iam", "secretsmanager", "ssm"] as Resource["type"][] },
 ];
 
 const RESOURCE_ICON: Record<string, string> = {
@@ -69,9 +56,68 @@ const RESOURCE_LABEL: Record<string, string> = {
   lambda: "Lambda Function",
   apigateway: "API Gateway",
   ssm: "Parameter Store",
-  iam: "IAM",
+  iam: "IAM Role",
   secretsmanager: "Secrets Manager",
 };
+
+const RESOURCE_GROUP_LABEL: Record<string, string> = {
+  s3: "S3 buckets",
+  dynamodb: "DynamoDB tables",
+  lambda: "Lambda functions",
+  apigateway: "API Gateway APIs",
+  ssm: "Parameter Store",
+  iam: "IAM roles",
+  secretsmanager: "Secrets",
+};
+
+const RESOURCE_DESCRIPTION: Record<string, string> = {
+  s3: "Object storage",
+  dynamodb: "Key-value store",
+  lambda: "Placeholder zip, upload later",
+  apigateway: "REST API",
+  ssm: "Config parameters",
+  iam: "Trust policy required",
+  secretsmanager: "Encrypted secret values",
+};
+
+const STATUS_LABEL: Record<Resource["status"], string> = {
+  active: "Active",
+  creating: "Creating",
+  deleting: "Deleting",
+  error: "Error",
+  unknown: "Unknown",
+};
+
+const STATUS_TONE: Record<Resource["status"], StatusTone> = {
+  active: "success",
+  creating: "warn",
+  deleting: "warn",
+  error: "danger",
+  unknown: "neutral",
+};
+
+const STATUS_PULSE: Record<Resource["status"], boolean> = {
+  active: false,
+  creating: true,
+  deleting: true,
+  error: false,
+  unknown: false,
+};
+
+function formatRelativeTime(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  const diffSec = Math.round((Date.now() - date.getTime()) / 1000);
+  if (diffSec < 60) return "just now";
+  const diffMin = Math.round(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.round(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.round(diffHr / 24);
+  if (diffDay === 1) return "yesterday";
+  if (diffDay < 30) return `${diffDay}d ago`;
+  return date.toLocaleDateString();
+}
 
 interface EmptyStateAction {
   key: string;
@@ -108,48 +154,18 @@ export default function ResourceList({
   const [selectedResources, setSelectedResources] = useState<string[]>([]);
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [copiedArn, setCopiedArn] = useState<string | null>(null);
-  const [showAddMenu, setShowAddMenu] = useState(false);
-  const addMenuRef = useRef<HTMLDivElement>(null);
+  const [showTypePicker, setShowTypePicker] = useState(false);
+  const [filterQuery, setFilterQuery] = useState("");
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
-        setShowAddMenu(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "active":
-        return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
-      case "creating":
-        return <ClockIcon className="h-5 w-5 text-yellow-500" />;
-      case "deleting":
-        return <ClockIcon className="h-5 w-5 text-orange-500" />;
-      case "error":
-        return <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />;
-      default:
-        return <XCircleIcon className="h-5 w-5 text-gray-400" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "text-green-600 bg-green-50 border-green-200";
-      case "creating":
-        return "text-yellow-600 bg-yellow-50 border-yellow-200";
-      case "deleting":
-        return "text-orange-600 bg-orange-50 border-orange-200";
-      case "error":
-        return "text-red-600 bg-red-50 border-red-200";
-      default:
-        return "text-gray-600 bg-gray-50 border-gray-200";
-    }
-  };
+    if (!showTypePicker) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowTypePicker(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [showTypePicker]);
 
   const handleSelectResource = (resourceId: string) => {
     setSelectedResources((prev) =>
@@ -179,18 +195,34 @@ export default function ResourceList({
   const awsTypes = new Set(AWS_CATEGORIES.flatMap((c) => c.types));
   const awsResources = resources.filter((r) => r.project === projectName && awsTypes.has(r.type));
 
+  const filteredAwsResources = useMemo(() => {
+    const query = filterQuery.trim().toLowerCase();
+    if (!query) return awsResources;
+    return awsResources.filter((r) => r.name.toLowerCase().includes(query));
+  }, [awsResources, filterQuery]);
+
   const handleSelectAll = () => {
-    if (selectedResources.length === awsResources.length) {
+    if (selectedResources.length === filteredAwsResources.length) {
       setSelectedResources([]);
     } else {
-      setSelectedResources(awsResources.map((r) => r.id));
+      setSelectedResources(filteredAwsResources.map((r) => r.id));
     }
   };
 
   const getApiId = (r: Resource) => r.details?.apiId || r.id.replace(/^apigateway-/, "");
 
-  const hasAddActions = onAddS3 || onAddDynamoDB || onAddSecrets || onAddLambda || onAddAPIGateway || onAddSSM || onAddIAM;
-  const rowGridTemplate = "1.25rem 2.5rem minmax(0, 1fr) 10rem 8rem 1.75rem";
+  const addHandlers: Partial<Record<Resource["type"], () => void>> = {
+    s3: onAddS3,
+    dynamodb: onAddDynamoDB,
+    lambda: onAddLambda,
+    apigateway: onAddAPIGateway,
+    secretsmanager: onAddSecrets,
+    ssm: onAddSSM,
+    iam: onAddIAM,
+  };
+
+  const hasAddActions = Object.values(addHandlers).some(Boolean);
+  const rowGridTemplate = "1.25rem minmax(0,1fr) 8rem 6rem 6.5rem 5rem";
   const listTransition = { duration: 0.24, ease: "easeOut" as const };
   const emptyStateActions: EmptyStateAction[] = [
     onAddS3
@@ -230,147 +262,72 @@ export default function ResourceList({
         }
       : null,
   ].filter((action): action is EmptyStateAction => action !== null);
-  const viewState = awsResources.length === 0 ? (firstResourceLoading ? "building" : "empty") : "list";
+
+  const viewState =
+    awsResources.length === 0
+      ? firstResourceLoading
+        ? "building"
+        : "empty"
+      : filteredAwsResources.length === 0
+        ? "no-match"
+        : "list";
 
   return (
-    <motion.div layout className="bg-white rounded-lg shadow">
+    <motion.div layout className="bg-surface border border-border rounded-xl shadow-e1 overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium text-gray-900">AWS Resources</h3>
-            <p className="text-xs text-gray-500 mt-0.5">{awsResources.length} resource{awsResources.length !== 1 ? "s" : ""} in &quot;{projectName}&quot;</p>
-          </div>
-          <div className="flex items-center space-x-2">
-            {/* Destroy Selected */}
-            {selectedResources.length > 0 && (
-              <button
-                onClick={handleDestroySelected}
-                disabled={loading}
-                className="flex items-center px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                ) : (
-                  <TrashIcon className="h-4 w-4 mr-2" />
-                )}
-                {loading ? "Destroying..." : `Destroy Selected (${selectedResources.length})`}
-              </button>
-            )}
+      <div className="flex items-center gap-3 px-4 py-3.5 border-b border-divider flex-wrap">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[15px] font-semibold text-ink">AWS resources</span>
+          <span className="text-[11px] text-muted">
+            {awsResources.length} resource{awsResources.length !== 1 ? "s" : ""} in{" "}
+            <span className="font-mono">{projectName}</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 ml-auto">
+          {selectedResources.length > 0 && (
+            <Button variant="danger" size="sm" icon="lucide:trash-2" onClick={handleDestroySelected} loading={loading}>
+              {loading ? "Destroying…" : `Destroy Selected (${selectedResources.length})`}
+            </Button>
+          )}
 
-            {/* Refresh */}
-            {onRefresh && (
-              <button
-                onClick={onRefresh}
-                disabled={refreshLoading}
-                className="p-2 text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
-                title="Refresh resources"
-              >
-                <ArrowPathIcon className={`h-4 w-4 ${refreshLoading ? "animate-spin" : ""}`} />
-              </button>
-            )}
+          <SearchInput
+            placeholder="Filter resources…"
+            value={filterQuery}
+            onChange={(e) => setFilterQuery(e.target.value)}
+            containerClassName="w-44"
+          />
 
-            {/* + Add dropdown */}
-            {hasAddActions && (
-              <div className="relative" ref={addMenuRef}>
-                <button
-                  onClick={() => setShowAddMenu((v) => !v)}
-                  disabled={addLoading}
-                  className="flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                >
-                  <PlusIcon className="h-4 w-4 mr-1.5" />
-                  Add
-                  <ChevronDownIcon className={`h-3.5 w-3.5 ml-1.5 transition-transform ${showAddMenu ? "rotate-180" : ""}`} />
-                </button>
-                {showAddMenu && (
-                  <div className="absolute right-0 mt-1 w-60 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                    {(onAddS3) && (
-                      <>
-                        <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Storage</p>
-                        <button
-                          onClick={() => { onAddS3(); setShowAddMenu(false); }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          <Icon icon="logos:aws-s3" className="w-5 h-5 mr-3 shrink-0" />
-                          S3 Bucket
-                        </button>
-                      </>
-                    )}
-                    {(onAddDynamoDB) && (
-                      <>
-                        <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Database</p>
-                        <button
-                          onClick={() => { onAddDynamoDB(); setShowAddMenu(false); }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          <Icon icon="logos:aws-dynamodb" className="w-5 h-5 mr-3 shrink-0" />
-                          DynamoDB Table
-                        </button>
-                      </>
-                    )}
-                    {(onAddLambda) && (
-                      <>
-                        <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Compute</p>
-                        <button
-                          onClick={() => { onAddLambda(); setShowAddMenu(false); }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          <Icon icon="logos:aws-lambda" className="w-5 h-5 mr-3 shrink-0" />
-                          Lambda Function
-                        </button>
-                      </>
-                    )}
-                    {(onAddAPIGateway) && (
-                      <>
-                        <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Networking</p>
-                        <button
-                          onClick={() => { onAddAPIGateway(); setShowAddMenu(false); }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          <Icon icon="logos:aws-api-gateway" className="w-5 h-5 mr-3 shrink-0" />
-                          API Gateway
-                        </button>
-                      </>
-                    )}
-                    {(onAddSecrets || onAddSSM || onAddIAM) && (
-                      <>
-                        <p className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100 mt-1">Security & Identity</p>
-                        {onAddSecrets && (
-                          <button
-                            onClick={() => { onAddSecrets(); setShowAddMenu(false); }}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <Icon icon="logos:aws-secrets-manager" className="w-5 h-5 mr-3 shrink-0" />
-                            Secrets Manager
-                          </button>
-                        )}
-                        {onAddSSM && (
-                          <button
-                            onClick={() => { onAddSSM(); setShowAddMenu(false); }}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <Icon icon="logos:aws-systems-manager" className="w-5 h-5 mr-3 shrink-0" />
-                            Parameter Store
-                          </button>
-                        )}
-                        {onAddIAM && (
-                          <button
-                            onClick={() => { onAddIAM(); setShowAddMenu(false); }}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <Icon icon="logos:aws-iam" className="w-5 h-5 mr-3 shrink-0" />
-                            IAM Role
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          {onRefresh && (
+            <IconButton
+              icon="lucide:refresh-cw"
+              label="Refresh resources"
+              onClick={onRefresh}
+              loading={refreshLoading}
+            />
+          )}
+
+          {hasAddActions && (
+            <Button variant="primary" size="sm" icon="lucide:plus" onClick={() => setShowTypePicker(true)} disabled={addLoading}>
+              Create resource
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Column labels */}
+      {viewState === "list" && (
+        <div
+          className="grid items-center gap-x-3 px-4 py-2 bg-surface-2 border-b border-divider"
+          style={{ gridTemplateColumns: rowGridTemplate }}
+        >
+          <div />
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-faint">Name</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-faint">Detail</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-faint">Created</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-faint text-center">Status</span>
+          <div />
+        </div>
+      )}
 
       <AnimatePresence initial={false} mode="wait">
         {viewState === "empty" && (
@@ -383,33 +340,29 @@ export default function ResourceList({
             transition={listTransition}
             className="px-6 py-12 min-h-[23rem] flex flex-col justify-center"
           >
-            <h4 className="text-sm font-semibold text-gray-900 mb-1 text-center">No AWS resources yet</h4>
-            <p className="text-sm text-gray-500 text-center">
-              Create resources for your active project.
-            </p>
+            <h4 className="text-sm font-semibold text-ink mb-1 text-center">No AWS resources yet</h4>
+            <p className="text-sm text-muted text-center">Create resources for your active project.</p>
 
             {emptyStateActions.length > 0 && (
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto w-full">
                 {emptyStateActions.map((action) => (
                   <button
                     key={action.key}
                     onClick={action.onClick}
                     disabled={addLoading}
-                    className="flex items-center p-3 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/40 transition-colors disabled:opacity-50"
+                    className="flex items-center p-3 text-left border border-border rounded-lg hover:border-primary hover:bg-primary-soft/40 transition-colors disabled:opacity-50"
                   >
                     <Icon icon={action.icon} className="w-8 h-8 mr-3 shrink-0" />
                     <span className="min-w-0">
-                      <span className="block text-sm font-medium text-gray-900">{action.title}</span>
-                      <span className="block text-xs text-gray-500">{action.description}</span>
+                      <span className="block text-sm font-medium text-ink">{action.title}</span>
+                      <span className="block text-xs text-muted">{action.description}</span>
                     </span>
                   </button>
                 ))}
               </div>
             )}
 
-            <p className="mt-4 text-xs text-gray-500 text-center">
-              Pick any service; there&apos;s no required order.
-            </p>
+            <p className="mt-4 text-xs text-muted text-center">Pick any service; there&apos;s no required order.</p>
           </motion.div>
         )}
 
@@ -423,27 +376,44 @@ export default function ResourceList({
             transition={listTransition}
             className="px-6 py-12 min-h-[23rem] flex flex-col justify-center"
           >
-            <h4 className="text-sm font-semibold text-gray-900 mb-1 text-center">Resource creation in progress...</h4>
-            <p className="text-sm text-gray-500 text-center">
-              Setting up your resource for the active project.
-            </p>
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
+            <h4 className="text-sm font-semibold text-ink mb-1 text-center">Resource creation in progress…</h4>
+            <p className="text-sm text-muted text-center">Setting up your resource for the active project.</p>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto w-full">
               {[0, 1, 2, 3].map((idx) => (
                 <div
                   key={`building-card-${idx}`}
-                  className="flex items-center p-3 border border-gray-200 rounded-lg bg-gray-50/70 animate-pulse"
+                  className="flex items-center p-3 border border-border rounded-lg bg-surface-2 animate-pulse"
                 >
-                  <div className="w-8 h-8 mr-3 rounded bg-gray-200" />
+                  <div className="w-8 h-8 mr-3 rounded bg-skeleton" />
                   <span className="min-w-0 w-full">
-                    <span className="block h-3.5 w-28 bg-gray-200 rounded mb-1.5" />
-                    <span className="block h-3 w-24 bg-gray-100 rounded" />
+                    <span className="block h-3.5 w-28 bg-skeleton rounded mb-1.5" />
+                    <span className="block h-3 w-24 bg-skeleton rounded" />
                   </span>
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-xs text-gray-500 text-center">
-              It will appear here automatically when ready.
-            </p>
+            <p className="mt-4 text-xs text-muted text-center">It will appear here automatically when ready.</p>
+          </motion.div>
+        )}
+
+        {viewState === "no-match" && (
+          <motion.div
+            key="no-match"
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={listTransition}
+            className="px-6 py-12 flex flex-col items-center justify-center gap-2"
+          >
+            <Icon icon="lucide:search-x" width={28} className="text-faint" />
+            <p className="text-sm text-ink font-medium">No resources match &quot;{filterQuery}&quot;</p>
+            <button
+              onClick={() => setFilterQuery("")}
+              className="text-xs font-medium text-primary hover:text-primary-hover cursor-pointer"
+            >
+              Clear filter
+            </button>
           </motion.div>
         )}
 
@@ -459,7 +429,7 @@ export default function ResourceList({
             {/* Category sections */}
             <AnimatePresence initial={false}>
               {AWS_CATEGORIES.map((category, catIndex) => {
-                const categoryResources = awsResources.filter((r) =>
+                const categoryResources = filteredAwsResources.filter((r) =>
                   category.types.includes(r.type)
                 );
                 if (categoryResources.length === 0) return null;
@@ -473,297 +443,281 @@ export default function ResourceList({
                     exit={{ opacity: 0, y: -6 }}
                     transition={listTransition}
                   >
-                    {/* Category header */}
-                    <div className="px-6 py-2 bg-gray-50 border-b border-gray-200 flex items-center space-x-2">
-                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        {category.name}
-                      </span>
-                      <span className="text-xs text-gray-400">({categoryResources.length})</span>
-                    </div>
-
-                    {/* Column labels — only on first category */}
-                    <div
-                      className="grid items-center gap-x-4 px-6 py-2 bg-white border-b border-gray-100"
-                      style={{ gridTemplateColumns: rowGridTemplate }}
-                    >
-                      <div />
-                      <div />
-                      <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Resource</span>
-                      <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Status</span>
-                      <span className="text-xs font-medium text-gray-400 uppercase tracking-wide text-center">Action</span>
-                      <div />
-                    </div>
-
-                    <div className="divide-y divide-gray-100">
-                      <AnimatePresence initial={false}>
-                        {categoryResources.map((resource) => (
-                          <motion.div
-                            key={resource.id}
-                            layout
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -8 }}
-                            transition={listTransition}
-                            className="px-6 py-4"
-                          >
-                            <div
-                              className="grid items-center gap-x-4"
-                              style={{ gridTemplateColumns: rowGridTemplate }}
-                            >
-                        {/* Checkbox */}
-                        <input
-                          type="checkbox"
-                          checked={selectedResources.includes(resource.id)}
-                          onChange={() => handleSelectResource(resource.id)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-
-                        {/* AWS icon */}
-                        <div className="flex items-center justify-center">
-                          <Icon
-                            icon={RESOURCE_ICON[resource.type] || "logos:aws"}
-                            className="w-6 h-6"
-                          />
-                        </div>
-
-                        {/* Name + type */}
-                        <div className="min-w-0">
-                          <h4 className="text-sm font-medium text-gray-900 break-words leading-5">
-                            {resource.name}
-                          </h4>
-                          <p className="text-xs text-gray-500 break-words">
-                            {RESOURCE_LABEL[resource.type] || resource.type} · {resource.project}
-                          </p>
-                        </div>
-
-                        {/* Status badge */}
-                        <div>
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(resource.status)}`}
-                          >
-                            {getStatusIcon(resource.status)}
-                            <span className="ml-1 capitalize">{resource.status}</span>
-                          </span>
-                        </div>
-
-                        {/* Action button */}
-                        <div className="flex justify-center">
-                          {resource.status === "active" && (
-                            <>
-                              {resource.type === "s3" && onViewS3 && (
-                                <button
-                                  onClick={() => onViewS3(resource.name)}
-                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                                  title="Browse S3 Bucket"
-                                >
-                                  <EyeIcon className="h-3 w-3 mr-1 shrink-0" />
-                                  Open
-                                </button>
-                              )}
-                              {resource.type === "dynamodb" && onViewDynamoDB && (
-                                <button
-                                  onClick={() => onViewDynamoDB(resource.name)}
-                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                                  title="Browse DynamoDB Table"
-                                >
-                                  <EyeIcon className="h-3 w-3 mr-1 shrink-0" />
-                                  Open
-                                </button>
-                              )}
-                              {resource.type === "secretsmanager" && onViewSecretsManager && (
-                                <button
-                                  onClick={() => onViewSecretsManager(resource.name)}
-                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                                  title="View secret"
-                                >
-                                  <EyeIcon className="h-3 w-3 mr-1 shrink-0" />
-                                  View
-                                </button>
-                              )}
-                              {resource.type === "ssm" && onEditSSM && (
-                                <button
-                                  onClick={() => onEditSSM(resource.name)}
-                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                                  title="Edit parameter"
-                                >
-                                  <PencilSquareIcon className="h-3 w-3 mr-1 shrink-0" />
-                                  Edit
-                                </button>
-                              )}
-                              {resource.type === "lambda" && onViewLambdaCode && (
-                                <button
-                                  onClick={() => onViewLambdaCode(resource.name)}
-                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                                  title="View code"
-                                >
-                                  <CodeBracketIcon className="h-3 w-3 mr-1 shrink-0" />
-                                  Code
-                                </button>
-                              )}
-                              {resource.type === "iam" && onViewIAMRole && (
-                                <button
-                                  onClick={() => onViewIAMRole(resource.name)}
-                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                                  title="View role policies"
-                                >
-                                  <EyeIcon className="h-3 w-3 mr-1 shrink-0" />
-                                  Policies
-                                </button>
-                              )}
-                              {resource.type === "apigateway" && onConfigureAPIGateway && (
-                                <button
-                                  onClick={() => onConfigureAPIGateway(getApiId(resource), resource.name)}
-                                  className="w-full flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
-                                  title="Configure API"
-                                >
-                                  <Cog6ToothIcon className="h-3 w-3 mr-1 shrink-0" />
-                                  Config
-                                </button>
-                              )}
-                            </>
-                          )}
-                        </div>
-
-                        {/* Details toggle */}
-                        <div className="flex justify-center">
-                          <button
-                            onClick={() =>
-                              setShowDetails(showDetails === resource.id ? null : resource.id)
-                            }
-                            className={`text-gray-400 hover:text-gray-600 transition-colors ${showDetails === resource.id ? "text-gray-600" : ""}`}
-                            title="Show Details"
-                          >
-                            <EyeIcon className="h-4 w-4" />
-                          </button>
-                        </div>
-                            </div>
-
-                            {/* Resource Details */}
-                            <AnimatePresence initial={false}>
-                              {showDetails === resource.id && (
-                                <motion.div
-                                  layout
-                                  initial={{ opacity: 0, height: 0 }}
-                                  animate={{ opacity: 1, height: "auto" }}
-                                  exit={{ opacity: 0, height: 0 }}
-                                  transition={listTransition}
-                                  className="mt-4 pl-8 border-l-2 border-gray-200 overflow-hidden"
-                                >
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <dt className="font-medium text-gray-500">Resource ID</dt>
-                              <dd className="text-gray-900 font-mono">{resource.id}</dd>
-                            </div>
-                            <div>
-                              <dt className="font-medium text-gray-500">Created</dt>
-                              <dd className="text-gray-900">
-                                {new Date(resource.createdAt).toLocaleString()}
-                              </dd>
-                            </div>
-
-                            {resource.type === "secretsmanager" && resource.details && (
-                              <>
-                                <div>
-                                  <dt className="font-medium text-gray-500">ARN</dt>
-                                  <dd className="text-gray-900 font-mono text-sm break-all">
-                                    <div className="flex items-center space-x-2">
-                                      <code className="flex-1 min-w-0">
-                                        {resource.details.arn}
-                                      </code>
-                                      <button
-                                        onClick={() =>
-                                          resource.details?.arn &&
-                                          copyArnToClipboard(resource.details.arn)
-                                        }
-                                        className="shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                                        title="Copy ARN"
-                                      >
-                                        <ClipboardDocumentIcon className="h-4 w-4" />
-                                      </button>
-                                    </div>
-                                    {copiedArn === resource.details.arn && (
-                                      <p className="text-xs text-green-600 mt-1">
-                                        ✓ Copied to clipboard
-                                      </p>
-                                    )}
-                                  </dd>
-                                </div>
-                                {resource.details.description && (
-                                  <div>
-                                    <dt className="font-medium text-gray-500">Description</dt>
-                                    <dd className="text-gray-900">{resource.details.description}</dd>
-                                  </div>
-                                )}
-                                <div>
-                                  <dt className="font-medium text-gray-500">Last Changed</dt>
-                                  <dd className="text-gray-900">
-                                    {new Date(resource.details.lastChangedDate).toLocaleString()}
-                                  </dd>
-                                </div>
-                              </>
-                            )}
-
-                            {resource.type === "iam" && resource.details && (
-                              <>
-                                {resource.details.arn && (
-                                  <div>
-                                    <dt className="font-medium text-gray-500">ARN</dt>
-                                    <dd className="text-gray-900 font-mono text-sm break-all">
-                                      <div className="flex items-center space-x-2">
-                                        <code className="flex-1 min-w-0">{resource.details.arn}</code>
-                                        <button
-                                          onClick={() => resource.details?.arn && copyArnToClipboard(resource.details.arn)}
-                                          className="shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                                          title="Copy ARN"
-                                        >
-                                          <ClipboardDocumentIcon className="h-4 w-4" />
-                                        </button>
-                                      </div>
-                                      {copiedArn === resource.details.arn && (
-                                        <p className="text-xs text-green-600 mt-1">✓ Copied to clipboard</p>
-                                      )}
-                                    </dd>
-                                  </div>
-                                )}
-                                {resource.details.trustService && (
-                                  <div>
-                                    <dt className="font-medium text-gray-500">Trusted Service</dt>
-                                    <dd className="text-gray-900 font-mono text-sm">{resource.details.trustService}.amazonaws.com</dd>
-                                  </div>
-                                )}
-                                {resource.details.description && (
-                                  <div>
-                                    <dt className="font-medium text-gray-500">Description</dt>
-                                    <dd className="text-gray-900">{resource.details.description}</dd>
-                                  </div>
-                                )}
-                                {resource.details.path && (
-                                  <div>
-                                    <dt className="font-medium text-gray-500">Path</dt>
-                                    <dd className="text-gray-900 font-mono text-sm">{resource.details.path}</dd>
-                                  </div>
-                                )}
-                              </>
-                            )}
-
-                            {resource.type !== "secretsmanager" && resource.type !== "iam" &&
-                              resource.details &&
-                              Object.entries(resource.details).map(([key, value], detailIdx) => (
-                                <div key={`${resource.id}-detail-${key}-${detailIdx}`}>
-                                  <dt className="font-medium text-gray-500 capitalize">
-                                    {key.replace(/([A-Z])/g, " $1")}
-                                  </dt>
-                                  <dd className="text-gray-900">{String(value)}</dd>
-                                </div>
-                              ))}
+                    {/* Group headers — one per resource type present */}
+                    {category.types.map((type) => {
+                      const typeResources = categoryResources.filter((r) => r.type === type);
+                      if (typeResources.length === 0) return null;
+                      return (
+                        <div key={type}>
+                          <div className="flex items-center gap-2 px-4 py-1.5 bg-surface-2 border-b border-divider border-t border-t-divider first:border-t-0">
+                            <Icon icon={RESOURCE_ICON[type] || "logos:aws"} width={14} />
+                            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+                              {RESOURCE_GROUP_LABEL[type] || type}
+                            </span>
+                            <span className="font-mono text-[11px] text-faint">{typeResources.length}</span>
                           </div>
+
+                          <div className="divide-y divide-divider">
+                            <AnimatePresence initial={false}>
+                              {typeResources.map((resource) => (
+                                <motion.div
+                                  key={resource.id}
+                                  layout
+                                  initial={{ opacity: 0, y: 8 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -8 }}
+                                  transition={listTransition}
+                                  className="px-4 py-3"
+                                >
+                                  <div
+                                    className="grid items-center gap-x-3"
+                                    style={{ gridTemplateColumns: rowGridTemplate }}
+                                  >
+                                    {/* Checkbox */}
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedResources.includes(resource.id)}
+                                      onChange={() => handleSelectResource(resource.id)}
+                                      className="h-3.5 w-3.5 accent-primary border-border-strong rounded"
+                                    />
+
+                                    {/* Name */}
+                                    <div className="min-w-0">
+                                      <p className="font-mono text-[13px] text-ink truncate">{resource.name}</p>
+                                    </div>
+
+                                    {/* Detail */}
+                                    <span className="text-xs text-muted truncate">
+                                      {RESOURCE_LABEL[resource.type] || resource.type}
+                                    </span>
+
+                                    {/* Created */}
+                                    <span
+                                      className="text-xs text-muted truncate"
+                                      title={new Date(resource.createdAt).toLocaleString()}
+                                    >
+                                      {formatRelativeTime(resource.createdAt)}
+                                    </span>
+
+                                    {/* Status badge */}
+                                    <div className="flex justify-center">
+                                      <Badge tone={STATUS_TONE[resource.status]} pulse={STATUS_PULSE[resource.status]}>
+                                        {STATUS_LABEL[resource.status] || resource.status}
+                                      </Badge>
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex items-center justify-center gap-1">
+                                      {resource.status === "active" && (
+                                        <>
+                                          {resource.type === "s3" && onViewS3 && (
+                                            <IconButton
+                                              icon="lucide:eye"
+                                              label="Browse S3 bucket"
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => onViewS3(resource.name)}
+                                            />
+                                          )}
+                                          {resource.type === "dynamodb" && onViewDynamoDB && (
+                                            <IconButton
+                                              icon="lucide:eye"
+                                              label="Browse DynamoDB table"
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => onViewDynamoDB(resource.name)}
+                                            />
+                                          )}
+                                          {resource.type === "secretsmanager" && onViewSecretsManager && (
+                                            <IconButton
+                                              icon="lucide:eye"
+                                              label="View secret"
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => onViewSecretsManager(resource.name)}
+                                            />
+                                          )}
+                                          {resource.type === "ssm" && onEditSSM && (
+                                            <IconButton
+                                              icon="lucide:pencil"
+                                              label="Edit parameter"
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => onEditSSM(resource.name)}
+                                            />
+                                          )}
+                                          {resource.type === "lambda" && onViewLambdaCode && (
+                                            <IconButton
+                                              icon="lucide:code"
+                                              label="View code"
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => onViewLambdaCode(resource.name)}
+                                            />
+                                          )}
+                                          {resource.type === "iam" && onViewIAMRole && (
+                                            <IconButton
+                                              icon="lucide:shield-check"
+                                              label="View role policies"
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => onViewIAMRole(resource.name)}
+                                            />
+                                          )}
+                                          {resource.type === "apigateway" && onConfigureAPIGateway && (
+                                            <IconButton
+                                              icon="lucide:settings"
+                                              label="Configure API"
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => onConfigureAPIGateway(getApiId(resource), resource.name)}
+                                            />
+                                          )}
+                                        </>
+                                      )}
+                                      <IconButton
+                                        icon={showDetails === resource.id ? "lucide:chevron-up" : "lucide:chevron-down"}
+                                        label="Toggle details"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                          setShowDetails(showDetails === resource.id ? null : resource.id)
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* Resource details */}
+                                  <AnimatePresence initial={false}>
+                                    {showDetails === resource.id && (
+                                      <motion.div
+                                        layout
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        transition={listTransition}
+                                        className="mt-3 pl-6 border-l-2 border-divider overflow-hidden"
+                                      >
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                          <div>
+                                            <dt className="font-medium text-muted text-xs">Resource ID</dt>
+                                            <dd className="text-ink font-mono text-xs break-all">{resource.id}</dd>
+                                          </div>
+                                          <div>
+                                            <dt className="font-medium text-muted text-xs">Created</dt>
+                                            <dd className="text-ink text-xs">
+                                              {new Date(resource.createdAt).toLocaleString()}
+                                            </dd>
+                                          </div>
+
+                                          {resource.type === "secretsmanager" && resource.details && (
+                                            <>
+                                              <div>
+                                                <dt className="font-medium text-muted text-xs">ARN</dt>
+                                                <dd className="text-ink font-mono text-xs break-all">
+                                                  <div className="flex items-center gap-2">
+                                                    <code className="flex-1 min-w-0">{resource.details.arn}</code>
+                                                    <button
+                                                      onClick={() =>
+                                                        resource.details?.arn &&
+                                                        copyArnToClipboard(resource.details.arn)
+                                                      }
+                                                      className="shrink-0 p-1 text-faint hover:text-ink transition-colors cursor-pointer"
+                                                      title="Copy ARN"
+                                                    >
+                                                      <Icon icon="lucide:copy" width={14} />
+                                                    </button>
+                                                  </div>
+                                                  {copiedArn === resource.details.arn && (
+                                                    <p className="text-xs text-success-ink mt-1">Copied to clipboard</p>
+                                                  )}
+                                                </dd>
+                                              </div>
+                                              {resource.details.description && (
+                                                <div>
+                                                  <dt className="font-medium text-muted text-xs">Description</dt>
+                                                  <dd className="text-ink text-xs">{resource.details.description}</dd>
+                                                </div>
+                                              )}
+                                              <div>
+                                                <dt className="font-medium text-muted text-xs">Last Changed</dt>
+                                                <dd className="text-ink text-xs">
+                                                  {new Date(resource.details.lastChangedDate).toLocaleString()}
+                                                </dd>
+                                              </div>
+                                            </>
+                                          )}
+
+                                          {resource.type === "iam" && resource.details && (
+                                            <>
+                                              {resource.details.arn && (
+                                                <div>
+                                                  <dt className="font-medium text-muted text-xs">ARN</dt>
+                                                  <dd className="text-ink font-mono text-xs break-all">
+                                                    <div className="flex items-center gap-2">
+                                                      <code className="flex-1 min-w-0">{resource.details.arn}</code>
+                                                      <button
+                                                        onClick={() =>
+                                                          resource.details?.arn &&
+                                                          copyArnToClipboard(resource.details.arn)
+                                                        }
+                                                        className="shrink-0 p-1 text-faint hover:text-ink transition-colors cursor-pointer"
+                                                        title="Copy ARN"
+                                                      >
+                                                        <Icon icon="lucide:copy" width={14} />
+                                                      </button>
+                                                    </div>
+                                                    {copiedArn === resource.details.arn && (
+                                                      <p className="text-xs text-success-ink mt-1">Copied to clipboard</p>
+                                                    )}
+                                                  </dd>
+                                                </div>
+                                              )}
+                                              {resource.details.trustService && (
+                                                <div>
+                                                  <dt className="font-medium text-muted text-xs">Trusted Service</dt>
+                                                  <dd className="text-ink font-mono text-xs">
+                                                    {resource.details.trustService}.amazonaws.com
+                                                  </dd>
+                                                </div>
+                                              )}
+                                              {resource.details.description && (
+                                                <div>
+                                                  <dt className="font-medium text-muted text-xs">Description</dt>
+                                                  <dd className="text-ink text-xs">{resource.details.description}</dd>
+                                                </div>
+                                              )}
+                                              {resource.details.path && (
+                                                <div>
+                                                  <dt className="font-medium text-muted text-xs">Path</dt>
+                                                  <dd className="text-ink font-mono text-xs">{resource.details.path}</dd>
+                                                </div>
+                                              )}
+                                            </>
+                                          )}
+
+                                          {resource.type !== "secretsmanager" &&
+                                            resource.type !== "iam" &&
+                                            resource.details &&
+                                            Object.entries(resource.details).map(([key, value], detailIdx) => (
+                                              <div key={`${resource.id}-detail-${key}-${detailIdx}`}>
+                                                <dt className="font-medium text-muted text-xs capitalize">
+                                                  {key.replace(/([A-Z])/g, " $1")}
+                                                </dt>
+                                                <dd className="text-ink text-xs">{String(value)}</dd>
+                                              </div>
+                                            ))}
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
                                 </motion.div>
-                              )}
+                              ))}
                             </AnimatePresence>
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                    </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </motion.div>
                 );
               })}
@@ -771,7 +725,7 @@ export default function ResourceList({
 
             {/* Select All footer */}
             <AnimatePresence initial={false}>
-              {awsResources.length > 0 && (
+              {filteredAwsResources.length > 0 && (
                 <motion.div
                   key="select-all-footer"
                   layout
@@ -779,22 +733,100 @@ export default function ResourceList({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 6 }}
                   transition={listTransition}
-                  className="px-6 py-3 bg-gray-50 border-t border-gray-200"
+                  className="flex items-center gap-3 px-4 py-2.5 bg-surface-2 border-t border-border"
                 >
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedResources.length === awsResources.length && awsResources.length > 0}
-                      onChange={handleSelectAll}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <span className="text-sm text-gray-700">
-                      Select all ({awsResources.length} resource{awsResources.length !== 1 ? "s" : ""})
-                    </span>
-                  </div>
+                  <input
+                    type="checkbox"
+                    checked={
+                      selectedResources.length === filteredAwsResources.length && filteredAwsResources.length > 0
+                    }
+                    onChange={handleSelectAll}
+                    className="h-3.5 w-3.5 accent-primary border-border-strong rounded"
+                  />
+                  <span className="text-xs text-muted">
+                    {selectedResources.length > 0
+                      ? `${selectedResources.length} selected`
+                      : `Select all (${filteredAwsResources.length} resource${filteredAwsResources.length !== 1 ? "s" : ""})`}
+                  </span>
                 </motion.div>
               )}
             </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Resource type picker */}
+      <AnimatePresence>
+        {showTypePicker && (
+          <motion.div
+            key="type-picker-scrim"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-scrim px-6 py-10"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) setShowTypePicker(false);
+            }}
+          >
+            <motion.div
+              ref={pickerRef}
+              initial={{ opacity: 0, y: -8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+              transition={{ duration: 0.15 }}
+              className="w-full max-w-md bg-surface border border-border rounded-xl shadow-e3 overflow-hidden"
+            >
+              <div className="flex items-start gap-2.5 px-4 py-3.5 border-b border-divider">
+                <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-soft text-primary shrink-0">
+                  <Icon icon="lucide:plus" width={17} />
+                </span>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="text-[15px] font-semibold text-ink">Create resource</span>
+                  <span className="text-[11px] text-muted truncate">
+                    Into <span className="font-mono">{projectName}</span>
+                  </span>
+                </div>
+                <IconButton
+                  icon="lucide:x"
+                  label="Close"
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto shrink-0"
+                  onClick={() => setShowTypePicker(false)}
+                />
+              </div>
+
+              <div className="p-1.5 max-h-[70vh] overflow-y-auto">
+                {AWS_CATEGORIES.map((category) => {
+                  const items = category.types.filter((type) => addHandlers[type]);
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={category.name}>
+                      <div className="px-2.5 pt-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-faint">
+                        {category.name}
+                      </div>
+                      {items.map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => {
+                            addHandlers[type]?.();
+                            setShowTypePicker(false);
+                          }}
+                          className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-lg text-left hover:bg-surface-3 transition-colors cursor-pointer"
+                        >
+                          <Icon icon={RESOURCE_ICON[type]} width={17} className="shrink-0" />
+                          <span className="flex flex-col gap-0.5 min-w-0">
+                            <span className="text-[13px] font-medium text-ink">{RESOURCE_LABEL[type]}</span>
+                            <span className="text-[11px] text-muted truncate">{RESOURCE_DESCRIPTION[type]}</span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

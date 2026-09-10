@@ -1,15 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { CodeBracketIcon, CommandLineIcon } from "@heroicons/react/24/outline";
-import { usePreferences } from "@/context/PreferencesContext";
-import hljs from "highlight.js";
-
-// Import language support
-import "highlight.js/lib/languages/javascript";
-import "highlight.js/lib/languages/python";
-import "highlight.js/lib/languages/go";
-import "highlight.js/lib/languages/java";
+import { useEffect, useRef, useState } from "react";
+import { Icon } from "@iconify/react";
+import { toast } from "react-hot-toast";
+import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
+import { Button, IconButton } from "@/components/ui";
 
 interface CodeExample {
   language: string;
@@ -17,110 +12,6 @@ interface CodeExample {
   code: string;
   description: string;
 }
-
-const themeMap: Record<string, string> = {
-  hljs: "github.css",
-  "hljs-tomorrow": "base16/tomorrow.css",
-  "hljs-atom-dark": "atom-one-dark.css",
-  "hljs-atom-light": "atom-one-light.css",
-  "hljs-github-dark": "github-dark.css",
-  "hljs-github-dark-dimmed": "github-dark-dimmed.css",
-  "hljs-solarized": "base16/solarized-light.css",
-  "hljs-dark": "dark.css",
-};
-
-// Map profile highlight_theme (from PreferencesContext) to ConnectionGuide themeMap keys
-const profileThemeToConnectionTheme: Record<string, string> = {
-  github: "hljs",
-  "github-light": "hljs",
-  "github-dark": "hljs-github-dark",
-  "github-dark-dimmed": "hljs-github-dark-dimmed",
-  "atom-one-dark": "hljs-atom-dark",
-  "atom-one-light": "hljs-atom-light",
-};
-
-const CodeBlock = ({
-  code,
-  language,
-  theme = "hljs",
-}: {
-  code: string;
-  language: string;
-  theme?: string;
-}) => {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Don't render anything until client-side
-  if (!isClient) {
-    return (
-      <pre
-        className={`p-4 rounded-lg overflow-x-auto ${
-          theme === "hljs" ? "" : theme
-        }`}
-      >
-        <code>{code}</code>
-      </pre>
-    );
-  }
-
-  // Client-side only rendering with highlight.js
-  const ClientCodeBlock = () => {
-    const [highlightedCode, setHighlightedCode] = useState("");
-
-    useEffect(() => {
-      // Dynamically inject theme CSS from public/hljs-themes
-      const themeFile = themeMap[theme] || themeMap.hljs;
-      const id = "hljs-theme-style";
-      let link = document.getElementById(id) as HTMLLinkElement | null;
-      if (link) {
-        link.href = `/hljs-themes/${themeFile}`;
-      } else {
-        link = document.createElement("link");
-        link.id = id;
-        link.rel = "stylesheet";
-        link.href = `/hljs-themes/${themeFile}`;
-        document.head.appendChild(link);
-      }
-      return () => {
-        // Optionally remove the theme link on unmount
-        // if (link) link.remove();
-      };
-    }, []); // ClientCodeBlock remounts when theme changes, so effect always runs fresh
-
-    useEffect(() => {
-      // Use highlight.js to generate highlighted HTML safely
-      const highlighted = hljs.highlight(code, {
-        language:
-          language.toLowerCase() === "javascript"
-            ? "javascript"
-            : language.toLowerCase() === "python"
-            ? "python"
-            : language.toLowerCase() === "go"
-            ? "go"
-            : language.toLowerCase() === "java"
-            ? "java"
-            : "text",
-      }).value;
-
-      setHighlightedCode(highlighted);
-    }, []); // ClientCodeBlock remounts when code/language change, so effect always runs fresh
-
-    return (
-      <pre className="p-4 rounded-lg overflow-x-auto">
-        <code
-          className="hljs"
-          dangerouslySetInnerHTML={{ __html: highlightedCode }}
-        />
-      </pre>
-    );
-  };
-
-  return <ClientCodeBlock />;
-};
 
 const codeExamples: CodeExample[] = [
   {
@@ -367,8 +258,8 @@ const dynamoExamples: CodeExample[] = [
   {
     language: "JavaScript",
     title: "DynamoDB - List and Create Tables",
-    code: `import { 
-  ListTablesCommand, 
+    code: `import {
+  ListTablesCommand,
   CreateTableCommand,
   PutItemCommand
 } from '@aws-sdk/client-dynamodb';
@@ -553,225 +444,247 @@ func main() {
   },
 ];
 
-const languageOptions = [
-  { value: "JavaScript", label: "JavaScript" },
-  { value: "Python", label: "Python" },
-  { value: "Go", label: "Go" },
-  { value: "Java", label: "Java" },
+type ResourceTabId = "setup" | "s3" | "dynamodb";
+
+const resourceTabs: { id: ResourceTabId; name: string; icon: string; examples: CodeExample[] }[] = [
+  { id: "setup", name: "Basic Setup", icon: "lucide:zap", examples: codeExamples },
+  { id: "s3", name: "S3", icon: "logos:aws-s3", examples: s3Examples },
+  { id: "dynamodb", name: "DynamoDB", icon: "logos:aws-dynamodb", examples: dynamoExamples },
 ];
 
+const languageOptions = ["JavaScript", "Python", "Go", "Java"] as const;
+type Language = (typeof languageOptions)[number];
+
+function InfoField({
+  label,
+  value,
+  badge,
+  masked,
+  onToggleMask,
+  onCopy,
+}: {
+  label: string;
+  value: string;
+  badge?: string;
+  masked?: boolean;
+  onToggleMask?: () => void;
+  onCopy: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5 bg-surface border border-border rounded-xl shadow-e1 p-3.5">
+      <span className="text-[11px] font-semibold tracking-wider uppercase text-faint">
+        {label}
+      </span>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-[13px] text-ink truncate">
+          {masked ? "••••" : value}
+        </span>
+        {badge && (
+          <span className="px-1.5 py-0.5 rounded-full bg-surface-3 text-muted text-[10px] font-semibold whitespace-nowrap">
+            {badge}
+          </span>
+        )}
+        {onToggleMask && (
+          <IconButton
+            icon={masked ? "lucide:eye" : "lucide:eye-off"}
+            label={masked ? `Show ${label.toLowerCase()}` : `Hide ${label.toLowerCase()}`}
+            variant="outline"
+            size="sm"
+            onClick={onToggleMask}
+            className="shrink-0"
+          />
+        )}
+        <IconButton
+          icon="lucide:copy"
+          label={`Copy ${label.toLowerCase()}`}
+          variant="outline"
+          size="sm"
+          onClick={onCopy}
+          className="ml-auto shrink-0"
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function ConnectionGuide() {
-  const { profile } = usePreferences();
-  const [activeTab, setActiveTab] = useState("setup");
-  const [selectedLanguage, setSelectedLanguage] = useState("JavaScript");
-  const profileTheme =
-    profile?.highlight_theme && profileThemeToConnectionTheme[profile.highlight_theme]
-      ? profileThemeToConnectionTheme[profile.highlight_theme]
-      : "hljs";
-  const [selectedTheme, setSelectedTheme] = useState(profileTheme);
+  const [activeTab, setActiveTab] = useState<ResourceTabId>("setup");
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>("JavaScript");
+  const [secretVisible, setSecretVisible] = useState(false);
+  const [resourceMenuOpen, setResourceMenuOpen] = useState(false);
+  const resourceMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setSelectedTheme(profileTheme);
-  }, [profileTheme]);
+    function handleClickOutside(e: MouseEvent) {
+      if (resourceMenuRef.current && !resourceMenuRef.current.contains(e.target as Node)) {
+        setResourceMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  const tabs = [
-    { id: "setup", name: "Basic Setup", icon: CodeBracketIcon },
-    { id: "s3", name: "S3 Examples", icon: CommandLineIcon },
-    { id: "dynamodb", name: "DynamoDB Examples", icon: CommandLineIcon },
-  ];
+  const activeResourceTab = resourceTabs.find((tab) => tab.id === activeTab) ?? resourceTabs[0];
+  const activeExample = activeResourceTab.examples.find(
+    (example) => example.language === selectedLanguage
+  );
 
-  const getExamples = () => {
-    switch (activeTab) {
-      case "setup":
-        return codeExamples;
-      case "s3":
-        return s3Examples;
-      case "dynamodb":
-        return dynamoExamples;
-      default:
-        return codeExamples;
+  const copyToClipboard = async (text: string, message: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(message);
+    } catch {
+      toast.error("Copy failed");
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 className="text-lg font-semibold tracking-tight text-ink">
           Connecting to the AWS Emulator
         </h1>
-        <p className="text-lg text-gray-600">
-          Learn how to connect to your AWS Emulator (MiniStack) instance using various AWS
-          SDKs.
+        <p className="text-xs text-muted mt-1">
+          Point any AWS SDK at the emulator — credentials are dummies
         </p>
       </div>
 
-      {/* Connection Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-        <h2 className="text-xl font-semibold text-blue-900 mb-4">
-          🌐 AWS Emulator Endpoint
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm font-medium text-blue-700">Endpoint:</p>
-            <code className="text-blue-900 bg-blue-100 px-2 py-1 rounded">
-              http://localhost:4566
-            </code>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-blue-700">Region:</p>
-            <code className="text-blue-900 bg-blue-100 px-2 py-1 rounded">
-              us-east-1
-            </code>
-          </div>
-        </div>
-        <div className="mt-4">
-          <p className="text-sm font-medium text-blue-700">AWS Credentials:</p>
-          <div className="bg-blue-100 p-3 rounded mt-2">
-            <code className="text-blue-900 text-sm">
-              AWS_ACCESS_KEY_ID=test
-              <br />
-              AWS_SECRET_ACCESS_KEY=test
-              <br />
-              AWS_DEFAULT_REGION=us-east-1
-            </code>
-          </div>
-        </div>
+      {/* Connection info cards */}
+      <div className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">
+        <InfoField
+          label="Endpoint"
+          value="http://localhost:4566"
+          onCopy={() => copyToClipboard("http://localhost:4566", "Endpoint copied")}
+        />
+        <InfoField
+          label="Region"
+          value="us-east-1"
+          onCopy={() => copyToClipboard("us-east-1", "Region copied")}
+        />
+        <InfoField
+          label="Access key"
+          value="test"
+          badge="dummy"
+          onCopy={() => copyToClipboard("test", "Access key copied")}
+        />
+        <InfoField
+          label="Secret key"
+          value="test"
+          masked={!secretVisible}
+          onToggleMask={() => setSecretVisible((v) => !v)}
+          onCopy={() => copyToClipboard("test", "Secret key copied")}
+        />
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 mb-8">
-        <nav className="-mb-px flex space-x-8">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
+      {/* Code sample card */}
+      <div className="bg-surface border border-border rounded-xl shadow-e1 overflow-hidden">
+        <div className="flex items-center gap-3 px-3 border-b border-divider flex-wrap">
+          <div className="flex gap-1">
+            {languageOptions.map((lang) => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                  activeTab === tab.id
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                key={lang}
+                type="button"
+                onClick={() => setSelectedLanguage(lang)}
+                className={`px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-colors cursor-pointer ${
+                  selectedLanguage === lang
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted hover:text-ink"
                 }`}
               >
-                <Icon className="h-5 w-5" />
-                <span>{tab.name}</span>
+                {lang}
               </button>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* Language and Theme Selectors */}
-      <div className="mb-6 flex flex-wrap gap-4 items-center">
-        <div>
-          <label
-            htmlFor="language-selector"
-            className="text-sm font-medium text-gray-700 mr-4"
-          >
-            Select Language:
-          </label>
-          <select
-            id="language-selector"
-            name="language-selector"
-            value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
-            className="bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            {languageOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label
-            htmlFor="theme-selector"
-            className="text-sm font-medium text-gray-700 mr-4"
-          >
-            Select Theme:
-          </label>
-          <select
-            id="theme-selector"
-            name="theme-selector"
-            value={selectedTheme}
-            onChange={(e) => setSelectedTheme(e.target.value)}
-            className="bg-white text-gray-900 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="hljs">GitHub (Light)</option>
-            <option value="hljs-tomorrow">Tomorrow (Light)</option>
-            <option value="hljs-atom-dark">Atom One Dark</option>
-            <option value="hljs-atom-light">Atom One Light</option>
-            <option value="hljs-github-dark">GitHub Dark</option>
-            <option value="hljs-github-dark-dimmed">GitHub Dark Dimmed</option>
-            <option value="hljs-solarized">Solarized Light</option>
-            <option value="hljs-dark">Dark</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Code Examples */}
-      <div className="space-y-6">
-        {getExamples()
-          .filter((example) => example.language === selectedLanguage)
-          .map((example, index) => (
-            <div key={index} className="bg-white rounded-lg shadow border">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {example.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {example.description}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => copyToClipboard(example.code)}
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                  >
-                    Copy Code
-                  </button>
+          </div>
+          <div className="flex items-center gap-2 ml-auto py-2">
+            <div className="relative" ref={resourceMenuRef}>
+              <button
+                type="button"
+                onClick={() => setResourceMenuOpen((v) => !v)}
+                aria-expanded={resourceMenuOpen}
+                className="flex items-center justify-between gap-2 h-7 min-w-[150px] px-2.5 border border-border-strong rounded-md bg-surface-2 text-xs cursor-pointer whitespace-nowrap transition-colors hover:bg-surface hover:border-ink-2"
+              >
+                <span className="flex items-center gap-1.5">
+                  <Icon icon={activeResourceTab.icon} width={13} />
+                  {activeResourceTab.name}
+                </span>
+                <Icon icon="lucide:chevron-down" width={13} className="text-faint" />
+              </button>
+              {resourceMenuOpen && (
+                <div className="absolute right-0 z-10 mt-1 w-40 bg-surface border border-border rounded-md shadow-e2 py-1">
+                  {resourceTabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setResourceMenuOpen(false);
+                      }}
+                      className={`flex items-center gap-2 w-full px-3 py-1.5 text-xs text-left cursor-pointer hover:bg-surface-2 ${
+                        activeTab === tab.id ? "text-primary font-medium" : "text-ink-2"
+                      }`}
+                    >
+                      <Icon icon={tab.icon} width={13} />
+                      {tab.name}
+                    </button>
+                  ))}
                 </div>
-              </div>
-              <div className="px-6 py-4">
-                <CodeBlock
-                  code={example.code}
-                  language={example.language}
-                  theme={selectedTheme}
-                />
-              </div>
+              )}
             </div>
-          ))}
+            <Button
+              variant="secondary"
+              size="sm"
+              icon="lucide:copy"
+              disabled={!activeExample}
+              onClick={() => activeExample && copyToClipboard(activeExample.code, "Code copied")}
+            >
+              Copy
+            </Button>
+          </div>
+        </div>
+
+        {activeExample ? (
+          <>
+            <div className="px-4 pt-3">
+              <ThemeableCodeBlock
+                code={activeExample.code}
+                language={activeExample.language.toLowerCase()}
+                showCopyButton={false}
+              />
+            </div>
+            <div className="flex items-center gap-2 px-3.5 py-2.5 border-t border-divider">
+              <Icon icon="lucide:info" width={14} className="text-muted shrink-0" />
+              <span className="text-xs text-muted">{activeExample.description}</span>
+            </div>
+          </>
+        ) : (
+          <p className="px-4 py-10 text-sm text-faint italic text-center">
+            No {selectedLanguage} example available for {activeResourceTab.name}.
+          </p>
+        )}
       </div>
 
       {/* Additional Resources */}
-      <div className="mt-12 bg-gray-50 rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          📚 Additional Resources
-        </h2>
+      <div className="bg-surface-2 border border-border rounded-xl p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Icon icon="lucide:book-open" width={16} className="text-muted" />
+          <h2 className="text-sm font-semibold text-ink">Additional Resources</h2>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h3 className="font-medium text-gray-900 mb-2">Documentation</h3>
-            <ul className="space-y-1 text-sm text-gray-600">
+            <h3 className="text-xs font-semibold text-ink-2 mb-2">Documentation</h3>
+            <ul className="space-y-1.5 text-sm text-muted">
               <li>
-                •{" "}
                 <a
                   href="https://github.com/nahuelnucera/ministack"
-                  className="text-blue-600 hover:text-blue-800"
+                  className="text-primary hover:text-primary-hover"
                 >
                   MiniStack Documentation
                 </a>
               </li>
               <li>
-                •{" "}
                 <a
                   href="https://aws.amazon.com/tools/"
-                  className="text-blue-600 hover:text-blue-800"
+                  className="text-primary hover:text-primary-hover"
                 >
                   AWS SDK Documentation
                 </a>
@@ -779,13 +692,11 @@ export default function ConnectionGuide() {
             </ul>
           </div>
           <div>
-            <h3 className="font-medium text-gray-900 mb-2">Troubleshooting</h3>
-            <ul className="space-y-1 text-sm text-gray-600">
-              <li>• Connection refused: Check if AWS Emulator is running</li>
-              <li>
-                • Invalid credentials: Use test credentials for AWS Emulator
-              </li>
-              <li>• S3 path style: Enable forcePathStyle for S3 operations</li>
+            <h3 className="text-xs font-semibold text-ink-2 mb-2">Troubleshooting</h3>
+            <ul className="space-y-1.5 text-sm text-muted">
+              <li>Connection refused: Check if AWS Emulator is running</li>
+              <li>Invalid credentials: Use test credentials for AWS Emulator</li>
+              <li>S3 path style: Enable forcePathStyle for S3 operations</li>
             </ul>
           </div>
         </div>

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { ChevronDownIcon, XMarkIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import { getDynamoDBTableSchema } from "@/services/api";
+import { Button, IconButton, Input } from "./ui";
 
 type AttributeType = "S" | "N" | "BOOL" | "M" | "L";
 
@@ -100,6 +101,40 @@ function buildDynamoDBAttribute(attr: NestedAttribute): unknown {
   return undefined;
 }
 
+const selectClass =
+  "h-8 appearance-none rounded-lg border border-border-strong bg-surface-2 pl-2.5 pr-7 text-[13px] text-ink outline-none transition-colors focus:border-primary focus:bg-surface focus:ring-3 focus:ring-focus";
+
+function TypeSelect({
+  value,
+  onChange,
+  className,
+}: {
+  value: AttributeType;
+  onChange: (value: AttributeType) => void;
+  className?: string;
+}) {
+  return (
+    <div className={`relative ${className ?? ""}`}>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as AttributeType)}
+        className={`${selectClass} w-full cursor-pointer`}
+      >
+        <option value="S">String</option>
+        <option value="N">Number</option>
+        <option value="BOOL">Boolean</option>
+        <option value="M">Map</option>
+        <option value="L">List</option>
+      </select>
+      <Icon
+        icon="lucide:chevron-down"
+        width={13}
+        className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-faint"
+      />
+    </div>
+  );
+}
+
 // Recursive attribute editor
 function AttributeEditor({
   attr,
@@ -135,51 +170,35 @@ function AttributeEditor({
   };
 
   return (
-    <div
-      className={`border border-gray-200 rounded-md p-3 mb-3 ${
-        parentType === "L" ? "ml-6" : ""
-      }`}
-    >
-      <div className="flex items-center space-x-2 mb-2">
+    <div className={`mb-2.5 rounded-lg border border-border bg-surface-2 p-3 ${parentType === "L" ? "ml-5" : ""}`}>
+      <div className="flex items-center gap-2">
         {parentType !== "L" && (
-          <input
-            type="text"
+          <Input
+            mono
             value={attr.key}
             onChange={(e) => handleFieldChange("key", e.target.value)}
-            className="w-32 px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-            placeholder="Attribute Name"
+            className="w-32"
+            placeholder="attribute name"
           />
         )}
-        <div className="relative">
-          <select
-            value={attr.type}
-            onChange={(e) => handleFieldChange("type", e.target.value)}
-            className="appearance-none pl-2.5 pr-7 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white cursor-pointer"
-          >
-            <option value="S">String</option>
-            <option value="N">Number</option>
-            <option value="BOOL">Boolean</option>
-            <option value="M">Map</option>
-            <option value="L">List</option>
-          </select>
-          <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-        </div>
+        <TypeSelect value={attr.type} onChange={(value) => handleFieldChange("type", value)} className="w-[118px]" />
         {attr.type === "S" && (
-          <input
-            type="text"
+          <Input
+            mono
             value={attr.value ?? ""}
             onChange={(e) => handleFieldChange("value", e.target.value)}
-            className="w-32 px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
-            placeholder="Value"
+            className="w-32"
+            placeholder="value"
           />
         )}
         {attr.type === "N" && (
-          <input
+          <Input
+            mono
             type="number"
             step="any"
             value={attr.value ?? ""}
             onChange={(e) => handleFieldChange("value", e.target.value)}
-            className="w-32 px-2.5 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+            className="w-32"
             placeholder="0"
           />
         )}
@@ -188,39 +207,36 @@ function AttributeEditor({
             <select
               value={attr.value ?? "true"}
               onChange={(e) => handleFieldChange("value", e.target.value)}
-              className="appearance-none w-24 pl-2.5 pr-7 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white cursor-pointer"
+              className={`${selectClass} w-24 cursor-pointer font-mono`}
             >
               <option value="true">true</option>
               <option value="false">false</option>
             </select>
-            <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+            <Icon
+              icon="lucide:chevron-down"
+              width={13}
+              className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-faint"
+            />
           </div>
         )}
         {onRemove && (
-          <button
-            type="button"
+          <IconButton
+            icon="lucide:trash-2"
+            variant="ghost"
+            size="sm"
+            label="Remove attribute"
+            className="ml-auto !text-danger hover:!bg-danger-soft hover:!text-danger"
             onClick={onRemove}
-            className="text-red-600 hover:text-red-800"
-            aria-label="Remove"
-          >
-            <TrashIcon className="h-5 w-5" />
-          </button>
+          />
         )}
       </div>
       {(attr.type === "M" || attr.type === "L") && (
-        <div className="ml-4 border-l-2 border-blue-200 pl-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              {attr.type === "M" ? "Map Items" : "List Items"}
-            </span>
-            <button
-              type="button"
-              onClick={handleAddChild}
-              className="flex items-center px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              <PlusIcon className="h-3 w-3 mr-1" />
-              Add Item
-            </button>
+        <div className="mt-2.5 border-l-2 border-primary-soft pl-3">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-medium text-ink-2">{attr.type === "M" ? "Map items" : "List items"}</span>
+            <Button type="button" variant="secondary" size="sm" icon="lucide:plus" onClick={handleAddChild}>
+              Add item
+            </Button>
           </div>
           {attr.children?.map((child, idx) => (
             <AttributeEditor
@@ -234,9 +250,7 @@ function AttributeEditor({
         </div>
       )}
       {isAttributeEmpty(attr) && (
-        <p className="mt-1 text-xs text-amber-600">
-          This attribute is empty and will not be saved.
-        </p>
+        <p className="mt-1.5 text-[11px] text-warn-ink">This attribute is empty and will not be saved.</p>
       )}
     </div>
   );
@@ -371,67 +385,60 @@ export default function DynamoDBAddItemModal({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-scrim p-4"
       onMouseDown={handleBackdropMouseDown}
     >
-      <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col"
-      >
+      <div className="flex w-full max-w-lg max-h-[90vh] flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-e3">
         {/* Header — always visible */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Add Item</h2>
-            <p className="text-xs text-gray-500">{tableName}</p>
+        <div className="flex items-start gap-2.5 border-b border-divider px-4.5 py-3.5 shrink-0">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+            <Icon icon="lucide:plus" width={16} />
+          </span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[15px] font-semibold text-ink">Add item</span>
+            <span className="font-mono text-[11px] text-muted">{tableName}</span>
           </div>
-          <button
+          <IconButton
+            icon="lucide:x"
+            variant="ghost"
+            size="sm"
+            label="Close"
+            className="ml-auto"
             onClick={onClose}
-            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-            aria-label="Close"
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
+          />
         </div>
 
         {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="flex-1 overflow-y-auto px-4.5 py-4">
           {schemaLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading table schema...</p>
+            <div className="flex flex-col items-center gap-2 py-8 text-center">
+              <Icon icon="lucide:loader-2" width={22} className="animate-spin text-primary" />
+              <p className="text-sm text-muted">Loading table schema…</p>
             </div>
           ) : schema ? (
-            <form id="add-item-form" onSubmit={handleSubmit} className="space-y-6">
+            <form id="add-item-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
               {/* Key Fields */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Required Keys
-                </label>
+              <div className="flex flex-col gap-2.5">
+                <span className="text-xs font-medium text-ink-2">Required keys</span>
                 {schema.Table.KeySchema.map((key) => (
-                  <div key={key.AttributeName} className="mb-3">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label key={key.AttributeName} className="flex flex-col gap-1.5">
+                    <span className="text-xs text-muted">
                       {key.AttributeName}{" "}
-                      <span className="text-xs text-gray-500 font-normal">
-                        ({key.KeyType === "HASH" ? "Partition Key" : "Sort Key"})
-                      </span>
-                    </label>
-                    <input
-                      type="text"
+                      <span className="text-faint">({key.KeyType === "HASH" ? "Partition key" : "Sort key"})</span>
+                    </span>
+                    <Input
+                      mono
                       value={keyValues[key.AttributeName] || ""}
-                      onChange={(e) =>
-                        handleKeyValueChange(key.AttributeName, e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                      onChange={(e) => handleKeyValueChange(key.AttributeName, e.target.value)}
                       required
                     />
-                  </div>
+                  </label>
                 ))}
               </div>
 
               {/* Custom Attributes */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Custom Attributes
-                </label>
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-medium text-ink-2">Custom attributes</span>
                 {attributes.map((attr, idx) => (
                   <AttributeEditor
                     key={idx}
@@ -446,50 +453,39 @@ export default function DynamoDBAddItemModal({
                     }
                   />
                 ))}
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="sm"
+                  icon="lucide:plus"
                   onClick={handleAddAttribute}
-                  className="flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 mt-2"
+                  className="w-fit"
                 >
-                  <PlusIcon className="h-4 w-4 mr-1" />
-                  Add Attribute
-                </button>
+                  Add attribute
+                </Button>
               </div>
 
-              {error && <div className="text-red-600 text-sm">{error}</div>}
+              {error && <div className="text-sm text-danger">{error}</div>}
             </form>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-red-600">Failed to load table schema</p>
-              <button
-                onClick={loadTableSchema}
-                className="mt-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <p className="text-sm text-danger">Failed to load table schema</p>
+              <Button type="button" variant="primary" size="sm" onClick={loadTableSchema}>
                 Retry
-              </button>
+              </Button>
             </div>
           )}
         </div>
 
         {/* Footer — always visible, pinned to bottom */}
         {schema && !schemaLoading && (
-          <div className="flex justify-end space-x-3 px-6 py-4 border-t border-gray-200 shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              disabled={loading}
-            >
+          <div className="flex items-center justify-end gap-2.5 border-t border-divider bg-surface-2 px-4.5 py-3.5 shrink-0">
+            <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              form="add-item-form"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-              disabled={loading}
-            >
-              {loading ? "Adding..." : "Add Item"}
-            </button>
+            </Button>
+            <Button type="submit" form="add-item-form" variant="primary" icon="lucide:plus" loading={loading}>
+              {loading ? "Adding…" : "Add item"}
+            </Button>
           </div>
         )}
       </div>

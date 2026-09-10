@@ -57,6 +57,14 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     loadAll();
   }, [loadAll]);
 
+  useEffect(() => {
+    if (!profile?.theme || profile.theme === "auto") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", profile.theme);
+    }
+  }, [profile?.theme]);
+
   const updateProfile = useCallback(async (data: Partial<UserProfile>) => {
     const updated = await profileApi.update(data);
     setProfile(updated);
