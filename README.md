@@ -122,7 +122,7 @@ The dashboard shows your local cloud environment at a glance:
 - **Services Status Bar** — health indicators for Keycloak, AWS Emulator, Mailpit, PostgreSQL, PostHog, and Redis. Click any service to open its management panel or docs.
 - **AWS Resources** — categorized view (Storage, Database, Security & Identity) with add/destroy actions and inline inspection.
 
-![Dashboard - Empty Resources](docs/screenshots/01-dashboard-empty-resources.png)
+![Main Dashboard](docs/screenshots/01-dashboard-empty-resources.png)
 
 ---
 
@@ -134,25 +134,25 @@ Configure tables with partition key, sort key, billing mode, and optional GSIs.
 
 ![Create DynamoDB Table](docs/screenshots/02-dashboard-create-dynamodb-table.png)
 
-#### Table Appears in Dashboard
+#### Resources Grouped in Dashboard
 
-After creation, the table appears in the Database section with status and action controls.
+Created resources appear grouped by category (Storage, Database, ...) with status and action controls.
 
 ![DynamoDB Resource in Dashboard](docs/screenshots/03-dashboard-dynamodb-resource.png)
 
 #### Add Resource Options
 
-Use the **+ Add** dropdown to create AWS resources by category.
+Use the **+ Create resource** dropdown to create AWS resources by category.
 
 ![Add Resource Options](docs/screenshots/04-dashboard-add-resource-options.png)
 
 ---
 
-### Multiple Resources
+### Dark Mode
 
-Storage and Database resources are grouped and displayed together in the main list.
+The dashboard supports light, dark, and auto (system) themes, switchable from the profile menu.
 
-![Multiple Resources in Dashboard](docs/screenshots/05-dashboard-multiple-resources.png)
+![Dashboard in Dark Mode](docs/screenshots/05-dashboard-multiple-resources.png)
 
 ## 🏗️ Project Structure
 
