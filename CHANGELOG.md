@@ -8,7 +8,20 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Changed
 
+### Fixed
+
+### Removed
+
+### Security
+
+## [0.14.1] - 2026-09-13
+
+### Added
+
+### Changed
+
 - **AppNavBar**: drop the "Local cloud development environment" tagline under the brand; non-dashboard screens still show their page label.
+- **README screenshots**: Recaptured dashboard screenshots against the current AppNavBar and design system, including a dark-mode multi-resource view.
 
 ### Fixed
 
