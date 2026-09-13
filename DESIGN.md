@@ -24,11 +24,17 @@ update the mockup first, then bring the change back here and into code
 together.
 
 Implemented screens: Dashboard, Create resource, S3 browser, DynamoDB
-viewer, Redis cache, Connect, and the app header/status bar. Screens
-outside that set (the per-service `/docs` pages, IAM, Lambda, API Gateway,
-Secrets, SSM) still use the same shared tokens and primitives via
-`ServiceStatusBadge`, `StatusCard`, and `ThemeableCodeBlock`, but haven't
-had a full layout pass yet.
+viewer, Redis cache, Connect, and the app header/status bar.
+
+**Navigation is fully unified**: every screen — the Dashboard, every
+per-service `/docs` page, every `/manage/*` page, `/connect`, `/docs`, and
+`/profile` — renders the same `AppNavBar` component
+(`src/components/AppNavBar.tsx`), so the top nav is byte-for-byte identical
+everywhere and themes correctly in both light and dark mode. Screens
+outside the Implemented set above still use the same shared tokens and
+primitives via `ServiceStatusBadge`, `StatusCard`, and `ThemeableCodeBlock`
+for their nav and page background, but their inner content (cards, tables,
+badges) hasn't had a full layout pass yet.
 
 ---
 
@@ -99,7 +105,7 @@ Three states, all driven by the same CSS tokens:
    `PreferencesContext` applies `data-theme="dark"` (or removes the
    attribute for light) on `<html>`, which wins over the media query.
 3. **Manual UI** — the Auto/Light/Dark `SegmentedControl` in the profile
-   menu (`DashboardNavBar.tsx`), calling `updateProfile({ theme })`.
+   menu (`AppNavBar.tsx`), calling `updateProfile({ theme })`.
 
 Because every component is built from tokens rather than hardcoded
 colors, **no component needs its own dark-mode logic** — just use the

@@ -15,6 +15,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Fixed
 
+- **AppNavBar**: unified the top nav bar into a single `AppNavBar` component used by every screen (Dashboard, all per-service doc pages, all `/manage/*` pages, Connect, Docs Hub, Profile), replacing five drifted, partly hardcoded header implementations. The nav and page backgrounds now render correctly in dark mode everywhere instead of only on the Dashboard.
+
 ### Removed
 
 ### Security

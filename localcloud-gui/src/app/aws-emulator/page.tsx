@@ -3,7 +3,7 @@
 import { useEmulatorStatus } from "@/hooks/useEmulatorStatus";
 import StatusCard from "@/components/StatusCard";
 import { useEffect, useState } from "react";
-import DocPageNav from "@/components/DocPageNav";
+import AppNavBar from "@/components/AppNavBar";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { usePreferences } from "@/context/PreferencesContext";
 import ServiceStatusBadge from "@/components/ServiceStatusBadge";
@@ -72,10 +72,10 @@ aws s3 ls --endpoint-url ${projectConfig.awsEndpoint}
 alias awslocal='aws --endpoint-url ${projectConfig.awsEndpoint}'`;
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="AWS Emulator">
+    <main className="min-h-screen bg-bg">
+      <AppNavBar pageLabel="AWS Emulator">
         <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
-      </DocPageNav>
+      </AppNavBar>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 

@@ -5,13 +5,12 @@ import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { Icon } from "@iconify/react";
 import { resourceApi } from "@/services/api";
-import ManageHeaderBrand from "@/components/ManageHeaderBrand";
+import AppNavBar from "@/components/AppNavBar";
 import { DynamoDBTableConfig } from "@/types";
 import DynamoDBConfigModal from "@/components/DynamoDBConfigModal";
 import DynamoDBAddItemModal from "@/components/DynamoDBAddItemModal";
 import DynamoDBCompoundKeyCell from "@/components/DynamoDBCompoundKeyCell";
 import DynamoDBItemDetailPanel from "@/components/DynamoDBItemDetailPanel";
-import SystemLogsButton from "@/components/SystemLogsButton";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { parseDynamoDBItem } from "@/lib/dynamodbValue";
 import { Button, IconButton } from "@/components/ui";
@@ -265,24 +264,10 @@ export default function ManageDynamoDBPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-bg">
-      {/* Header */}
-      <header className="shrink-0 border-b border-border bg-surface">
-        <div className="flex flex-wrap items-center gap-3 px-6 py-3.5">
-          <ManageHeaderBrand />
-          <span className="h-[18px] w-px bg-border" />
-          <div className="flex items-center gap-2">
-            <Icon icon="logos:aws-dynamodb" width={18} />
-            <h1 className="text-[18px] font-semibold tracking-tight text-ink">Manage DynamoDB</h1>
-          </div>
-          <Link href="/" className="text-sm font-medium text-muted transition-colors hover:text-ink">
-            Dashboard
-          </Link>
-
-          <div className="ml-auto flex flex-wrap items-center gap-2">
-            <SystemLogsButton />
+      <AppNavBar pageLabel="Manage DynamoDB">
             <Link
               href="/dynamodb"
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-surface-3 hover:text-ink"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium text-ink-2 bg-surface-2 border border-border hover:bg-surface-3 transition-colors"
             >
               <Icon icon="lucide:book-open" width={15} />
               Docs
@@ -333,9 +318,7 @@ export default function ManageDynamoDBPage() {
             >
               Add item
             </Button>
-          </div>
-        </div>
-      </header>
+      </AppNavBar>
 
       {/* Content */}
       <main className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col gap-4 p-6">

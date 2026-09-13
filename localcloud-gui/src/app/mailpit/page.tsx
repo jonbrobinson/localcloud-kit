@@ -6,7 +6,7 @@ import {
   InboxIcon,
   PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
-import DocPageNav from "@/components/DocPageNav";
+import AppNavBar from "@/components/AppNavBar";
 import { useState } from "react";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { mailpitApi } from "@/services/api";
@@ -186,19 +186,19 @@ export default function MailpitIntegrationPage() {
   };
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="Mailpit">
+    <main className="min-h-screen bg-bg">
+      <AppNavBar pageLabel="Mailpit">
         <ServiceStatusBadge service="mailpit" name="Mailpit" />
         <a
           href={MAILPIT_UI_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium text-ink-2 bg-surface-2 border border-border hover:bg-surface-3 transition-colors"
         >
-          <InboxIcon className="h-4 w-4 mr-1.5" />
+          <InboxIcon className="h-4 w-4" />
           Open Mailpit
         </a>
-      </DocPageNav>
+      </AppNavBar>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 

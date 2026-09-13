@@ -1,11 +1,9 @@
 "use client";
 
-import {
-  ArrowTopRightOnSquareIcon,
-  CircleStackIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import Link from "next/link";
-import DocPageNav from "@/components/DocPageNav";
+import AppNavBar from "@/components/AppNavBar";
 import { usePreferences } from "@/context/PreferencesContext";
 import { useEffect, useState } from "react";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
@@ -195,17 +193,17 @@ export default function DynamoDBDocPage() {
   };
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="DynamoDB">
+    <main className="min-h-screen bg-bg">
+      <AppNavBar pageLabel="DynamoDB">
         <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
           href="/manage/dynamodb"
-          className="inline-flex items-center whitespace-nowrap px-3 py-1.5 text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 hover:border-indigo-300 transition-colors"
+          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium text-ink-2 bg-surface-2 border border-border hover:bg-surface-3 transition-colors"
         >
-          <CircleStackIcon className="h-4 w-4 mr-1.5" />
+          <Icon icon="logos:aws-dynamodb" width={15} />
           Open Manager
         </Link>
-      </DocPageNav>
+      </AppNavBar>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 

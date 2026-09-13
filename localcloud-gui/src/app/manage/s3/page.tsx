@@ -5,13 +5,12 @@ import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { Icon } from "@iconify/react";
 import { s3Api, resourceApi } from "@/services/api";
-import ManageHeaderBrand from "@/components/ManageHeaderBrand";
+import AppNavBar from "@/components/AppNavBar";
 import { useProjectName } from "@/hooks/useProjectName";
 import { S3BucketConfig } from "@/types";
 import S3ConfigModal from "@/components/S3ConfigModal";
 import FileViewerModal from "@/components/FileViewerModal";
 import UploadFileModal from "@/components/UploadFileModal";
-import SystemLogsButton from "@/components/SystemLogsButton";
 import { listS3ObjectsAtPrefix } from "@/lib/s3PrefixListing";
 import { Button, Card, SearchInput } from "@/components/ui";
 
@@ -245,24 +244,10 @@ export default function ManageS3Page() {
 
   return (
     <div className="min-h-screen bg-bg flex flex-col">
-      {/* Header */}
-      <header className="bg-surface border-b border-border shrink-0">
-        <div className="max-w-[1180px] mx-auto w-full px-6 py-4 flex items-center gap-3 flex-wrap">
-          <ManageHeaderBrand />
-          <span className="w-px h-[18px] bg-border shrink-0" />
-          <div className="flex items-center gap-2 shrink-0">
-            <Icon icon="logos:aws-s3" width={18} />
-            <h1 className="text-lg font-semibold tracking-tight text-ink">Manage S3</h1>
-          </div>
-          <Link href="/" className="text-sm font-medium text-muted hover:text-ink transition-colors shrink-0">
-            Dashboard
-          </Link>
-
-          <div className="flex items-center gap-2 ml-auto flex-wrap">
-            <SystemLogsButton />
+      <AppNavBar pageLabel="Manage S3">
             <Link
               href="/s3"
-              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium text-muted hover:text-ink hover:bg-surface-2 transition-colors"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium text-ink-2 bg-surface-2 border border-border hover:bg-surface-3 transition-colors"
             >
               <Icon icon="lucide:book-open" width={14} />
               Docs
@@ -332,9 +317,7 @@ export default function ManageS3Page() {
             >
               Upload file
             </Button>
-          </div>
-        </div>
-      </header>
+      </AppNavBar>
 
       {/* Body */}
       <main className="flex-1 px-6 py-6">

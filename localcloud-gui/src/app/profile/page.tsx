@@ -3,7 +3,7 @@
 import { usePreferences } from "@/context/PreferencesContext";
 import { HighlightTheme, PreferredLanguage, Project } from "@/types";
 import CliPlaybookSection from "@/components/CliPlaybookSection";
-import DashboardNavBar from "@/components/DashboardNavBar";
+import AppNavBar from "@/components/AppNavBar";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
@@ -44,10 +44,10 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
-        <DashboardNavBar activePage="profile" />
+      <div className="min-h-screen bg-bg">
+        <AppNavBar activePage="profile" />
         <div className="flex items-center justify-center py-24">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
         </div>
       </div>
     );
@@ -130,9 +130,9 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-bg">
       <Toaster position="top-right" />
-      <DashboardNavBar activePage="profile" />
+      <AppNavBar activePage="profile" />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
