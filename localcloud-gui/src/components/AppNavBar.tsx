@@ -50,7 +50,7 @@ function getInitials(name?: string | null): string {
 
 type AppNavBarProps = {
   activePage?: "dashboard" | "profile";
-  /** Replaces the version tagline under the brand name, e.g. "S3", "Manage S3". */
+  /** Optional context label under the brand name on non-dashboard screens, e.g. "S3". */
   pageLabel?: string;
   /** Page-specific action controls, rendered right after the brand link. */
   children?: React.ReactNode;
@@ -236,6 +236,7 @@ export default function AppNavBar({
     updateProfile({ theme }).catch(() => toast.error("Failed to update theme"));
   };
 
+  const isDashboard = Boolean(actions);
   const previewActionClass =
     "inline-flex items-center justify-center p-1.5 text-primary hover:text-primary-hover hover:bg-primary-soft rounded-md transition-colors";
   const inspectActionClass =
@@ -250,7 +251,7 @@ export default function AppNavBar({
     onPreview,
   }: ResourceActionOptions) => (
     <div className="flex items-center gap-1">
-      {onPreview && (
+      {isDashboard && onPreview && (
         <button
           onClick={onPreview}
           className={previewActionClass}
@@ -260,14 +261,16 @@ export default function AppNavBar({
           <Icon icon="lucide:eye" width={15} />
         </button>
       )}
-      <button
-        onClick={() => openInspectTarget(target)}
-        className={inspectActionClass}
-        title={`Inspect ${label} checks`}
-        aria-label={`Inspect ${label} checks`}
-      >
-        <Icon icon="lucide:clipboard-check" width={15} />
-      </button>
+      {isDashboard && (
+        <button
+          onClick={() => openInspectTarget(target)}
+          className={inspectActionClass}
+          title={`Inspect ${label} checks`}
+          aria-label={`Inspect ${label} checks`}
+        >
+          <Icon icon="lucide:clipboard-check" width={15} />
+        </button>
+      )}
       <Link
         href={manageHref}
         onClick={closeAllMenus}
@@ -280,16 +283,31 @@ export default function AppNavBar({
     </div>
   );
 
-  const renderInspectAction = (label: string, target: InspectTargetId) => (
-    <button
-      onClick={() => openInspectTarget(target)}
-      className={inspectActionClass}
-      title={`Inspect ${label} checks`}
-      aria-label={`Inspect ${label} checks`}
-    >
-      <Icon icon="lucide:clipboard-check" width={15} />
-    </button>
-  );
+  const renderInspectAction = (label: string, target: InspectTargetId) => {
+    if (!isDashboard) return null;
+    return (
+      <button
+        onClick={() => openInspectTarget(target)}
+        className={inspectActionClass}
+        title={`Inspect ${label} checks`}
+        aria-label={`Inspect ${label} checks`}
+      >
+        <Icon icon="lucide:clipboard-check" width={15} />
+      </button>
+    );
+  };
+
+  const renderMobileInspect = (target: InspectTargetId) => {
+    if (!isDashboard) return null;
+    return (
+      <button
+        onClick={() => openInspectTarget(target)}
+        className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap"
+      >
+        Inspect
+      </button>
+    );
+  };
 
   const displayName = profile?.display_name;
   const initials = getInitials(displayName);
@@ -306,14 +324,9 @@ export default function AppNavBar({
               <ManageHeaderBrand size="sm" />
               <div className="hidden sm:flex flex-col min-w-0">
                 <span className="text-[15px] font-semibold tracking-tight text-ink truncate">LocalCloud Kit</span>
-                <span className="text-[11px] text-muted truncate">
-                  {pageLabel ?? (
-                    <>
-                      Local cloud development environment · v
-                      {packageJson.version}
-                    </>
-                  )}
-                </span>
+                {pageLabel && (
+                  <span className="text-[11px] text-muted truncate">{pageLabel}</span>
+                )}
               </div>
             </Link>
 
@@ -815,63 +828,49 @@ export default function AppNavBar({
                     <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 shrink-0" />
                     S3 Buckets
                   </button>
-                  <button onClick={() => openInspectTarget("s3")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
-                    Inspect
-                  </button>
+                  {renderMobileInspect("s3")}
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => openActionOrFallback(actions?.openDynamoDBViewer, "/manage/dynamodb")} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 shrink-0" />
                     DynamoDB Tables
                   </button>
-                  <button onClick={() => openInspectTarget("dynamodb")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
-                    Inspect
-                  </button>
+                  {renderMobileInspect("dynamodb")}
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => openActionOrFallback(actions?.openLambdaConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 shrink-0" />
                     Lambda Functions
                   </button>
-                  <button onClick={() => openInspectTarget("lambda")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
-                    Inspect
-                  </button>
+                  {renderMobileInspect("lambda")}
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => openActionOrFallback(actions?.openAPIGatewayConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-api-gateway" className="w-4 h-4 mr-3 shrink-0" />
                     API Gateway
                   </button>
-                  <button onClick={() => openInspectTarget("apigateway")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
-                    Inspect
-                  </button>
+                  {renderMobileInspect("apigateway")}
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => openActionOrFallback(actions?.openSecretsConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-secrets-manager" className="w-4 h-4 mr-3 shrink-0" />
                     Secrets Manager
                   </button>
-                  <button onClick={() => openInspectTarget("secretsmanager")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
-                    Inspect
-                  </button>
+                  {renderMobileInspect("secretsmanager")}
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => openActionOrFallback(actions?.openSSMConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-systems-manager" className="w-4 h-4 mr-3 shrink-0" />
                     Parameter Store
                   </button>
-                  <button onClick={() => openInspectTarget("ssm")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
-                    Inspect
-                  </button>
+                  {renderMobileInspect("ssm")}
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => openActionOrFallback(actions?.openIAMConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-iam" className="w-4 h-4 mr-3 shrink-0" />
                     IAM Roles
                   </button>
-                  <button onClick={() => openInspectTarget("iam")} className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap">
-                    Inspect
-                  </button>
+                  {renderMobileInspect("iam")}
                 </div>
               </div>
 
@@ -915,12 +914,7 @@ export default function AppNavBar({
                                 {itemContent}
                               </button>
                             )}
-                            <button
-                              onClick={() => openInspectTarget(service.id)}
-                              className="px-2 py-1 text-xs text-muted hover:text-ink hover:bg-surface-3 rounded-md whitespace-nowrap"
-                            >
-                              Inspect
-                            </button>
+                            {renderMobileInspect(service.id)}
                           </div>
                         );
                       })}

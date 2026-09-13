@@ -8,7 +8,11 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Changed
 
+- **AppNavBar**: drop the "Local cloud development environment" tagline under the brand; non-dashboard screens still show their page label.
+
 ### Fixed
+
+- **AppNavBar**: hide preview (eye) and inspect (clipboard) icons in Resources and Services menus on non-dashboard pages, where those actions had no effect.
 
 ### Removed
 
