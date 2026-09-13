@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { cacheApi } from "@/services/api";
-import DocPageNav from "@/components/DocPageNav";
+import AppNavBar from "@/components/AppNavBar";
 import ServiceStatusBadge from "@/components/ServiceStatusBadge";
 import Link from "next/link";
 import { Badge, Button, Card, IconButton, Input, SearchInput, SegmentedControl } from "@/components/ui";
@@ -205,7 +205,7 @@ export default function CachePage() {
 
   return (
     <main className="min-h-screen bg-bg">
-      <DocPageNav title="LocalCloud Kit" subtitle="Redis">
+      <AppNavBar pageLabel="Redis">
         <ServiceStatusBadge service="redis" name="Redis" />
         <div className="relative" ref={connectionRef}>
           <Button
@@ -276,7 +276,7 @@ export default function CachePage() {
           <Icon icon="lucide:book-open" width={14} />
           Documentation
         </Link>
-      </DocPageNav>
+      </AppNavBar>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-5">
         <div className="flex items-center gap-3 flex-wrap">

@@ -34,7 +34,7 @@ import IAMConfigModal from "./IAMConfigModal";
 import LambdaCodeModal from "./LambdaCodeModal";
 import IAMRolePoliciesModal from "./IAMRolePoliciesModal";
 import QuickInspectModal, { QuickInspectAction } from "./QuickInspectModal";
-import DashboardNavBar from "./DashboardNavBar";
+import AppNavBar from "./AppNavBar";
 
 const AWS_RESOURCE_TYPES = new Set<Resource["type"]>([
   "s3",
@@ -812,7 +812,7 @@ export default function Dashboard() {
   return (
     <DashboardNavProvider actions={dashboardNavActions}>
       <div className="min-h-screen bg-bg">
-        <DashboardNavBar activePage="dashboard" />
+        <AppNavBar activePage="dashboard" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 

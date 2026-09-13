@@ -48,8 +48,12 @@ function getInitials(name?: string | null): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-type DashboardNavBarProps = {
+type AppNavBarProps = {
   activePage?: "dashboard" | "profile";
+  /** Replaces the version tagline under the brand name, e.g. "S3", "Manage S3". */
+  pageLabel?: string;
+  /** Page-specific action controls, rendered right after the brand link. */
+  children?: React.ReactNode;
 };
 
 type ResourceActionOptions = {
@@ -79,9 +83,11 @@ const dividerClass = "h-px bg-divider mx-1.5 my-1";
 const menuItemClass =
   "flex items-center flex-1 px-2.5 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink rounded-lg transition-colors";
 
-export default function DashboardNavBar({
+export default function AppNavBar({
   activePage = "dashboard",
-}: DashboardNavBarProps) {
+  pageLabel,
+  children,
+}: AppNavBarProps) {
   const router = useRouter();
   const actions = useDashboardNav();
   const { profile, projects, updateProfile, createProject } = usePreferences();
@@ -301,8 +307,12 @@ export default function DashboardNavBar({
               <div className="hidden sm:flex flex-col min-w-0">
                 <span className="text-[15px] font-semibold tracking-tight text-ink truncate">LocalCloud Kit</span>
                 <span className="text-[11px] text-muted truncate">
-                  Local cloud development environment · v
-                  {packageJson.version}
+                  {pageLabel ?? (
+                    <>
+                      Local cloud development environment · v
+                      {packageJson.version}
+                    </>
+                  )}
                 </span>
               </div>
             </Link>
@@ -789,6 +799,12 @@ export default function DashboardNavBar({
               </button>
             </div>
           </div>
+
+          {children && (
+            <div className="flex items-center gap-2 flex-wrap pb-3">
+              {children}
+            </div>
+          )}
 
           {showMobileMenu && (
             <div className="md:hidden border-t border-divider pb-3">

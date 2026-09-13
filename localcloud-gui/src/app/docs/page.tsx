@@ -10,12 +10,12 @@ import {
 } from "@/constants/docsHub";
 import {
   ArrowTopRightOnSquareIcon,
-  BookOpenIcon,
   CircleStackIcon,
   ServerIcon,
   Squares2X2Icon,
 } from "@heroicons/react/24/outline";
 import { Icon } from "@iconify/react";
+import AppNavBar from "@/components/AppNavBar";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -57,26 +57,8 @@ export default function DocsHubPage() {
   }, [selectedEntry]);
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-4 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <BookOpenIcon className="h-7 w-7 text-indigo-600" />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Documentation Hub</h1>
-                <p className="text-xs text-gray-500">Quick verification + docs + manager/admin links</p>
-              </div>
-            </div>
-            <Link
-              href="/"
-              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
-            >
-              Back to Dashboard
-            </Link>
-          </div>
-        </div>
-      </header>
+    <main className="min-h-screen bg-bg">
+      <AppNavBar pageLabel="Documentation Hub" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <section className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">

@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowTopRightOnSquareIcon, AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import DocPageNav from "@/components/DocPageNav";
+import AppNavBar from "@/components/AppNavBar";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { usePreferences } from "@/context/PreferencesContext";
 import ServiceStatusBadge from "@/components/ServiceStatusBadge";
@@ -232,17 +233,17 @@ export default function SSMDocPage() {
   };
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-teal-50 to-cyan-100">
-      <DocPageNav title="LocalCloud Kit" subtitle="Parameter Store">
+    <main className="min-h-screen bg-bg">
+      <AppNavBar pageLabel="Parameter Store">
         <ServiceStatusBadge service="aws-emulator" name="AWS Emulator" />
         <Link
           href="/manage/ssm"
-          className="inline-flex items-center whitespace-nowrap px-3 py-1.5 text-sm font-semibold text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 hover:border-teal-300 transition-colors"
+          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium text-ink-2 bg-surface-2 border border-border hover:bg-surface-3 transition-colors"
         >
-          <AdjustmentsHorizontalIcon className="h-4 w-4 mr-1.5" />
+          <Icon icon="logos:aws-systems-manager" width={15} />
           Open Manager
         </Link>
-      </DocPageNav>
+      </AppNavBar>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 

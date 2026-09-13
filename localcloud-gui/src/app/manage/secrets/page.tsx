@@ -15,13 +15,13 @@ import {
   DocumentTextIcon,
   ClipboardDocumentIcon,
   CheckIcon,
-  BookOpenIcon,
 } from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import SecretsConfigModal from "@/components/SecretsConfigModal";
-import ManageHeaderBrand from "@/components/ManageHeaderBrand";
+import AppNavBar from "@/components/AppNavBar";
 import { SecretsManagerConfig } from "@/types";
 import { resourceApi } from "@/services/api";
-import SystemLogsButton from "@/components/SystemLogsButton";
+import { Button } from "@/components/ui";
 
 interface Secret {
   Name: string;
@@ -180,45 +180,19 @@ export default function ManageSecretsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-3">
-              <ManageHeaderBrand />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">LocalCloud Kit</h1>
-                <p className="text-xs text-gray-500">Manage secrets</p>
-              </div>
-              <div className="h-5 w-px bg-gray-200" />
-              <Link
-                href="/"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Dashboard
-              </Link>
-            </div>
-            <div className="flex items-center space-x-3">
-              <SystemLogsButton />
-              <Link
-                href="/secrets"
-                className="flex items-center space-x-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <BookOpenIcon className="h-4 w-4" />
-                <span>Docs</span>
-              </Link>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                <PlusIcon className="h-4 w-4" />
-                <span>Create Secret</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-bg">
+      <AppNavBar pageLabel="Manage Secrets Manager">
+        <Link
+          href="/secrets"
+          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium text-ink-2 bg-surface-2 border border-border hover:bg-surface-3 transition-colors"
+        >
+          <Icon icon="lucide:book-open" width={15} />
+          Docs
+        </Link>
+        <Button variant="primary" icon="lucide:plus" onClick={() => setShowCreateModal(true)}>
+          Create Secret
+        </Button>
+      </AppNavBar>
 
       {/* Body */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
