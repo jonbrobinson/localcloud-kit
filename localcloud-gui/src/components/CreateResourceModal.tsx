@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useState, type FormEvent } from "react";
+import { Icon } from "@iconify/react";
 import { ProjectConfig, CreateResourceRequest } from "@/types";
+import { Modal, Field, Input, Button } from "@/components/ui";
 
 interface CreateResourceModalProps {
   isOpen: boolean;
@@ -11,6 +12,14 @@ interface CreateResourceModalProps {
   config: ProjectConfig;
   loading?: boolean;
 }
+
+const RESOURCE_OPTIONS = [
+  { key: "s3", label: "S3 Bucket", icon: "logos:aws-s3" },
+  { key: "dynamodb", label: "DynamoDB Table", icon: "logos:aws-dynamodb" },
+  { key: "lambda", label: "Lambda Function", icon: "logos:aws-lambda" },
+  { key: "apigateway", label: "API Gateway", icon: "logos:aws-api-gateway" },
+  { key: "secretsmanager", label: "Secrets Manager", icon: "logos:aws-secrets-manager" },
+] as const;
 
 const defaultResources = {
   s3: true,
@@ -30,104 +39,78 @@ export default function CreateResourceModal({
   const [projectName, setProjectName] = useState(config.projectName);
   const [resources, setResources] = useState({ ...defaultResources });
 
-  if (!isOpen) return null;
-
   const handleResourceToggle = (resourceType: keyof typeof resources) => {
     setResources((prev) => ({ ...prev, [resourceType]: !prev[resourceType] }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const request: CreateResourceRequest = {
-      projectName,
-      resources,
-    };
-    onSubmit(request);
+    onSubmit({ projectName, resources });
   };
 
+  const selectedCount = Object.values(resources).filter(Boolean).length;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-          aria-label="Close"
-        >
-          <XMarkIcon className="h-6 w-6" />
-        </button>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Create Resources
-        </h2>
-        <p className="text-sm text-gray-600 mb-6">
-          Fill out the form to create AWS resources in the AWS Emulator.
-        </p>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Project Name
-            </label>
-            <input
-              type="text"
+    <Modal open={isOpen} onClose={onClose} size="form">
+      <form onSubmit={handleSubmit}>
+        <Modal.Header
+          icon="lucide:layers"
+          title="Create resources"
+          subtitle="Provisioned in the AWS emulator"
+          onClose={onClose}
+        />
+        <Modal.Body>
+          <Field label="Project name" required htmlFor="create-resource-project-name">
+            <Input
+              id="create-resource-project-name"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
               required
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Resources to Create
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              {Object.entries(resources).map(([resource, enabled]) => (
-                <label
-                  key={resource}
-                  className="flex items-center space-x-2 text-gray-900"
-                >
-                  <input
-                    type="checkbox"
-                    checked={enabled}
-                    onChange={() =>
-                      handleResourceToggle(resource as keyof typeof resources)
-                    }
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span>
-                    {resource === "s3"
-                      ? "S3 Bucket"
-                      : resource === "dynamodb"
-                      ? "DynamoDB Table"
-                      : resource === "lambda"
-                      ? "Lambda Function"
-                      : resource === "apigateway"
-                      ? "API Gateway"
-                      : resource === "secretsmanager"
-                      ? "Secrets Manager"
-                      : resource}
-                  </span>
-                </label>
-              ))}
+          </Field>
+
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-medium text-ink-2">Resources to create</span>
+            <div className="grid grid-cols-2 gap-2">
+              {RESOURCE_OPTIONS.map(({ key, label, icon }) => {
+                const checked = resources[key];
+                return (
+                  <label
+                    key={key}
+                    className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border px-2.5 py-2 transition-colors hover:bg-surface-2"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => handleResourceToggle(key)}
+                      className="sr-only"
+                    />
+                    <span
+                      className={
+                        checked
+                          ? "flex h-4 w-4 shrink-0 items-center justify-center rounded-[5px] bg-primary text-white"
+                          : "h-4 w-4 shrink-0 rounded-[5px] border border-border-strong bg-surface-2"
+                      }
+                    >
+                      {checked && <Icon icon="lucide:check" width={12} />}
+                    </span>
+                    <Icon icon={icon} width={16} className="shrink-0" />
+                    <span className="truncate text-[13px] text-ink">{label}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
-          <div className="flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-              disabled={loading}
-            >
-              {loading ? "Creating..." : "Create Resources"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="primary" icon="lucide:plus" loading={loading} disabled={selectedCount === 0}>
+            {loading ? "Creating…" : `Create ${selectedCount} resource${selectedCount === 1 ? "" : "s"}`}
+          </Button>
+        </Modal.Footer>
+      </form>
+    </Modal>
   );
 }

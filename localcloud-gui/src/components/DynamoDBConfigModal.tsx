@@ -5,7 +5,7 @@ import { Icon } from "@iconify/react";
 import { DynamoDBTableConfig, DynamoDBGSI } from "@/types";
 import { usePreferences } from "@/context/PreferencesContext";
 import { toast } from "react-hot-toast";
-import { Button, IconButton, Input, SegmentedControl } from "./ui";
+import { Button, IconButton, Input, Select, SegmentedControl } from "./ui";
 
 interface DynamoDBConfigModalProps {
   isOpen: boolean;
@@ -319,24 +319,17 @@ export default function DynamoDBConfigModal({
                   </label>
                   <label className="flex flex-col gap-1.5">
                     <span className="text-[11px] font-medium text-muted">Projection type</span>
-                    <div className="relative">
-                      <select
-                        value={gsi.projectionType}
-                        onChange={(e) =>
-                          updateGSI(index, "projectionType", e.target.value as "ALL" | "KEYS_ONLY" | "INCLUDE")
-                        }
-                        className="h-8 w-full cursor-pointer appearance-none rounded-lg border border-border-strong bg-surface pl-2.5 pr-7 text-[13px] text-ink outline-none transition-colors focus:border-primary focus:ring-3 focus:ring-focus"
-                      >
-                        <option value="ALL">All</option>
-                        <option value="KEYS_ONLY">Keys only</option>
-                        <option value="INCLUDE">Include</option>
-                      </select>
-                      <Icon
-                        icon="lucide:chevron-down"
-                        width={13}
-                        className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-faint"
-                      />
-                    </div>
+                    <Select
+                      value={gsi.projectionType}
+                      onChange={(value) =>
+                        updateGSI(index, "projectionType", value as "ALL" | "KEYS_ONLY" | "INCLUDE")
+                      }
+                      options={[
+                        { value: "ALL", label: "All" },
+                        { value: "KEYS_ONLY", label: "Keys only" },
+                        { value: "INCLUDE", label: "Include" },
+                      ]}
+                    />
                   </label>
                 </div>
               </div>
