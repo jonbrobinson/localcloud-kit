@@ -7,3 +7,7 @@ export { Input, type InputProps } from "./Input";
 export { SearchInput } from "./SearchInput";
 export { Card } from "./Card";
 export { SegmentedControl, type SegmentedOption } from "./SegmentedControl";
+export { Field, type FieldProps } from "./Field";
+export { Select, type SelectProps, type SelectOption, type SelectGroup } from "./Select";
+export { Modal, ConfirmDeleteModal, type ModalProps, type ModalSize, type ConfirmDeleteModalProps } from "./Modal";
+export { Table, type TableProps } from "./Table";
