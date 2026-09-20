@@ -6,7 +6,18 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+- **Design System**: `Select`, `Modal` (+ `ConfirmDeleteModal`), `Field`, and `Table` primitives added to `src/components/ui/`, closing the last gaps called out in the LocalCloud Kit UI design system's "Ship it" section. `@headlessui/react` added for `Listbox` and `Dialog`.
+  - `Select` — replaces the native `<select>`: grouped or flat options, brand-mark icons, a search field once a list passes 8 items, keyboard navigation via Headless UI `Listbox`.
+  - `Modal` — one shell (`Modal.Header` / `Modal.Body` / `Modal.Footer`) for form and plain dialogs, built on Headless UI `Dialog`; `ConfirmDeleteModal` composes it into the typed-confirmation destructive pattern (primary action disabled until the project name is typed exactly).
+  - `Field` — label above, hint below, error replaces the hint; wraps `Input`/`Select`.
+  - `Table` — `Table.PanelHeader` / `Table.HeaderRow` / `Table.Row` / `Table.SelectionBar`, the shape behind the dashboard's per-resource-type panels.
+
 ### Changed
+
+- **Dashboard resource list**: the AWS resources table is now one panel per resource type (S3 buckets, DynamoDB tables, Lambda functions, Secrets, ...), each with its own heading, brand mark, count, and Add action, instead of a single table with grey group rows that read as a second column header. Bulk destroy moved to a global footer bar below the stack since selection now spans panels. (`Resource List Options.dc.html` option 1b.)
+- **DynamoDBConfigModal**: the GSI "Projection type" native `<select>` now uses the `Select` primitive.
+- **QuickInspectModal**: rebuilt on `Modal` — drops hand-rolled Escape/scroll-lock handling (now provided by Headless UI `Dialog`) and raw `gray-*`/`indigo-*` Tailwind classes in favor of design tokens.
+- **CreateResourceModal**: rebuilt on `Modal` + `Field` — was still on raw `gray-*`/`blue-*` Tailwind and unconnected to the design tokens; note this component is currently unused by any route (the live "Create resource" flow goes through `ResourceList`'s type picker into the per-type config modals), so this brings it in line with the design system for whenever it's wired up.
 
 ### Fixed
 

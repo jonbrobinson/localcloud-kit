@@ -1,8 +1,8 @@
 "use client";
 
-import { ArrowTopRightOnSquareIcon, CheckCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import Link from "next/link";
-import { useEffect } from "react";
+import { Modal } from "@/components/ui";
 
 export interface QuickInspectAction {
   label: string;
@@ -20,6 +20,9 @@ interface QuickInspectModalProps {
   actions: QuickInspectAction[];
 }
 
+const actionClassName =
+  "inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-xs font-medium text-primary-ink bg-primary-soft hover:brightness-95 transition-[filter] cursor-pointer";
+
 export default function QuickInspectModal({
   isOpen,
   onClose,
@@ -28,21 +31,6 @@ export default function QuickInspectModal({
   quickChecks,
   actions,
 }: QuickInspectModalProps) {
-  useEffect(() => {
-    if (!isOpen) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   const handleActionClick = (callback?: () => void) => {
     onClose();
     if (callback) {
@@ -50,45 +38,24 @@ export default function QuickInspectModal({
     }
   };
 
-  const handleBackdropMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  };
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-      onMouseDown={handleBackdropMouseDown}
-    >
-      <div className="w-full max-w-xl bg-white rounded-xl shadow-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-start justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-            <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
-            aria-label="Close inspect modal"
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
-        </div>
+    <Modal open={isOpen} onClose={onClose}>
+      <Modal.Header icon="lucide:list-checks" title={title} subtitle={subtitle} onClose={onClose} />
 
-        <div className="px-6 py-5">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick verification checklist</h3>
-          <ul className="space-y-2">
-            {quickChecks.map((item, idx) => (
-              <li key={`${item}-${idx}`} className="flex items-start text-sm text-gray-700">
-                <CheckCircleIcon className="h-4 w-4 text-green-500 mt-0.5 mr-2 shrink-0" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
+      <Modal.Body>
+        <span className="text-xs font-medium text-ink-2">Quick verification checklist</span>
+        <ul className="flex flex-col gap-2">
+          {quickChecks.map((item, idx) => (
+            <li key={`${item}-${idx}`} className="flex items-start gap-2 text-[13px] text-ink-2">
+              <Icon icon="lucide:check-circle" width={15} className="mt-0.5 shrink-0 text-success" />
+              {item}
+            </li>
+          ))}
+        </ul>
+      </Modal.Body>
 
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center flex-wrap gap-2">
+      <Modal.Footer>
+        <div className="flex flex-wrap items-center gap-1.5">
           {actions.map((action, idx) => {
             if (action.href && action.external) {
               return (
@@ -98,22 +65,17 @@ export default function QuickInspectModal({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={onClose}
-                  className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 transition-colors"
+                  className={actionClassName}
                 >
                   {action.label}
-                  <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 ml-1.5" />
+                  <Icon icon="lucide:arrow-up-right" width={13} />
                 </a>
               );
             }
 
             if (action.href) {
               return (
-                <Link
-                  key={`${action.label}-${idx}`}
-                  href={action.href}
-                  onClick={onClose}
-                  className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 transition-colors"
-                >
+                <Link key={`${action.label}-${idx}`} href={action.href} onClick={onClose} className={actionClassName}>
                   {action.label}
                 </Link>
               );
@@ -122,15 +84,16 @@ export default function QuickInspectModal({
             return (
               <button
                 key={`${action.label}-${idx}`}
+                type="button"
                 onClick={() => handleActionClick(action.onClick)}
-                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-md hover:bg-indigo-100 transition-colors"
+                className={actionClassName}
               >
                 {action.label}
               </button>
             );
           })}
         </div>
-      </div>
-    </div>
+      </Modal.Footer>
+    </Modal>
   );
 }
