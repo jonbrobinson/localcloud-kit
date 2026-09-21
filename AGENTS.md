@@ -104,6 +104,8 @@ AWS_SECRET_ACCESS_KEY=test
 AWS_ENDPOINT_URL=http://aws-emulator:4566
 API_URL=https://app-local.localcloudkit.com:3030/api
 CORS_ORIGIN=https://app-local.localcloudkit.com:3030
+REDIS_HOST=redis
+REDIS_PORT=6379
 POSTHOG_INTERNAL_URL=http://posthog-web:8000
 ```
 

@@ -188,6 +188,7 @@ export interface DestroyResourceRequest {
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
+  value?: string;
   error?: string;
   message?: string;
 }

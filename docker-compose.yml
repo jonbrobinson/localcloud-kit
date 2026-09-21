@@ -69,6 +69,8 @@ services:
       - AWS_DEFAULT_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     volumes:
       - ./localcloud-api:/app
       - /app/node_modules
@@ -77,6 +79,7 @@ services:
       - localcloud-data:/app/data
     depends_on:
       - aws-emulator
+      - redis
     networks:
       - lck-network
     restart: unless-stopped

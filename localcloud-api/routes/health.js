@@ -1,7 +1,7 @@
 import express from "express";
 import axios from "axios";
-import path from "path";
-import { execAsync, userEndpoint, awsRegion } from "../lib/aws.js";
+import { userEndpoint, awsRegion } from "../lib/aws.js";
+import { getRedis, parseServerInfo } from "../lib/redis.js";
 import { state, addLog } from "../lib/context.js";
 import { listResources } from "../lib/resources.js";
 import {
@@ -70,8 +70,17 @@ router.get("/dashboard", async (req, res) => {
           status: "healthy",
         }))
         .catch(() => ({ total: 0, unread: 0, status: "unavailable" })),
-      execAsync(`/bin/sh ${path.join("/app/scripts/shell", "list_cache.sh")}`, { timeout: 5000 })
-        .then(({ stdout }) => JSON.parse(stdout))
+      getRedis()
+        .then(async (redis) => {
+          const pong = await redis.ping();
+          if (pong !== "PONG") {
+            return { status: "stopped", info: null };
+          }
+          return {
+            status: "running",
+            info: parseServerInfo(await redis.info("server")),
+          };
+        })
         .catch(() => ({ status: "unknown", info: null })),
     ]);
 
