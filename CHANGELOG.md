@@ -18,8 +18,15 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **DynamoDBConfigModal**: the GSI "Projection type" native `<select>` now uses the `Select` primitive.
 - **QuickInspectModal**: rebuilt on `Modal` — drops hand-rolled Escape/scroll-lock handling (now provided by Headless UI `Dialog`) and raw `gray-*`/`indigo-*` Tailwind classes in favor of design tokens.
 - **CreateResourceModal**: rebuilt on `Modal` + `Field` — was still on raw `gray-*`/`blue-*` Tailwind and unconnected to the design tokens; note this component is currently unused by any route (the live "Create resource" flow goes through `ResourceList`'s type picker into the per-type config modals), so this brings it in line with the design system for whenever it's wired up.
+- **Cache API**: talk to Redis with a Node client (`node-redis`) instead of `redis-cli` shell scripts, so JSON and quoted values are encoded safely.
+- **Cache**: Get shows the stored value (pretty-printed when it is JSON), not the `{ success, value }` API envelope.
+- **Cache**: Keys table shows a truncated value for every key; click a row or the eye to open the full value in Result.
+- **Cache**: Flush all sits as a quiet control in the Keys card footer instead of a full-width danger banner.
 
 ### Fixed
+
+- **Cache**: getting a key whose value is JSON (or contains quotes/newlines) no longer returns HTTP 500.
+- **GUI**: favicon `/icon.svg` no longer 500s — duplicate `public/icon.svg` conflicted with `src/app/icon.svg`.
 
 ### Removed
 

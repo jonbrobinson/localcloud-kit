@@ -7,7 +7,7 @@ LocalCloud Kit includes full Redis cache support for local development and testi
 - **Standalone Redis**: Runs as a container alongside the AWS Emulator and the API
 - **Full CRUD Operations**: Set, get, delete, and flush cache keys
 - **List All Keys**: View all keys and values in the cache
-- **JSON-Aware**: Pretty-prints JSON values in the GUI
+- **JSON-Aware**: Pretty-prints JSON values in the GUI. Redis itself stores **strings**; JSON you type in the GUI is saved as text. The API returns those strings via `res.json()`, so quotes and newlines are escaped on the wire without double-stringifying the Redis value.
 - **GUI Management**: Dedicated `/cache` page for full-screen cache management
 - **Shell Scripts**: Automation scripts for cache operations
 - **API Endpoints**: RESTful endpoints for cache management
@@ -28,6 +28,8 @@ Redis runs as a service in `docker-compose.yml`:
 - **Password**: None (for local development)
 
 ## API Endpoints
+
+The GUI and `/api/cache/*` routes use a Node Redis client inside the API container (`REDIS_HOST=redis`, port `6379`). Shell scripts still call `redis-cli` for CLI use.
 
 | Method   | Endpoint                 | Description                   |
 | -------- | ------------------------ | ----------------------------- |
@@ -118,8 +120,8 @@ Located in `scripts/shell/`:
 - **Set Key-Value**: Form to set new cache entries
 - **Get Value**: Retrieve and display values by key
 - **Delete Key**: Remove specific keys
-- **Flush Cache**: Clear all cache entries with confirmation
-- **View All Keys**: Table view of all keys and values
+- **Flush Cache**: Quiet “Flush all” control in the Keys card, with a confirm step before it runs
+- **View All Keys**: Table of keys with truncated values; click a row or the eye to show the full value in Result
 - **JSON Formatting**: Automatic pretty-printing of JSON values
 - **Connection Info**: Display host/port for external Redis tools
 
@@ -148,25 +150,21 @@ FLUSHALL
 ## Using with Node.js
 
 ```javascript
-const redis = require("redis");
+import { createClient } from "redis";
 
-const client = redis.createClient({
-  host: "localhost",
-  port: 6380,
+const client = createClient({
+  socket: { host: "localhost", port: 6380 },
 });
 
 client.on("error", (err) => console.log("Redis Client Error", err));
 
 await client.connect();
 
-// Set a value
-await client.set("key", "value");
+// Store JSON as a string (do not stringify again if it is already text)
+await client.set("user:123", JSON.stringify({ name: "John" }));
 
-// Get a value
-const value = await client.get("key");
-
-// Delete a key
-await client.del("key");
+const raw = await client.get("user:123");
+const parsed = JSON.parse(raw);
 ```
 
 ## Using with Python
@@ -218,7 +216,7 @@ docker compose restart redis
 Make sure you're using the correct port:
 
 - **From host machine**: `localhost:6380`
-- **From other containers**: `localcloud-redis:6379`
+- **From the API / other containers**: `redis:6379` (compose service name; container name is `localcloud-redis`)
 
 ### Cache not persisting
 

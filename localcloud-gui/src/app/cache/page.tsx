@@ -37,6 +37,7 @@ export default function CachePage() {
   const [showConnection, setShowConnection] = useState(false);
   const [confirmFlush, setConfirmFlush] = useState(false);
   const [keyFilter, setKeyFilter] = useState("");
+  const [previewedKey, setPreviewedKey] = useState<string | null>(null);
   const connectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,6 +71,26 @@ export default function CachePage() {
     }
   };
 
+  const compactValue = (val: string) => {
+    try {
+      return JSON.stringify(JSON.parse(val));
+    } catch {
+      return val.replace(/\s+/g, " ").trim();
+    }
+  };
+
+  const truncateValue = (val: string, max = 48) => {
+    if (val === "") return "(empty)";
+    const compact = compactValue(val);
+    return compact.length <= max ? compact : `${compact.slice(0, max)}…`;
+  };
+
+  const previewEntry = (item: { key: string; value: string }) => {
+    setError(null);
+    setPreviewedKey(item.key);
+    setResult(item.value);
+  };
+
   const fetchStatus = async () => {
     setLoading(true);
     setError(null);
@@ -93,12 +114,14 @@ export default function CachePage() {
     setError(null);
     try {
       const res = await cacheApi.set(key, value);
-      setResult(JSON.stringify(res));
       if (res.success) {
+        setResult("Key set");
         setKey("");
         setValue("");
         setActiveAction(null);
         await handleShowAllKeys();
+      } else {
+        setError(res.error || "Failed to set key");
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to set key");
@@ -116,10 +139,13 @@ export default function CachePage() {
     setError(null);
     try {
       const res = await cacheApi.get(key);
-      setResult(JSON.stringify(res));
-      if (res.success) {
+      if (res.success && res.value !== undefined) {
+        setPreviewedKey(key);
+        setResult(res.value);
         setKey("");
         setActiveAction(null);
+      } else {
+        setError(res.error || "Key not found");
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to get key");
@@ -137,11 +163,14 @@ export default function CachePage() {
     setError(null);
     try {
       const res = await cacheApi.del(key);
-      setResult(JSON.stringify(res));
       if (res.success) {
+        setResult("Key deleted");
+        if (previewedKey === key) setPreviewedKey(null);
         setKey("");
         setActiveAction(null);
         await handleShowAllKeys();
+      } else {
+        setError(res.error || "Key not found");
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to delete key");
@@ -155,12 +184,15 @@ export default function CachePage() {
     setError(null);
     try {
       const res = await cacheApi.flush();
-      setResult(JSON.stringify(res));
       if (res.success) {
+        setResult("Cache flushed");
+        setPreviewedKey(null);
         const keysRes = await cacheApi.keys();
         if (keysRes.success) {
           setAllKeys(keysRes.data || []);
         }
+      } else {
+        setError(res.error || "Failed to flush cache");
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to flush cache");
@@ -421,12 +453,12 @@ export default function CachePage() {
             </Card>
 
             {/* Result */}
-            {(result || error) && (
+            {(result !== null || error) && (
               <Card className="p-4 flex flex-col gap-2">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-faint">
                   Result
                 </span>
-                {result && (
+                {result !== null && (
                   <pre className="m-0 p-2.5 rounded-lg bg-surface-2 border border-border font-mono text-[11px] leading-relaxed text-ink-2 overflow-auto max-h-40">
                     {isJson(result) ? formatValue(result) : result}
                   </pre>
@@ -472,86 +504,101 @@ export default function CachePage() {
                   </p>
                 </div>
               ) : (
-                <div className="max-h-96 overflow-y-auto">
-                  {filteredKeys.map((item) => (
-                    <div
-                      key={item.key}
-                      className="grid grid-cols-[1fr_auto] items-center gap-2 px-3.5 h-10 border-b border-divider last:border-b-0 hover:bg-surface-2 transition-colors"
-                    >
-                      <span className="font-mono text-xs text-ink truncate" title={item.key}>
-                        {item.key}
-                      </span>
-                      <span className="flex items-center gap-0.5">
-                        <IconButton
-                          icon="lucide:eye"
-                          label={`View ${item.key}`}
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setKey(item.key);
-                            setActiveAction("get");
-                          }}
-                        />
-                        <IconButton
-                          icon="lucide:trash-2"
-                          label={`Delete ${item.key}`}
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setKey(item.key);
-                            setActiveAction("delete");
-                          }}
-                        />
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_4.5rem] gap-2 items-center px-3.5 py-2 bg-surface-2 border-b border-divider text-[10px] font-semibold uppercase tracking-wider text-faint">
+                    <span>Key</span>
+                    <span>Value</span>
+                    <span className="sr-only">Actions</span>
+                  </div>
+                  <div className="max-h-96 overflow-y-auto">
+                    {filteredKeys.map((item) => {
+                      const selected = previewedKey === item.key;
+                      return (
+                        <div
+                          key={item.key}
+                          onClick={() => previewEntry(item)}
+                          className={`grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_4.5rem] gap-2 items-center px-3.5 h-10 border-b border-divider last:border-b-0 cursor-pointer transition-colors ${
+                            selected ? "bg-primary-soft" : "hover:bg-surface-2"
+                          }`}
+                        >
+                          <span className="font-mono text-xs text-ink truncate" title={item.key}>
+                            {item.key}
+                          </span>
+                          <span
+                            className={`font-mono text-[11px] truncate ${
+                              item.value === "" ? "text-faint" : "text-muted"
+                            }`}
+                            title={item.value === "" ? "(empty)" : compactValue(item.value)}
+                          >
+                            {truncateValue(item.value)}
+                          </span>
+                          <span className="flex items-center gap-0.5 justify-end">
+                            <IconButton
+                              icon="lucide:eye"
+                              label={`View ${item.key}`}
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                previewEntry(item);
+                              }}
+                            />
+                            <IconButton
+                              icon="lucide:trash-2"
+                              label={`Delete ${item.key}`}
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setKey(item.key);
+                                setActiveAction("delete");
+                              }}
+                            />
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               )}
-            </Card>
 
-            {/* Guarded flush */}
-            <div className="flex items-center gap-2.5 p-3.5 rounded-xl border border-danger bg-danger-soft flex-wrap">
-              <Icon icon="lucide:alert-triangle" width={16} className="text-danger shrink-0" />
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="text-xs font-semibold text-danger-ink">Flush all keys</span>
-                <span className="text-[11px] text-danger-ink/85">
-                  Drops all {allKeys.length} key{allKeys.length !== 1 ? "s" : ""} immediately. Dev
-                  only, no undo.
-                </span>
+              <div className="flex items-center gap-2 px-3.5 py-2 border-t border-divider flex-wrap">
+                {confirmFlush ? (
+                  <>
+                    <span className="text-[11px] text-muted">
+                      Drop all {allKeys.length} key{allKeys.length !== 1 ? "s" : ""}? No undo.
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-auto"
+                      onClick={() => setConfirmFlush(false)}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      loading={loading}
+                      onClick={handleConfirmFlush}
+                    >
+                      Confirm flush
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="ml-auto"
+                    onClick={() => setConfirmFlush(true)}
+                    disabled={loading || allKeys.length === 0}
+                  >
+                    Flush all
+                  </Button>
+                )}
               </div>
-              {confirmFlush ? (
-                <div className="ml-auto flex items-center gap-1.5 shrink-0">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setConfirmFlush(false)}
-                    disabled={loading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    icon="lucide:trash-2"
-                    loading={loading}
-                    onClick={handleConfirmFlush}
-                  >
-                    Confirm flush
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  variant="danger"
-                  size="sm"
-                  icon="lucide:trash-2"
-                  className="ml-auto shrink-0"
-                  onClick={() => setConfirmFlush(true)}
-                  disabled={loading || allKeys.length === 0}
-                >
-                  Flush all
-                </Button>
-              )}
-            </div>
+            </Card>
           </div>
         </div>
       </div>
