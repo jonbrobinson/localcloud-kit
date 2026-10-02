@@ -6,6 +6,18 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+### Security
+
+## [0.15.0] - 2026-10-02
+
+### Added
+
 - **Design System**: `Select`, `Modal` (+ `ConfirmDeleteModal`), `Field`, and `Table` primitives added to `src/components/ui/`, closing the last gaps called out in the LocalCloud Kit UI design system's "Ship it" section. `@headlessui/react` added for `Listbox` and `Dialog`.
   - `Select` — replaces the native `<select>`: grouped or flat options, brand-mark icons, a search field once a list passes 8 items, keyboard navigation via Headless UI `Listbox`.
   - `Modal` — one shell (`Modal.Header` / `Modal.Body` / `Modal.Footer`) for form and plain dialogs, built on Headless UI `Dialog`; `ConfirmDeleteModal` composes it into the typed-confirmation destructive pattern (primary action disabled until the project name is typed exactly).
