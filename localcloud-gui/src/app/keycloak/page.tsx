@@ -8,20 +8,10 @@ import AppNavBar from "@/components/AppNavBar";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { usePreferences } from "@/context/PreferencesContext";
 import ServiceStatusBadge from "@/components/ServiceStatusBadge";
+import { useAdminUrl } from "@/hooks/useAdminUrl";
 
 const KEYCLOAK_TRAEFIK_URL = "https://keycloak.localcloudkit.com:3030";
 const KEYCLOAK_DIRECT_URL = "http://localhost:8080";
-
-function useKeycloakBaseUrl() {
-  const [baseUrl, setBaseUrl] = useState(KEYCLOAK_TRAEFIK_URL);
-  useEffect(() => {
-    const isLocalhost =
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
-    setBaseUrl(isLocalhost ? KEYCLOAK_DIRECT_URL : KEYCLOAK_TRAEFIK_URL);
-  }, []);
-  return baseUrl;
-}
 
 // Maps from PreferredLanguage to Keycloak tab keys
 const LANG_TO_TAB: Record<string, "nodejs" | "python" | "curl" | "envvars"> = {
@@ -108,7 +98,7 @@ OIDC_AUTH_URL=http://localhost:8080/realms/master/protocol/openid-connect/auth`,
 export default function KeycloakPage() {
   const { profile } = usePreferences();
   const [activeTab, setActiveTab] = useState<"nodejs" | "python" | "curl" | "envvars">("nodejs");
-  const keycloakBaseUrl = useKeycloakBaseUrl();
+  const keycloakBaseUrl = useAdminUrl(KEYCLOAK_TRAEFIK_URL, KEYCLOAK_DIRECT_URL);
 
   useEffect(() => {
     if (profile?.preferred_language) {

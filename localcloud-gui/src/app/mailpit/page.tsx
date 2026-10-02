@@ -11,6 +11,7 @@ import { useState } from "react";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { mailpitApi } from "@/services/api";
 import ServiceStatusBadge from "@/components/ServiceStatusBadge";
+import { useAdminUrl } from "@/hooks/useAdminUrl";
 import { toast } from "react-hot-toast";
 
 const MAILPIT_UI_URL = "https://mailpit.localcloudkit.com:3030";
@@ -158,6 +159,7 @@ const resources = [
 
 export default function MailpitIntegrationPage() {
   const [showModal, setShowModal] = useState(false);
+  const mailpitUiUrl = useAdminUrl(MAILPIT_UI_URL, MAILPIT_UI_DIRECT);
   const [activeFrameworkTab, setActiveFrameworkTab] = useState<
     "nodemailer" | "sendgrid" | "laravel" | "django" | "flask"
   >("nodemailer");
@@ -190,7 +192,7 @@ export default function MailpitIntegrationPage() {
       <AppNavBar pageLabel="Mailpit">
         <ServiceStatusBadge service="mailpit" name="Mailpit" />
         <a
-          href={MAILPIT_UI_URL}
+          href={mailpitUiUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium text-ink-2 bg-surface-2 border border-border hover:bg-surface-3 transition-colors"

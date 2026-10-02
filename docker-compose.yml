@@ -132,6 +132,16 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=localcloud
       - PGADMIN_CONFIG_SERVER_MODE=False
       - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+      # Pre-register the bundled PostgreSQL server (Docker host `postgres`) on first launch
+      - PGADMIN_SERVER_JSON_FILE=/pgadmin4/servers.json
+    # Write a 0600 pgpass so the pre-registered server connects without a password prompt
+    # (bind-mounted files can't carry 0600 from git, so it's generated at startup)
+    entrypoint: >
+      /bin/sh -c "echo 'postgres:5432:*:localcloud:localcloud' > /tmp/pgpass &&
+      chmod 600 /tmp/pgpass &&
+      exec /entrypoint.sh"
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
     depends_on:
       - postgres
     networks:

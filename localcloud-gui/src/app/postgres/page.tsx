@@ -8,6 +8,7 @@ import AppNavBar from "@/components/AppNavBar";
 import ThemeableCodeBlock from "@/components/ThemeableCodeBlock";
 import { usePreferences } from "@/context/PreferencesContext";
 import ServiceStatusBadge from "@/components/ServiceStatusBadge";
+import { useAdminUrl } from "@/hooks/useAdminUrl";
 
 const PGADMIN_TRAEFIK_URL = "https://pgadmin.localcloudkit.com:3030";
 const PGADMIN_DIRECT_URL = "http://localhost:5050";
@@ -132,6 +133,7 @@ const resources = [
 export default function PostgresPage() {
   const { profile } = usePreferences();
   const [activeTab, setActiveTab] = useState<"nodejs" | "python" | "go" | "java">("nodejs");
+  const pgAdminUrl = useAdminUrl(PGADMIN_TRAEFIK_URL, PGADMIN_DIRECT_URL);
 
   useEffect(() => {
     if (profile?.preferred_language) {
@@ -145,7 +147,7 @@ export default function PostgresPage() {
       <AppNavBar pageLabel="PostgreSQL">
         <ServiceStatusBadge service="postgres" name="PostgreSQL" />
         <a
-          href={PGADMIN_DIRECT_URL}
+          href={pgAdminUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium text-ink-2 bg-surface-2 border border-border hover:bg-surface-3 transition-colors"
@@ -238,7 +240,12 @@ export default function PostgresPage() {
             </table>
           </div>
           <p className="mt-3 text-xs text-gray-500">
-            After opening pgAdmin, register the PostgreSQL server using the connection settings above (use <code className="bg-gray-100 px-1 rounded">postgres</code> as the host when connecting from within Docker).
+            The bundled database is pre-registered in pgAdmin as{" "}
+            <strong>LocalCloud Kit → LocalCloud PostgreSQL</strong> — no password prompt. pgAdmin runs inside Docker, so
+            it uses the <strong>Docker network</strong> connection settings above (host{" "}
+            <code className="bg-gray-100 px-1 rounded">postgres</code>, not{" "}
+            <code className="bg-gray-100 px-1 rounded">localhost</code>, which points at the pgAdmin container itself).
+            Use those same values if you register a server manually.
           </p>
         </section>
 

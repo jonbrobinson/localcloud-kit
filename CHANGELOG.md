@@ -11,6 +11,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
   - `Modal` — one shell (`Modal.Header` / `Modal.Body` / `Modal.Footer`) for form and plain dialogs, built on Headless UI `Dialog`; `ConfirmDeleteModal` composes it into the typed-confirmation destructive pattern (primary action disabled until the project name is typed exactly).
   - `Field` — label above, hint below, error replaces the hint; wraps `Input`/`Select`.
   - `Table` — `Table.PanelHeader` / `Table.HeaderRow` / `Table.Row` / `Table.SelectionBar`, the shape behind the dashboard's per-resource-type panels.
+- **pgAdmin**: the bundled PostgreSQL database is pre-registered as **LocalCloud Kit → LocalCloud PostgreSQL** and connects without a password prompt. Existing installs pick it up after `make restart`.
 
 ### Changed
 
@@ -26,6 +27,8 @@ All notable changes to LocalCloud Kit will be documented in this file.
 ### Fixed
 
 - **Cache**: getting a key whose value is JSON (or contains quotes/newlines) no longer returns HTTP 500.
+- **pgAdmin / Mailpit**: "Open" buttons now go to the app-domain URL when you browse the app domain, and to the `localhost` port when you browse on localhost (pgAdmin previously always opened `localhost:5050`).
+- **pgAdmin docs**: no longer claim the server was registered automatically when it wasn't; they now explain pgAdmin runs inside Docker and must use host `postgres`, not `localhost`.
 - **GUI**: favicon `/icon.svg` no longer 500s — duplicate `public/icon.svg` conflicted with `src/app/icon.svg`.
 
 ### Removed

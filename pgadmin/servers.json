@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "LocalCloud PostgreSQL",
+      "Group": "LocalCloud Kit",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "localcloud",
+      "Username": "localcloud",
+      "SSLMode": "disable",
+      "PassFile": "/tmp/pgpass"
+    }
+  }
+}
