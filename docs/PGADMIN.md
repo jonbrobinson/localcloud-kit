@@ -1,6 +1,6 @@
 # pgAdmin — PostgreSQL Database UI
 
-pgAdmin is a web-based administration tool for PostgreSQL. In LocalCloud Kit it connects automatically to the bundled PostgreSQL instance — no manual server registration required.
+pgAdmin is a web-based administration tool for PostgreSQL. In LocalCloud Kit it runs as a Docker container alongside the bundled PostgreSQL instance, and the bundled server is pre-registered — open pgAdmin and **LocalCloud Kit → LocalCloud PostgreSQL** is ready to connect, no password prompt.
 
 ## Access
 
@@ -46,7 +46,21 @@ make restart
 
 ## PostgreSQL Connection Details
 
-The bundled PostgreSQL instance is pre-registered in pgAdmin automatically.
+> **pgAdmin runs inside Docker.** Whether you open it at `https://pgadmin.localcloudkit.com:3030` or `http://localhost:5050`, pgAdmin itself lives in the `localcloud-pgadmin` container on the `lck-network` Docker network, so it connects to PostgreSQL using the **Docker connection** — host `postgres`, not `localhost`. Inside the container, `localhost` points at pgAdmin itself.
+
+### Pre-registered server
+
+On first launch pgAdmin imports [`pgadmin/servers.json`](../pgadmin/servers.json), which registers **LocalCloud PostgreSQL** (host `postgres`, port `5432`, user/db `localcloud`) under the **LocalCloud Kit** group. The container entrypoint writes a `0600` pgpass file at startup so the connection doesn't prompt for a password.
+
+pgAdmin only imports `servers.json` when its config database is first created. If your pgAdmin container predates this, recreate it to pick up the server:
+
+```bash
+make restart
+# or just pgAdmin:
+docker compose up -d --force-recreate pgadmin
+```
+
+To register another server manually: **Register → Server** → **Connection** tab, and use the *inside Docker* values below.
 
 | Setting | Value |
 |---------|-------|
