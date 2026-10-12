@@ -6,9 +6,17 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+- **Dashboard**: a Recent mail card shows the three newest emails Mailpit has caught, and only appears when there is mail. Click one to open it.
+- **MailViewer**: read a captured email as HTML (sandboxed, at desktop or 375px mobile width), plain text, or raw source, and copy whichever view is open. Rows in the Mailpit inbox modal open it too.
+- **Services menu**: a status dot on the menu button shows overall service health, each service shows its own status, and System logs is listed at the bottom.
+
 ### Changed
 
+- **Dashboard**: the always-on services status row is gone. When a service stops or fails, a one-line alert with a link to the logs appears at the top instead.
+
 ### Fixed
+
+- **MailpitModal**: the Date column showed "—" for every message; it now shows when each email arrived.
 
 ### Removed
 
