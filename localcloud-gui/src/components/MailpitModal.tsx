@@ -2,6 +2,7 @@
 
 import { useMailpitStats } from "@/hooks/useMailpitStats";
 import { mailpitApi } from "@/services/api";
+import type { MailpitMessageSummary } from "@/types";
 import {
   ArrowTopRightOnSquareIcon,
   BookOpenIcon,
@@ -23,25 +24,18 @@ const TEST_EMAIL_DEFAULTS = {
   body: "Hello! This is a test email sent from the LocalCloud Kit dashboard.",
 };
 
-interface MailMessage {
-  ID: string;
-  Subject: string;
-  From: { Address: string; Name: string };
-  To: Array<{ Address: string; Name: string }>;
-  Date: string;
-  Read: boolean;
-}
-
 interface MailpitModalProps {
   onClose: () => void;
+  /** When provided, clicking a message row opens it (e.g. in MailViewer). */
+  onOpenMessage?: (id: string) => void;
 }
 
-export default function MailpitModal({ onClose }: MailpitModalProps) {
+export default function MailpitModal({ onClose, onOpenMessage }: MailpitModalProps) {
   const { stats, refetch } = useMailpitStats();
 
   const [sending, setSending] = useState(false);
   const [clearing, setClearing] = useState(false);
-  const [messages, setMessages] = useState<MailMessage[]>([]);
+  const [messages, setMessages] = useState<MailpitMessageSummary[]>([]);
 
   const fetchMessages = useCallback(async () => {
     const data = await mailpitApi.getMessages(10);
@@ -221,7 +215,11 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
                   </thead>
                   <tbody className="divide-y divide-gray-100 bg-white">
                     {messages.map((msg) => (
-                      <tr key={msg.ID} className={msg.Read ? "" : "bg-blue-50"}>
+                      <tr
+                        key={msg.ID}
+                        onClick={onOpenMessage ? () => onOpenMessage(msg.ID) : undefined}
+                        className={`${msg.Read ? "" : "bg-blue-50"} ${onOpenMessage ? "cursor-pointer hover:bg-gray-50" : ""}`}
+                      >
                         <td className="px-3 py-2 font-medium text-gray-900 max-w-[180px] truncate">
                           {msg.Subject || "(no subject)"}
                         </td>
@@ -232,7 +230,7 @@ export default function MailpitModal({ onClose }: MailpitModalProps) {
                           {msg.To?.[0]?.Address || "—"}
                         </td>
                         <td className="px-3 py-2 text-gray-500 whitespace-nowrap">
-                          {msg.Date ? new Date(msg.Date).toLocaleString() : "—"}
+                          {msg.Created ? new Date(msg.Created).toLocaleString() : "—"}
                         </td>
                         <td className="px-3 py-2">
                           {msg.Read ? (

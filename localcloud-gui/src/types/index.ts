@@ -127,6 +127,38 @@ export interface MailpitStats {
   status: "healthy" | "unavailable" | "unknown";
 }
 
+export interface MailpitAddress {
+  Name: string;
+  Address: string;
+}
+
+/** One row of Mailpit's /api/v1/messages list. */
+export interface MailpitMessageSummary {
+  ID: string;
+  From: MailpitAddress;
+  To: MailpitAddress[];
+  Subject: string;
+  Created: string;
+  Read: boolean;
+  Size: number;
+  Attachments: number;
+  Snippet: string;
+}
+
+/** Full message from Mailpit's /api/v1/message/{ID}. */
+export interface MailpitMessage {
+  ID: string;
+  From: MailpitAddress;
+  To: MailpitAddress[];
+  Cc: MailpitAddress[] | null;
+  Subject: string;
+  Date: string;
+  Size: number;
+  HTML: string;
+  Text: string;
+  Attachments: Array<{ PartID: string; FileName: string; ContentType: string; Size: number }>;
+}
+
 export interface RedisStatus {
   status: "running" | "stopped" | "unknown";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

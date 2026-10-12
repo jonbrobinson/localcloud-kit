@@ -3,6 +3,9 @@ import { cn } from "./cn";
 export interface SegmentedOption<T extends string> {
   value: T;
   label: string;
+  disabled?: boolean;
+  /** Tooltip, e.g. why an option is disabled. */
+  title?: string;
 }
 
 export function SegmentedControl<T extends string>({
@@ -32,8 +35,10 @@ export function SegmentedControl<T extends string>({
           key={option.value}
           type="button"
           onClick={() => onChange(option.value)}
+          disabled={option.disabled}
+          title={option.title}
           className={cn(
-            "h-[26px] px-3 rounded-md text-xs font-medium font-sans cursor-pointer transition-colors",
+            "h-[26px] px-3 rounded-md text-xs font-medium font-sans cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-45",
             fullWidth && "flex-1",
             value === option.value
               ? "bg-surface text-ink shadow-e1"

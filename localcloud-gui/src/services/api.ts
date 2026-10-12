@@ -5,6 +5,8 @@ import {
   KeycloakStatus,
   EmulatorStatus,
   LogEntry,
+  MailpitMessage,
+  MailpitMessageSummary,
   MailpitStats,
   PosthogStatus,
   PostgresStatus,
@@ -324,14 +326,25 @@ export const mailpitApi = {
     }
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getMessages: async (limit = 10): Promise<{ messages: any[]; total: number }> => {
+  getMessages: async (
+    limit = 10
+  ): Promise<{ messages: MailpitMessageSummary[]; total: number; unread?: number }> => {
     try {
       const response = await api.get(`/mailpit/messages?limit=${limit}`);
       return response.data.data || { messages: [], total: 0 };
     } catch {
       return { messages: [], total: 0 };
     }
+  },
+
+  getMessage: async (id: string): Promise<MailpitMessage> => {
+    const response = await api.get(`/mailpit/messages/${encodeURIComponent(id)}`);
+    return response.data.data;
+  },
+
+  getRawMessage: async (id: string): Promise<string> => {
+    const response = await api.get(`/mailpit/messages/${encodeURIComponent(id)}/raw`);
+    return response.data.data?.raw ?? "";
   },
 
   clearMessages: async (): Promise<void> => {
