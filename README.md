@@ -119,7 +119,8 @@ Direct localhost (no TLS — always available):
 
 The dashboard shows your local cloud environment at a glance:
 
-- **Services Status Bar** — health indicators for Keycloak, AWS Emulator, Mailpit, PostgreSQL, PostHog, and Redis. Click any service to open its management panel or docs.
+- **Service Health** — a status dot on the **Services** menu shows whether Keycloak, the AWS Emulator, Mailpit, PostgreSQL, and Redis are running. The dashboard only shows an alert when one of them stops.
+- **Recent Mail** — the newest emails caught by Mailpit, shown when there is mail. Click one to read it as HTML, plain text, or raw source.
 - **AWS Resources** — categorized view (Storage, Database, Security & Identity) with add/destroy actions and inline inspection.
 
 ![Main Dashboard](docs/screenshots/01-dashboard-empty-resources.png)
@@ -245,7 +246,7 @@ The **Profile** page (`/profile`) includes a **CLI Playbook** for the active pro
 #### Mailpit Email Testing
 
 - **Local SMTP Server**: Catch all outbound emails without sending to real addresses
-- **Dashboard Inbox**: Click Mailpit in the status bar for a read-only recent messages preview with unread badge
+- **Dashboard Inbox**: The Recent mail card shows the newest emails; open one to read it as HTML (desktop or mobile width), plain text, or raw source
 - **Quick Test Button**: Send a preset test email in one click from the dashboard modal
 - **Full Test Compose**: Complete compose form on the Mailpit documentation page
 - **Admin UI**: Link through to the full Mailpit web interface for advanced filtering and message inspection
@@ -254,7 +255,7 @@ The **Profile** page (`/profile`) includes a **CLI Playbook** for the active pro
 
 - **Optional Compose Profile**: Start only when needed via `docker compose --profile posthog up -d`
 - **Isolated Data Stores**: Dedicated PostHog Postgres, Redis, ClickHouse, Kafka, and ZooKeeper services
-- **Dashboard Visibility**: Service health appears in the status bar and Services menu
+- **Dashboard Visibility**: Service health appears in the Services menu
 - **Doc & SDK Examples**: Local integration snippets for TypeScript, Node.js, Python, and CLI
 
 ### Development Tools

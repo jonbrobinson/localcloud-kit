@@ -27,7 +27,7 @@
 - [ ] `docker-compose.yml` service block added
 - [ ] Traefik router + TLS entry added
 - [ ] GUI doc page uses `DocPageNav` + `ThemeableCodeBlock` + `usePreferences`
-- [ ] Dashboard Resources dropdown + Docs dropdown + status bar updated
+- [ ] Dashboard Resources dropdown + Docs dropdown + service health (`serviceHealth.ts`) updated
 - [ ] `DocPageNav` Docs dropdown updated
 - [ ] `docs/<SERVICE>.md` created with both Traefik and direct localhost URLs
 

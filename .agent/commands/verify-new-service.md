@@ -65,7 +65,7 @@ The service being verified is: **$ARGUMENTS**
 
 - [ ] Service added to the **Resources** dropdown (under appropriate section heading)
 - [ ] Service added to the **Docs** dropdown linking to `/‌<service>`
-- [ ] Service status badge added to the dashboard status bar
+- [ ] Service health added to `summarizeServiceHealth()` in `src/lib/serviceHealth.ts` (drives the Services menu dot and the dashboard alert)
 
 ## 8. GUI — Docs Dropdown (`localcloud-gui/src/components/DocPageNav.tsx`)
 

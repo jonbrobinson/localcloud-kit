@@ -358,9 +358,12 @@ a clear two-category model:
 - **Services** dropdown — Platform services only, listed alphabetically.
 - **Docs** dropdown — Documentation pages grouped as Infrastructure / AWS Resources / Platform Services.
 
-### Status Bar
+### Service Health
 
-Shows health of all platform services in alphabetical order: **AWS Emulator | Keycloak | Mailpit | PostgreSQL | PostHog | Redis**. Clicking a service opens its management modal or links to its doc page.
+There is no always-on status bar. `summarizeServiceHealth()` (`localcloud-gui/src/lib/serviceHealth.ts`) collapses AWS Emulator, Keycloak, Mailpit, PostgreSQL, and Redis status into one summary that two places read:
+
+- **Services** nav menu — a status dot on the menu button (green / amber while starting / red when anything is down), a summary line, and a dot plus "Stopped"/"Failed" label per service.
+- **`ServiceAlert`** — a one-line alert at the top of the dashboard, rendered only while a service is confirmed stopped or failing. "Starting" and "unknown" never trigger it.
 
 ### ResourceList Component
 
@@ -368,8 +371,9 @@ Shows health of all platform services in alphabetical order: **AWS Emulator | Ke
 
 ### Mailpit UX
 
-- **Status bar** — click to open `MailpitModal` (read-only inbox preview + unread badge)
-- **MailpitModal** — shows recent messages (read-only), stats bar, one-click "Send Test" button, links to Mailpit UI and docs
+- **`RecentMailCard`** — dashboard strip with the 3 newest messages, shown only when Mailpit is healthy and has mail. "View all" opens `MailpitModal`.
+- **`MailViewer`** — opens a single message with HTML / Text / Source views and a desktop/mobile width toggle. HTML renders in a sandboxed `<iframe srcDoc>` with scripts disabled.
+- **MailpitModal** — shows recent messages (click a row to open it in `MailViewer`), stats bar, one-click "Send Test" button, links to Mailpit UI and docs
 - **`/mailpit` doc page** — full test email compose form (from, to, subject, body), SMTP settings, framework integration examples
 
 
