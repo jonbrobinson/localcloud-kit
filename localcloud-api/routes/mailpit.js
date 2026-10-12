@@ -34,6 +34,44 @@ router.get("/mailpit/messages", async (req, res) => {
   }
 });
 
+// Mailpit message IDs are short alphanumeric strings; reject anything else before proxying.
+const MESSAGE_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+
+// Full message (HTML + Text parts, addresses, attachments). Mailpit marks it read on fetch.
+router.get("/mailpit/messages/:id", async (req, res) => {
+  const { id } = req.params;
+  if (!MESSAGE_ID_PATTERN.test(id)) {
+    return res.status(400).json({ success: false, error: "Invalid message id" });
+  }
+  try {
+    const response = await axios.get(`${MAILPIT_INTERNAL_URL}/api/v1/message/${id}`, {
+      timeout: 5000,
+    });
+    res.json({ success: true, data: response.data });
+  } catch (error) {
+    const status = error.response?.status === 404 ? 404 : 502;
+    res.status(status).json({ success: false, error: error.message });
+  }
+});
+
+// Raw RFC 822 source for the "Source" view.
+router.get("/mailpit/messages/:id/raw", async (req, res) => {
+  const { id } = req.params;
+  if (!MESSAGE_ID_PATTERN.test(id)) {
+    return res.status(400).json({ success: false, error: "Invalid message id" });
+  }
+  try {
+    const response = await axios.get(`${MAILPIT_INTERNAL_URL}/api/v1/message/${id}/raw`, {
+      timeout: 5000,
+      responseType: "text",
+    });
+    res.json({ success: true, data: { raw: response.data } });
+  } catch (error) {
+    const status = error.response?.status === 404 ? 404 : 502;
+    res.status(status).json({ success: false, error: error.message });
+  }
+});
+
 router.post("/mailpit/send-test", async (req, res) => {
   const { from, to, subject, body } = req.body;
   if (!from || !to || !subject || !body) {

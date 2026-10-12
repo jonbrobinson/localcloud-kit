@@ -213,7 +213,7 @@ export default function MailpitIntegrationPage() {
             making it safe to test email flows without any risk of sending to real addresses.
           </p>
           <p className="text-sm text-gray-600 leading-relaxed mt-2">
-            Access Mailpit from the <strong>Services</strong> menu or the status bar on the dashboard to view recent messages.
+            Recent emails appear in the <strong>Recent mail</strong> card on the dashboard, where you can open each one as HTML, plain text, or raw source. The <strong>Services</strong> menu also opens the inbox.
             Use the <strong>Send Test Email</strong> form below to verify your SMTP setup, or open the full Mailpit UI for advanced filtering and message inspection.
           </p>
         </section>

@@ -7,7 +7,8 @@ import {
 } from "@/context/DashboardNavContext";
 import { PLATFORM_SERVICES, PLATFORM_SERVICE_KINDS, SERVICE_KIND_LABEL } from "@/constants/platformServices";
 import { useServicesData } from "@/hooks/useServicesData";
-import { cn, SegmentedControl, type SegmentedOption } from "@/components/ui";
+import { cn, SegmentedControl, StatusDot, type SegmentedOption } from "@/components/ui";
+import { summarizeServiceHealth, type ServiceHealthId } from "@/lib/serviceHealth";
 import type { PreferredLanguage, ThemePreference } from "@/types";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
@@ -91,9 +92,20 @@ export default function AppNavBar({
   const router = useRouter();
   const actions = useDashboardNav();
   const { profile, projects, updateProfile, createProject } = usePreferences();
-  const {
+  const { awsEmulator, keycloak, mailpit, postgres, redis } = useServicesData();
+  const serviceHealth = summarizeServiceHealth({
+    emulator: awsEmulator.status,
+    keycloak,
     mailpit,
-  } = useServicesData();
+    postgres,
+    redis,
+  });
+  const healthById = (id: ServiceHealthId) => serviceHealth.services.find((service) => service.id === id);
+  const healthSummaryLabel = serviceHealth.down.length
+    ? `${serviceHealth.down.map((service) => service.label).join(", ")} ${serviceHealth.down.length === 1 ? "is" : "are"} not running`
+    : serviceHealth.tone === "success"
+      ? `All ${serviceHealth.services.length} services running`
+      : "Checking services…";
 
   const prefetchDocRoutes = useCallback(() => {
     DOC_ROUTES.forEach((route) => router.prefetch(route));
@@ -309,6 +321,29 @@ export default function AppNavBar({
     );
   };
 
+  /** Right-aligned status for a Services menu row: unread mail count, a "Stopped" label when down, and a status dot. */
+  const renderServiceStatus = (id: ServiceHealthId) => {
+    const health = healthById(id);
+    return (
+      <span className="ml-auto flex items-center gap-1.5 pl-2">
+        {id === "mailpit" && mailpit.unread > 0 && (
+          <span className="flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-[10px] font-bold bg-danger text-white leading-none">
+            {mailpit.unread > 99 ? "99+" : mailpit.unread}
+          </span>
+        )}
+        {health?.down && <span className="text-[11px] font-medium text-danger-ink">{health.statusLabel}</span>}
+        {health && <StatusDot tone={health.tone} pulse={health.tone === "warn"} />}
+      </span>
+    );
+  };
+
+  const renderHealthSummary = (className?: string) => (
+    <div className={cn("flex items-start gap-2 px-3 py-2 text-xs", serviceHealth.down.length ? "text-danger-ink font-medium" : "text-ink-2", className)}>
+      <StatusDot tone={serviceHealth.tone} pulse={serviceHealth.tone === "warn"} className="mt-1 shrink-0" />
+      {healthSummaryLabel}
+    </div>
+  );
+
   const displayName = profile?.display_name;
   const initials = getInitials(displayName);
   const profileSubtitle = profile
@@ -468,8 +503,16 @@ export default function AppNavBar({
                 <button
                   onClick={() => toggleMenu(setShowServicesMenu, showServicesMenu)}
                   className={cn("relative", navPillClass(showServicesMenu))}
+                  aria-label={`Services: ${healthSummaryLabel}`}
                 >
-                  <Icon icon="lucide:server" width={14} />
+                  <span className="relative flex">
+                    <Icon icon="lucide:server" width={14} />
+                    <StatusDot
+                      tone={serviceHealth.tone}
+                      pulse={serviceHealth.tone === "warn"}
+                      className="absolute -top-0.5 -right-0.5 w-2 h-2 ring-2 ring-surface"
+                    />
+                  </span>
                   Services
                   <Icon icon="lucide:chevron-down" width={14} className={cn("transition-transform", showServicesMenu && "rotate-180")} />
                   {mailpit.unread > 0 && (
@@ -479,7 +522,9 @@ export default function AppNavBar({
                   )}
                 </button>
                 {showServicesMenu && (
-                  <div className={dropdownPanelClass("w-56")}>
+                  <div className={dropdownPanelClass("w-64")}>
+                    {renderHealthSummary("mx-1.5")}
+                    <div className={dividerClass} />
                     {PLATFORM_SERVICE_KINDS.map((kind, i) => {
                       const items = PLATFORM_SERVICES.filter((service) => service.kind === kind);
                       return (
@@ -494,11 +539,7 @@ export default function AppNavBar({
                               <>
                                 <ServiceIcon className="h-4 w-4 mr-3 text-faint shrink-0" />
                                 {service.label}
-                                {service.id === "mailpit" && mailpit.unread > 0 && (
-                                  <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-[10px] font-bold bg-danger text-white leading-none">
-                                    {mailpit.unread > 99 ? "99+" : mailpit.unread}
-                                  </span>
-                                )}
+                                {renderServiceStatus(service.id)}
                               </>
                             );
                             const action = service.action;
@@ -527,6 +568,13 @@ export default function AppNavBar({
                         </div>
                       );
                     })}
+                    <div className={dividerClass} />
+                    <div className="px-1.5">
+                      <button onClick={() => openModal("logs")} className={cn(menuItemClass, "w-full")}>
+                        <Icon icon="lucide:scroll-text" width={16} className="mr-3 text-faint" />
+                        System logs
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -875,6 +923,7 @@ export default function AppNavBar({
               </div>
 
               <div className="pt-2 px-2 border-t border-divider mt-2">
+                {renderHealthSummary()}
                 {PLATFORM_SERVICE_KINDS.map((kind, i) => {
                   const items = PLATFORM_SERVICES.filter((service) => service.kind === kind);
                   return (
@@ -888,11 +937,7 @@ export default function AppNavBar({
                           <>
                             <ServiceIcon className="h-4 w-4 mr-3 text-faint shrink-0" />
                             {service.label}
-                            {service.id === "mailpit" && mailpit.unread > 0 && (
-                              <span className="ml-auto flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-[10px] font-bold bg-danger text-white">
-                                {mailpit.unread > 99 ? "99+" : mailpit.unread}
-                              </span>
-                            )}
+                            {renderServiceStatus(service.id)}
                           </>
                         );
                         const action = service.action;

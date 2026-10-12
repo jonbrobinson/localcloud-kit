@@ -155,7 +155,22 @@ Mailpit exposes a REST API at `http://localhost:8025/api/v1/`:
 | `/api/v1/message/{id}` | GET | Get a single message |
 | `/api/v1/message/{id}/html` | GET | HTML body of a message |
 
-The LocalCloud API proxies `/api/mailpit/stats` and `/api/mailpit/messages` (DELETE) for use by the dashboard badge.
+The LocalCloud API proxies these for the dashboard:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/mailpit/stats` | GET | Total and unread counts, plus Mailpit health |
+| `/api/mailpit/messages?limit=N` | GET | Newest messages (used by the Recent mail card) |
+| `/api/mailpit/messages/:id` | GET | One message with its HTML and Text parts. Mailpit marks it read. |
+| `/api/mailpit/messages/:id/raw` | GET | Raw message source (headers and MIME parts) |
+| `/api/mailpit/messages` | DELETE | Delete all messages |
+| `/api/mailpit/send-test` | POST | Send a test email through Mailpit's SMTP server |
+
+## Dashboard
+
+- **Recent mail** — when Mailpit has mail, the dashboard shows the three newest messages. Click one to open it.
+- **Email viewer** — switch between **HTML** (with a desktop or 375px mobile width), **Text**, and **Source**, and copy whichever one you are viewing. HTML is rendered in a sandboxed frame with scripts disabled; links open in a new tab.
+- **View all** opens the inbox preview. Clicking a row there also opens the viewer.
 
 ## Environment Variables
 

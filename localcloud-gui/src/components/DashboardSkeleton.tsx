@@ -25,34 +25,6 @@ function ResourceRowSkeleton({ opacity = 1 }: { opacity?: number }) {
   );
 }
 
-/** Service pill: real name + pulsing status badge */
-export function ServicePillSkeleton({ name }: { name: string }) {
-  return (
-    <div className="flex items-center gap-1.5 px-3 py-1.5">
-      <div className="h-1.5 w-1.5 rounded-full bg-faint shrink-0 animate-pulse" />
-      <span className="text-xs font-medium text-ink-2">{name}</span>
-      <div className="h-3.5 w-12 rounded bg-skeleton animate-pulse" />
-    </div>
-  );
-}
-
-/** Single-row services bar skeleton — matches Dashboard flat layout */
-export function ServicesBarSkeleton() {
-  return (
-    <div className="mb-6 bg-surface rounded-lg shadow-e1 border border-border px-2 py-2 flex items-center flex-wrap gap-y-1">
-      <ServicePillSkeleton name="Keycloak" />
-      <div className="h-4 w-px bg-border" />
-      <ServicePillSkeleton name="AWS Emulator" />
-      <div className="h-4 w-px bg-border" />
-      <ServicePillSkeleton name="Mailpit" />
-      <div className="h-4 w-px bg-border" />
-      <ServicePillSkeleton name="PostgreSQL" />
-      <div className="h-4 w-px bg-border" />
-      <ServicePillSkeleton name="Redis" />
-    </div>
-  );
-}
-
 /** Resources panel skeleton */
 export function ResourcesPanelSkeleton() {
   return (
@@ -140,9 +112,6 @@ export default function DashboardSkeleton() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        {/* ── Services status bar ─────────────────────────── */}
-        <ServicesBarSkeleton />
 
         {/* ── AWS Resources panel ─────────────────────────── */}
         <ResourcesPanelSkeleton />
