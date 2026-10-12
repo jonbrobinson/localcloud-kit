@@ -8,11 +8,11 @@ import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayCo
 import { Icon } from "@iconify/react";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import { Button, StatusDot } from "@/components/ui";
-import type { StatusTone } from "@/components/ui";
+import { Button } from "@/components/ui";
+import { summarizeServiceHealth } from "@/lib/serviceHealth";
+import { useMailpitMessages } from "@/hooks/useMailpitMessages";
 import ResourceList from "./ResourceList";
 
-import Link from "next/link";
 import packageJson from "../../package.json";
 import BucketViewer from "./BucketViewer";
 import DynamoDBConfigModal from "./DynamoDBConfigModal";
@@ -20,7 +20,10 @@ import DynamoDBViewer from "./DynamoDBViewer";
 import LogViewer from "./LogViewer";
 import MailpitModal from "./MailpitModal";
 import RedisModal from "./RedisModal";
-import { ResourcesPanelSkeleton, ServicesBarSkeleton } from "./DashboardSkeleton";
+import { ResourcesPanelSkeleton } from "./DashboardSkeleton";
+import MailViewer from "./MailViewer";
+import RecentMailCard from "./RecentMailCard";
+import ServiceAlert from "./ServiceAlert";
 import { motion, AnimatePresence } from "framer-motion";
 import S3ConfigModal from "./S3ConfigModal";
 import SecretsConfigModal from "./SecretsConfigModal";
@@ -63,6 +66,7 @@ export default function Dashboard() {
   const { profile } = usePreferences();
 
   const projectName = profile?.active_project_name || config.projectName;
+  const { messages: recentMail } = useMailpitMessages(3, mailpit.status === "healthy" && mailpit.total > 0);
 
   const [showDynamoDBConfig, setShowDynamoDBConfig] = useState(false);
   const [showS3Config, setShowS3Config] = useState(false);
@@ -85,6 +89,7 @@ export default function Dashboard() {
   const [selectedSecretName, setSelectedSecretName] = useState<string>("");
   const [showMailpit, setShowMailpit] = useState(false);
   const [showRedis, setShowRedis] = useState(false);
+  const [openMailId, setOpenMailId] = useState<string | null>(null);
   const [inspectTarget, setInspectTarget] = useState<InspectTargetId | null>(null);
 
   const [selectedDynamoDBTable, setSelectedDynamoDBTable] = useState<string>("");
@@ -575,25 +580,13 @@ export default function Dashboard() {
     onAfterProjectSwitch: loadInitialData,
   };
 
-  const serviceTone = (status: string): StatusTone => {
-    if (status === "running") return "success";
-    if (status === "starting") return "warn";
-    if (status === "failed") return "danger";
-    return "neutral";
-  };
-  const serviceTextTone: Record<StatusTone, string> = {
-    success: "text-ink-2",
-    warn: "text-warn-ink",
-    danger: "text-danger-ink",
-    neutral: "text-muted",
-  };
-  const serviceLabel = (status: string) => {
-    if (status === "running") return "Running";
-    if (status === "starting") return "Starting…";
-    if (status === "failed") return "Failed";
-    if (status === "stopped") return "Stopped";
-    return "Unknown";
-  };
+  const serviceHealth = summarizeServiceHealth({
+    emulator: emulatorStatus,
+    keycloak,
+    mailpit,
+    postgres,
+    redis,
+  });
 
   const inspectConfig = (() => {
     if (!inspectTarget) return null;
@@ -613,7 +606,7 @@ export default function Dashboard() {
           title: "AWS Emulator",
           subtitle: emulatorStatus.running ? "AWS emulator is running locally" : "AWS Emulator is not running",
           quickChecks: [
-            "Service health is healthy in the status bar",
+            "AWS Emulator shows as running in the Services menu",
             "Endpoint http://localhost:4566 is reachable",
             "AWS resources refresh successfully",
           ],
@@ -816,93 +809,17 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* Services status bar — categorised; skeleton when loading */}
-        {loading ? (
-          <ServicesBarSkeleton />
-        ) : (
-        <div className="mb-6 bg-surface rounded-lg shadow-e1 border border-border px-2 py-2 flex items-center flex-wrap gap-y-1">
+        {/* Service status lives in the nav's Services menu; only surface it here when something is down. */}
+        {!loading && <ServiceAlert down={serviceHealth.down} onViewLogs={() => setShowLogs(true)} />}
 
-          {/* Keycloak */}
-          <Link href="/keycloak" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-3 transition-colors" title="Keycloak">
-            <StatusDot tone={serviceTone(keycloak.status)} pulse={keycloak.status === "starting"} />
-            <span className="text-xs font-medium text-ink-2">Keycloak</span>
-            <span className={`text-[11px] font-medium ${serviceTextTone[serviceTone(keycloak.status)]}`}>
-              {serviceLabel(keycloak.status)}
-            </span>
-          </Link>
-
-          <div className="h-4 w-px bg-border" />
-
-          {/* AWS Emulator */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5" title="AWS Emulator">
-            <StatusDot
-              tone={
-                emulatorStatus.health === "healthy" ? "success" : emulatorStatus.health === "unhealthy" ? "danger" : "neutral"
-              }
-            />
-            <span className="text-xs font-medium text-ink-2">AWS Emulator</span>
-            <span
-              className={`text-[11px] font-medium ${
-                emulatorStatus.running && emulatorStatus.health === "healthy"
-                  ? "text-ink-2"
-                  : emulatorStatus.running
-                    ? "text-warn-ink"
-                    : "text-muted"
-              }`}
-            >
-              {emulatorStatus.running ? (emulatorStatus.health === "healthy" ? "Running" : "Unhealthy") : "Stopped"}
-            </span>
-          </div>
-
-          <div className="h-4 w-px bg-border" />
-
-          {/* Mailpit */}
-          <button onClick={() => setShowMailpit(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-3 transition-colors cursor-pointer" title="Open Mailpit Inbox">
-            <StatusDot tone={mailpit.status === "healthy" ? "success" : "neutral"} />
-            <span className="text-xs font-medium text-ink-2">Mailpit</span>
-            <span className={`text-[11px] font-medium ${mailpit.status === "healthy" ? "text-ink-2" : "text-muted"}`}>
-              {mailpit.status === "healthy" ? "Running" : "Unavailable"}
-            </span>
-            {mailpit.unread > 0 && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[11px] font-semibold bg-danger-soft text-danger-ink">
-                {mailpit.unread} unread
-              </span>
-            )}
-          </button>
-
-          <div className="h-4 w-px bg-border" />
-
-          {/* PostgreSQL */}
-          <Link href="/postgres" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-3 transition-colors" title="PostgreSQL">
-            <StatusDot tone={serviceTone(postgres.status)} />
-            <span className="text-xs font-medium text-ink-2">PostgreSQL</span>
-            <span className={`text-[11px] font-medium ${serviceTextTone[serviceTone(postgres.status)]}`}>
-              {serviceLabel(postgres.status)}
-            </span>
-          </Link>
-
-          <div className="h-4 w-px bg-border" />
-
-          {/* Redis */}
-          <button onClick={() => setShowRedis(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-surface-3 transition-colors cursor-pointer" title="Open Redis Cache">
-            <StatusDot tone={serviceTone(redis.status)} />
-            <span className="text-xs font-medium text-ink-2">Redis</span>
-            <span className={`text-[11px] font-medium ${serviceTextTone[serviceTone(redis.status)]}`}>
-              {serviceLabel(redis.status)}
-            </span>
-          </button>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            icon="lucide:scroll-text"
-            onClick={() => setShowLogs(true)}
-            className="ml-auto"
-          >
-            System logs
-          </Button>
-
-        </div>
+        {mailpit.status === "healthy" && mailpit.total > 0 && recentMail.length > 0 && (
+          <RecentMailCard
+            messages={recentMail}
+            total={mailpit.total}
+            unread={mailpit.unread}
+            onOpenMessage={setOpenMailId}
+            onViewAll={() => setShowMailpit(true)}
+          />
         )}
 
         {/* AWS Resource Management — skeleton when loading, real content when loaded */}
@@ -1054,8 +971,16 @@ export default function Dashboard() {
       )}
 
       {showMailpit && (
-        <MailpitModal onClose={() => setShowMailpit(false)} />
+        <MailpitModal
+          onClose={() => setShowMailpit(false)}
+          onOpenMessage={(id) => {
+            setShowMailpit(false);
+            setOpenMailId(id);
+          }}
+        />
       )}
+
+      <MailViewer messageId={openMailId} onClose={() => setOpenMailId(null)} />
 
       {showRedis && (
         <RedisModal onClose={() => setShowRedis(false)} />
