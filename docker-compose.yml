@@ -542,6 +542,202 @@ services:
   # posthog-plugin-server removed: ./bin/plugin-server no longer ships in posthog/posthog:latest
   # The plugin server (now "CDP worker") is not required for core analytics functionality
 
+  # Langfuse Stack (LLM observability — traces, prompts, evals)
+  # NOTE: Langfuse services are profile-gated. Run with --profile langfuse (or `make start-langfuse`).
+  # Langfuse v4 needs Postgres, ClickHouse, Redis, and S3-compatible storage. Each is a dedicated
+  # container so Langfuse internals never show up in your app's PostgreSQL, Redis, or emulator S3.
+  # Local-only credentials below — never reuse them outside this kit.
+  # Port overrides:
+  #   LANGFUSE_PORT=3101 make start-langfuse     → changes the host-side Langfuse web/API port
+  #   LANGFUSE_S3_PORT=9191 make start-langfuse  → changes the host-side MinIO (media upload) port
+  #   LANGFUSE_MINIO_IMAGE=<image>               → swap the MinIO image if your network blocks cgr.dev
+  langfuse-postgres:
+    image: postgres:17-alpine
+    container_name: localcloud-langfuse-postgres
+    profiles: ["langfuse"]
+    environment:
+      - POSTGRES_USER=langfuse
+      - POSTGRES_PASSWORD=langfuse
+      - POSTGRES_DB=langfuse
+      - TZ=UTC
+      - PGTZ=UTC
+    volumes:
+      - langfuse_postgres_data:/var/lib/postgresql/data
+    networks:
+      - lck-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  langfuse-clickhouse:
+    image: clickhouse/clickhouse-server:25.12
+    container_name: localcloud-langfuse-clickhouse
+    profiles: ["langfuse"]
+    # Match data volume owner so ClickHouse does not throw MISMATCHING_USERS_FOR_PROCESS_AND_DATA (430)
+    user: "101:101"
+    environment:
+      - CLICKHOUSE_DB=default
+      - CLICKHOUSE_USER=langfuse
+      - CLICKHOUSE_PASSWORD=langfuse
+    volumes:
+      - langfuse_clickhouse_data:/var/lib/clickhouse
+      - langfuse_clickhouse_logs:/var/log/clickhouse-server
+    networks:
+      - lck-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  langfuse-redis:
+    image: redis:7.4-alpine
+    container_name: localcloud-langfuse-redis
+    profiles: ["langfuse"]
+    # BullMQ queues require noeviction — a separate instance keeps queue keys out of the Cache viewer
+    command: redis-server --requirepass langfuse --maxmemory-policy noeviction
+    volumes:
+      - langfuse_redis_data:/data
+    networks:
+      - lck-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "langfuse", "--no-auth-warning", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  langfuse-minio:
+    image: ${LANGFUSE_MINIO_IMAGE:-cgr.dev/chainguard/minio:latest}
+    container_name: localcloud-langfuse-minio
+    profiles: ["langfuse"]
+    entrypoint: sh
+    # Create the 'langfuse' bucket before starting the server
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
+    ports:
+      # Host port is used for presigned media uploads from SDKs running on your machine
+      - "${LANGFUSE_S3_PORT:-9190}:9000"
+    environment:
+      - MINIO_ROOT_USER=langfuse
+      - MINIO_ROOT_PASSWORD=langfuse-secret
+    volumes:
+      - langfuse_minio_data:/data
+    networks:
+      - lck-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  langfuse-worker:
+    image: langfuse/langfuse-worker:${LANGFUSE_VERSION:-4}
+    container_name: localcloud-langfuse-worker
+    profiles: ["langfuse"]
+    depends_on: &langfuse-depends-on
+      langfuse-postgres:
+        condition: service_healthy
+      langfuse-clickhouse:
+        condition: service_healthy
+      langfuse-redis:
+        condition: service_healthy
+      langfuse-minio:
+        condition: service_healthy
+    environment: &langfuse-env
+      # Docker sets HOSTNAME to the container ID; bind web and worker to all interfaces instead
+      HOSTNAME: 0.0.0.0
+      NEXTAUTH_URL: https://langfuse.localcloudkit.com:${APP_PORT:-3030}
+      DATABASE_URL: postgresql://langfuse:langfuse@langfuse-postgres:5432/langfuse
+      SALT: localcloud-langfuse-salt
+      # 64 hex chars (openssl rand -hex 32) — local-only value
+      ENCRYPTION_KEY: 6c6f63616c636c6f75642d6c616e67667573652d656e6372797074696f6e2d6b
+      TELEMETRY_ENABLED: "false"
+      CLICKHOUSE_MIGRATION_URL: clickhouse://langfuse-clickhouse:9000
+      CLICKHOUSE_URL: http://langfuse-clickhouse:8123
+      CLICKHOUSE_USER: langfuse
+      CLICKHOUSE_PASSWORD: langfuse
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      REDIS_HOST: langfuse-redis
+      REDIS_PORT: "6379"
+      REDIS_AUTH: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: us-east-1
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: langfuse-secret
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: us-east-1
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: langfuse
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: langfuse-secret
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+      # Invite and password-reset emails land in Mailpit
+      SMTP_CONNECTION_URL: smtp://mailpit:1025
+      EMAIL_FROM_ADDRESS: langfuse@localcloud.dev
+    networks:
+      - lck-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3030/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  langfuse-web:
+    image: langfuse/langfuse:${LANGFUSE_VERSION:-4}
+    container_name: localcloud-langfuse-web
+    profiles: ["langfuse"]
+    depends_on: *langfuse-depends-on
+    ports:
+      # Direct (no TLS) access for SDKs: LANGFUSE_BASE_URL=http://localhost:3100
+      - "${LANGFUSE_PORT:-3100}:3000"
+    environment:
+      <<: *langfuse-env
+      NEXTAUTH_SECRET: localcloud-langfuse-nextauth-secret
+      # Presigned media uploads are signed for the host-mapped MinIO port; the web container
+      # itself still talks to MinIO over the compose network
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://localhost:${LANGFUSE_S3_PORT:-9190}
+      LANGFUSE_S3_MEDIA_UPLOAD_INTERNAL_ENDPOINT: http://langfuse-minio:9000
+      # Headless init — org, project, API keys, and an owner login are created on first start
+      LANGFUSE_INIT_ORG_ID: localcloud
+      LANGFUSE_INIT_ORG_NAME: LocalCloud Kit
+      LANGFUSE_INIT_PROJECT_ID: localcloud-dev
+      LANGFUSE_INIT_PROJECT_NAME: localcloud-dev
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: pk-lf-localcloud
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: sk-lf-localcloud
+      LANGFUSE_INIT_USER_EMAIL: admin@localcloud.dev
+      LANGFUSE_INIT_USER_NAME: LocalCloud Admin
+      LANGFUSE_INIT_USER_PASSWORD: localcloud
+    networks:
+      - lck-network
+    restart: unless-stopped
+    healthcheck:
+      # Migrations run on first boot, so allow a generous start period
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/public/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.langfuse.rule=Host(`langfuse.localcloudkit.com`)"
+      - "traefik.http.routers.langfuse.entrypoints=websecure"
+      - "traefik.http.routers.langfuse.tls=true"
+      - "traefik.http.services.langfuse.loadbalancer.server.port=3000"
+
 networks:
   lck-network:
     driver: bridge
@@ -557,3 +753,8 @@ volumes:
   posthog_zookeeper_data:
   posthog_zookeeper_datalog:
   posthog_zookeeper_logs:
+  langfuse_postgres_data:
+  langfuse_clickhouse_data:
+  langfuse_clickhouse_logs:
+  langfuse_minio_data:
+  langfuse_redis_data:

@@ -31,6 +31,7 @@ required.
 | `nginx` | localcloud-nginx | nginx:alpine | 80 (internal) | Internal routing |
 | `redis` | localcloud-redis | redis:7-alpine | 6380 (host) | Cache service |
 | `posthog-*` | localcloud-posthog-* | posthog/clickhouse/kafka stack | — | Product analytics stack |
+| `langfuse-*` | localcloud-langfuse-* | langfuse/langfuse:4 + worker, postgres, clickhouse, redis, minio | 3100 (web), 9190 (minio) | LLM observability (optional `langfuse` profile) |
 
 All services communicate over the `lck-network` Docker bridge network.
 
@@ -49,7 +50,7 @@ samples/            # Sample files for S3/DynamoDB testing
 
 - **Frontend**: Next.js 15, React 18, TypeScript 5, Tailwind CSS, @iconify/react (AWS service icons)
 - **Backend**: Express.js 4, Node.js 22, Winston logging, Socket.IO, aws-sdk v2
-- **Infrastructure**: Docker Compose, Traefik v3, Nginx (alpine), Redis 7, optional PostHog profile
+- **Infrastructure**: Docker Compose, Traefik v3, Nginx (alpine), Redis 7, optional PostHog and Langfuse profiles
 - **AWS Emulation**: MiniStack (S3, DynamoDB, Lambda, API Gateway, IAM, Secrets Manager)
 
 ---
@@ -107,6 +108,7 @@ CORS_ORIGIN=https://app-local.localcloudkit.com:3030
 REDIS_HOST=redis
 REDIS_PORT=6379
 POSTHOG_INTERNAL_URL=http://posthog-web:8000
+LANGFUSE_INTERNAL_URL=http://langfuse-web:3000
 ```
 
 ---
@@ -118,6 +120,7 @@ POSTHOG_INTERNAL_URL=http://posthog-web:8000
 - AWS Emulator (MiniStack) is reachable at `http://aws-emulator:4566` inside Docker, `http://localhost:4566` from the host
 - Redis is at `localcloud-redis:6379` inside Docker, `localhost:6380` from the host
 - PostHog (when profile enabled) is routed via `https://posthog.localcloudkit.com:3030`
+- Langfuse (when profile enabled) is routed via `https://langfuse.localcloudkit.com:3030`; SDKs on the host use `http://localhost:3100`
 - TLS certificates are generated with mkcert and mounted into Traefik
 
 ---
@@ -349,7 +352,7 @@ a clear two-category model:
 
 | Category | Examples | Managed via | Can destroy? |
 |----------|----------|-------------|--------------|
-| **Platform Services** | Keycloak, Mailpit, PostgreSQL, PostHog, Redis | Their own admin UIs | No — Docker Compose lifecycle |
+| **Platform Services** | Keycloak, Langfuse, Mailpit, PostgreSQL, PostHog, Redis | Their own admin UIs | No — Docker Compose lifecycle |
 | **AWS Resources** | S3, DynamoDB, Lambda, API Gateway, IAM | Dashboard modals | Yes — individually, per project |
 
 ### Navigation Structure
@@ -360,7 +363,7 @@ a clear two-category model:
 
 ### Service Health
 
-There is no always-on status bar. `summarizeServiceHealth()` (`localcloud-gui/src/lib/serviceHealth.ts`) collapses AWS Emulator, Keycloak, Mailpit, PostgreSQL, and Redis status into one summary that two places read:
+There is no always-on status bar. `summarizeServiceHealth()` (`localcloud-gui/src/lib/serviceHealth.ts`) collapses AWS Emulator, Keycloak, Langfuse, Mailpit, PostgreSQL, and Redis status into one summary that two places read. Opt-in profile services (Langfuse) are marked `optional`: when stopped they show "Not started" and are excluded from `active`, so they never turn the dot red or trigger the alert:
 
 - **Services** nav menu — a status dot on the menu button (green / amber while starting / red when anything is down), a summary line, and a dot plus "Stopped"/"Failed" label per service.
 - **`ServiceAlert`** — a one-line alert at the top of the dashboard, rendered only while a service is confirmed stopped or failing. "Starting" and "unknown" never trigger it.

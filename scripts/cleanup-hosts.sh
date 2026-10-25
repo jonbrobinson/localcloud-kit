@@ -13,6 +13,7 @@ PREVIOUS_DOMAINS=(
     "pgadmin.localcloudkit.com"
     "keycloak.localcloudkit.com"
     "posthog.localcloudkit.com"
+    "langfuse.localcloudkit.com"
 )
 
 CURRENT_DOMAIN="app-local.localcloudkit.com"

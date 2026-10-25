@@ -24,7 +24,7 @@ import ManageHeaderBrand from "./ManageHeaderBrand";
 const DOC_ROUTES = [
   "/docs", "/aws-emulator", "/s3", "/dynamodb", "/lambda",
   "/apigateway", "/secrets", "/ssm", "/iam",
-  "/redis", "/mailpit", "/postgres", "/keycloak",
+  "/redis", "/mailpit", "/postgres", "/keycloak", "/langfuse",
 ];
 
 const LANGUAGE_LABEL: Record<PreferredLanguage, string> = {
@@ -92,10 +92,11 @@ export default function AppNavBar({
   const router = useRouter();
   const actions = useDashboardNav();
   const { profile, projects, updateProfile, createProject } = usePreferences();
-  const { awsEmulator, keycloak, mailpit, postgres, redis } = useServicesData();
+  const { awsEmulator, keycloak, langfuse, mailpit, postgres, redis } = useServicesData();
   const serviceHealth = summarizeServiceHealth({
     emulator: awsEmulator.status,
     keycloak,
+    langfuse,
     mailpit,
     postgres,
     redis,
@@ -104,7 +105,7 @@ export default function AppNavBar({
   const healthSummaryLabel = serviceHealth.down.length
     ? `${serviceHealth.down.map((service) => service.label).join(", ")} ${serviceHealth.down.length === 1 ? "is" : "are"} not running`
     : serviceHealth.tone === "success"
-      ? `All ${serviceHealth.services.length} services running`
+      ? `All ${serviceHealth.active.length} services running`
       : "Checking services…";
 
   const prefetchDocRoutes = useCallback(() => {
@@ -332,6 +333,7 @@ export default function AppNavBar({
           </span>
         )}
         {health?.down && <span className="text-[11px] font-medium text-danger-ink">{health.statusLabel}</span>}
+        {health?.optional && health.tone === "neutral" && <span className="text-[11px] text-muted">{health.statusLabel}</span>}
         {health && <StatusDot tone={health.tone} pulse={health.tone === "warn"} />}
       </span>
     );

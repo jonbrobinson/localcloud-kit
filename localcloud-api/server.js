@@ -23,6 +23,7 @@ import mailpitRouter from "./routes/mailpit.js";
 import secretsRouter from "./routes/secrets.js";
 import postgresRouter from "./routes/postgres.js";
 import keycloakRouter from "./routes/keycloak.js";
+import langfuseRouter from "./routes/langfuse.js";
 // import posthogRouter from "./routes/posthog.js"; // PostHog temporarily disabled
 import lambdaRouter from "./routes/lambda.js";
 import apigatewayRouter from "./routes/apigateway.js";
@@ -67,6 +68,7 @@ app.use(mailpitRouter);
 app.use(secretsRouter);
 app.use(postgresRouter);
 app.use(keycloakRouter);
+app.use(langfuseRouter);
 // app.use(posthogRouter); // PostHog temporarily disabled
 app.use(lambdaRouter);
 app.use(apigatewayRouter);

@@ -173,6 +173,11 @@ export interface KeycloakStatus {
   status: "running" | "starting" | "stopped" | "failed" | "unknown";
 }
 
+export interface LangfuseStatus {
+  status: "running" | "starting" | "stopped" | "failed" | "unknown";
+  version?: string;
+}
+
 export interface PosthogStatus {
   status: "running" | "starting" | "stopped" | "failed" | "unknown";
 }

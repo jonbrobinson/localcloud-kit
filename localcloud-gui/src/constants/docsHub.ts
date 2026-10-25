@@ -15,6 +15,7 @@ export interface DocsHubEntry {
     | "mailpit"
     | "postgres"
     | "keycloak"
+    | "langfuse"
     | "posthog";
   title: string;
   category: DocsCategory;
@@ -237,6 +238,21 @@ export const DOCS_HUB_ENTRIES: DocsHubEntry[] = [
     icon: "simple-icons:keycloak",
   },
   {
+    id: "langfuse",
+    title: "Langfuse",
+    category: "platform-services",
+    docsPath: "/langfuse",
+    summary: "Trace LLM calls, manage prompts, and run evals locally (optional profile).",
+    quickChecks: [
+      "Langfuse service is running (make start-langfuse)",
+      "App uses the local base URL and pk-lf/sk-lf keys",
+      "Test trace appears in the Tracing view",
+    ],
+    adminUrl: "https://langfuse.localcloudkit.com:3030",
+    adminLabel: "Open Langfuse UI",
+    icon: "lucide:sparkles",
+  },
+  {
     id: "posthog",
     title: "PostHog (Beta)",
     category: "platform-services",
@@ -273,6 +289,11 @@ export const EXTERNAL_DOCS_LINKS: ExternalDocsLink[] = [
     title: "Mailpit Docs",
     href: "https://mailpit.axllent.org/docs/",
     description: "Mailpit UI and SMTP behavior reference.",
+  },
+  {
+    title: "Langfuse Self-Hosting Docs",
+    href: "https://langfuse.com/self-hosting",
+    description: "Langfuse deployment, configuration, and upgrade reference.",
   },
   {
     title: "PostHog Self-Host Docs",
