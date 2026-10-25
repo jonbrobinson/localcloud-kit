@@ -7,14 +7,15 @@
 
 ## Type of change
 
-<!-- Check all that apply -->
+<!-- Delete the lines that don't apply. These are plain bullets (not checkboxes)
+     so GitHub's "N of M tasks" count only tracks the pre-merge checklist below. -->
 
-- [ ] `feat` — new feature
-- [ ] `fix` — bug fix
-- [ ] `refactor` — code restructure, no behavior change
-- [ ] `docs` — documentation only
-- [ ] `build` / `chore` — infra, deps, tooling
-- [ ] `BREAKING CHANGE` — existing behavior changed or removed
+- `feat` — new feature
+- `fix` — bug fix
+- `refactor` — code restructure, no behavior change
+- `docs` — documentation only
+- `build` / `chore` — infra, deps, tooling
+- `BREAKING CHANGE` — existing behavior changed or removed
 
 ## Pre-merge checklist
 
