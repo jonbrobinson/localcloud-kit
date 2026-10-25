@@ -54,6 +54,8 @@ The first boot takes a minute or two while migrations run; the status badge show
 
 All of these are created automatically on first start (headless initialization). They are **local-only** — never reuse them outside this kit.
 
+> **Network exposure:** like the kit's PostgreSQL, Keycloak, and pgAdmin, Langfuse's host ports (`3100` web/API, `9190` MinIO) listen on all interfaces, so other machines on your network can reach them with these default credentials. That's fine on a trusted dev machine; on shared or public Wi-Fi, stop the profile (`make stop-langfuse`) or bind the ports to `127.0.0.1` in `docker-compose.yml` (e.g. `"127.0.0.1:${LANGFUSE_PORT:-3100}:3000"`).
+
 | Setting | Value |
 |---|---|
 | UI (Traefik) | `https://langfuse.localcloudkit.com:3030` |
@@ -98,6 +100,8 @@ Langfuse v4 ingests traces over **OpenTelemetry** only. The legacy `/api/public/
 ```bash
 make start-langfuse LANGFUSE_PORT=3101 LANGFUSE_S3_PORT=9191
 ```
+
+Port overrides flow through to the GUI: the API receives `LANGFUSE_PORT` and `APP_PORT`, and `/api/langfuse/status` returns the matching `baseUrl` and `uiUrl`, so the `/langfuse` page, its code examples, the Inspect panel, and the Services menu all show the URLs you actually started with. Setting them in `.env` works too.
 
 ## Troubleshooting
 

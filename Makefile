@@ -65,7 +65,7 @@ start: ## Start all services with Docker Compose (MINISTACK_VERSION=latest by de
 	@echo "$(GREEN)Starting LocalCloud Kit with Docker...$(NC)"
 	@echo "$(YELLOW)Using MiniStack version: $(MINISTACK_VERSION)$(NC)"
 	@mkdir -p volume/cache volume/lib volume/logs volume/tmp
-	MINISTACK_VERSION=$(MINISTACK_VERSION) APP_PORT=$(APP_PORT) EMULATOR_PORT=$(EMULATOR_PORT) RDS_BASE_PORT=$(RDS_BASE_PORT) ELASTICACHE_BASE_PORT=$(ELASTICACHE_BASE_PORT) docker compose up --build -d
+	MINISTACK_VERSION=$(MINISTACK_VERSION) APP_PORT=$(APP_PORT) EMULATOR_PORT=$(EMULATOR_PORT) RDS_BASE_PORT=$(RDS_BASE_PORT) ELASTICACHE_BASE_PORT=$(ELASTICACHE_BASE_PORT) LANGFUSE_PORT=$(LANGFUSE_PORT) docker compose up --build -d
 	@echo "$(GREEN)Waiting for services to be ready...$(NC)"
 	@until curl -s -k https://app-local.localcloudkit.com:$(APP_PORT)/health > /dev/null 2>&1 || curl -s http://localhost/health > /dev/null 2>&1; do sleep 2; done
 	@echo "$(GREEN)All services are ready!$(NC)"

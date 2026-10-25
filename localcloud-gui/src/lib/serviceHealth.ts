@@ -79,7 +79,7 @@ export function summarizeServiceHealth(input: ServiceHealthInput): ServiceHealth
   const services: ServiceHealthEntry[] = [
     { id: "aws-emulator", label: "AWS Emulator", href: "/aws-emulator", endpoint: "localhost:4566", ...fromStatus(emulatorStatus(input.emulator)) },
     { id: "keycloak", label: "Keycloak", href: "/keycloak", ...fromStatus(input.keycloak.status) },
-    { id: "langfuse", label: "Langfuse", href: "/langfuse", endpoint: "localhost:3100", ...fromOptionalStatus(input.langfuse.status) },
+    { id: "langfuse", label: "Langfuse", href: "/langfuse", endpoint: (input.langfuse.baseUrl ?? "http://localhost:3100").replace(/^https?:\/\//, ""), ...fromOptionalStatus(input.langfuse.status) },
     { id: "mailpit", label: "Mailpit", href: "/mailpit", endpoint: "localhost:1025", ...fromStatus(input.mailpit.status) },
     { id: "postgres", label: "PostgreSQL", href: "/postgres", endpoint: "localhost:5432", ...fromStatus(input.postgres.status) },
     { id: "redis", label: "Redis", href: "/redis", endpoint: "localhost:6380", ...fromStatus(input.redis.status) },

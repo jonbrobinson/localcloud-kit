@@ -780,7 +780,7 @@ export default function Dashboard() {
           ],
           actions: [
             { label: "Open Docs", href: "/langfuse" },
-            withAdmin("https://langfuse.localcloudkit.com:3030", "Open Langfuse UI"),
+            withAdmin(langfuse.uiUrl ?? "https://langfuse.localcloudkit.com:3030", "Open Langfuse UI"),
           ],
         };
       case "mailpit":

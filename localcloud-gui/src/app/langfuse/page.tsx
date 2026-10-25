@@ -8,20 +8,22 @@ import ServiceStatusBadge from "@/components/ServiceStatusBadge";
 import { Card } from "@/components/ui";
 import { usePreferences } from "@/context/PreferencesContext";
 import { useAdminUrl } from "@/hooks/useAdminUrl";
+import { langfuseApi } from "@/services/api";
 
-const LANGFUSE_TRAEFIK_URL = "https://langfuse.localcloudkit.com:3030";
-const LANGFUSE_DIRECT_URL = "http://localhost:3100";
+// Defaults until the API reports the ports compose was started with (APP_PORT / LANGFUSE_PORT)
+const DEFAULT_UI_URL = "https://langfuse.localcloudkit.com:3030";
+const DEFAULT_BASE_URL = "http://localhost:3100";
 
 const PAGE_TABS = ["typescript", "python", "cli"] as const;
 type PageTab = (typeof PAGE_TABS)[number];
 
-const envVars = `# .env — point the Langfuse SDKs at your local instance
-LANGFUSE_BASE_URL=http://localhost:3100
+const buildEnvVars = (baseUrl: string) => `# .env — point the Langfuse SDKs at your local instance
+LANGFUSE_BASE_URL=${baseUrl}
 LANGFUSE_PUBLIC_KEY=pk-lf-localcloud
 LANGFUSE_SECRET_KEY=sk-lf-localcloud
 LANGFUSE_TRACING_ENVIRONMENT=local`;
 
-const codeExamples: Record<PageTab, string> = {
+const buildCodeExamples = (baseUrl: string): Record<PageTab, string> => ({
   typescript: `// npm install @langfuse/tracing @langfuse/otel \\
 //   @opentelemetry/sdk-node@^0.223.0 @opentelemetry/exporter-trace-otlp-http@^0.223.0
 // (@langfuse/otel 6.x targets OpenTelemetry JS 2.x — the 0.300+ SDK line is not compatible yet)
@@ -87,7 +89,7 @@ with langfuse.start_as_current_observation(as_type="span", name="chat-request") 
 # Short-lived scripts: flush before exit
 langfuse.flush()`,
   cli: `# Health check
-curl -s http://localhost:3100/api/public/health
+curl -s ${baseUrl}/api/public/health
 
 # Send a test span over OTLP/HTTP (the v4 ingestion path)
 TRACE_ID=$(openssl rand -hex 16)
@@ -95,7 +97,7 @@ SPAN_ID=$(openssl rand -hex 8)
 NOW=$(date +%s)000000000
 
 curl -s -u pk-lf-localcloud:sk-lf-localcloud \\
-  -X POST http://localhost:3100/api/public/otel/v1/traces \\
+  -X POST ${baseUrl}/api/public/otel/v1/traces \\
   -H "Content-Type: application/json" \\
   -d '{
     "resourceSpans": [{
@@ -120,15 +122,10 @@ curl -s -u pk-lf-localcloud:sk-lf-localcloud \\
 
 # Read it back (a few seconds after ingestion)
 curl -s -u pk-lf-localcloud:sk-lf-localcloud \\
-  "http://localhost:3100/api/public/v2/observations?traceId=$TRACE_ID"`,
-};
+  "${baseUrl}/api/public/v2/observations?traceId=$TRACE_ID"`,
+});
 
-const resources = [
-  {
-    name: "Langfuse UI (via Traefik)",
-    url: LANGFUSE_TRAEFIK_URL,
-    description: "Open the local Langfuse workspace through Traefik.",
-  },
+const externalResources = [
   {
     name: "Langfuse Docs",
     url: "https://langfuse.com/docs",
@@ -154,7 +151,24 @@ const linkClass = "font-mono text-xs text-primary hover:underline break-all";
 export default function LangfusePage() {
   const { profile, updateProfile } = usePreferences();
   const [activeTab, setActiveTab] = useState<PageTab>("typescript");
-  const langfuseUrl = useAdminUrl(LANGFUSE_TRAEFIK_URL, LANGFUSE_DIRECT_URL);
+  const [urls, setUrls] = useState({ uiUrl: DEFAULT_UI_URL, baseUrl: DEFAULT_BASE_URL });
+  const langfuseUrl = useAdminUrl(urls.uiUrl, urls.baseUrl);
+
+  useEffect(() => {
+    langfuseApi.status().then((s) => {
+      if (s.uiUrl && s.baseUrl) setUrls({ uiUrl: s.uiUrl, baseUrl: s.baseUrl });
+    });
+  }, []);
+
+  const codeExamples = buildCodeExamples(urls.baseUrl);
+  const resources = [
+    {
+      name: "Langfuse UI (via Traefik)",
+      url: urls.uiUrl,
+      description: "Open the local Langfuse workspace through Traefik.",
+    },
+    ...externalResources,
+  ];
 
   useEffect(() => {
     if (profile?.preferred_language) {
@@ -170,9 +184,9 @@ export default function LangfusePage() {
 
   const connectionRows: { label: string; value: string; link?: string }[] = [
     { label: "UI", value: langfuseUrl, link: langfuseUrl },
-    { label: "SDK base URL (from host)", value: LANGFUSE_DIRECT_URL },
+    { label: "SDK base URL (from host)", value: urls.baseUrl },
     { label: "SDK base URL (from containers)", value: "http://langfuse-web:3000" },
-    { label: "OTLP traces endpoint", value: `${LANGFUSE_DIRECT_URL}/api/public/otel/v1/traces` },
+    { label: "OTLP traces endpoint", value: `${urls.baseUrl}/api/public/otel/v1/traces` },
     { label: "Public key", value: "pk-lf-localcloud" },
     { label: "Secret key", value: "sk-lf-localcloud" },
     { label: "Login", value: "admin@localcloud.dev / localcloud" },
@@ -264,7 +278,7 @@ make langfuse-logs`}
             Both SDKs read these automatically. From another container on <code className="font-mono">lck-network</code>,
             use <code className="font-mono">http://langfuse-web:3000</code> as the base URL.
           </p>
-          <ThemeableCodeBlock code={envVars} language="bash" showThemeSelector={false} />
+          <ThemeableCodeBlock code={buildEnvVars(urls.baseUrl)} language="bash" showThemeSelector={false} />
         </Card>
 
         <Card className="p-6">

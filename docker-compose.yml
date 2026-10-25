@@ -71,6 +71,9 @@ services:
       - AWS_SECRET_ACCESS_KEY=test
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      # Host-side ports so the GUI shows the URLs you actually started with
+      - APP_PORT=${APP_PORT:-3030}
+      - LANGFUSE_PORT=${LANGFUSE_PORT:-3100}
     volumes:
       - ./localcloud-api:/app
       - /app/node_modules

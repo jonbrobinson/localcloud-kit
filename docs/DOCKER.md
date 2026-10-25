@@ -241,6 +241,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
   - Dedicated `langfuse-redis` (`redis:7.4-alpine`, `noeviction`)
   - Dedicated `langfuse-minio` (`cgr.dev/chainguard/minio`, host port `9190`)
 - **Shared**: invite/password-reset email goes to Mailpit
+- **Exposure**: host ports `3100`/`9190` listen on all interfaces with local-only credentials (same as Postgres/Keycloak/pgAdmin) — see [LANGFUSE.md](./LANGFUSE.md#access--credentials)
 - **Start**: `make start-langfuse` or `docker compose --profile langfuse up -d`
 - **Details**: [LANGFUSE.md](./LANGFUSE.md)
 
