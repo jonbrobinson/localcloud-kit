@@ -10,6 +10,7 @@ MAILPIT_DOMAIN="mailpit.localcloudkit.com"
 PGADMIN_DOMAIN="pgadmin.localcloudkit.com"
 KEYCLOAK_DOMAIN="keycloak.localcloudkit.com"
 POSTHOG_DOMAIN="posthog.localcloudkit.com"
+LANGFUSE_DOMAIN="langfuse.localcloudkit.com"
 CERT_DIR="./traefik/certs"
 
 # Colors for output (only if terminal supports it)
@@ -63,7 +64,7 @@ if [ -f "$CERT_DIR/$DOMAIN.pem" ]; then
     # Check that all subdomains are SANs in the certificate
     CERT_SANS=$(openssl x509 -in "$CERT_DIR/$DOMAIN.pem" -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -1 || true)
     SAN_ERRORS=0
-    for SUBDOMAIN in "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN" "$POSTHOG_DOMAIN"; do
+    for SUBDOMAIN in "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN" "$POSTHOG_DOMAIN" "$LANGFUSE_DOMAIN"; do
         if echo "$CERT_SANS" | grep -q "$SUBDOMAIN"; then
             echo -e "  ${GREEN}✓ Certificate covers $SUBDOMAIN${NC}"
         else
@@ -84,7 +85,7 @@ echo ""
 # Check 3: /etc/hosts entries (all subdomains)
 echo -e "${BLUE}✓ Checking /etc/hosts entries...${NC}"
 HOSTS_ERRORS=0
-for HOST in "$DOMAIN" "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN" "$POSTHOG_DOMAIN"; do
+for HOST in "$DOMAIN" "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN" "$POSTHOG_DOMAIN" "$LANGFUSE_DOMAIN"; do
     if grep -q "$HOST" /etc/hosts 2>/dev/null; then
         echo -e "  ${GREEN}✓ Entry found: $(grep "$HOST" /etc/hosts | head -1)${NC}"
     else
@@ -147,9 +148,9 @@ else
 fi
 echo ""
 
-# Check 7: Subdomain HTTPS connectivity (Mailpit, pgAdmin, Keycloak, PostHog)
+# Check 7: Subdomain HTTPS connectivity (Mailpit, pgAdmin, Keycloak, PostHog, Langfuse)
 echo -e "${BLUE}✓ Testing HTTPS connectivity (subdomains)...${NC}"
-for SERVICE_INFO in "Mailpit:$MAILPIT_DOMAIN:mailpit" "pgAdmin:$PGADMIN_DOMAIN:pgadmin" "Keycloak:$KEYCLOAK_DOMAIN:keycloak" "PostHog:$POSTHOG_DOMAIN:posthog-web"; do
+for SERVICE_INFO in "Mailpit:$MAILPIT_DOMAIN:mailpit" "pgAdmin:$PGADMIN_DOMAIN:pgadmin" "Keycloak:$KEYCLOAK_DOMAIN:keycloak" "PostHog:$POSTHOG_DOMAIN:posthog-web" "Langfuse:$LANGFUSE_DOMAIN:langfuse-web"; do
     SERVICE_NAME="${SERVICE_INFO%%:*}"
     REST="${SERVICE_INFO#*:}"
     SERVICE_HOST="${REST%%:*}"
@@ -178,6 +179,7 @@ if [ $ERRORS -eq 0 ]; then
     echo -e "  ${BLUE}https://$PGADMIN_DOMAIN:3030${NC}  (pgAdmin database UI)"
     echo -e "  ${BLUE}https://$KEYCLOAK_DOMAIN:3030${NC}  (Keycloak identity & access)"
     echo -e "  ${BLUE}https://$POSTHOG_DOMAIN:3030${NC}  (PostHog analytics)"
+    echo -e "  ${BLUE}https://$LANGFUSE_DOMAIN:3030${NC}  (Langfuse LLM observability)"
 else
     echo -e "${YELLOW}⚠ Setup verification complete - Found $ERRORS issue(s)${NC}"
     echo ""

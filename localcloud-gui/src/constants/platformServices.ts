@@ -2,13 +2,14 @@ import {
   CircleStackIcon,
   EnvelopeIcon,
   KeyIcon,
+  SparklesIcon,
   ServerIcon,
 } from "@heroicons/react/24/outline";
 import { ComponentType } from "react";
 import { ServiceKind, ModalKey } from "@/types";
 
 export interface PlatformServiceEntry {
-  id: "keycloak" | "mailpit" | "postgres" | "redis";
+  id: "keycloak" | "langfuse" | "mailpit" | "postgres" | "redis";
   label: string;
   kind: ServiceKind;
   icon: ComponentType<{ className?: string }>;
@@ -37,6 +38,13 @@ export const PLATFORM_SERVICES: PlatformServiceEntry[] = [
     kind: "admin-tool",
     icon: KeyIcon,
     action: { type: "link", href: "/keycloak" },
+  },
+  {
+    id: "langfuse",
+    label: "Langfuse",
+    kind: "admin-tool",
+    icon: SparklesIcon,
+    action: { type: "link", href: "/langfuse" },
   },
   {
     id: "mailpit",

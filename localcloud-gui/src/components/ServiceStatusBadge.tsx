@@ -7,6 +7,7 @@ import {
   mailpitApi,
   postgresApi,
   keycloakApi,
+  langfuseApi,
   posthogApi,
 } from "@/services/api";
 import { StatusDot, type StatusTone } from "./ui";
@@ -17,6 +18,7 @@ export type ServiceKey =
   | "mailpit"
   | "postgres"
   | "keycloak"
+  | "langfuse"
   | "posthog";
 
 type StatusLevel = "running" | "degraded" | "starting" | "stopped" | "failed" | "unknown";
@@ -60,6 +62,14 @@ async function fetchStatus(service: ServiceKey): Promise<StatusState> {
         if (s.status === "running") return { level: "running", label: "Running" };
         if (s.status === "starting") return { level: "starting", label: "Starting" };
         if (s.status === "stopped") return { level: "stopped", label: "Stopped" };
+        if (s.status === "failed") return { level: "failed", label: "Failed" };
+        return { level: "unknown", label: "Unknown" };
+      }
+      case "langfuse": {
+        const s = await langfuseApi.status();
+        if (s.status === "running") return { level: "running", label: "Running" };
+        if (s.status === "starting") return { level: "starting", label: "Starting" };
+        if (s.status === "stopped") return { level: "stopped", label: "Not started" };
         if (s.status === "failed") return { level: "failed", label: "Failed" };
         return { level: "unknown", label: "Unknown" };
       }

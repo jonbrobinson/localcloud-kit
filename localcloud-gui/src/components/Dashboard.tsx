@@ -56,6 +56,7 @@ export default function Dashboard() {
     redis,
     postgres,
     keycloak,
+    langfuse,
     loading,
     refreshing,
     error,
@@ -583,6 +584,7 @@ export default function Dashboard() {
   const serviceHealth = summarizeServiceHealth({
     emulator: emulatorStatus,
     keycloak,
+    langfuse,
     mailpit,
     postgres,
     redis,
@@ -758,6 +760,27 @@ export default function Dashboard() {
           actions: [
             { label: "Open Docs", href: "/keycloak" },
             withAdmin("https://keycloak.localcloudkit.com:3030"),
+          ],
+        };
+      case "langfuse":
+        return {
+          title: "Langfuse",
+          subtitle:
+            langfuse.status === "running"
+              ? "LLM observability is running"
+              : langfuse.status === "starting"
+                ? "Langfuse is starting (first boot runs migrations)"
+                : langfuse.status === "failed"
+                  ? "Langfuse is failing — check make langfuse-logs"
+                  : "Optional profile — start with make start-langfuse",
+          quickChecks: [
+            "Langfuse status is running",
+            "App uses pk-lf-localcloud / sk-lf-localcloud keys",
+            "Test trace appears in the Tracing view",
+          ],
+          actions: [
+            { label: "Open Docs", href: "/langfuse" },
+            withAdmin(langfuse.uiUrl ?? "https://langfuse.localcloudkit.com:3030", "Open Langfuse UI"),
           ],
         };
       case "mailpit":

@@ -6,7 +6,7 @@
 
 > **Local Cloud Development Environment**
 
-Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Lambda, API Gateway, SSM Parameter Store, Secrets Manager, Redis cache, email testing with Mailpit, and optional beta product analytics with PostHog.
+Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Lambda, API Gateway, SSM Parameter Store, Secrets Manager, Redis cache, email testing with Mailpit, optional LLM observability with Langfuse, and optional beta product analytics with PostHog.
 
 [![Version](https://img.shields.io/badge/version-0.15.0-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.15.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -18,6 +18,7 @@ Build and test cloud apps locally — no AWS account needed. Free, fast, and wit
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Keycloak](https://img.shields.io/badge/Keycloak-Identity-7F4F24?style=for-the-badge&logo=keycloak&logoColor=white)](https://www.keycloak.org/)
 [![PostHog](https://img.shields.io/badge/PostHog-Analytics-f54e00?style=for-the-badge&logo=posthog&logoColor=white)](https://posthog.com/)
+[![Langfuse](https://img.shields.io/badge/Langfuse-LLM%20Observability-0A60FF?style=for-the-badge)](https://langfuse.com/)
 
 ## Table of Contents
 
@@ -57,8 +58,8 @@ Everything else is handled automatically!
 
 - Automatically downloads and installs `mkcert` if not found (works on macOS, Linux, Windows)
 - Installs the mkcert CA to your system trust store (requires sudo password)
-- Generates a single trusted certificate covering all LocalCloud Kit subdomains: `app-local`, `mailpit`, `pgadmin`, `keycloak`, and `posthog`
-- Adds all five subdomains (`app-local`, `mailpit`, `pgadmin`, `keycloak`, `posthog`) to `/etc/hosts` (requires sudo password)
+- Generates a single trusted certificate covering all LocalCloud Kit subdomains: `app-local`, `mailpit`, `pgadmin`, `keycloak`, `posthog`, and `langfuse`
+- Adds all six subdomains (`app-local`, `mailpit`, `pgadmin`, `keycloak`, `posthog`, `langfuse`) to `/etc/hosts` (requires sudo password)
 
 **No manual installation needed** — the script handles everything automatically. See [docs/SETUP_SCRIPTS.md](docs/SETUP_SCRIPTS.md) for individual scripts.
 
@@ -85,6 +86,7 @@ Via Traefik (TLS — trusted cert, no browser warnings):
 - **pgAdmin** (database UI): https://pgadmin.localcloudkit.com:3030
 - **Keycloak** (identity & access): https://keycloak.localcloudkit.com:3030
 - **PostHog** (analytics, optional beta profile): https://posthog.localcloudkit.com:3030
+- **Langfuse** (LLM observability, optional profile): https://langfuse.localcloudkit.com:3030
 
 Direct localhost (no TLS — always available):
 
@@ -95,6 +97,7 @@ Direct localhost (no TLS — always available):
 - **PostgreSQL**: localhost:5432 (direct DB connection)
 - **pgAdmin**: http://localhost:5050 (direct, no cert required)
 - **Keycloak**: http://localhost:8080 (direct, no cert required)
+- **Langfuse**: http://localhost:3100 (SDK base URL, optional profile)
 
 | Service | URL | Description |
 |---------|-----|--------------|
@@ -108,6 +111,7 @@ Direct localhost (no TLS — always available):
 | PostgreSQL | localhost:5432 | Direct DB |
 | Keycloak | https://keycloak.localcloudkit.com:3030 | Identity & access |
 | PostHog | https://posthog.localcloudkit.com:3030 | Product analytics (optional beta profile) |
+| Langfuse | https://langfuse.localcloudkit.com:3030 | LLM observability — traces, prompts, evals (optional profile) |
 
 > **Note**: Run `./scripts/setup.sh` once to add subdomains to `/etc/hosts` and generate the TLS certificate.
 
@@ -119,7 +123,7 @@ Direct localhost (no TLS — always available):
 
 The dashboard shows your local cloud environment at a glance:
 
-- **Service Health** — a status dot on the **Services** menu shows whether Keycloak, the AWS Emulator, Mailpit, PostgreSQL, and Redis are running. The dashboard only shows an alert when one of them stops.
+- **Service Health** — a status dot on the **Services** menu shows whether Keycloak, the AWS Emulator, Mailpit, PostgreSQL, and Redis are running. Optional profiles like Langfuse show "Not started" instead of counting as down. The dashboard only shows an alert when a core service stops.
 - **Recent Mail** — the newest emails caught by Mailpit, shown when there is mail. Click one to read it as HTML, plain text, or raw source.
 - **AWS Resources** — categorized view (Storage, Database, Security & Identity) with add/destroy actions and inline inspection.
 
@@ -170,7 +174,7 @@ The header contains three primary dropdowns:
 | Dropdown | Contents |
 |----------|----------|
 | **Resources** | AWS resources organized by category (Storage, Database, Compute, Networking, Security & Identity) — things you create and destroy in the AWS Emulator |
-| **Services** | Platform services (Keycloak, Mailpit, PostgreSQL, PostHog, Redis) with quick **Inspect** actions and links to manager/admin tools |
+| **Services** | Platform services (Keycloak, Langfuse, Mailpit, PostgreSQL, Redis) with quick **Inspect** actions and links to manager/admin tools |
 | **Docs** | Opens the **Docs Hub** (`/docs`) with all documentation pages, verification checklists, and manager/admin links |
 
 ### Profile CLI Playbook
@@ -250,6 +254,13 @@ The **Profile** page (`/profile`) includes a **CLI Playbook** for the active pro
 - **Quick Test Button**: Send a preset test email in one click from the dashboard modal
 - **Full Test Compose**: Complete compose form on the Mailpit documentation page
 - **Admin UI**: Link through to the full Mailpit web interface for advanced filtering and message inspection
+
+#### Langfuse LLM Observability (optional profile)
+
+- **Optional Compose Profile**: Start only when needed via `make start-langfuse`
+- **Zero-Setup Login**: Organization, project, API keys (`pk-lf-localcloud` / `sk-lf-localcloud`), and an admin user are created on first start
+- **Isolated Data Stores**: Dedicated Langfuse Postgres, ClickHouse, Redis, and MinIO services; invite and reset emails land in Mailpit
+- **Doc & SDK Examples**: OpenTelemetry-based TypeScript, Python, and cURL examples on the `/langfuse` page
 
 #### PostHog Analytics (optional profile)
 
@@ -406,6 +417,8 @@ Edit `docker-compose.yml` for port mappings, environment variables, resource lim
 # Start services
 make start                         # Recommended: Cross-platform Make command
 make start-posthog                # Include optional PostHog profile
+make start-langfuse                # Include optional Langfuse profile (LLM observability)
+make stop-langfuse                 # Stop only Langfuse (keeps data)
 docker compose up --build          # Alternative: Docker Compose directly
 
 # View logs
@@ -464,6 +477,7 @@ docker compose up -d --scale api=3 # Scale services
 - **[docs/KEYCLOAK.md](docs/KEYCLOAK.md)** — Identity & access
 - **[docs/PGADMIN.md](docs/PGADMIN.md)** — PostgreSQL UI
 - **[docs/POSTHOG.md](docs/POSTHOG.md)** — Product analytics (optional profile)
+- **[docs/LANGFUSE.md](docs/LANGFUSE.md)** — LLM observability (optional profile)
 
 ### Components
 

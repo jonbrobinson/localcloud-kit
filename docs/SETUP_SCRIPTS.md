@@ -9,7 +9,7 @@ LocalCloud Kit includes several setup and maintenance scripts.
 | `./scripts/setup.sh` | **Master setup** — runs all setup steps automatically |
 | `./scripts/setup-mkcert.sh` | Generate SSL certificates only |
 | `./scripts/install-ca.sh` | Install mkcert CA certificate to system trust store |
-| `./scripts/setup-hosts.sh` | Add subdomains (`app-local`, `mailpit`, `pgadmin`, `keycloak`, `posthog`) to /etc/hosts |
+| `./scripts/setup-hosts.sh` | Add subdomains (`app-local`, `mailpit`, `pgadmin`, `keycloak`, `posthog`, `langfuse`) to /etc/hosts |
 | `./scripts/verify-setup.sh` | Verify setup configuration |
 | `./scripts/cleanup-hosts.sh` | **Interactive cleanup** of LocalCloud Kit domain entries |
 
@@ -30,7 +30,7 @@ Checks:
 - Certificate SANs cover all five subdomains
 - `/etc/hosts` entries for all subdomains
 - mkcert CA is installed
-- HTTPS connectivity for app and platform subdomains (Mailpit, pgAdmin, Keycloak, PostHog)
+- HTTPS connectivity for app and platform subdomains (Mailpit, pgAdmin, Keycloak, PostHog, Langfuse)
 - Provides troubleshooting guidance
 
 **Usage:** `./scripts/verify-setup.sh`

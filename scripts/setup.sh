@@ -11,6 +11,7 @@ MAILPIT_DOMAIN="mailpit.localcloudkit.com"
 PGADMIN_DOMAIN="pgadmin.localcloudkit.com"
 KEYCLOAK_DOMAIN="keycloak.localcloudkit.com"
 POSTHOG_DOMAIN="posthog.localcloudkit.com"
+LANGFUSE_DOMAIN="langfuse.localcloudkit.com"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -140,7 +141,7 @@ if [ -f "$CERT_DIR/$DOMAIN.pem" ] && [ -f "$CERT_DIR/$DOMAIN-key.pem" ]; then
     if command -v openssl &>/dev/null; then
         CERT_SANS=$(openssl x509 -in "$CERT_DIR/$DOMAIN.pem" -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -1 || true)
         MISSING_SANS=()
-        for SUBDOMAIN in "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN" "$POSTHOG_DOMAIN"; do
+        for SUBDOMAIN in "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN" "$POSTHOG_DOMAIN" "$LANGFUSE_DOMAIN"; do
             if echo "$CERT_SANS" | grep -q "$SUBDOMAIN"; then
                 echo -e "${GREEN}✓ Certificate includes $SUBDOMAIN${NC}"
             else
@@ -159,7 +160,7 @@ if [ -f "$CERT_DIR/$DOMAIN.pem" ] && [ -f "$CERT_DIR/$DOMAIN-key.pem" ]; then
             # Re-verify after regeneration
             CERT_SANS=$(openssl x509 -in "$CERT_DIR/$DOMAIN.pem" -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -1 || true)
             ALL_OK=true
-            for SUBDOMAIN in "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN" "$POSTHOG_DOMAIN"; do
+            for SUBDOMAIN in "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN" "$POSTHOG_DOMAIN" "$LANGFUSE_DOMAIN"; do
                 if echo "$CERT_SANS" | grep -q "$SUBDOMAIN"; then
                     echo -e "${GREEN}✓ Certificate now includes $SUBDOMAIN${NC}"
                 else
@@ -189,7 +190,7 @@ echo ""
 if [ -f "$SCRIPT_DIR/setup-hosts.sh" ]; then
     # Check if all entries already exist (read-only check)
     MISSING_HOSTS=()
-    for HOST in "$DOMAIN" "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN" "$POSTHOG_DOMAIN"; do
+    for HOST in "$DOMAIN" "$MAILPIT_DOMAIN" "$PGADMIN_DOMAIN" "$KEYCLOAK_DOMAIN" "$POSTHOG_DOMAIN" "$LANGFUSE_DOMAIN"; do
         grep -q "$HOST" /etc/hosts 2>/dev/null || MISSING_HOSTS+=("$HOST")
     done
 
@@ -222,6 +223,7 @@ else
     echo -e "${YELLOW}  127.0.0.1 $PGADMIN_DOMAIN${NC}"
     echo -e "${YELLOW}  127.0.0.1 $KEYCLOAK_DOMAIN${NC}"
     echo -e "${YELLOW}  127.0.0.1 $POSTHOG_DOMAIN${NC}"
+    echo -e "${YELLOW}  127.0.0.1 $LANGFUSE_DOMAIN${NC}"
 fi
 
 echo ""
@@ -242,6 +244,7 @@ echo -e "   ${CYAN}https://$MAILPIT_DOMAIN:3030${NC}  (Mailpit email testing)"
 echo -e "   ${CYAN}https://$PGADMIN_DOMAIN:3030${NC}  (pgAdmin database UI)"
 echo -e "   ${CYAN}https://$KEYCLOAK_DOMAIN:3030${NC}  (Keycloak identity & access)"
 echo -e "   ${CYAN}https://$POSTHOG_DOMAIN:3030${NC}  (PostHog analytics)"
+echo -e "   ${CYAN}https://$LANGFUSE_DOMAIN:3030${NC}  (Langfuse LLM observability)"
 echo ""
 echo -e "${YELLOW}Note:${NC} If you see certificate warnings:"
 echo "  - Make sure the CA is installed: ${BLUE}sudo ./scripts/install-ca.sh${NC}"

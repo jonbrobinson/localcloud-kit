@@ -107,6 +107,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
    - **API**: https://app-local.localcloudkit.com:3030/api
    - **Mailpit**: https://mailpit.localcloudkit.com:3030
    - **PostHog** (optional profile): https://posthog.localcloudkit.com:3030
+   - **Langfuse** (optional profile): https://langfuse.localcloudkit.com:3030
 
    Direct localhost (no TLS):
    - **AWS Emulator**: http://localhost:4566
@@ -123,6 +124,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 - **Health Check**: `https://app-local.localcloudkit.com:3030/health`
 - **AWS Emulator Health**: `https://app-local.localcloudkit.com:3030/aws-emulator/health`
 - **PostHog** (optional profile): `https://posthog.localcloudkit.com:3030`
+- **Langfuse** (optional profile): `https://langfuse.localcloudkit.com:3030`
 
 ### Direct Access (bypassing Traefik)
 
@@ -227,6 +229,22 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
   - Dedicated `posthog-zookeeper` (`zookeeper:3.9`)
 - **Start**: `docker compose --profile posthog up -d`
 
+### 8. Langfuse (optional profile)
+
+- **Profile**: `langfuse`
+- **URL**: `https://langfuse.localcloudkit.com:3030` (direct: `http://localhost:3100`)
+- **Role**: LLM observability — traces, prompt management, evaluations
+- **Images**: `langfuse/langfuse:4`, `langfuse/langfuse-worker:4`
+- **Isolation**:
+  - Dedicated `langfuse-postgres` (`postgres:17-alpine`)
+  - Dedicated `langfuse-clickhouse` (`clickhouse/clickhouse-server:25.12`)
+  - Dedicated `langfuse-redis` (`redis:7.4-alpine`, `noeviction`)
+  - Dedicated `langfuse-minio` (`cgr.dev/chainguard/minio`, host port `9190`)
+- **Shared**: invite/password-reset email goes to Mailpit
+- **Exposure**: host ports `3100`/`9190` listen on all interfaces with local-only credentials (same as Postgres/Keycloak/pgAdmin) — see [LANGFUSE.md](./LANGFUSE.md#access--credentials)
+- **Start**: `make start-langfuse` or `docker compose --profile langfuse up -d`
+- **Details**: [LANGFUSE.md](./LANGFUSE.md)
+
 ## Volume Mounts
 
 ### Application Code (Hot Reload)
@@ -294,7 +312,7 @@ This allows browsers to trust the certificates without warnings.
 
 ### Certificate Features
 
-- **SANs**: `app-local.localcloudkit.com`, `*.app-local.localcloudkit.com`, `mailpit.localcloudkit.com`, `pgadmin.localcloudkit.com`, `keycloak.localcloudkit.com`, `posthog.localcloudkit.com`
+- **SANs**: `app-local.localcloudkit.com`, `*.app-local.localcloudkit.com`, `mailpit.localcloudkit.com`, `pgadmin.localcloudkit.com`, `keycloak.localcloudkit.com`, `posthog.localcloudkit.com`, `langfuse.localcloudkit.com`
 - **Validity**: 825 days
 - **Trust**: Trusted by Chrome, Safari, and other browsers (after CA installation)
 - **Single cert** covers both the main app and the Mailpit subdomain
@@ -586,6 +604,7 @@ alias docker-clean='docker system prune -f && docker volume prune -f'
    echo "127.0.0.1 app-local.localcloudkit.com" | sudo tee -a /etc/hosts
    echo "127.0.0.1 mailpit.localcloudkit.com" | sudo tee -a /etc/hosts
    echo "127.0.0.1 posthog.localcloudkit.com" | sudo tee -a /etc/hosts
+   echo "127.0.0.1 langfuse.localcloudkit.com" | sudo tee -a /etc/hosts
    ```
 
 ### Health Checks
@@ -608,6 +627,9 @@ redis-cli -h localhost -p 6380 ping
 
 # Check PostHog (optional profile)
 curl -k https://posthog.localcloudkit.com:3030/_health
+
+# Check Langfuse (optional profile)
+curl http://localhost:3100/api/public/health
 ```
 
 ### Diagnosing a Crashing Container

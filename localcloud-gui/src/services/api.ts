@@ -3,6 +3,7 @@ import {
   CreateResourceRequest,
   DestroyResourceRequest,
   KeycloakStatus,
+  LangfuseStatus,
   EmulatorStatus,
   LogEntry,
   MailpitMessage,
@@ -511,6 +512,18 @@ export const keycloakApi = {
   status: async (): Promise<KeycloakStatus> => {
     try {
       const response = await api.get("/keycloak/status");
+      return response.data.data || { status: "unknown" };
+    } catch {
+      return { status: "unknown" };
+    }
+  },
+};
+
+// Langfuse (optional profile)
+export const langfuseApi = {
+  status: async (): Promise<LangfuseStatus> => {
+    try {
+      const response = await api.get("/langfuse/status");
       return response.data.data || { status: "unknown" };
     } catch {
       return { status: "unknown" };

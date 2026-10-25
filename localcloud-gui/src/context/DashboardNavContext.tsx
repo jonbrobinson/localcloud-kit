@@ -15,6 +15,7 @@ export type InspectTargetId =
   | "postgres"
   | "redis"
   | "keycloak"
+  | "langfuse"
   | "mailpit";
 
 export type DashboardNavActions = {

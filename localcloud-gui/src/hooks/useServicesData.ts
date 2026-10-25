@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback, startTransition } from "react";
 import {
   EmulatorStatus,
   KeycloakStatus,
+  LangfuseStatus,
   MailpitStats,
   PostgresStatus,
   ProjectConfig,
   RedisStatus,
   Resource,
 } from "@/types";
-import { dashboardApi, keycloakApi, postgresApi } from "@/services/api";
+import { dashboardApi, keycloakApi, langfuseApi, postgresApi } from "@/services/api";
 
 interface AwsEmulatorData {
   status: EmulatorStatus;
@@ -22,6 +23,7 @@ interface ServicesData {
   redis: RedisStatus;
   postgres: PostgresStatus;
   keycloak: KeycloakStatus;
+  langfuse: LangfuseStatus;
 }
 
 export function useServicesData() {
@@ -43,6 +45,7 @@ export function useServicesData() {
     redis: { status: "unknown" },
     postgres: { status: "unknown" },
     keycloak: { status: "unknown" },
+    langfuse: { status: "unknown" },
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -52,10 +55,11 @@ export function useServicesData() {
     setRefreshing(true);
     try {
       setError(null);
-      const [payloadResult, postgresResult, keycloakResult] = await Promise.allSettled([
+      const [payloadResult, postgresResult, keycloakResult, langfuseResult] = await Promise.allSettled([
         dashboardApi.getData(),
         postgresApi.status(),
         keycloakApi.status(),
+        langfuseApi.status(),
       ]);
 
       if (payloadResult.status === "rejected") {
@@ -71,6 +75,8 @@ export function useServicesData() {
         postgresResult.status === "fulfilled" ? postgresResult.value : { status: "unknown" };
       const keycloakStatus: KeycloakStatus =
         keycloakResult.status === "fulfilled" ? keycloakResult.value : { status: "unknown" };
+      const langfuseStatus: LangfuseStatus =
+        langfuseResult.status === "fulfilled" ? langfuseResult.value : { status: "unknown" };
 
       startTransition(() => {
         setData({
@@ -79,6 +85,7 @@ export function useServicesData() {
           redis,
           postgres: postgresStatus,
           keycloak: keycloakStatus,
+          langfuse: langfuseStatus,
         });
       });
     } catch (err) {

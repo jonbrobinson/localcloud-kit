@@ -173,6 +173,15 @@ export interface KeycloakStatus {
   status: "running" | "starting" | "stopped" | "failed" | "unknown";
 }
 
+export interface LangfuseStatus {
+  status: "running" | "starting" | "stopped" | "failed" | "unknown";
+  version?: string;
+  /** Host SDK base URL, e.g. http://localhost:3100 (follows LANGFUSE_PORT) */
+  baseUrl?: string;
+  /** Traefik UI URL (follows APP_PORT) */
+  uiUrl?: string;
+}
+
 export interface PosthogStatus {
   status: "running" | "starting" | "stopped" | "failed" | "unknown";
 }

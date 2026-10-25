@@ -11,6 +11,8 @@ APP_PORT ?= 3030
 EMULATOR_PORT ?= 4566
 RDS_BASE_PORT ?= 15432
 ELASTICACHE_BASE_PORT ?= 16379
+LANGFUSE_PORT ?= 3100
+LANGFUSE_S3_PORT ?= 9190
 
 # Colors for output
 GREEN := \033[0;32m
@@ -26,6 +28,7 @@ NC := \033[0m # No Color
 .PHONY: reset clean-volumes clean-all reset-env
 .PHONY: mailpit-logs mailpit-clear
 .PHONY: postgres-logs keycloak-logs pgadmin-logs posthog-logs
+.PHONY: start-langfuse stop-langfuse langfuse-logs
 
 # Default target
 help: ## Show this help message
@@ -50,6 +53,7 @@ help: ## Show this help message
 	@echo "  make start EMULATOR_PORT=4567               # Shift AWS emulator host port (multi-project)"
 	@echo "  make start RDS_BASE_PORT=15500              # Shift RDS ports (multi-project)"
 	@echo "  make start ELASTICACHE_BASE_PORT=16400      # Shift ElastiCache ports (multi-project)"
+	@echo "  make start-langfuse                         # Start everything plus the optional Langfuse profile"
 	@echo "  make gui-start                              # Start GUI system with Docker"
 	@echo "  make shell-create ENV=dev                   # Create resources with Shell scripts"
 	@echo "  make clean                                  # Clean up all resources"
@@ -61,7 +65,7 @@ start: ## Start all services with Docker Compose (MINISTACK_VERSION=latest by de
 	@echo "$(GREEN)Starting LocalCloud Kit with Docker...$(NC)"
 	@echo "$(YELLOW)Using MiniStack version: $(MINISTACK_VERSION)$(NC)"
 	@mkdir -p volume/cache volume/lib volume/logs volume/tmp
-	MINISTACK_VERSION=$(MINISTACK_VERSION) APP_PORT=$(APP_PORT) EMULATOR_PORT=$(EMULATOR_PORT) RDS_BASE_PORT=$(RDS_BASE_PORT) ELASTICACHE_BASE_PORT=$(ELASTICACHE_BASE_PORT) docker compose up --build -d
+	MINISTACK_VERSION=$(MINISTACK_VERSION) APP_PORT=$(APP_PORT) EMULATOR_PORT=$(EMULATOR_PORT) RDS_BASE_PORT=$(RDS_BASE_PORT) ELASTICACHE_BASE_PORT=$(ELASTICACHE_BASE_PORT) LANGFUSE_PORT=$(LANGFUSE_PORT) docker compose up --build -d
 	@echo "$(GREEN)Waiting for services to be ready...$(NC)"
 	@until curl -s -k https://app-local.localcloudkit.com:$(APP_PORT)/health > /dev/null 2>&1 || curl -s http://localhost/health > /dev/null 2>&1; do sleep 2; done
 	@echo "$(GREEN)All services are ready!$(NC)"
@@ -83,9 +87,9 @@ start: ## Start all services with Docker Compose (MINISTACK_VERSION=latest by de
 	@echo "$(YELLOW)  pgAdmin:        http://localhost:5050$(NC)"
 	@echo ""
 
-stop: ## Stop all Docker services (includes optional PostHog profile)
+stop: ## Stop all Docker services (includes optional PostHog and Langfuse profiles)
 	@echo "$(YELLOW)Stopping all services...$(NC)"
-	docker compose --profile posthog down --remove-orphans
+	docker compose --profile posthog --profile langfuse down --remove-orphans
 
 restart: stop start ## Restart all Docker services
 
@@ -98,6 +102,7 @@ status: ## Check Docker services status
 	@curl -s http://localhost:$(EMULATOR_PORT)/_localstack/health > /dev/null 2>&1 && echo "$(GREEN)  AWS Emulator: http://localhost:$(EMULATOR_PORT)  ✓$(NC)" || echo "$(RED)  AWS Emulator: not responding$(NC)"
 	@curl -s http://localhost:8025/api/v1/info > /dev/null 2>&1 && echo "$(GREEN)  Mailpit:      http://localhost:8025  ✓$(NC)" || echo "$(YELLOW)  Mailpit:      not responding (may not be running)$(NC)"
 	@curl -s -k https://posthog.localcloudkit.com:$(APP_PORT)/_health > /dev/null 2>&1 && echo "$(GREEN)  PostHog:      https://posthog.localcloudkit.com:$(APP_PORT)  ✓$(NC)" || echo "$(YELLOW)  PostHog:      not responding (optional profile may be stopped)$(NC)"
+	@curl -s http://localhost:$(LANGFUSE_PORT)/api/public/health > /dev/null 2>&1 && echo "$(GREEN)  Langfuse:     http://localhost:$(LANGFUSE_PORT)  ✓$(NC)" || echo "$(YELLOW)  Langfuse:     not responding (optional profile — make start-langfuse)$(NC)"
 
 logs: ## View Docker services logs
 	docker compose logs -f
@@ -123,15 +128,15 @@ clean-volumes: ## Clean up Docker volumes (removes all data)
 	@echo "$(YELLOW)Cleaning up Docker volumes...$(NC)"
 	@echo "$(RED)WARNING: This will remove all Docker volumes and data!$(NC)"
 	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@docker compose --profile posthog down -v --remove-orphans
+	@docker compose --profile posthog --profile langfuse down -v --remove-orphans
 	@docker volume prune -f
 	@echo "$(GREEN)Docker volumes cleaned$(NC)"
 
-clean-all: ## Clean up everything including images and containers (includes PostHog profile)
+clean-all: ## Clean up everything including images and containers (includes PostHog and Langfuse profiles)
 	@echo "$(YELLOW)Cleaning up all Docker resources...$(NC)"
 	@echo "$(RED)WARNING: This will remove all containers, images, and volumes!$(NC)"
 	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@docker compose --profile posthog down -v --rmi all --remove-orphans
+	@docker compose --profile posthog --profile langfuse down -v --rmi all --remove-orphans
 	@docker system prune -af --volumes
 	@echo "$(GREEN)All Docker resources cleaned$(NC)"
 
@@ -203,6 +208,25 @@ keycloak-logs: ## View Keycloak container logs
 
 posthog-logs: ## View PostHog service logs
 	docker compose logs -f posthog-db-migrate posthog-web posthog-worker posthog-clickhouse posthog-kafka posthog-kafka-init
+
+# Langfuse (optional profile — LLM observability)
+start-langfuse: start ## Start all services plus the optional Langfuse profile
+	@echo "$(GREEN)Starting Langfuse (optional profile)...$(NC)"
+	APP_PORT=$(APP_PORT) LANGFUSE_PORT=$(LANGFUSE_PORT) LANGFUSE_S3_PORT=$(LANGFUSE_S3_PORT) docker compose --profile langfuse up -d
+	@echo "$(GREEN)Waiting for Langfuse (first boot runs database migrations)...$(NC)"
+	@until curl -s http://localhost:$(LANGFUSE_PORT)/api/public/health > /dev/null 2>&1; do sleep 3; done
+	@echo "$(GREEN)Langfuse is ready!$(NC)"
+	@echo "$(YELLOW)  UI:          https://langfuse.localcloudkit.com:$(APP_PORT)$(NC)"
+	@echo "$(YELLOW)  Direct:      http://localhost:$(LANGFUSE_PORT)$(NC)"
+	@echo "$(YELLOW)  Login:       admin@localcloud.dev / localcloud$(NC)"
+	@echo "$(YELLOW)  API keys:    pk-lf-localcloud / sk-lf-localcloud$(NC)"
+
+stop-langfuse: ## Stop only the Langfuse profile services (data volumes are kept)
+	@echo "$(YELLOW)Stopping Langfuse...$(NC)"
+	docker compose --profile langfuse stop langfuse-web langfuse-worker langfuse-clickhouse langfuse-postgres langfuse-redis langfuse-minio
+
+langfuse-logs: ## View Langfuse service logs
+	docker compose logs -f langfuse-web langfuse-worker
 
 # Setup and Utilities
 setup: ## Initial setup - create directories and install dependencies
