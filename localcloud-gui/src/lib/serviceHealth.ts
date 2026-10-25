@@ -27,7 +27,7 @@ export interface ServiceHealthEntry {
 
 export interface ServiceHealthSummary {
   services: ServiceHealthEntry[];
-  /** Services counted in the overall tone — excludes opt-in services that aren't started. */
+  /** Services counted in the overall tone — core services, plus opt-in ones that are running or failing. */
   active: ServiceHealthEntry[];
   down: ServiceHealthEntry[];
   /** Overall tone for a single indicator: danger if anything is down, warn while starting, success when all run. */
@@ -86,8 +86,10 @@ export function summarizeServiceHealth(input: ServiceHealthInput): ServiceHealth
   ];
 
   const down = services.filter((service) => service.down);
-  // Opt-in services that aren't started don't count toward "all services running"
-  const active = services.filter((service) => !(service.optional && service.tone === "neutral"));
+  // Opt-in services only count once they're running or failing — not while stopped or still booting
+  const active = services.filter(
+    (service) => !service.optional || service.down || service.tone === "success"
+  );
   const tone: StatusTone = down.length
     ? "danger"
     : active.some((service) => service.tone === "warn")

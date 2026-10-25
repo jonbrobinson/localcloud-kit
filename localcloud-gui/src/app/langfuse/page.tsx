@@ -22,7 +22,10 @@ LANGFUSE_SECRET_KEY=sk-lf-localcloud
 LANGFUSE_TRACING_ENVIRONMENT=local`;
 
 const codeExamples: Record<PageTab, string> = {
-  typescript: `// npm install @langfuse/tracing @langfuse/otel @opentelemetry/sdk-node
+  typescript: `// npm install @langfuse/tracing @langfuse/otel \\
+//   @opentelemetry/sdk-node@^0.223.0 @opentelemetry/exporter-trace-otlp-http@^0.223.0
+// (@langfuse/otel 6.x targets OpenTelemetry JS 2.x — the 0.300+ SDK line is not compatible yet)
+
 // instrumentation.ts — import this first (reads LANGFUSE_* from the environment)
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { LangfuseSpanProcessor } from "@langfuse/otel";
@@ -33,22 +36,25 @@ export const sdk = new NodeSDK({
 sdk.start();
 
 // routes/chat.ts — trace an LLM call inside an Express handler
-import { startActiveObservation } from "@langfuse/tracing";
+import { startActiveObservation, propagateAttributes } from "@langfuse/tracing";
 
 app.post("/chat", async (req, res) => {
   const answer = await startActiveObservation("chat-request", async (span) => {
-    span.update({ input: req.body, userId: req.body.userId });
+    span.update({ input: req.body });
 
-    const generation = span.startObservation(
-      "llm-call",
-      { model: "claude-sonnet-5-5", input: req.body.messages },
-      { asType: "generation" }
-    );
-    const reply = await callYourModel(req.body.messages);
-    generation.update({ output: reply }).end();
+    // userId / sessionId are trace attributes — propagate them to every child observation
+    return propagateAttributes({ userId: req.body.userId }, async () => {
+      const generation = span.startObservation(
+        "llm-call",
+        { model: "claude-sonnet-5-5", input: req.body.messages },
+        { asType: "generation" }
+      );
+      const reply = await callYourModel(req.body.messages);
+      generation.update({ output: reply }).end();
 
-    span.update({ output: reply });
-    return reply;
+      span.update({ output: reply });
+      return reply;
+    });
   });
 
   res.json({ answer });

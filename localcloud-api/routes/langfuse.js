@@ -22,6 +22,10 @@ router.get("/langfuse/status", async (req, res) => {
     if (error.response?.status === 503) {
       return res.json({ success: true, data: { status: "starting" } });
     }
+    // Any other HTTP error means Langfuse answered but is broken
+    if (error.response) {
+      return res.json({ success: true, data: { status: "failed" } });
+    }
     // Health endpoint not reachable — check whether the container port is up at all
     try {
       const host = new URL(LANGFUSE_INTERNAL_URL);

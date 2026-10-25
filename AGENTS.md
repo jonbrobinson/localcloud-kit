@@ -363,7 +363,7 @@ a clear two-category model:
 
 ### Service Health
 
-There is no always-on status bar. `summarizeServiceHealth()` (`localcloud-gui/src/lib/serviceHealth.ts`) collapses AWS Emulator, Keycloak, Langfuse, Mailpit, PostgreSQL, and Redis status into one summary that two places read. Opt-in profile services (Langfuse) are marked `optional`: when stopped they show "Not started" and are excluded from `active`, so they never turn the dot red or trigger the alert:
+There is no always-on status bar. `summarizeServiceHealth()` (`localcloud-gui/src/lib/serviceHealth.ts`) collapses AWS Emulator, Keycloak, Langfuse, Mailpit, PostgreSQL, and Redis status into one summary that two places read. Opt-in profile services (Langfuse) are marked `optional`: when stopped they show "Not started", and they only join `active` (the overall tone and "All N running" count) once running or failing — so a stopped or booting profile never turns the dot red/amber or triggers the alert:
 
 - **Services** nav menu — a status dot on the menu button (green / amber while starting / red when anything is down), a summary line, and a dot plus "Stopped"/"Failed" label per service.
 - **`ServiceAlert`** — a one-line alert at the top of the dashboard, rendered only while a service is confirmed stopped or failing. "Starting" and "unknown" never trigger it.

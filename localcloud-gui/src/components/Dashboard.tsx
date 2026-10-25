@@ -768,7 +768,11 @@ export default function Dashboard() {
           subtitle:
             langfuse.status === "running"
               ? "LLM observability is running"
-              : "Optional profile — start with make start-langfuse",
+              : langfuse.status === "starting"
+                ? "Langfuse is starting (first boot runs migrations)"
+                : langfuse.status === "failed"
+                  ? "Langfuse is failing — check make langfuse-logs"
+                  : "Optional profile — start with make start-langfuse",
           quickChecks: [
             "Langfuse status is running",
             "App uses pk-lf-localcloud / sk-lf-localcloud keys",

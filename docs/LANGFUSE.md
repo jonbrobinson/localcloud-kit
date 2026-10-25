@@ -24,7 +24,7 @@ Langfuse runs with **dedicated data stores** and does not reuse the primary app 
 Why not the kit's shared services?
 
 - **Redis** — Langfuse queue keys would flood the Cache viewer, and BullMQ requires `noeviction`.
-- **PostgreSQL** — keeps Langfuse's ~100 Prisma tables out of your app database and pgAdmin.
+- **PostgreSQL** — keeps Langfuse's 80+ Prisma tables out of your app database and pgAdmin.
 - **S3 (AWS emulator)** — MiniStack keeps S3 in memory by default (`S3_PERSIST=0`); an emulator restart would delete the bucket Langfuse ingests through.
 
 Invite and password-reset emails **are** wired to the shared **Mailpit** (`smtp://mailpit:1025`).
@@ -74,6 +74,15 @@ LANGFUSE_PUBLIC_KEY=pk-lf-localcloud
 LANGFUSE_SECRET_KEY=sk-lf-localcloud
 ```
 
+From another container on `lck-network`, use `LANGFUSE_BASE_URL=http://langfuse-web:3000`. Tracing works the same, but **media uploads** (images/audio attached to traces) use presigned URLs signed for `http://localhost:9190`, which only resolve from the host.
+
+**TypeScript install:** `@langfuse/otel` 6.x targets OpenTelemetry JS 2.x, and the newest OpenTelemetry SDK (0.300+, core 3.x) is not compatible yet — npm either refuses with a peer conflict or installs an exporter that crashes on import. Pin the OpenTelemetry packages until Langfuse catches up:
+
+```bash
+npm install @langfuse/tracing @langfuse/otel \
+  @opentelemetry/sdk-node@^0.223.0 @opentelemetry/exporter-trace-otlp-http@^0.223.0
+```
+
 Langfuse v4 ingests traces over **OpenTelemetry** only. The legacy `/api/public/ingestion` endpoint rejects `trace-create` events, so use the current SDKs (`@langfuse/tracing` + `@langfuse/otel` for TypeScript, `langfuse` for Python) or any OTLP/HTTP exporter. TypeScript, Python, and cURL examples live on the [`/langfuse`](https://app-local.localcloudkit.com:3030/langfuse) GUI page.
 
 ## Configuration
@@ -96,4 +105,5 @@ make start-langfuse LANGFUSE_PORT=3101 LANGFUSE_S3_PORT=9191
 - **`langfuse-minio` fails to pull** — your network may block `cgr.dev`. Point `LANGFUSE_MINIO_IMAGE` at another MinIO build that ships `mc` (for example a community fork on Docker Hub).
 - **`https://langfuse.localcloudkit.com:3030` doesn't resolve or shows a cert warning** — re-run `./scripts/setup.sh`. It adds the hostname to `/etc/hosts` and regenerates the certificate when the `langfuse` SAN is missing.
 - **Traces sent but not visible** — the worker processes events asynchronously; give it a few seconds, then check `langfuse-worker` logs.
+- **Langfuse is gone after `make restart`** — `make stop`/`make restart` stop every profile, and `make start` only brings back the core stack. Run `make start-langfuse` again; your data is kept in the `langfuse_*` volumes.
 - **Reset Langfuse data only** — `docker compose --profile langfuse down` then remove the `langfuse_*` volumes (`docker volume ls | grep langfuse`).
