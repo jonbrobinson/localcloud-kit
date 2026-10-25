@@ -9,6 +9,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 - **Dashboard**: a Recent mail card shows the three newest emails Mailpit has caught, and only appears when there is mail. Click one to open it.
 - **MailViewer**: read a captured email as HTML (sandboxed, at desktop or 375px mobile width), plain text, or raw source, and copy whichever view is open. Rows in the Mailpit inbox modal open it too.
 - **Services menu**: a status dot on the menu button shows overall service health, each service shows its own status, and System logs is listed at the bottom.
+- **Langfuse**: optional LLM observability stack (`make start-langfuse`) for tracing model calls, managing prompts, and running evals locally. A ready-to-use project, API keys, and admin login are created on first start, the UI is served at `https://langfuse.localcloudkit.com:3030`, and a `/langfuse` doc page shows connection details and TypeScript, Python, and cURL examples. Langfuse appears in the Services and Docs menus and shows "Not started" rather than an outage while the profile is off.
 
 ### Changed
 
