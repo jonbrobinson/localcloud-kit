@@ -221,7 +221,8 @@ export default function LangfusePage() {
             The stack runs in the <code className="font-mono text-ink-2">langfuse</code> Compose profile with
             dedicated Postgres, ClickHouse, Redis, and MinIO containers, isolated from your app&apos;s PostgreSQL,
             Redis, and emulator S3. An organization, project, API keys, and an owner login are created
-            automatically on first start. Invite and password-reset emails are delivered to Mailpit.
+            automatically on first start (no email is sent for this). Emails Langfuse sends later — invites,
+            password resets, comment mentions — are delivered to Mailpit.
           </p>
         </Card>
 
@@ -314,7 +315,7 @@ make langfuse-logs`}
             <li>• Langfuse status badge is Running.</li>
             <li>• You can sign in with admin@localcloud.dev / localcloud.</li>
             <li>• A span sent from one of the examples appears under Tracing in the localcloud-dev project.</li>
-            <li>• Inviting a teammate delivers an email to Mailpit.</li>
+            <li>• Inviting a teammate (Organization → Settings → Members) delivers an email to Mailpit.</li>
           </ul>
         </Card>
 
