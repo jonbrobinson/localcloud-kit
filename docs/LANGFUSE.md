@@ -68,6 +68,21 @@ All of these are created automatically on first start (headless initialization).
 | Secret key | `sk-lf-localcloud` |
 | LocalCloud Kit status endpoint | `GET /api/langfuse/status` |
 
+## Email (Mailpit)
+
+Langfuse sends email through the shared Mailpit (`SMTP_CONNECTION_URL=smtp://mailpit:1025`, from `langfuse@localcloud.dev`), but **only when an action triggers it — nothing is sent at startup.** The admin user and API keys are written straight to the database by headless init, so there is no welcome or "account created" email.
+
+Emails you can trigger locally:
+
+| Action | Where | Email |
+|---|---|---|
+| Invite a teammate | Organization → Settings → Members → **Add new member** | "… invited you to join the "LocalCloud Kit" organization" (sign-up link for new users) |
+| Reset a password | Sign-in page → **Forgot password?** | "Your Langfuse password reset code" |
+| @-mention someone in a comment | Any trace/observation comment | Mention notification |
+| Batch export finishes | Project → Exports | Download link |
+
+Open the inbox at `http://localhost:8025` (or the **Mailpit** entry in the Services menu). Links in these emails point at `NEXTAUTH_URL` (`https://langfuse.localcloudkit.com:3030`).
+
 ## Connecting your app
 
 ```bash
