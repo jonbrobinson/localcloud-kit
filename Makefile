@@ -29,6 +29,7 @@ NC := \033[0m # No Color
 .PHONY: mailpit-logs mailpit-clear
 .PHONY: postgres-logs keycloak-logs pgadmin-logs posthog-logs
 .PHONY: start-langfuse stop-langfuse langfuse-logs
+.PHONY: rds-list rds-prune rds-clean
 
 # Default target
 help: ## Show this help message
@@ -45,6 +46,9 @@ help: ## Show this help message
 	@echo ""
 	@echo "$(YELLOW)Setup and Utilities:$(NC)"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "(setup|check)"
+	@echo ""
+	@echo "$(YELLOW)RDS:$(NC)"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST) | grep -E "^ *.*rds-"
 	@echo ""
 	@echo "$(YELLOW)Usage Examples:$(NC)"
 	@echo "  make start                                  # Start with MiniStack latest (port 3030)"
@@ -129,6 +133,7 @@ clean-volumes: ## Clean up Docker volumes (removes all data)
 	@echo "$(RED)WARNING: This will remove all Docker volumes and data!$(NC)"
 	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
 	@docker compose --profile posthog --profile langfuse down -v --remove-orphans
+	@$(MAKE) --no-print-directory rds-clean
 	@docker volume prune -f
 	@echo "$(GREEN)Docker volumes cleaned$(NC)"
 
@@ -137,8 +142,31 @@ clean-all: ## Clean up everything including images and containers (includes Post
 	@echo "$(RED)WARNING: This will remove all containers, images, and volumes!$(NC)"
 	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
 	@docker compose --profile posthog --profile langfuse down -v --rmi all --remove-orphans
+	@$(MAKE) --no-print-directory rds-clean
 	@docker system prune -af --volumes
 	@echo "$(GREEN)All Docker resources cleaned$(NC)"
+
+# RDS — MiniStack starts one container per DB instance (label ministack=rds),
+# outside Docker Compose, so compose down/-v does not remove them.
+rds-list: ## List RDS instance containers and their data volumes
+	@echo "$(BLUE)RDS containers:$(NC)"
+	@docker ps -a --filter label=ministack=rds --format '  {{.Names}}\t{{.Status}}\t{{.Ports}}'
+	@echo "$(BLUE)RDS data volumes:$(NC)"
+	@docker volume ls -q --filter name=ministack-rds- | sed 's/^/  /'
+
+rds-prune: ## Remove data volumes left behind by deleted RDS instances
+	@echo "$(YELLOW)Removing unused RDS data volumes...$(NC)"
+	@for v in $$(docker volume ls -q --filter name=ministack-rds-); do \
+		docker volume rm "$$v" >/dev/null 2>&1 && echo "  removed $$v" || true; \
+	done
+	@docker exec localcloud-api rm -f /app/data/rds-deleted-identifiers.json 2>/dev/null || true
+	@echo "$(GREEN)RDS volumes pruned (volumes still in use were kept)$(NC)"
+
+rds-clean: ## Remove all RDS instance containers and their data (destructive)
+	@echo "$(YELLOW)Removing RDS containers and volumes...$(NC)"
+	@docker ps -aq --filter label=ministack=rds | xargs -r docker rm -f >/dev/null
+	@docker volume ls -q --filter name=ministack-rds- | xargs -r docker volume rm >/dev/null
+	@echo "$(GREEN)RDS containers and volumes removed$(NC)"
 
 reset: stop clean-volumes ## Reset Docker environment (stop services and clean volumes)
 	@echo "$(GREEN)Docker environment reset complete$(NC)"
