@@ -1,5 +1,6 @@
 import { execAsync, internalEndpoint, awsRegion, awsEnv } from "./aws.js";
 import { addLog } from "./context.js";
+import { createInstance as createRdsInstance, deleteInstance as deleteRdsInstance, deleteProjectInstances as deleteProjectRdsInstances, listInstances as listRdsInstances } from "./rds.js";
 
 export async function createResources(request) {
   try {
@@ -92,6 +93,11 @@ function escapeConfigForShell(jsonStr) {
 }
 
 export async function createSingleResource(projectName, resourceType, config = {}) {
+  // RDS goes through the AWS CLI directly (argument array) — requests carry passwords.
+  if (resourceType === "rds") {
+    return createRdsInstance(projectName, config.rdsConfig);
+  }
+
   try {
     let command = `./create_single_resource.sh ${projectName} ${resourceType}`;
 
@@ -165,18 +171,31 @@ export async function destroyResources(request) {
       "automation"
     );
 
-    let command = `./destroy_resources.sh ${projectName} local`;
-    if (resourceIds && resourceIds.length > 0) {
-      command += ` ${resourceIds.join(" ")}`;
+    // RDS instances are removed in Node so linked secrets and pgAdmin registrations go too.
+    const rdsIds = (resourceIds || []).filter((id) => id.startsWith("rds-"));
+    const otherIds = (resourceIds || []).filter((id) => !id.startsWith("rds-"));
+
+    for (const id of rdsIds) {
+      await deleteRdsInstance(id.slice("rds-".length));
+    }
+    if (!resourceIds || resourceIds.length === 0) {
+      await deleteProjectRdsInstances(projectName);
     }
 
-    const { stderr } = await execAsync(command, {
-      cwd: "/app/scripts/shell",
-      env: awsEnv(),
-    });
+    if (otherIds.length > 0 || !resourceIds || resourceIds.length === 0) {
+      let command = `./destroy_resources.sh ${projectName} local`;
+      if (otherIds.length > 0) {
+        command += ` ${otherIds.join(" ")}`;
+      }
 
-    if (stderr) {
-      addLog("warn", `Resource destruction warning: ${stderr}`, "automation");
+      const { stderr } = await execAsync(command, {
+        cwd: "/app/scripts/shell",
+        env: awsEnv(),
+      });
+
+      if (stderr) {
+        addLog("warn", `Resource destruction warning: ${stderr}`, "automation");
+      }
     }
 
     addLog("success", `Resources destroyed successfully for ${projectName}`, "automation");
@@ -189,6 +208,11 @@ export async function destroyResources(request) {
 
 export async function destroySingleResource(projectName, resourceType, resourceName) {
   try {
+    if (resourceType === "rds") {
+      await deleteRdsInstance(resourceName);
+      return { success: true, message: "Resource destroyed successfully" };
+    }
+
     const { stderr } = await execAsync(
       `./destroy_single_resource.sh ${projectName} ${resourceType} ${resourceName}`,
       { cwd: "/app/scripts/shell", env: awsEnv() }
@@ -223,7 +247,12 @@ export async function listResources(projectName) {
         addLog("error", "Resource listing output is not a JSON array", "automation");
         return [];
       }
-      return resources;
+      // RDS is listed in Node: it also reconciles pgAdmin registrations.
+      const rdsResources = await listRdsInstances(projectName).catch((err) => {
+        addLog("warn", `RDS listing failed: ${err.message}`, "automation");
+        return [];
+      });
+      return [...resources, ...rdsResources];
     } catch (err) {
       addLog("error", `Failed to parse resource listing JSON: ${err.message}`, "automation");
       return [];

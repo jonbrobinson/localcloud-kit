@@ -29,6 +29,7 @@ import lambdaRouter from "./routes/lambda.js";
 import apigatewayRouter from "./routes/apigateway.js";
 import ssmRouter from "./routes/ssm.js";
 import iamRouter from "./routes/iam.js";
+import rdsRouter from "./routes/rds.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -74,6 +75,7 @@ app.use(lambdaRouter);
 app.use(apigatewayRouter);
 app.use(ssmRouter);
 app.use(iamRouter);
+app.use(rdsRouter);
 
 // Socket.IO connection handling
 io.on("connection", (socket) => {
