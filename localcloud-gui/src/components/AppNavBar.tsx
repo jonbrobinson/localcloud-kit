@@ -23,7 +23,7 @@ import ManageHeaderBrand from "./ManageHeaderBrand";
 
 const DOC_ROUTES = [
   "/docs", "/aws-emulator", "/s3", "/dynamodb", "/lambda",
-  "/apigateway", "/secrets", "/ssm", "/iam",
+  "/apigateway", "/secrets", "/ssm", "/iam", "/rds",
   "/redis", "/mailpit", "/postgres", "/keycloak", "/langfuse",
 ];
 
@@ -413,6 +413,21 @@ export default function AppNavBar({
                         onPreview: () => openActionOrFallback(actions?.openDynamoDBViewer, "/manage/dynamodb"),
                       })}
                     </div>
+                    <div className="flex items-center justify-between gap-2 px-1.5 py-0.5">
+                      <button
+                        onClick={() => openActionOrFallback(actions?.openRDSConfig, DASHBOARD_FALLBACK_HREF)}
+                        className={menuItemClass}
+                      >
+                        <Icon icon="logos:aws-rds" className="w-4 h-4 mr-3 shrink-0" />
+                        RDS
+                      </button>
+                      {renderResourceActions({
+                        label: "RDS",
+                        target: "rds",
+                        manageHref: "/rds",
+                        onPreview: () => openActionOrFallback(actions?.openRDSViewer, "/rds"),
+                      })}
+                    </div>
 
                     <div className={dividerClass} />
                     <p className={sectionLabelClass}>Compute</p>
@@ -621,6 +636,10 @@ export default function AppNavBar({
                         <Link href="/dynamodb" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors">
                           <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 shrink-0" />
                           DynamoDB
+                        </Link>
+                        <Link href="/rds" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors">
+                          <Icon icon="logos:aws-rds" className="w-4 h-4 mr-3 shrink-0" />
+                          RDS
                         </Link>
                         <Link href="/s3" onClick={() => setShowDocsMenu(false)} className="flex items-center px-3 py-2 text-sm text-ink-2 hover:bg-surface-3 hover:text-ink transition-colors">
                           <Icon icon="logos:aws-s3" className="w-4 h-4 mr-3 shrink-0" />
@@ -888,6 +907,13 @@ export default function AppNavBar({
                   {renderMobileInspect("dynamodb")}
                 </div>
                 <div className="flex items-center gap-1">
+                  <button onClick={() => openActionOrFallback(actions?.openRDSConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
+                    <Icon icon="logos:aws-rds" className="w-4 h-4 mr-3 shrink-0" />
+                    RDS
+                  </button>
+                  {renderMobileInspect("rds")}
+                </div>
+                <div className="flex items-center gap-1">
                   <button onClick={() => openActionOrFallback(actions?.openLambdaConfig, DASHBOARD_FALLBACK_HREF)} className="flex items-center flex-1 px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                     <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 shrink-0" />
                     Lambda Functions
@@ -987,6 +1013,10 @@ export default function AppNavBar({
                 <Link href="/dynamodb" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                   <Icon icon="logos:aws-dynamodb" className="w-4 h-4 mr-3 shrink-0" />
                   DynamoDB
+                </Link>
+                <Link href="/rds" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
+                  <Icon icon="logos:aws-rds" className="w-4 h-4 mr-3 shrink-0" />
+                  RDS
                 </Link>
                 <Link href="/lambda" onClick={closeAllMenus} className="flex items-center w-full px-3 py-2 text-sm text-ink-2 rounded-lg hover:bg-surface-3 transition-colors">
                   <Icon icon="logos:aws-lambda" className="w-4 h-4 mr-3 shrink-0" />

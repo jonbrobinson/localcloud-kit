@@ -12,6 +12,7 @@ export type InspectTargetId =
   | "secretsmanager"
   | "ssm"
   | "iam"
+  | "rds"
   | "postgres"
   | "redis"
   | "keycloak"
@@ -31,6 +32,8 @@ export type DashboardNavActions = {
   openSSMViewer: () => void;
   openIAMConfig: () => void;
   openIAMRoleViewer: () => void;
+  openRDSConfig: () => void;
+  openRDSViewer: () => void;
   openInspectTarget: (target: InspectTargetId) => void;
   openModal: (modalKey: ModalKey) => void;
   openLogs: () => void;

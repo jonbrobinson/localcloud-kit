@@ -23,8 +23,9 @@ export interface Resource {
     | "apigateway"
     | "ssm"
     | "iam"
-    | "secretsmanager";
-  status: "creating" | "active" | "deleting" | "error" | "unknown";
+    | "secretsmanager"
+    | "rds";
+  status: "creating" | "active" | "deleting" | "stopped" | "error" | "unknown";
   environment: string;
   project: string;
   createdAt: string;
@@ -95,6 +96,38 @@ export interface SSMParameterConfig {
   parameterValue: string;
   parameterType: "String" | "StringList" | "SecureString";
   description?: string;
+}
+
+export type RDSEngine = "postgres" | "mysql" | "mariadb";
+
+export interface RDSInstanceConfig {
+  engine: RDSEngine;
+  engineVersion: string;
+  dbInstanceIdentifier: string;
+  masterUsername: string;
+  /** Never persisted in saved configs */
+  masterPassword?: string;
+  dbName?: string;
+  instanceClass: string;
+  allocatedStorage?: number;
+  /** PostgreSQL only — register the instance as a server in the bundled pgAdmin */
+  registerPgAdmin?: boolean;
+  /** Store master credentials as a Secrets Manager secret (rds/<id>/master) */
+  storeInSecretsManager?: boolean;
+}
+
+export interface RDSEngineOption {
+  label: string;
+  port: number;
+  versions: string[];
+  defaultVersion: string;
+}
+
+export interface RDSOptions {
+  engines: Record<RDSEngine, RDSEngineOption>;
+  instanceClasses: string[];
+  /** Identifiers deleted earlier whose data volume MiniStack may have kept */
+  deletedIdentifiers: string[];
 }
 
 export interface IAMRoleConfig {
@@ -210,7 +243,7 @@ export interface CreateResourceRequest {
 
 export interface CreateSingleResourceRequest {
   projectName: string;
-  resourceType: "s3" | "dynamodb" | "lambda" | "apigateway" | "secretsmanager" | "ssm" | "iam";
+  resourceType: "s3" | "dynamodb" | "lambda" | "apigateway" | "secretsmanager" | "ssm" | "iam" | "rds";
   dynamodbConfig?: DynamoDBTableConfig;
   s3Config?: S3BucketConfig;
   secretsmanagerConfig?: SecretsManagerConfig;
@@ -218,6 +251,7 @@ export interface CreateSingleResourceRequest {
   apigatewayConfig?: APIGatewayConfig;
   ssmConfig?: SSMParameterConfig;
   iamConfig?: IAMRoleConfig;
+  rdsConfig?: RDSInstanceConfig;
 }
 
 export interface DestroyResourceRequest {
@@ -270,7 +304,7 @@ export interface SavedConfig {
   id: number;
   project_id: number;
   name: string;
-  resource_type: "s3" | "dynamodb" | "secrets" | "secretsmanager" | "lambda" | "apigateway" | "ssm" | "iam";
+  resource_type: "s3" | "dynamodb" | "secrets" | "secretsmanager" | "lambda" | "apigateway" | "ssm" | "iam" | "rds";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: any;
   config_json: string;

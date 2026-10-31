@@ -11,6 +11,7 @@ export interface DocsHubEntry {
     | "secrets"
     | "ssm"
     | "iam"
+    | "rds"
     | "redis"
     | "mailpit"
     | "postgres"
@@ -101,6 +102,19 @@ export const DOCS_HUB_ENTRIES: DocsHubEntry[] = [
     managerPath: "/manage/dynamodb",
     managerLabel: "Open Manager",
     icon: "logos:aws-dynamodb",
+  },
+  {
+    id: "rds",
+    title: "RDS",
+    category: "aws-resources",
+    docsPath: "/rds",
+    summary: "Run real PostgreSQL, MySQL, or MariaDB instances through the RDS API.",
+    quickChecks: [
+      "Instance status is available",
+      "App connects on localhost:<instance port>",
+      "PostgreSQL instance shows up in pgAdmin when registered",
+    ],
+    icon: "logos:aws-rds",
   },
   {
     id: "lambda",

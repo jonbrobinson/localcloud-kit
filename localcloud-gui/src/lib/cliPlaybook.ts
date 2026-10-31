@@ -3,6 +3,7 @@ import type {
   DynamoDBTableConfig,
   IAMRoleConfig,
   LambdaFunctionConfig,
+  RDSInstanceConfig,
   Resource,
   S3BucketConfig,
   SavedConfig,
@@ -70,6 +71,8 @@ export function resourceNameFromConfig(
       return (config.parameterName as string) || null;
     case "iam":
       return (config.roleName as string) || null;
+    case "rds":
+      return (config.dbInstanceIdentifier as string) || null;
     default:
       return null;
   }
@@ -100,6 +103,8 @@ export function configToAwsCli(
       return ssmCommand(config as unknown as SSMParameterConfig);
     case "iam":
       return iamCommand(config as unknown as IAMRoleConfig);
+    case "rds":
+      return rdsCommand(config as unknown as RDSInstanceConfig);
     default:
       return { command: `# Unsupported resource type: ${resourceType}` };
   }
@@ -317,6 +322,24 @@ function iamCommand(config: IAMRoleConfig): { command: string } {
   return { command: parts.join(" \\\n") };
 }
 
+function rdsCommand(config: RDSInstanceConfig): { command: string; note: string } {
+  const parts = [
+    `aws rds create-db-instance`,
+    `  --db-instance-identifier ${shellQuote(config.dbInstanceIdentifier)}`,
+    `  --engine ${config.engine}`,
+    `  --engine-version ${shellQuote(config.engineVersion)}`,
+    `  --db-instance-class ${config.instanceClass || "db.t3.micro"}`,
+    `  --allocated-storage ${config.allocatedStorage || 20}`,
+    `  --master-username ${shellQuote(config.masterUsername)}`,
+    `  --master-user-password ${shellQuote("<password>")}`,
+  ];
+  if (config.dbName) parts.push(`  --db-name ${shellQuote(config.dbName)}`);
+  return {
+    command: parts.join(" \\\n"),
+    note: "Passwords are never saved — set your own --master-user-password.",
+  };
+}
+
 export function minimalCliForResource(resource: Resource): { command: string; note?: string } {
   const name = shellQuote(resource.name);
   switch (resource.type) {
@@ -381,6 +404,20 @@ export function minimalCliForResource(resource: Resource): { command: string; no
           })}'`
         ),
         note: "Save a config when creating for trust policy details.",
+      };
+    case "rds":
+      return {
+        command: lines(
+          `aws rds create-db-instance \\`,
+          `  --db-instance-identifier ${name} \\`,
+          `  --engine ${resource.details?.engine || "postgres"} \\`,
+          `  --engine-version ${shellQuote(String(resource.details?.engineVersion || "16"))} \\`,
+          `  --db-instance-class ${resource.details?.instanceClass || "db.t3.micro"} \\`,
+          `  --allocated-storage 20 \\`,
+          `  --master-username ${shellQuote(String(resource.details?.masterUsername || "dbadmin"))} \\`,
+          `  --master-user-password ${shellQuote("<password>")}`
+        ),
+        note: "Set your own --master-user-password.",
       };
     default:
       return { command: `# No CLI template for ${resource.type}` };
@@ -449,6 +486,7 @@ export function buildPlaybookEntries(
     "secretsmanager",
     "ssm",
     "iam",
+    "rds",
   ];
   entries.sort((a, b) => {
     const ta = typeOrder.indexOf(a.resourceType);

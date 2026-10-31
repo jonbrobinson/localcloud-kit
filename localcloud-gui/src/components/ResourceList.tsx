@@ -19,6 +19,7 @@ interface ResourceListProps {
   onViewLambdaCode?: (functionName: string) => void;
   onConfigureAPIGateway?: (apiId: string, apiName: string) => void;
   onViewIAMRole?: (roleName: string) => void;
+  onViewRDS?: (instanceId: string) => void;
   onRefresh?: () => void;
   onAddS3?: () => void;
   onAddDynamoDB?: () => void;
@@ -27,6 +28,7 @@ interface ResourceListProps {
   onAddAPIGateway?: () => void;
   onAddSSM?: () => void;
   onAddIAM?: () => void;
+  onAddRDS?: () => void;
   refreshLoading?: boolean;
   addLoading?: boolean;
   firstResourceLoading?: boolean;
@@ -34,7 +36,7 @@ interface ResourceListProps {
 
 const AWS_CATEGORIES = [
   { name: "Storage", types: ["s3"] as Resource["type"][] },
-  { name: "Database", types: ["dynamodb"] as Resource["type"][] },
+  { name: "Database", types: ["dynamodb", "rds"] as Resource["type"][] },
   { name: "Compute", types: ["lambda"] as Resource["type"][] },
   { name: "Networking", types: ["apigateway"] as Resource["type"][] },
   { name: "Security & Identity", types: ["iam", "secretsmanager", "ssm"] as Resource["type"][] },
@@ -51,6 +53,7 @@ const RESOURCE_ICON: Record<string, string> = {
   ssm: "logos:aws-systems-manager",
   iam: "logos:aws-iam",
   secretsmanager: "logos:aws-secrets-manager",
+  rds: "logos:aws-rds",
 };
 
 const RESOURCE_LABEL: Record<string, string> = {
@@ -61,6 +64,7 @@ const RESOURCE_LABEL: Record<string, string> = {
   ssm: "Parameter Store",
   iam: "IAM Role",
   secretsmanager: "Secrets Manager",
+  rds: "RDS Instance",
 };
 
 const RESOURCE_GROUP_LABEL: Record<string, string> = {
@@ -71,6 +75,7 @@ const RESOURCE_GROUP_LABEL: Record<string, string> = {
   ssm: "Parameter Store",
   iam: "IAM roles",
   secretsmanager: "Secrets",
+  rds: "RDS instances",
 };
 
 const RESOURCE_UNIT: Record<string, string> = {
@@ -81,6 +86,7 @@ const RESOURCE_UNIT: Record<string, string> = {
   ssm: "parameters",
   iam: "roles",
   secretsmanager: "secrets",
+  rds: "instances",
 };
 
 const ADD_LABEL: Record<string, string> = {
@@ -91,6 +97,7 @@ const ADD_LABEL: Record<string, string> = {
   ssm: "Add parameter",
   iam: "Add role",
   secretsmanager: "Add secret",
+  rds: "Add instance",
 };
 
 const RESOURCE_DESCRIPTION: Record<string, string> = {
@@ -101,12 +108,14 @@ const RESOURCE_DESCRIPTION: Record<string, string> = {
   ssm: "Config parameters",
   iam: "Trust policy required",
   secretsmanager: "Encrypted secret values",
+  rds: "PostgreSQL, MySQL, MariaDB",
 };
 
 const STATUS_LABEL: Record<Resource["status"], string> = {
   active: "Active",
   creating: "Creating",
   deleting: "Deleting",
+  stopped: "Stopped",
   error: "Error",
   unknown: "Unknown",
 };
@@ -115,6 +124,7 @@ const STATUS_TONE: Record<Resource["status"], StatusTone> = {
   active: "success",
   creating: "warn",
   deleting: "warn",
+  stopped: "neutral",
   error: "danger",
   unknown: "neutral",
 };
@@ -123,6 +133,7 @@ const STATUS_PULSE: Record<Resource["status"], boolean> = {
   active: false,
   creating: true,
   deleting: true,
+  stopped: false,
   error: false,
   unknown: false,
 };
@@ -162,6 +173,7 @@ export default function ResourceList({
   onViewLambdaCode,
   onConfigureAPIGateway,
   onViewIAMRole,
+  onViewRDS,
   onRefresh,
   onAddS3,
   onAddDynamoDB,
@@ -170,6 +182,7 @@ export default function ResourceList({
   onAddAPIGateway,
   onAddSSM,
   onAddIAM,
+  onAddRDS,
   refreshLoading = false,
   addLoading = false,
   firstResourceLoading = false,
@@ -234,6 +247,7 @@ export default function ResourceList({
     secretsmanager: onAddSecrets,
     ssm: onAddSSM,
     iam: onAddIAM,
+    rds: onAddRDS,
   };
 
   const hasAddActions = Object.values(addHandlers).some(Boolean);
@@ -554,6 +568,15 @@ export default function ResourceList({
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => onViewIAMRole(resource.name)}
+                                  />
+                                )}
+                                {resource.type === "rds" && onViewRDS && (
+                                  <IconButton
+                                    icon="lucide:plug"
+                                    label="Connection details"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => onViewRDS(resource.name)}
                                   />
                                 )}
                                 {resource.type === "apigateway" && onConfigureAPIGateway && (
