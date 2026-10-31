@@ -265,14 +265,20 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 ### Data & Logs
 
 - `./volume:/app/data` - AWS Emulator persistent data
+- `aws_emulator_data:/app/state` - MiniStack saved state (`PERSIST_STATE=1`), including RDS instance records
 - `./logs:/app/logs` - Application logs
 - `/var/run/docker.sock:/var/run/docker.sock` - Docker socket (MiniStack uses this to spawn RDS/ElastiCache sibling containers)
+- `pgadmin_rds_import` - Shared by `api` (writes) and `pgadmin` (reads): RDS instances to register in pgAdmin, picked up by `pgadmin/rds-sync.sh`
+
+### RDS Instance Containers
+
+MiniStack starts one container per RDS instance (`ministack-rds-<scope>-instance-<id>`, label `ministack=rds`) on `lck-network`, with data in a `ministack-rds-*-data` volume. They are **not** part of the Compose project, so `docker compose down -v` leaves them behind. `make reset` / `make clean-all` remove them via `make rds-clean`; `make rds-list` shows what exists. See [RDS.md](./RDS.md).
 
 ## Network Architecture
 
 All services run on the `lck-network` bridge network:
 
-- **Network Name**: `lck-network`
+- **Network Name**: `lck-network` (fixed with `name:` so MiniStack can attach RDS containers via `DOCKER_NETWORK`)
 - **Driver**: `bridge`
 - **Internal Communication**: Services communicate using service names (e.g., `gui`, `api`, `aws-emulator`)
 

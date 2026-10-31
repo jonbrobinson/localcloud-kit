@@ -6,7 +6,7 @@
 
 > **Local Cloud Development Environment**
 
-Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, Lambda, API Gateway, SSM Parameter Store, Secrets Manager, Redis cache, email testing with Mailpit, optional LLM observability with Langfuse, and optional beta product analytics with PostHog.
+Build and test cloud apps locally — no AWS account needed. Free, fast, and with full data visibility. Emulates S3, DynamoDB, RDS (real PostgreSQL/MySQL/MariaDB), Lambda, API Gateway, SSM Parameter Store, Secrets Manager, Redis cache, email testing with Mailpit, optional LLM observability with Langfuse, and optional beta product analytics with PostHog.
 
 [![Version](https://img.shields.io/badge/version-0.15.0-blue.svg)](https://github.com/jonbrobinson/localcloud-kit/releases/tag/v0.15.0)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -109,6 +109,7 @@ Direct localhost (no TLS — always available):
 | Mailpit SMTP | localhost:1025 | SMTP endpoint |
 | pgAdmin | https://pgadmin.localcloudkit.com:3030 | PostgreSQL UI |
 | PostgreSQL | localhost:5432 | Direct DB |
+| RDS instances | localhost:15432+ | One port per RDS instance (`RDS_BASE_PORT`) |
 | Keycloak | https://keycloak.localcloudkit.com:3030 | Identity & access |
 | PostHog | https://posthog.localcloudkit.com:3030 | Product analytics (optional beta profile) |
 | Langfuse | https://langfuse.localcloudkit.com:3030 | LLM observability — traces, prompts, evals (optional profile) |
@@ -206,6 +207,15 @@ The **Profile** page (`/profile`) includes a **CLI Playbook** for the active pro
 - **Schema Validation**: Interactive forms for adding items with type checking
 - **Syntax-highlighted JSON viewer**: Dashboard DynamoDB viewer uses the same themed code highlighting as docs pages
 - **Nested map/list explorer**: Manage DynamoDB supports expand/collapse for `M` and `L` attribute values
+
+#### RDS
+
+- **Real Databases**: Each DB instance is an actual PostgreSQL (14–17), MySQL (8.0/8.4), or MariaDB (10.6–11.4) container, created through the RDS API
+- **Create Modal**: Engine, version, identifier, master credentials (with password generator), initial database
+- **Register in pgAdmin**: Checkbox on create adds PostgreSQL instances to pgAdmin with the password saved — one-click connect
+- **Secrets Manager**: Optionally store master credentials as `rds/<id>/master`
+- **Connection Panel**: Host and Docker-network endpoints, connection strings, start/stop/reboot
+- **Persistent**: Instance data and records survive restarts
 
 #### Lambda Functions
 
@@ -320,6 +330,7 @@ make start                                        # Default (latest MiniStack)
 make start MINISTACK_VERSION=1.0.0                # Pin to a specific version
 make start EMULATOR_PORT=4567                     # Shift AWS emulator port (multi-project)
 make start RDS_BASE_PORT=15500                    # Shift RDS ports (multi-project)
+make start RDS_PERSIST=0                          # Keep RDS data in memory only
 docker compose up --build                         # Alternative
 docker compose up -d aws-emulator api nginx       # Dev mode (GUI: cd localcloud-gui && npm run dev)
 ```
@@ -344,6 +355,7 @@ See [docs/AWS_EMULATOR.md](docs/AWS_EMULATOR.md) for version pinning and multi-p
 2. Click individual resource buttons:
    - 🪣 **S3 Bucket** - Create storage buckets
    - 🗄️ **DynamoDB Table** - Create NoSQL tables
+   - 🐘 **RDS Instance** - Run PostgreSQL, MySQL, or MariaDB (optionally registered in pgAdmin)
    - ⚡ **Lambda Function** - Deploy serverless functions
    - 🌐 **API Gateway** - Create REST APIs
    - 🔒 **Parameter Store** - Store configuration and secrets
@@ -440,6 +452,11 @@ make reset-env                     # Full reset (clean everything)
 make clean-volumes                 # Clean data only
 make clean-all                     # Nuclear option (remove all Docker resources)
 
+# RDS (MiniStack runs instances as containers outside Docker Compose)
+make rds-list                      # List RDS containers and data volumes
+make rds-prune                     # Remove data volumes left by deleted instances
+make rds-clean                     # Remove all RDS containers and data
+
 # Production
 docker compose up -d --scale api=3 # Scale services
 ```
@@ -467,6 +484,7 @@ docker compose up -d --scale api=3 # Scale services
 - **[docs/LAMBDA.md](docs/LAMBDA.md)** — Lambda functions
 - **[docs/API_GATEWAY.md](docs/API_GATEWAY.md)** — API Gateway
 - **[docs/S3.md](docs/S3.md)** — S3 buckets, Manage S3, breadcrumbs, API reference
+- **[docs/RDS.md](docs/RDS.md)** — RDS instances, pgAdmin registration, connection details
 - **[docs/SSM.md](docs/SSM.md)** — SSM Parameter Store
 - **[docs/SECRETS.md](docs/SECRETS.md)** — Secrets Manager
 

@@ -73,6 +73,14 @@ To register another server manually: **Register → Server** → **Connection** 
 
 ---
 
+## RDS Instances
+
+PostgreSQL RDS instances created from the dashboard with **Register in pgAdmin** checked appear under the **LocalCloud RDS** group within a few seconds, already connected (the password is saved in a pgpass file inside the pgAdmin container).
+
+How it works: the API writes a one-server `servers.json` and a pgpass line into the shared `pgadmin_rds_import` volume; [`pgadmin/rds-sync.sh`](../pgadmin/rds-sync.sh) runs next to pgAdmin, loads new entries with `setup.py load-servers`, and removes servers whose instance was deleted. Registration can also be toggled from the instance's connection panel. See [RDS.md](./RDS.md).
+
+---
+
 ## Connecting from Your App
 
 ### Node.js (`pg`)

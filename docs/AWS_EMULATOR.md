@@ -68,15 +68,27 @@ ELASTICACHE_BASE_PORT=16400
 | IAM | Roles, policies, identity management |
 | Secrets Manager | Secret storage, encryption, ARN management |
 | SSM Parameter Store | String, StringList, SecureString parameters |
+| RDS | Real PostgreSQL / MySQL / MariaDB containers — GUI details in [docs/RDS.md](RDS.md) |
 
 ## RDS and ElastiCache
 
 MiniStack can spawn real sibling Docker containers for RDS and ElastiCache:
 
-- **RDS**: Spawns actual `postgres` or `mysql` containers via the Docker socket. Ports are assigned sequentially starting from `RDS_BASE_PORT` (default: 15432).
+- **RDS**: Spawns actual `postgres`, `mysql`, or `mariadb` containers via the Docker socket on `lck-network`. Host ports are assigned sequentially starting from `RDS_BASE_PORT` (default: 15432). See [RDS.md](RDS.md).
 - **ElastiCache**: Spawns actual `redis` containers via the Docker socket. Ports are assigned sequentially starting from `ELASTICACHE_BASE_PORT` (default: 16379).
 
 The Docker socket (`/var/run/docker.sock`) is mounted into the `aws-emulator` container to enable this. This gives MiniStack full access to the host Docker daemon.
+
+### Persistence settings
+
+| Variable | Default | Effect |
+|----------|---------|--------|
+| `DOCKER_NETWORK` | `lck-network` | Network RDS/ElastiCache containers join, so other containers reach them by name |
+| `RDS_PERSIST` | `1` | RDS data in Docker volumes (`0` = tmpfs, lost on restart) |
+| `MINISTACK_PERSIST_STATE` | `1` | Saves emulator state (all services, including RDS records) to the `aws_emulator_data` volume on shutdown and restores it on start |
+| `MINISTACK_RDS_PUBLIC_ENDPOINT` | `1` | `DescribeDBInstances` reports `localhost:<host port>` so host apps can connect directly |
+
+With state persistence off, a restart forgets RDS instances while their containers keep running and holding ports — keep it on if you use RDS.
 
 ## Health Check
 
