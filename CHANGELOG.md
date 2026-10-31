@@ -6,12 +6,16 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+- **RDS**: create PostgreSQL, MySQL, or MariaDB instances from **Resources → RDS** — each one is a real database container run by MiniStack. A **Register in pgAdmin** checkbox adds PostgreSQL instances to pgAdmin (with the password saved, so they connect in one click), and an option stores the master credentials in Secrets Manager. A connection panel shows host and Docker endpoints, connection strings, and start/stop/reboot; a `/rds` doc page covers SDK, Laravel, and Prisma setup. New `make rds-list`, `make rds-prune`, and `make rds-clean` targets.
+
 - **Dashboard**: a Recent mail card shows the three newest emails Mailpit has caught, and only appears when there is mail. Click one to open it.
 - **MailViewer**: read a captured email as HTML (sandboxed, at desktop or 375px mobile width), plain text, or raw source, and copy whichever view is open. Rows in the Mailpit inbox modal open it too.
 - **Services menu**: a status dot on the menu button shows overall service health, each service shows its own status, and System logs is listed at the bottom.
 - **Langfuse**: optional LLM observability stack (`make start-langfuse`) for tracing model calls, managing prompts, and running evals locally. A ready-to-use project, API keys, and admin login are created on first start, the UI is served at `https://langfuse.localcloudkit.com:3030`, and a `/langfuse` doc page shows connection details and TypeScript, Python, and cURL examples. Langfuse appears in the Services and Docs menus and shows "Not started" rather than an outage while the profile is off.
 
 ### Changed
+
+- **AWS Emulator**: emulator state now persists across restarts by default (`MINISTACK_PERSIST_STATE=1`), so S3, DynamoDB, and other resources survive `make restart`; `make reset` still wipes everything. The Docker network is now named `lck-network` exactly, and `make reset` / `make clean-all` also remove RDS containers.
 
 - **Dashboard**: the always-on services status row is gone. When a service stops or fails, a one-line alert with a link to the logs appears at the top instead.
 
