@@ -16,6 +16,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Changed
 
+- **Resource list**: the empty state offers Create RDS Instance in place of Create API Gateway. API Gateway remains available from Create resource.
 - **AWS Emulator**: emulator state now persists across restarts by default (`MINISTACK_PERSIST_STATE=1`), so S3, DynamoDB, and other resources survive `make restart`; `make reset` still wipes everything. The Docker network is now named `lck-network` exactly, and `make reset` / `make clean-all` also remove RDS containers.
 
 - **Dashboard**: the always-on services status row is gone. When a service stops or fails, a one-line alert with a link to the logs appears at the top instead.
