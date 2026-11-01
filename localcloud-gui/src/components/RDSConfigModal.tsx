@@ -97,6 +97,7 @@ export default function RDSConfigModal({
   const [showPassword, setShowPassword] = useState(false);
   const [instanceClass, setInstanceClass] = useState("db.t3.micro");
   const [registerPgAdmin, setRegisterPgAdmin] = useState(true);
+  const [registerAdminer, setRegisterAdminer] = useState(true);
   const [storeInSecretsManager, setStoreInSecretsManager] = useState(false);
 
   const [saveConfig_, setSaveConfig_] = useState(false);
@@ -126,6 +127,7 @@ export default function RDSConfigModal({
     setShowPassword(false);
     setInstanceClass("db.t3.micro");
     setRegisterPgAdmin(true);
+    setRegisterAdminer(true);
     setStoreInSecretsManager(false);
     setSaveConfig_(false);
     setConfigName("");
@@ -177,6 +179,7 @@ export default function RDSConfigModal({
     setMasterUsername(config.masterUsername || "dbadmin");
     setInstanceClass(config.instanceClass || "db.t3.micro");
     setRegisterPgAdmin(config.registerPgAdmin ?? true);
+    setRegisterAdminer(config.registerAdminer ?? true);
     setStoreInSecretsManager(config.storeInSecretsManager ?? false);
     // Passwords are never saved — generate a fresh one
     setMasterPassword(generatePassword());
@@ -196,6 +199,7 @@ export default function RDSConfigModal({
       dbName: dbName || undefined,
       instanceClass,
       registerPgAdmin: isPostgres && registerPgAdmin,
+      registerAdminer,
       storeInSecretsManager,
     };
 
@@ -425,6 +429,24 @@ export default function RDSConfigModal({
                     {isPostgres
                       ? "Adds the instance to the \"LocalCloud RDS\" group in pgAdmin, with the password saved so it connects in one click"
                       : "Only available for PostgreSQL instances"}
+                  </span>
+                </span>
+              </label>
+              <label className="flex items-start gap-3 p-2.5 rounded-lg border border-border cursor-pointer hover:bg-surface-2 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={registerAdminer}
+                  onChange={(e) => setRegisterAdminer(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-primary shrink-0"
+                />
+                <span>
+                  <span className="flex items-center gap-1.5 text-[13px] font-medium text-ink">
+                    <Icon icon="lucide:table-2" width={13} />
+                    Add to Adminer
+                  </span>
+                  <span className="block text-xs text-muted">
+                    Shows up under &quot;Saved servers&quot; on Adminer&apos;s login page — one click to sign in. Works for
+                    every engine.
                   </span>
                 </span>
               </label>

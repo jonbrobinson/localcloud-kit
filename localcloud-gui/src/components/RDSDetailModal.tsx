@@ -67,6 +67,7 @@ export default function RDSDetailModal({ isOpen, onClose, instanceId, projectNam
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const pgAdminUrl = useAdminUrl("https://pgadmin.localcloudkit.com:3030", "http://localhost:5050");
+  const adminerUrl = useAdminUrl("https://adminer.localcloudkit.com:3030", "http://localhost:8081");
 
   const load = useCallback(async () => {
     const res = await rdsApi.get(instanceId, projectName);
@@ -105,21 +106,28 @@ export default function RDSDetailModal({ isOpen, onClose, instanceId, projectNam
     }
   };
 
-  const togglePgAdmin = async (enabled: boolean) => {
+  const toggleTool = async (tool: "pgadmin" | "adminer", enabled: boolean) => {
     if (!instance) return;
+    const toolLabel = tool === "pgadmin" ? "pgAdmin" : "Adminer";
     let password: string | undefined;
     if (enabled && !instance.details?.secretName) {
-      password = window.prompt(`Master password for ${instance.name} (saved for pgAdmin only):`) || undefined;
+      password = window.prompt(`Master password for ${instance.name} (saved for ${toolLabel} only):`) || undefined;
       if (!password) return;
     }
-    setBusy("pgadmin");
-    const res = await rdsApi.setPgAdmin(instanceId, enabled, projectName, password);
+    setBusy(tool);
+    const res = await rdsApi.setAdminTool(instanceId, tool, enabled, projectName, password);
     setBusy(null);
     if (res.success) {
-      toast.success(enabled ? "Registered in pgAdmin — appears within a few seconds" : "Removed from pgAdmin");
+      toast.success(
+        enabled
+          ? tool === "pgadmin"
+            ? "Registered in pgAdmin — appears within a few seconds"
+            : "Added to Adminer's saved servers"
+          : `Removed from ${toolLabel}`
+      );
       await load();
     } else {
-      toast.error(res.error || "Failed to update pgAdmin");
+      toast.error(res.error || `Failed to update ${toolLabel}`);
     }
   };
 
@@ -217,12 +225,35 @@ export default function RDSDetailModal({ isOpen, onClose, instanceId, projectNam
                     size="sm"
                     loading={busy === "pgadmin"}
                     disabled={!!busy}
-                    onClick={() => togglePgAdmin(!d.pgadmin)}
+                    onClick={() => toggleTool("pgadmin", !d.pgadmin)}
                   >
                     {d.pgadmin ? "Remove" : "Register"}
                   </Button>
                 </div>
               )}
+              <div className="flex items-center gap-3">
+                <Icon icon="lucide:table-2" width={16} className="text-muted" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] text-ink">Adminer</p>
+                  <p className="text-[11px] text-muted">
+                    {d.adminer ? "Listed under \"Saved servers\" — one-click sign-in" : "Not added"}
+                  </p>
+                </div>
+                {d.adminer && (
+                  <a href={`${adminerUrl}/?lck=${encodeURIComponent(d.adminerLabel || "")}`} target="_blank" rel="noreferrer">
+                    <Button variant="ghost" size="sm" icon="lucide:external-link">Open</Button>
+                  </a>
+                )}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={busy === "adminer"}
+                  disabled={!!busy}
+                  onClick={() => toggleTool("adminer", !d.adminer)}
+                >
+                  {d.adminer ? "Remove" : "Add"}
+                </Button>
+              </div>
               <div className="flex items-center gap-3">
                 <Icon icon="logos:aws-secrets-manager" width={16} />
                 <div className="flex-1 min-w-0">

@@ -223,7 +223,7 @@ const apiEndpoints: [string, string, string][] = [
   ["GET", "/api/rds/instances/:id", "Describe one instance with host and Docker connection details"],
   ["POST", "/api/rds/instances", "Create an instance (registerPgAdmin, storeInSecretsManager optional)"],
   ["POST", "/api/rds/instances/:id/:action", "start, stop, or reboot"],
-  ["PUT", "/api/rds/instances/:id/pgadmin", "Register or remove the instance in pgAdmin"],
+  ["PUT", "/api/rds/instances/:id/:tool", "pgadmin or adminer — add or remove the instance ({ enabled, password? })"],
   ["DELETE", "/api/rds/instances/:id", "Delete instance, its linked secret, and pgAdmin registration"],
 ];
 
@@ -258,6 +258,7 @@ export default function RDSDocPage() {
   const { profile, updateProfile } = usePreferences();
   const [activeTab, setActiveTab] = useState<PageTab>("typescript");
   const pgAdminUrl = useAdminUrl("https://pgadmin.localcloudkit.com:3030", "http://localhost:5050");
+  const adminerUrl = useAdminUrl("https://adminer.localcloudkit.com:3030", "http://localhost:8081");
 
   useEffect(() => {
     if (profile?.preferred_language) {
@@ -295,8 +296,8 @@ export default function RDSDocPage() {
           </p>
           <p className="text-sm text-muted leading-relaxed mt-2">
             Create instances from the dashboard (<span className="font-medium text-ink-2">Resources → RDS</span>) or with
-            any AWS SDK. From the dashboard you can also register PostgreSQL instances in pgAdmin and store the master
-            credentials in Secrets Manager in one step.
+            any AWS SDK. From the dashboard you can also add instances to Adminer (any engine) or pgAdmin (PostgreSQL)
+            and store the master credentials in Secrets Manager in one step.
           </p>
         </section>
 
@@ -312,6 +313,7 @@ export default function RDSDocPage() {
                   <th className={thClass}>Image</th>
                   <th className={thClass}>Container port</th>
                   <th className={thClass}>pgAdmin</th>
+                  <th className={thClass}>Adminer</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-divider">
@@ -325,6 +327,7 @@ export default function RDSDocPage() {
                     <td className="px-4 py-2.5 font-mono text-xs text-muted">{e.image}</td>
                     <td className="px-4 py-2.5 font-mono text-xs text-ink-2">{e.port}</td>
                     <td className="px-4 py-2.5 text-ink-2">{e.pgadmin ? "Yes" : "—"}</td>
+                    <td className="px-4 py-2.5 text-ink-2">Yes</td>
                   </tr>
                 ))}
               </tbody>
@@ -370,7 +373,25 @@ export default function RDSDocPage() {
         {/* Integrations */}
         <section className={sectionClass}>
           <h2 className="text-lg font-semibold text-ink mb-4">Dashboard Integrations</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="rounded-lg border border-border p-4">
+              <p className="flex items-center gap-2 text-sm font-medium text-ink">
+                <Icon icon="lucide:table-2" width={16} /> Add to Adminer
+              </p>
+              <p className="text-xs text-muted mt-1.5 leading-relaxed">
+                Works for every engine. The instance appears under <span className="font-medium text-ink-2">Saved
+                servers</span> on Adminer&apos;s login page — one click signs you in with the master credentials. The
+                connection panel&apos;s <em>Open</em> button jumps straight to it.
+              </p>
+              <div className="flex gap-3 mt-2">
+                <a href={adminerUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                  Open Adminer <Icon icon="lucide:external-link" width={12} />
+                </a>
+                <Link href="/adminer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                  Adminer docs <Icon icon="lucide:arrow-right" width={12} />
+                </Link>
+              </div>
+            </div>
             <div className="rounded-lg border border-border p-4">
               <p className="flex items-center gap-2 text-sm font-medium text-ink">
                 <Icon icon="logos:postgresql" width={16} /> Register in pgAdmin

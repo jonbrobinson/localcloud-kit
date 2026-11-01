@@ -1,4 +1,5 @@
 import {
+  AdminerStatus,
   ApiResponse,
   CreateResourceRequest,
   DestroyResourceRequest,
@@ -525,21 +526,22 @@ export const rdsApi = {
     }
   },
 
-  setPgAdmin: async (
+  setAdminTool: async (
     id: string,
+    tool: "pgadmin" | "adminer",
     enabled: boolean,
     projectName?: string,
     password?: string
   ): Promise<ApiResponse> => {
     try {
-      const response = await api.put<ApiResponse>(`/rds/instances/${encodeURIComponent(id)}/pgadmin`, {
+      const response = await api.put<ApiResponse>(`/rds/instances/${encodeURIComponent(id)}/${tool}`, {
         enabled,
         password,
         projectName,
       });
       return response.data;
     } catch (error) {
-      return toApiError(error, "Failed to update pgAdmin registration");
+      return toApiError(error, `Failed to update ${tool === "pgadmin" ? "pgAdmin" : "Adminer"} registration`);
     }
   },
 };
@@ -583,6 +585,18 @@ export const keycloakApi = {
   status: async (): Promise<KeycloakStatus> => {
     try {
       const response = await api.get("/keycloak/status");
+      return response.data.data || { status: "unknown" };
+    } catch {
+      return { status: "unknown" };
+    }
+  },
+};
+
+// Adminer
+export const adminerApi = {
+  status: async (): Promise<AdminerStatus> => {
+    try {
+      const response = await api.get("/adminer/status");
       return response.data.data || { status: "unknown" };
     } catch {
       return { status: "unknown" };

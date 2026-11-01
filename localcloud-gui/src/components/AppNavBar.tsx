@@ -24,7 +24,7 @@ import ManageHeaderBrand from "./ManageHeaderBrand";
 const DOC_ROUTES = [
   "/docs", "/aws-emulator", "/s3", "/dynamodb", "/lambda",
   "/apigateway", "/secrets", "/ssm", "/iam", "/rds",
-  "/redis", "/mailpit", "/postgres", "/keycloak", "/langfuse",
+  "/redis", "/mailpit", "/postgres", "/adminer", "/keycloak", "/langfuse",
 ];
 
 const LANGUAGE_LABEL: Record<PreferredLanguage, string> = {
@@ -92,8 +92,9 @@ export default function AppNavBar({
   const router = useRouter();
   const actions = useDashboardNav();
   const { profile, projects, updateProfile, createProject } = usePreferences();
-  const { awsEmulator, keycloak, langfuse, mailpit, postgres, redis } = useServicesData();
+  const { adminer, awsEmulator, keycloak, langfuse, mailpit, postgres, redis } = useServicesData();
   const serviceHealth = summarizeServiceHealth({
+    adminer,
     emulator: awsEmulator.status,
     keycloak,
     langfuse,
