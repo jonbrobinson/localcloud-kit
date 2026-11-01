@@ -152,7 +152,7 @@ already a dependency. Two icon sets, used deliberately:
 - **`lucide:*`** — all generic UI icons (search, refresh, plus, trash,
   chevrons, …). Consistent stroke weight, matches the mockup exactly.
 - **`logos:aws-*`** — AWS service marks (`logos:aws-s3`,
-  `logos:aws-dynamodb`, `logos:aws-lambda`, `logos:aws-api-gateway`,
+  `logos:aws-dynamodb`, `logos:aws-rds`, `logos:aws-lambda`, `logos:aws-api-gateway`,
   `logos:aws-secrets-manager`, `logos:aws-iam`,
   `logos:aws-systems-manager`) — always the official logo, never a
   generic `lucide:` substitute, so resource types stay visually

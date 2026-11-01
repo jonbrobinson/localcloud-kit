@@ -1,4 +1,5 @@
 import {
+  AdminerStatus,
   ApiResponse,
   CreateResourceRequest,
   DestroyResourceRequest,
@@ -13,6 +14,7 @@ import {
   PostgresStatus,
   Project,
   ProjectConfig,
+  RDSOptions,
   Resource,
   ResourceTemplate,
   RedisStatus,
@@ -92,12 +94,16 @@ export const resourceApi = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     config: any
   ): Promise<ApiResponse> => {
-    const response = await api.post<ApiResponse>("/resources/create-single", {
-      projectName,
-      resourceType,
-      ...config,
-    });
-    return response.data;
+    try {
+      const response = await api.post<ApiResponse>("/resources/create-single", {
+        projectName,
+        resourceType,
+        ...config,
+      });
+      return response.data;
+    } catch (error) {
+      return toApiError(error, `Failed to create ${resourceType} resource`);
+    }
   },
 
   destroy: async (request: DestroyResourceRequest): Promise<ApiResponse> => {
@@ -473,6 +479,73 @@ export const projectsApi = {
 };
 
 // Saved Configs
+/** Turn an axios error into the API's { success: false, error } shape. */
+function toApiError(error: unknown, fallback: string): ApiResponse {
+  if (axios.isAxiosError(error) && error.response?.data) {
+    const data = error.response.data as ApiResponse;
+    return { success: false, error: data.error || data.message || fallback };
+  }
+  return { success: false, error: error instanceof Error ? error.message : fallback };
+}
+
+// RDS (MiniStack runs each instance as a real database container)
+export const rdsApi = {
+  getOptions: async (): Promise<RDSOptions | null> => {
+    try {
+      const response = await api.get<ApiResponse<RDSOptions>>("/rds/options");
+      return response.data.data ?? null;
+    } catch {
+      return null;
+    }
+  },
+
+  get: async (id: string, projectName?: string): Promise<ApiResponse<Resource>> => {
+    try {
+      const response = await api.get<ApiResponse<Resource>>(`/rds/instances/${encodeURIComponent(id)}`, {
+        params: { projectName },
+      });
+      return response.data;
+    } catch (error) {
+      return toApiError(error, "Failed to load RDS instance");
+    }
+  },
+
+  action: async (
+    id: string,
+    action: "start" | "stop" | "reboot",
+    projectName?: string
+  ): Promise<ApiResponse> => {
+    try {
+      const response = await api.post<ApiResponse>(
+        `/rds/instances/${encodeURIComponent(id)}/${action}`,
+        { projectName }
+      );
+      return response.data;
+    } catch (error) {
+      return toApiError(error, `Failed to ${action} RDS instance`);
+    }
+  },
+
+  setAdminTool: async (
+    id: string,
+    tool: "pgadmin" | "adminer",
+    enabled: boolean,
+    projectName?: string,
+    password?: string
+  ): Promise<ApiResponse> => {
+    try {
+      const response = await api.put<ApiResponse>(`/rds/instances/${encodeURIComponent(id)}/${tool}`, {
+        enabled,
+        password,
+        projectName,
+      });
+      return response.data;
+    } catch (error) {
+      return toApiError(error, `Failed to update ${tool === "pgadmin" ? "pgAdmin" : "Adminer"} registration`);
+    }
+  },
+};
+
 export const savedConfigsApi = {
   list: async (projectId?: number, type?: string): Promise<SavedConfig[]> => {
     const params: Record<string, string | number> = {};
@@ -512,6 +585,18 @@ export const keycloakApi = {
   status: async (): Promise<KeycloakStatus> => {
     try {
       const response = await api.get("/keycloak/status");
+      return response.data.data || { status: "unknown" };
+    } catch {
+      return { status: "unknown" };
+    }
+  },
+};
+
+// Adminer
+export const adminerApi = {
+  status: async (): Promise<AdminerStatus> => {
+    try {
+      const response = await api.get("/adminer/status");
       return response.data.data || { status: "unknown" };
     } catch {
       return { status: "unknown" };

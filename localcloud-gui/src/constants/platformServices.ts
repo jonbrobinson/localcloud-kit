@@ -1,5 +1,6 @@
 import {
   CircleStackIcon,
+  TableCellsIcon,
   EnvelopeIcon,
   KeyIcon,
   SparklesIcon,
@@ -9,7 +10,7 @@ import { ComponentType } from "react";
 import { ServiceKind, ModalKey } from "@/types";
 
 export interface PlatformServiceEntry {
-  id: "keycloak" | "langfuse" | "mailpit" | "postgres" | "redis";
+  id: "adminer" | "keycloak" | "langfuse" | "mailpit" | "postgres" | "redis";
   label: string;
   kind: ServiceKind;
   icon: ComponentType<{ className?: string }>;
@@ -31,6 +32,13 @@ export const PLATFORM_SERVICES: PlatformServiceEntry[] = [
     kind: "instance-service",
     icon: ServerIcon,
     action: { type: "modal", modalKey: "redis" },
+  },
+  {
+    id: "adminer",
+    label: "Adminer",
+    kind: "admin-tool",
+    icon: TableCellsIcon,
+    action: { type: "link", href: "/adminer" },
   },
   {
     id: "keycloak",

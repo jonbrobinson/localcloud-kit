@@ -19,6 +19,10 @@ services:
   #   EMULATOR_PORT=4567 docker compose up        → changes host-side AWS emulator port
   #   RDS_BASE_PORT=15500 docker compose up        → shifts RDS instance ports up
   #   ELASTICACHE_BASE_PORT=16400 docker compose up → shifts ElastiCache ports up
+  # RDS: each DB instance is a real postgres/mysql/mariadb container that MiniStack
+  # starts through the Docker socket on lck-network (named ministack-rds-*).
+  #   RDS_PERSIST=1            → instance data lives in Docker volumes (0 = tmpfs, lost on restart)
+  #   MINISTACK_PERSIST_STATE=1 → emulator state (incl. RDS instance records) survives restarts
   aws-emulator:
     image: nahuelnucera/ministack:${MINISTACK_VERSION:-latest}
     container_name: aws-emulator
@@ -30,11 +34,20 @@ services:
       - AWS_SECRET_ACCESS_KEY=test
       - RDS_BASE_PORT=${RDS_BASE_PORT:-15432}
       - ELASTICACHE_BASE_PORT=${ELASTICACHE_BASE_PORT:-16379}
+      - DOCKER_NETWORK=lck-network
+      - RDS_PERSIST=${RDS_PERSIST:-1}
+      - MINISTACK_RDS_PUBLIC_ENDPOINT=1
+      - MINISTACK_HOST=localhost
+      - PERSIST_STATE=${MINISTACK_PERSIST_STATE:-1}
+      - STATE_DIR=/app/state
     volumes:
       - "./volume:/app/data"
+      - "aws_emulator_data:/app/state"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - lck-network
+    # Give MiniStack time to save state and stop RDS containers cleanly
+    stop_grace_period: 30s
 
   # Next.js GUI Application (with hot reload)
   gui:
@@ -74,12 +87,17 @@ services:
       # Host-side ports so the GUI shows the URLs you actually started with
       - APP_PORT=${APP_PORT:-3030}
       - LANGFUSE_PORT=${LANGFUSE_PORT:-3100}
+      - ADMINER_PORT=${ADMINER_PORT:-8081}
     volumes:
       - ./localcloud-api:/app
       - /app/node_modules
       - ./logs:/app/logs
       - ./scripts:/app/scripts
       - localcloud-data:/app/data
+      # RDS → pgAdmin server registrations (read by pgadmin/rds-sync.sh)
+      - pgadmin_rds_import:/app/pgadmin-import
+      # RDS → Adminer saved servers (read by adminer/localcloud-servers.php)
+      - adminer_servers:/app/adminer-servers
     depends_on:
       - aws-emulator
       - redis
@@ -138,13 +156,18 @@ services:
       # Pre-register the bundled PostgreSQL server (Docker host `postgres`) on first launch
       - PGADMIN_SERVER_JSON_FILE=/pgadmin4/servers.json
     # Write a 0600 pgpass so the pre-registered server connects without a password prompt
-    # (bind-mounted files can't carry 0600 from git, so it's generated at startup)
+    # (bind-mounted files can't carry 0600 from git, so it's generated at startup).
+    # rds-sync.sh runs alongside pgAdmin and registers RDS PostgreSQL instances
+    # created with "Register in pgAdmin" checked.
     entrypoint: >
       /bin/sh -c "echo 'postgres:5432:*:localcloud:localcloud' > /tmp/pgpass &&
       chmod 600 /tmp/pgpass &&
+      (sh /pgadmin4/rds-sync.sh &) &&
       exec /entrypoint.sh"
     volumes:
       - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+      - ./pgadmin/rds-sync.sh:/pgadmin4/rds-sync.sh:ro
+      - pgadmin_rds_import:/pgadmin-import:ro
     depends_on:
       - postgres
     networks:
@@ -156,6 +179,34 @@ services:
       - "traefik.http.routers.pgadmin.entrypoints=websecure"
       - "traefik.http.routers.pgadmin.tls=true"
       - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
+
+  # Adminer - one web UI for PostgreSQL, MySQL, and MariaDB
+  # adminer/localcloud-servers.php adds one-click "Saved servers" to the login page:
+  # the bundled PostgreSQL (adminer/servers.json) plus RDS instances created with
+  # "Add to Adminer" (written by the API into the adminer_servers volume).
+  adminer:
+    image: adminer:6
+    container_name: localcloud-adminer
+    ports:
+      - "${ADMINER_PORT:-8081}:8080"
+    environment:
+      # Skip the version check against adminer.org (works offline)
+      - ADMINER_PLUGINS=version-noverify
+    # Listen on IPv4 explicitly — the image default ([::]) fails on hosts without IPv6
+    command: ["php", "-S", "0.0.0.0:8080", "-t", "/var/www/html"]
+    volumes:
+      - ./adminer/localcloud-servers.php:/var/www/html/plugins-enabled/localcloud-servers.php:ro
+      - ./adminer/servers.json:/etc/adminer/servers.json:ro
+      - adminer_servers:/adminer-servers:ro
+    networks:
+      - lck-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.rule=Host(`adminer.localcloudkit.com`)"
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.tls=true"
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
 
   # Keycloak - Identity & Access Management
   keycloak:
@@ -743,11 +794,15 @@ services:
 
 networks:
   lck-network:
+    # Fixed name so MiniStack can attach RDS containers to it (DOCKER_NETWORK above)
+    name: lck-network
     driver: bridge
 
 volumes:
   aws_emulator_data:
   localcloud-data:
+  pgadmin_rds_import:
+  adminer_servers:
   postgres_data:
   posthog_postgres_data:
   posthog_redis_data:

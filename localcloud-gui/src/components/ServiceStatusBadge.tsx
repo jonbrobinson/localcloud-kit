@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  adminerApi,
   awsEmulatorApi,
   cacheApi,
   mailpitApi,
@@ -13,6 +14,7 @@ import {
 import { StatusDot, type StatusTone } from "./ui";
 
 export type ServiceKey =
+  | "adminer"
   | "aws-emulator"
   | "redis"
   | "mailpit"
@@ -49,6 +51,12 @@ async function fetchStatus(service: ServiceKey): Promise<StatusState> {
         const s = await mailpitApi.stats();
         if (s.status === "healthy") return { level: "running", label: "Running" };
         if (s.status === "unavailable") return { level: "stopped", label: "Stopped" };
+        return { level: "unknown", label: "Unknown" };
+      }
+      case "adminer": {
+        const s = await adminerApi.status();
+        if (s.status === "running") return { level: "running", label: "Running" };
+        if (s.status === "stopped") return { level: "stopped", label: "Stopped" };
         return { level: "unknown", label: "Unknown" };
       }
       case "postgres": {

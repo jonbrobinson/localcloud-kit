@@ -7,7 +7,7 @@ export interface EmulatorStatus {
 
 // Categorises platform services by their relationship to the developer's app.
 // "instance-service" — always-on infrastructure the app connects to directly (Redis, PostgreSQL).
-// "admin-tool"       — developer-facing management UI (Keycloak, Mailpit, pgAdmin).
+// "admin-tool"       — developer-facing management UI (Adminer, Keycloak, Mailpit, pgAdmin).
 export type ServiceKind = "instance-service" | "admin-tool";
 
 // Modal keys for platform services that open an in-app modal rather than navigating to a page.
@@ -23,8 +23,9 @@ export interface Resource {
     | "apigateway"
     | "ssm"
     | "iam"
-    | "secretsmanager";
-  status: "creating" | "active" | "deleting" | "error" | "unknown";
+    | "secretsmanager"
+    | "rds";
+  status: "creating" | "active" | "deleting" | "stopped" | "error" | "unknown";
   environment: string;
   project: string;
   createdAt: string;
@@ -95,6 +96,40 @@ export interface SSMParameterConfig {
   parameterValue: string;
   parameterType: "String" | "StringList" | "SecureString";
   description?: string;
+}
+
+export type RDSEngine = "postgres" | "mysql" | "mariadb";
+
+export interface RDSInstanceConfig {
+  engine: RDSEngine;
+  engineVersion: string;
+  dbInstanceIdentifier: string;
+  masterUsername: string;
+  /** Never persisted in saved configs */
+  masterPassword?: string;
+  dbName?: string;
+  instanceClass: string;
+  allocatedStorage?: number;
+  /** PostgreSQL only — register the instance as a server in the bundled pgAdmin */
+  registerPgAdmin?: boolean;
+  /** Any engine — add the instance to Adminer's saved servers */
+  registerAdminer?: boolean;
+  /** Store master credentials as a Secrets Manager secret (rds/<id>/master) */
+  storeInSecretsManager?: boolean;
+}
+
+export interface RDSEngineOption {
+  label: string;
+  port: number;
+  versions: string[];
+  defaultVersion: string;
+}
+
+export interface RDSOptions {
+  engines: Record<RDSEngine, RDSEngineOption>;
+  instanceClasses: string[];
+  /** Identifiers deleted earlier whose data volume MiniStack may have kept */
+  deletedIdentifiers: string[];
 }
 
 export interface IAMRoleConfig {
@@ -182,6 +217,14 @@ export interface LangfuseStatus {
   uiUrl?: string;
 }
 
+export interface AdminerStatus {
+  status: "running" | "stopped" | "unknown";
+  /** Traefik UI URL (follows APP_PORT) */
+  uiUrl?: string;
+  /** Direct host URL (follows ADMINER_PORT) */
+  directUrl?: string;
+}
+
 export interface PosthogStatus {
   status: "running" | "starting" | "stopped" | "failed" | "unknown";
 }
@@ -210,7 +253,7 @@ export interface CreateResourceRequest {
 
 export interface CreateSingleResourceRequest {
   projectName: string;
-  resourceType: "s3" | "dynamodb" | "lambda" | "apigateway" | "secretsmanager" | "ssm" | "iam";
+  resourceType: "s3" | "dynamodb" | "lambda" | "apigateway" | "secretsmanager" | "ssm" | "iam" | "rds";
   dynamodbConfig?: DynamoDBTableConfig;
   s3Config?: S3BucketConfig;
   secretsmanagerConfig?: SecretsManagerConfig;
@@ -218,6 +261,7 @@ export interface CreateSingleResourceRequest {
   apigatewayConfig?: APIGatewayConfig;
   ssmConfig?: SSMParameterConfig;
   iamConfig?: IAMRoleConfig;
+  rdsConfig?: RDSInstanceConfig;
 }
 
 export interface DestroyResourceRequest {
@@ -270,7 +314,7 @@ export interface SavedConfig {
   id: number;
   project_id: number;
   name: string;
-  resource_type: "s3" | "dynamodb" | "secrets" | "secretsmanager" | "lambda" | "apigateway" | "ssm" | "iam";
+  resource_type: "s3" | "dynamodb" | "secrets" | "secretsmanager" | "lambda" | "apigateway" | "ssm" | "iam" | "rds";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: any;
   config_json: string;

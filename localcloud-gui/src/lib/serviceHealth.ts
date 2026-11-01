@@ -1,5 +1,6 @@
 import type { StatusTone } from "@/components/ui";
 import type {
+  AdminerStatus,
   EmulatorStatus,
   KeycloakStatus,
   LangfuseStatus,
@@ -8,7 +9,7 @@ import type {
   RedisStatus,
 } from "@/types";
 
-export type ServiceHealthId = "aws-emulator" | "keycloak" | "langfuse" | "mailpit" | "postgres" | "redis";
+export type ServiceHealthId = "adminer" | "aws-emulator" | "keycloak" | "langfuse" | "mailpit" | "postgres" | "redis";
 
 export interface ServiceHealthEntry {
   id: ServiceHealthId;
@@ -35,6 +36,7 @@ export interface ServiceHealthSummary {
 }
 
 interface ServiceHealthInput {
+  adminer: AdminerStatus;
   emulator: EmulatorStatus;
   keycloak: KeycloakStatus;
   langfuse: LangfuseStatus;
@@ -78,6 +80,7 @@ function emulatorStatus(emulator: EmulatorStatus): string {
 export function summarizeServiceHealth(input: ServiceHealthInput): ServiceHealthSummary {
   const services: ServiceHealthEntry[] = [
     { id: "aws-emulator", label: "AWS Emulator", href: "/aws-emulator", endpoint: "localhost:4566", ...fromStatus(emulatorStatus(input.emulator)) },
+    { id: "adminer", label: "Adminer", href: "/adminer", ...fromStatus(input.adminer.status) },
     { id: "keycloak", label: "Keycloak", href: "/keycloak", ...fromStatus(input.keycloak.status) },
     { id: "langfuse", label: "Langfuse", href: "/langfuse", endpoint: (input.langfuse.baseUrl ?? "http://localhost:3100").replace(/^https?:\/\//, ""), ...fromOptionalStatus(input.langfuse.status) },
     { id: "mailpit", label: "Mailpit", href: "/mailpit", endpoint: "localhost:1025", ...fromStatus(input.mailpit.status) },

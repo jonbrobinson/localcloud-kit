@@ -12,6 +12,7 @@ PGADMIN_DOMAIN="pgadmin.localcloudkit.com"
 KEYCLOAK_DOMAIN="keycloak.localcloudkit.com"
 POSTHOG_DOMAIN="posthog.localcloudkit.com"
 LANGFUSE_DOMAIN="langfuse.localcloudkit.com"
+ADMINER_DOMAIN="adminer.localcloudkit.com"
 CERT_DIR="./traefik/certs"
 MKCERT_BIN_DIR="./scripts/bin"
 MKCERT_BIN="$MKCERT_BIN_DIR/mkcert"
@@ -320,7 +321,7 @@ echo -e "${GREEN}✓ mkcert CA found at: $CA_ROOT${NC}"
 TMP_EXT_FILE=$(mktemp)
 cat > "$TMP_EXT_FILE" <<EOF
 [v3_req]
-subjectAltName = DNS:$DOMAIN, DNS:*.$DOMAIN, DNS:$MAILPIT_DOMAIN, DNS:$PGADMIN_DOMAIN, DNS:$KEYCLOAK_DOMAIN, DNS:$POSTHOG_DOMAIN, DNS:$LANGFUSE_DOMAIN
+subjectAltName = DNS:$DOMAIN, DNS:*.$DOMAIN, DNS:$MAILPIT_DOMAIN, DNS:$PGADMIN_DOMAIN, DNS:$KEYCLOAK_DOMAIN, DNS:$POSTHOG_DOMAIN, DNS:$LANGFUSE_DOMAIN, DNS:$ADMINER_DOMAIN
 EOF
 
 # Generate private key (show errors for debugging)
@@ -429,6 +430,7 @@ echo "   ${BLUE}https://$DOMAIN:3030${NC}       (main app)"
 echo "   ${BLUE}https://$MAILPIT_DOMAIN:3030${NC}  (Mailpit email testing)"
 echo "   ${BLUE}https://$POSTHOG_DOMAIN:3030${NC}  (PostHog analytics)"
 echo "   ${BLUE}https://$LANGFUSE_DOMAIN:3030${NC}  (Langfuse LLM observability)"
+echo "   ${BLUE}https://$ADMINER_DOMAIN:3030${NC}  (Adminer database UI)"
 echo ""
 echo "3. Verify setup (optional):"
 echo "   ${BLUE}./scripts/verify-setup.sh${NC}"
@@ -436,7 +438,7 @@ echo ""
 
 if [ "$CA_INSTALLED" = true ]; then
     echo -e "${GREEN}Both Chrome and Safari will trust these certificates automatically!${NC}"
-    echo -e "${GREEN}The certificate covers app-local, mailpit, pgadmin, keycloak, posthog, and langfuse domains.${NC}"
+    echo -e "${GREEN}The certificate covers app-local, mailpit, pgadmin, keycloak, posthog, langfuse, and adminer domains.${NC}"
 else
     echo -e "${YELLOW}⚠️  Remember to install the CA certificate first (see above)${NC}"
 fi

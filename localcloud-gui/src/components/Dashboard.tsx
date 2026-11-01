@@ -4,7 +4,7 @@ import { usePreferences } from "@/context/PreferencesContext";
 import { useServicesData } from "@/hooks/useServicesData";
 import { resourceApi } from "@/services/api";
 import { DashboardNavActions, DashboardNavProvider, InspectTargetId } from "@/context/DashboardNavContext";
-import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayConfig, SSMParameterConfig, IAMRoleConfig, Resource } from "@/types";
+import { DynamoDBTableConfig, S3BucketConfig, LambdaFunctionConfig, APIGatewayConfig, SSMParameterConfig, IAMRoleConfig, RDSInstanceConfig, Resource } from "@/types";
 import { Icon } from "@iconify/react";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
@@ -34,6 +34,8 @@ import APIGatewayConfigViewer from "./APIGatewayConfigViewer";
 import SSMConfigModal from "./SSMConfigModal";
 import SSMEditModal from "./SSMEditModal";
 import IAMConfigModal from "./IAMConfigModal";
+import RDSConfigModal from "./RDSConfigModal";
+import RDSDetailModal from "./RDSDetailModal";
 import LambdaCodeModal from "./LambdaCodeModal";
 import IAMRolePoliciesModal from "./IAMRolePoliciesModal";
 import QuickInspectModal, { QuickInspectAction } from "./QuickInspectModal";
@@ -47,10 +49,12 @@ const AWS_RESOURCE_TYPES = new Set<Resource["type"]>([
   "secretsmanager",
   "ssm",
   "iam",
+  "rds",
 ]);
 
 export default function Dashboard() {
   const {
+    adminer,
     awsEmulator,
     mailpit,
     redis,
@@ -77,6 +81,8 @@ export default function Dashboard() {
   const [showSSMConfig, setShowSSMConfig] = useState(false);
   const [showSSMEdit, setShowSSMEdit] = useState(false);
   const [showIAMConfig, setShowIAMConfig] = useState(false);
+  const [showRDSConfig, setShowRDSConfig] = useState(false);
+  const [viewingRDSInstance, setViewingRDSInstance] = useState<string>("");
   const [showIAMRolePolicies, setShowIAMRolePolicies] = useState(false);
   const [editingSSMParameter, setEditingSSMParameter] = useState<string>("");
   const [showLambdaCode, setShowLambdaCode] = useState(false);
@@ -111,6 +117,17 @@ export default function Dashboard() {
       setFirstResourceLoading(false);
     }
   }, [hasAwsResources, firstResourceLoading]);
+
+  // RDS instances take a while to boot (image pull + database init) — keep the
+  // list fresh until every instance has settled.
+  const rdsTransitioning = resources.some(
+    (r) => r.type === "rds" && (r.status === "creating" || r.status === "deleting")
+  );
+  useEffect(() => {
+    if (!rdsTransitioning) return;
+    const timer = setInterval(() => void loadInitialData(), 5000);
+    return () => clearInterval(timer);
+  }, [rdsTransitioning, loadInitialData]);
 
   const sleep = (ms: number) =>
     new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -158,6 +175,7 @@ export default function Dashboard() {
     if (resourceType === "lambda") { setShowLambdaConfig(true); return; }
     if (resourceType === "apigateway") { setShowAPIGatewayConfig(true); return; }
     if (resourceType === "ssm") { setShowSSMConfig(true); return; }
+    if (resourceType === "rds") { setShowRDSConfig(true); return; }
 
     const isFirstResourceCreation = !hasAwsResources;
     if (isFirstResourceCreation) {
@@ -412,6 +430,38 @@ export default function Dashboard() {
     }
   };
 
+  const handleCreateRDSInstance = async (rdsConfig: RDSInstanceConfig) => {
+    const isFirstResourceCreation = !hasAwsResources;
+    if (isFirstResourceCreation) {
+      setFirstResourceLoading(true);
+    }
+
+    setCreateLoading(true);
+    try {
+      const response = await resourceApi.createSingleWithConfig(projectName, "rds", { rdsConfig });
+      if (response.success) {
+        toast.success(
+          rdsConfig.registerPgAdmin
+            ? `Creating ${rdsConfig.dbInstanceIdentifier} — it will appear in pgAdmin once registered`
+            : `Creating ${rdsConfig.dbInstanceIdentifier} — this can take a minute`
+        );
+        (response.data?.warnings as string[] | undefined)?.forEach((w) => toast.error(w));
+        setShowRDSConfig(false);
+        const firstResourceLoaded = await refreshResourcesAfterCreate(isFirstResourceCreation);
+        if (isFirstResourceCreation && !firstResourceLoaded) {
+          setFirstResourceLoading(false);
+        }
+      } else {
+        toast.error(response.error || "Failed to create RDS instance");
+        if (isFirstResourceCreation) {
+          setFirstResourceLoading(false);
+        }
+      }
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   const handleCreateIAMRole = async (iamConfig: IAMRoleConfig) => {
     const isFirstResourceCreation = !hasAwsResources;
     if (isFirstResourceCreation) {
@@ -559,6 +609,15 @@ export default function Dashboard() {
     setShowIAMRolePolicies(true);
   };
 
+  const openRDSViewer = (instanceId?: string) => {
+    const targetName = instanceId || resources.find((r) => r.type === "rds")?.name;
+    if (!targetName) {
+      toast.error("No RDS instances yet");
+      return;
+    }
+    setViewingRDSInstance(targetName);
+  };
+
   const dashboardNavActions: DashboardNavActions = {
     openS3Buckets: () => setShowBuckets(true),
     openDynamoDBViewer: () => setShowDynamoDB(true),
@@ -572,6 +631,8 @@ export default function Dashboard() {
     openSSMViewer: () => openSSMViewer(),
     openIAMConfig: () => setShowIAMConfig(true),
     openIAMRoleViewer: () => openIAMRoleViewer(),
+    openRDSConfig: () => setShowRDSConfig(true),
+    openRDSViewer: () => openRDSViewer(),
     openInspectTarget,
     openModal: (modalKey) => {
       if (modalKey === "mailpit") setShowMailpit(true);
@@ -582,6 +643,7 @@ export default function Dashboard() {
   };
 
   const serviceHealth = summarizeServiceHealth({
+    adminer,
     emulator: emulatorStatus,
     keycloak,
     langfuse,
@@ -704,6 +766,20 @@ export default function Dashboard() {
             ...withDocs("/ssm"),
           ],
         };
+      case "rds":
+        return {
+          title: "RDS",
+          subtitle: "Check instance state and connectivity",
+          quickChecks: [
+            "Instance status is available",
+            "App connects on localhost:<port> (containers use the internal host)",
+            "PostgreSQL instances appear in pgAdmin when registered",
+          ],
+          actions: [
+            { label: "Create / Configure", onClick: () => setShowRDSConfig(true) },
+            ...withDocs("/rds"),
+          ],
+        };
       case "iam":
         return {
           title: "IAM & STS",
@@ -746,6 +822,20 @@ export default function Dashboard() {
             { label: "Open Inspector", onClick: () => setShowRedis(true) },
             ...withManager("/cache", "Open Cache Manager"),
             ...withDocs("/redis"),
+          ],
+        };
+      case "adminer":
+        return {
+          title: "Adminer",
+          subtitle: adminer.status === "running" ? "Database admin UI is running" : "Database admin UI is not running",
+          quickChecks: [
+            "Saved servers list shows LocalCloud PostgreSQL",
+            "RDS instances added to Adminer appear in the list",
+            "One-click login opens the expected database",
+          ],
+          actions: [
+            { label: "Open Docs", href: "/adminer" },
+            withAdmin(adminer.uiUrl || "https://adminer.localcloudkit.com:3030"),
           ],
         };
       case "keycloak":
@@ -864,6 +954,8 @@ export default function Dashboard() {
               onAddAPIGateway={() => handleCreateSingleResource("apigateway")}
               onAddSSM={() => handleCreateSingleResource("ssm")}
               onAddIAM={() => setShowIAMConfig(true)}
+              onAddRDS={() => handleCreateSingleResource("rds")}
+              onViewRDS={(name) => openRDSViewer(name)}
               refreshLoading={refreshing}
               addLoading={createLoading}
               onViewS3={(bucketName) => {
@@ -1073,6 +1165,26 @@ export default function Dashboard() {
           loading={createLoading}
         />
       )}
+
+        {showRDSConfig && (
+          <RDSConfigModal
+            isOpen={showRDSConfig}
+            onClose={() => setShowRDSConfig(false)}
+            onSubmit={handleCreateRDSInstance}
+            projectName={projectName}
+            loading={createLoading}
+          />
+        )}
+
+        {viewingRDSInstance && (
+          <RDSDetailModal
+            isOpen={!!viewingRDSInstance}
+            onClose={() => setViewingRDSInstance("")}
+            instanceId={viewingRDSInstance}
+            projectName={projectName}
+            onChanged={loadInitialData}
+          />
+        )}
 
         {showIAMConfig && (
           <IAMConfigModal
