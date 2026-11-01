@@ -18,11 +18,13 @@ const ACCOUNT_ID = "000000000000";
 const PGADMIN_IMPORT_DIR = process.env.PGADMIN_IMPORT_DIR || "/app/pgadmin-import";
 const PGADMIN_GROUP = "LocalCloud RDS";
 const PGADMIN_PASSFILE = "/var/lib/pgadmin/rds.pgpass";
+const ADMINER_SERVERS_DIR = process.env.ADMINER_SERVERS_DIR || "/app/adminer-servers";
 const DATA_DIR = process.env.DATA_DIR || "/app/data";
 const DELETED_IDS_FILE = path.join(DATA_DIR, "rds-deleted-identifiers.json");
 
 export const TAG_PROJECT = "lck:project";
 export const TAG_PGADMIN = "lck:pgadmin";
+export const TAG_ADMINER = "lck:adminer";
 export const TAG_SECRET = "lck:secret";
 
 /** Engines and versions verified against MiniStack (each maps to an official image). */
@@ -161,6 +163,8 @@ export function toResource(dbi, projectName) {
       hostConnectionString: buildConnection(dbi.Engine, { ...connArgs, host: hostEndpoint, port: hostPort }),
       dockerConnectionString: buildConnection(dbi.Engine, { ...connArgs, host: internalHost, port: internalPort }),
       pgadmin: tags[TAG_PGADMIN] === "true",
+      adminer: tags[TAG_ADMINER] === "true",
+      adminerLabel: adminerLabelFor(dbi.DBInstanceIdentifier),
       secretName: tags[TAG_SECRET] || "",
     },
   };
@@ -212,19 +216,73 @@ export async function unregisterFromPgAdmin(dbInstanceIdentifier) {
   );
 }
 
-/** Drop pgAdmin registrations whose instance no longer exists (e.g. after a destroy-all or emulator reset). */
-async function reconcilePgAdmin(existingIds) {
-  let files;
-  try {
-    files = await fs.readdir(PGADMIN_IMPORT_DIR);
-  } catch {
-    return;
-  }
-  const registered = new Set(files.filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5)));
-  for (const id of registered) {
-    if (!existingIds.has(id)) {
-      await unregisterFromPgAdmin(id);
-      addLog("info", `Removed stale pgAdmin registration for RDS instance ${id}`, "automation");
+// ---------------------------------------------------------------------------
+// Adminer (read on every request by adminer/localcloud-servers.php)
+// ---------------------------------------------------------------------------
+
+export function adminerLabelFor(dbInstanceIdentifier) {
+  return `${dbInstanceIdentifier} (RDS)`;
+}
+
+export async function registerWithAdminer({ dbInstanceIdentifier, engine, masterUsername, masterPassword, dbName }) {
+  const engineInfo = RDS_ENGINES[engine];
+  const entry = {
+    label: adminerLabelFor(dbInstanceIdentifier),
+    engine: engineInfo?.label || engine,
+    // Adminer calls its MySQL/MariaDB driver "server"
+    driver: engine === "postgres" ? "pgsql" : "server",
+    server: `${containerHostFor(dbInstanceIdentifier)}:${engineInfo?.port}`,
+    username: masterUsername,
+    password: masterPassword,
+    db: dbName || "",
+  };
+  await fs.mkdir(ADMINER_SERVERS_DIR, { recursive: true });
+  await fs.chmod(ADMINER_SERVERS_DIR, 0o755).catch(() => {});
+  await fs.writeFile(
+    path.join(ADMINER_SERVERS_DIR, `${dbInstanceIdentifier}.json`),
+    JSON.stringify(entry, null, 2),
+    { mode: 0o644 }
+  );
+}
+
+export async function unregisterFromAdminer(dbInstanceIdentifier) {
+  await fs.rm(path.join(ADMINER_SERVERS_DIR, `${dbInstanceIdentifier}.json`), { force: true });
+}
+
+const ADMIN_TOOLS = {
+  pgadmin: {
+    label: "pgAdmin",
+    tag: TAG_PGADMIN,
+    dir: PGADMIN_IMPORT_DIR,
+    postgresOnly: true,
+    register: registerWithPgAdmin,
+    unregister: unregisterFromPgAdmin,
+  },
+  adminer: {
+    label: "Adminer",
+    tag: TAG_ADMINER,
+    dir: ADMINER_SERVERS_DIR,
+    postgresOnly: false,
+    register: registerWithAdminer,
+    unregister: unregisterFromAdminer,
+  },
+};
+
+/** Drop admin-tool registrations whose instance no longer exists (e.g. after a destroy-all or emulator reset). */
+async function reconcileAdminTools(existingIds) {
+  for (const tool of Object.values(ADMIN_TOOLS)) {
+    let files;
+    try {
+      files = await fs.readdir(tool.dir);
+    } catch {
+      continue;
+    }
+    const registered = new Set(files.filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5)));
+    for (const id of registered) {
+      if (!existingIds.has(id)) {
+        await tool.unregister(id);
+        addLog("info", `Removed stale ${tool.label} registration for RDS instance ${id}`, "automation");
+      }
     }
   }
 }
@@ -263,7 +321,7 @@ export async function describeInstances() {
 
 export async function listInstances(projectName) {
   const instances = await describeInstances();
-  await reconcilePgAdmin(new Set(instances.map((i) => i.DBInstanceIdentifier)));
+  await reconcileAdminTools(new Set(instances.map((i) => i.DBInstanceIdentifier)));
   return instances.map((dbi) => toResource(dbi, projectName));
 }
 
@@ -288,6 +346,7 @@ export async function createInstance(projectName, rawConfig = {}) {
     instanceClass: rawConfig.instanceClass || "db.t3.micro",
     allocatedStorage: Number(rawConfig.allocatedStorage) || 20,
     registerPgAdmin: Boolean(rawConfig.registerPgAdmin) && engine === "postgres",
+    registerAdminer: Boolean(rawConfig.registerAdminer),
     storeInSecretsManager: Boolean(rawConfig.storeInSecretsManager),
   };
 
@@ -298,6 +357,7 @@ export async function createInstance(projectName, rawConfig = {}) {
   const tags = [
     { Key: TAG_PROJECT, Value: projectName },
     { Key: TAG_PGADMIN, Value: String(cfg.registerPgAdmin) },
+    { Key: TAG_ADMINER, Value: String(cfg.registerAdminer) },
     ...(secretName ? [{ Key: TAG_SECRET, Value: secretName }] : []),
   ];
 
@@ -351,12 +411,14 @@ export async function createInstance(projectName, rawConfig = {}) {
     }
   }
 
-  if (cfg.registerPgAdmin) {
+  for (const [key, tool] of Object.entries(ADMIN_TOOLS)) {
+    const wanted = key === "pgadmin" ? cfg.registerPgAdmin : cfg.registerAdminer;
+    if (!wanted) continue;
     try {
-      await registerWithPgAdmin(cfg);
-      addLog("success", `Queued pgAdmin registration for ${cfg.dbInstanceIdentifier}`, "automation");
+      await tool.register(cfg);
+      addLog("success", `Added ${cfg.dbInstanceIdentifier} to ${tool.label}`, "automation");
     } catch (err) {
-      warnings.push(`Could not register with pgAdmin: ${err.message}`);
+      warnings.push(`Could not add to ${tool.label}: ${err.message}`);
     }
   }
 
@@ -400,7 +462,7 @@ export async function deleteInstance(id) {
       "--force-delete-without-recovery",
     ]).catch(() => {});
   }
-  await unregisterFromPgAdmin(id);
+  await Promise.all(Object.values(ADMIN_TOOLS).map((tool) => tool.unregister(id)));
   await writeDeletedIds([...(await readDeletedIds()), id]);
 
   addLog("success", `RDS instance ${id} deleted`, "automation");
@@ -417,15 +479,22 @@ export async function deleteProjectInstances(projectName) {
 }
 
 /**
- * Turn pgAdmin registration on/off for an existing PostgreSQL instance.
+ * Turn pgAdmin / Adminer registration on or off for an existing instance.
  * Enabling needs the master password: taken from the request, or from the
  * linked Secrets Manager secret when there is one.
  */
-export async function setPgAdminRegistration(id, enabled, password) {
+export async function setAdminToolRegistration(id, toolKey, enabled, password) {
+  const tool = ADMIN_TOOLS[toolKey];
+  if (!tool) throw new RdsValidationError(`Unknown admin tool "${toolKey}". Use pgadmin or adminer`);
+  const idError = validateIdentifier(id);
+  if (idError) throw new RdsValidationError(idError);
+
   const data = await aws(["rds", "describe-db-instances", "--db-instance-identifier", id]);
   const dbi = data.DBInstances?.[0];
   if (!dbi) throw new Error(`DB instance ${id} not found`);
-  if (dbi.Engine !== "postgres") throw new RdsValidationError("pgAdmin registration is only available for PostgreSQL");
+  if (tool.postgresOnly && dbi.Engine !== "postgres") {
+    throw new RdsValidationError(`${tool.label} registration is only available for PostgreSQL`);
+  }
 
   if (enabled) {
     let masterPassword = password;
@@ -434,20 +503,21 @@ export async function setPgAdminRegistration(id, enabled, password) {
       const secret = await aws(["secretsmanager", "get-secret-value", "--secret-id", secretName]);
       masterPassword = JSON.parse(secret.SecretString || "{}").password;
     }
-    if (!masterPassword) throw new RdsValidationError("Master password is required to register with pgAdmin");
-    await registerWithPgAdmin({
+    if (!masterPassword) throw new RdsValidationError(`Master password is required to add the instance to ${tool.label}`);
+    await tool.register({
       dbInstanceIdentifier: id,
+      engine: dbi.Engine,
       masterUsername: dbi.MasterUsername,
       masterPassword,
       dbName: dbi.DBName,
     });
   } else {
-    await unregisterFromPgAdmin(id);
+    await tool.unregister(id);
   }
 
   await aws([
     "rds", "add-tags-to-resource",
     "--resource-name", dbi.DBInstanceArn,
-    "--tags", JSON.stringify([{ Key: TAG_PGADMIN, Value: String(enabled) }]),
+    "--tags", JSON.stringify([{ Key: tool.tag, Value: String(enabled) }]),
   ]);
 }

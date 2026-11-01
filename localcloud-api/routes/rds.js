@@ -9,7 +9,7 @@ import {
   instanceAction,
   listDeletedIdentifiers,
   listInstances,
-  setPgAdminRegistration,
+  setAdminToolRegistration,
 } from "../lib/rds.js";
 import { invalidateResourceCache } from "../lib/resourceCache.js";
 import { addLog } from "../lib/context.js";
@@ -79,14 +79,15 @@ router.post("/rds/instances/:id/:action", async (req, res) => {
   }
 });
 
-router.put("/rds/instances/:id/pgadmin", async (req, res) => {
+// :tool is pgadmin | adminer
+router.put("/rds/instances/:id/:tool", async (req, res) => {
   try {
     const { enabled, password, projectName } = req.body || {};
-    await setPgAdminRegistration(req.params.id, Boolean(enabled), password);
+    await setAdminToolRegistration(req.params.id, req.params.tool, Boolean(enabled), password);
     if (projectName) invalidateResourceCache(projectName);
     res.json({ success: true });
   } catch (error) {
-    sendError(res, error, "Failed to update pgAdmin registration");
+    sendError(res, error, "Failed to update admin tool registration");
   }
 });
 
