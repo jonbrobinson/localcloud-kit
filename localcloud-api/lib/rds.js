@@ -128,7 +128,7 @@ function tagMap(tagList = []) {
 function buildConnection(engine, { host, port, username, dbName }) {
   const scheme = engine === "postgres" ? "postgresql" : "mysql";
   const db = dbName || (engine === "postgres" ? "postgres" : "");
-  return `${scheme}://${username}:<password>@${host}:${port}/${db}`;
+  return `${scheme}://${username}:YOUR_PASSWORD@${host}:${port}/${db}`;
 }
 
 export function toResource(dbi, projectName) {
@@ -369,7 +369,9 @@ export async function createInstance(projectName, rawConfig = {}) {
     "--db-instance-class", cfg.instanceClass,
     "--allocated-storage", String(cfg.allocatedStorage),
     "--master-username", cfg.masterUsername,
-    "--master-user-password", cfg.masterPassword,
+    // Equals form: a generated password may start with "-", which the CLI
+    // otherwise reads as a new flag and reports "expected one argument".
+    `--master-user-password=${cfg.masterPassword}`,
     "--tags", JSON.stringify(tags),
   ];
   if (cfg.dbName) args.push("--db-name", cfg.dbName);

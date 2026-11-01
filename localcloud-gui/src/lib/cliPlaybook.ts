@@ -331,12 +331,12 @@ function rdsCommand(config: RDSInstanceConfig): { command: string; note: string 
     `  --db-instance-class ${config.instanceClass || "db.t3.micro"}`,
     `  --allocated-storage ${config.allocatedStorage || 20}`,
     `  --master-username ${shellQuote(config.masterUsername)}`,
-    `  --master-user-password ${shellQuote("<password>")}`,
+    `  --master-user-password ${shellQuote("YOUR_PASSWORD")}`,
   ];
   if (config.dbName) parts.push(`  --db-name ${shellQuote(config.dbName)}`);
   return {
     command: parts.join(" \\\n"),
-    note: "Passwords are never saved — set your own --master-user-password.",
+    note: "Passwords are never saved — replace YOUR_PASSWORD before running.",
   };
 }
 
@@ -415,9 +415,9 @@ export function minimalCliForResource(resource: Resource): { command: string; no
           `  --db-instance-class ${resource.details?.instanceClass || "db.t3.micro"} \\`,
           `  --allocated-storage 20 \\`,
           `  --master-username ${shellQuote(String(resource.details?.masterUsername || "dbadmin"))} \\`,
-          `  --master-user-password ${shellQuote("<password>")}`
+          `  --master-user-password ${shellQuote("YOUR_PASSWORD")}`
         ),
-        note: "Set your own --master-user-password.",
+        note: "Replace YOUR_PASSWORD before running.",
       };
     default:
       return { command: `# No CLI template for ${resource.type}` };

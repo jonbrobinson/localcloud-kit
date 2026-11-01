@@ -283,13 +283,13 @@ export default function ResourceList({
           onClick: onAddLambda,
         }
       : null,
-    onAddAPIGateway
+    onAddRDS
       ? {
-          key: "apigateway",
-          title: "Create API Gateway",
-          description: "Expose REST endpoints",
-          icon: "logos:aws-api-gateway",
-          onClick: onAddAPIGateway,
+          key: "rds",
+          title: "Create RDS Instance",
+          description: "Run PostgreSQL, MySQL, or MariaDB",
+          icon: "logos:aws-rds",
+          onClick: onAddRDS,
         }
       : null,
   ].filter((action): action is EmptyStateAction => action !== null);

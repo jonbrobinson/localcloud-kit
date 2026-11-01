@@ -16,12 +16,15 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Changed
 
+- **Resource list**: the empty state offers Create RDS Instance in place of Create API Gateway. API Gateway remains available from Create resource.
 - **AWS Emulator**: emulator state now persists across restarts by default (`MINISTACK_PERSIST_STATE=1`), so S3, DynamoDB, and other resources survive `make restart`; `make reset` still wipes everything. The Docker network is now named `lck-network` exactly, and `make reset` / `make clean-all` also remove RDS containers.
 
 - **Dashboard**: the always-on services status row is gone. When a service stops or fails, a one-line alert with a link to the logs appears at the top instead.
 
 ### Fixed
 
+- **Secrets Manager**: revealing, updating, or deleting a secret whose name contains slashes (such as `rds/<instance>/master`) returned 404. Those names now resolve, so the reveal button shows the stored value.
+- **RDS**: creating an instance from the UI failed when the generated master password started with `-`. The AWS CLI treated that word as another flag and reported that `--master-user-password` had no value. The password is now passed as `--master-user-password=<value>`. Copied CLI snippets use `YOUR_PASSWORD` instead of `<password>`.
 - **MailpitModal**: the Date column showed "—" for every message; it now shows when each email arrived.
 
 ### Removed
