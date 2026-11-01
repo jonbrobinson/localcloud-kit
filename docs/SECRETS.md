@@ -35,7 +35,7 @@ Secrets Manager runs as part of the AWS Emulator (MiniStack) services:
 | -------- | --------------------------- | -------------------------------- |
 | `GET`    | `/api/secrets`              | List all secrets                 |
 | `POST`   | `/api/secrets`              | Create a new secret              |
-| `GET`    | `/api/secrets/[secretName]` | Get secret details and value     |
+| `GET`    | `/api/secrets/[secretName]` | Get secret details and value. `secretName` may contain slashes, for example `rds/my-db/master`. |
 | `PUT`    | `/api/secrets/[secretName]` | Update secret value and metadata |
 | `DELETE` | `/api/secrets/[secretName]` | Delete a secret                  |
 
