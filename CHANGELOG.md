@@ -22,7 +22,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Fixed
 
-- **RDS**: copied create-instance commands and connection strings use `YOUR_PASSWORD` instead of `<password>`, which the shell treats as a redirect and drops before the AWS CLI sees it.
+- **RDS**: creating an instance from the UI failed when the generated master password started with `-`. The AWS CLI treated that word as another flag and reported that `--master-user-password` had no value. The password is now passed as `--master-user-password=<value>`. Copied CLI snippets use `YOUR_PASSWORD` instead of `<password>`.
 - **MailpitModal**: the Date column showed "—" for every message; it now shows when each email arrived.
 
 ### Removed
