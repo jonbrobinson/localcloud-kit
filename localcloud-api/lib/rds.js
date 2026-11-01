@@ -128,7 +128,7 @@ function tagMap(tagList = []) {
 function buildConnection(engine, { host, port, username, dbName }) {
   const scheme = engine === "postgres" ? "postgresql" : "mysql";
   const db = dbName || (engine === "postgres" ? "postgres" : "");
-  return `${scheme}://${username}:<password>@${host}:${port}/${db}`;
+  return `${scheme}://${username}:YOUR_PASSWORD@${host}:${port}/${db}`;
 }
 
 export function toResource(dbi, projectName) {
