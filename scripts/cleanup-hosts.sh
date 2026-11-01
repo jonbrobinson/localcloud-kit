@@ -14,6 +14,7 @@ PREVIOUS_DOMAINS=(
     "keycloak.localcloudkit.com"
     "posthog.localcloudkit.com"
     "langfuse.localcloudkit.com"
+    "adminer.localcloudkit.com"
 )
 
 CURRENT_DOMAIN="app-local.localcloudkit.com"

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, startTransition } from "react";
 import {
+  AdminerStatus,
   EmulatorStatus,
   KeycloakStatus,
   LangfuseStatus,
@@ -9,7 +10,7 @@ import {
   RedisStatus,
   Resource,
 } from "@/types";
-import { dashboardApi, keycloakApi, langfuseApi, postgresApi } from "@/services/api";
+import { adminerApi, dashboardApi, keycloakApi, langfuseApi, postgresApi } from "@/services/api";
 
 interface AwsEmulatorData {
   status: EmulatorStatus;
@@ -24,6 +25,7 @@ interface ServicesData {
   postgres: PostgresStatus;
   keycloak: KeycloakStatus;
   langfuse: LangfuseStatus;
+  adminer: AdminerStatus;
 }
 
 export function useServicesData() {
@@ -46,6 +48,7 @@ export function useServicesData() {
     postgres: { status: "unknown" },
     keycloak: { status: "unknown" },
     langfuse: { status: "unknown" },
+    adminer: { status: "unknown" },
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -55,11 +58,12 @@ export function useServicesData() {
     setRefreshing(true);
     try {
       setError(null);
-      const [payloadResult, postgresResult, keycloakResult, langfuseResult] = await Promise.allSettled([
+      const [payloadResult, postgresResult, keycloakResult, langfuseResult, adminerResult] = await Promise.allSettled([
         dashboardApi.getData(),
         postgresApi.status(),
         keycloakApi.status(),
         langfuseApi.status(),
+        adminerApi.status(),
       ]);
 
       if (payloadResult.status === "rejected") {
@@ -77,6 +81,8 @@ export function useServicesData() {
         keycloakResult.status === "fulfilled" ? keycloakResult.value : { status: "unknown" };
       const langfuseStatus: LangfuseStatus =
         langfuseResult.status === "fulfilled" ? langfuseResult.value : { status: "unknown" };
+      const adminerStatus: AdminerStatus =
+        adminerResult.status === "fulfilled" ? adminerResult.value : { status: "unknown" };
 
       startTransition(() => {
         setData({
@@ -86,6 +92,7 @@ export function useServicesData() {
           postgres: postgresStatus,
           keycloak: keycloakStatus,
           langfuse: langfuseStatus,
+          adminer: adminerStatus,
         });
       });
     } catch (err) {

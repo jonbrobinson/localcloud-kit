@@ -106,6 +106,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
    - **GUI**: https://app-local.localcloudkit.com:3030
    - **API**: https://app-local.localcloudkit.com:3030/api
    - **Mailpit**: https://mailpit.localcloudkit.com:3030
+   - **Adminer**: https://adminer.localcloudkit.com:3030
    - **PostHog** (optional profile): https://posthog.localcloudkit.com:3030
    - **Langfuse** (optional profile): https://langfuse.localcloudkit.com:3030
 
@@ -113,6 +114,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
    - **AWS Emulator**: http://localhost:4566
    - **Express API**: http://localhost:3031
    - **Mailpit UI**: http://localhost:8025
+   - **Adminer**: http://localhost:8081
 
 ## URL Structure
 
@@ -123,6 +125,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 - **WebSocket (Socket.IO)**: `wss://app-local.localcloudkit.com:3030/ws/socket.io`
 - **Health Check**: `https://app-local.localcloudkit.com:3030/health`
 - **AWS Emulator Health**: `https://app-local.localcloudkit.com:3030/aws-emulator/health`
+- **Adminer**: `https://adminer.localcloudkit.com:3030`
 - **PostHog** (optional profile): `https://posthog.localcloudkit.com:3030`
 - **Langfuse** (optional profile): `https://langfuse.localcloudkit.com:3030`
 
@@ -216,7 +219,15 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
   - No password required (local development)
   - Can be accessed directly via `redis:6379` from any container on the network
 
-### 7. PostHog (optional profile)
+### 7. Adminer
+
+- **Image**: `adminer:6`
+- **URL**: `https://adminer.localcloudkit.com:3030` (direct: `http://localhost:8081`, `ADMINER_PORT`)
+- **Role**: Database UI for PostgreSQL, MySQL, and MariaDB
+- **Saved servers**: `adminer/localcloud-servers.php` (mounted into `plugins-enabled/`) lists `adminer/servers.json` plus RDS instances from the `adminer_servers` volume (written by `api`)
+- **Details**: [ADMINER.md](./ADMINER.md)
+
+### 8. PostHog (optional profile)
 
 - **Profile**: `posthog`
 - **URL**: `https://posthog.localcloudkit.com:3030`
@@ -229,7 +240,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
   - Dedicated `posthog-zookeeper` (`zookeeper:3.9`)
 - **Start**: `docker compose --profile posthog up -d`
 
-### 8. Langfuse (optional profile)
+### 9. Langfuse (optional profile)
 
 - **Profile**: `langfuse`
 - **URL**: `https://langfuse.localcloudkit.com:3030` (direct: `http://localhost:3100`)
@@ -268,6 +279,7 @@ This guide explains how to run the LocalCloud Kit using Docker containers with T
 - `aws_emulator_data:/app/state` - MiniStack saved state (`PERSIST_STATE=1`), including RDS instance records
 - `./logs:/app/logs` - Application logs
 - `/var/run/docker.sock:/var/run/docker.sock` - Docker socket (MiniStack uses this to spawn RDS/ElastiCache sibling containers)
+- `adminer_servers` - Shared by `api` (writes) and `adminer` (reads): RDS instances listed as Adminer saved servers
 - `pgadmin_rds_import` - Shared by `api` (writes) and `pgadmin` (reads): RDS instances to register in pgAdmin, picked up by `pgadmin/rds-sync.sh`
 
 ### RDS Instance Containers
@@ -318,7 +330,7 @@ This allows browsers to trust the certificates without warnings.
 
 ### Certificate Features
 
-- **SANs**: `app-local.localcloudkit.com`, `*.app-local.localcloudkit.com`, `mailpit.localcloudkit.com`, `pgadmin.localcloudkit.com`, `keycloak.localcloudkit.com`, `posthog.localcloudkit.com`, `langfuse.localcloudkit.com`
+- **SANs**: `app-local.localcloudkit.com`, `*.app-local.localcloudkit.com`, `mailpit.localcloudkit.com`, `pgadmin.localcloudkit.com`, `keycloak.localcloudkit.com`, `posthog.localcloudkit.com`, `langfuse.localcloudkit.com`, `adminer.localcloudkit.com`
 - **Validity**: 825 days
 - **Trust**: Trusted by Chrome, Safari, and other browsers (after CA installation)
 - **Single cert** covers both the main app and the Mailpit subdomain
@@ -611,6 +623,7 @@ alias docker-clean='docker system prune -f && docker volume prune -f'
    echo "127.0.0.1 mailpit.localcloudkit.com" | sudo tee -a /etc/hosts
    echo "127.0.0.1 posthog.localcloudkit.com" | sudo tee -a /etc/hosts
    echo "127.0.0.1 langfuse.localcloudkit.com" | sudo tee -a /etc/hosts
+   echo "127.0.0.1 adminer.localcloudkit.com" | sudo tee -a /etc/hosts
    ```
 
 ### Health Checks

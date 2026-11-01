@@ -84,6 +84,7 @@ Via Traefik (TLS — trusted cert, no browser warnings):
 - **API Server**: https://app-local.localcloudkit.com:3030/api
 - **Mailpit** (email inbox): https://mailpit.localcloudkit.com:3030
 - **pgAdmin** (database UI): https://pgadmin.localcloudkit.com:3030
+- **Adminer** (PostgreSQL / MySQL / MariaDB UI): https://adminer.localcloudkit.com:3030
 - **Keycloak** (identity & access): https://keycloak.localcloudkit.com:3030
 - **PostHog** (analytics, optional beta profile): https://posthog.localcloudkit.com:3030
 - **Langfuse** (LLM observability, optional profile): https://langfuse.localcloudkit.com:3030
@@ -96,6 +97,7 @@ Direct localhost (no TLS — always available):
 - **Express API**: http://localhost:3031 (bypasses Traefik)
 - **PostgreSQL**: localhost:5432 (direct DB connection)
 - **pgAdmin**: http://localhost:5050 (direct, no cert required)
+- **Adminer**: http://localhost:8081 (direct, no cert required)
 - **Keycloak**: http://localhost:8080 (direct, no cert required)
 - **Langfuse**: http://localhost:3100 (SDK base URL, optional profile)
 
@@ -108,6 +110,7 @@ Direct localhost (no TLS — always available):
 | Mailpit UI | https://mailpit.localcloudkit.com:3030 | Email inbox |
 | Mailpit SMTP | localhost:1025 | SMTP endpoint |
 | pgAdmin | https://pgadmin.localcloudkit.com:3030 | PostgreSQL UI |
+| Adminer | https://adminer.localcloudkit.com:3030 | PostgreSQL / MySQL / MariaDB UI with one-click saved servers |
 | PostgreSQL | localhost:5432 | Direct DB |
 | RDS instances | localhost:15432+ | One port per RDS instance (`RDS_BASE_PORT`) |
 | Keycloak | https://keycloak.localcloudkit.com:3030 | Identity & access |
@@ -213,6 +216,7 @@ The **Profile** page (`/profile`) includes a **CLI Playbook** for the active pro
 - **Real Databases**: Each DB instance is an actual PostgreSQL (14–17), MySQL (8.0/8.4), or MariaDB (10.6–11.4) container, created through the RDS API
 - **Create Modal**: Engine, version, identifier, master credentials (with password generator), initial database
 - **Register in pgAdmin**: Checkbox on create adds PostgreSQL instances to pgAdmin with the password saved — one-click connect
+- **Add to Adminer**: Checkbox on create (any engine) adds the instance to Adminer's saved servers — one-click sign-in
 - **Secrets Manager**: Optionally store master credentials as `rds/<id>/master`
 - **Connection Panel**: Host and Docker-network endpoints, connection strings, start/stop/reboot
 - **Persistent**: Instance data and records survive restarts
@@ -249,6 +253,12 @@ The **Profile** page (`/profile`) includes a **CLI Playbook** for the active pro
 - **Rich Metadata**: Descriptions, tags, and KMS key encryption
 - **ARN Management**: Copy ARNs for easy integration with applications
 - **Bulk Operations**: Create, update, and delete multiple secrets
+
+#### Adminer
+
+- **One UI for every engine**: PostgreSQL, MySQL, MariaDB (plus SQLite, MS SQL, Oracle)
+- **Saved servers**: One-click sign-in to the bundled PostgreSQL and any RDS instance added to Adminer
+- **Lightweight**: Single PHP container, starts instantly
 
 #### Redis Cache
 
@@ -355,7 +365,7 @@ See [docs/AWS_EMULATOR.md](docs/AWS_EMULATOR.md) for version pinning and multi-p
 2. Click individual resource buttons:
    - 🪣 **S3 Bucket** - Create storage buckets
    - 🗄️ **DynamoDB Table** - Create NoSQL tables
-   - 🐘 **RDS Instance** - Run PostgreSQL, MySQL, or MariaDB (optionally registered in pgAdmin)
+   - 🐘 **RDS Instance** - Run PostgreSQL, MySQL, or MariaDB (optionally added to Adminer / pgAdmin)
    - ⚡ **Lambda Function** - Deploy serverless functions
    - 🌐 **API Gateway** - Create REST APIs
    - 🔒 **Parameter Store** - Store configuration and secrets
@@ -494,6 +504,7 @@ docker compose up -d --scale api=3 # Scale services
 - **[docs/REDIS.md](docs/REDIS.md)** — Redis cache
 - **[docs/KEYCLOAK.md](docs/KEYCLOAK.md)** — Identity & access
 - **[docs/PGADMIN.md](docs/PGADMIN.md)** — PostgreSQL UI
+- **[docs/ADMINER.md](docs/ADMINER.md)** — Adminer database UI (PostgreSQL, MySQL, MariaDB)
 - **[docs/POSTHOG.md](docs/POSTHOG.md)** — Product analytics (optional profile)
 - **[docs/LANGFUSE.md](docs/LANGFUSE.md)** — LLM observability (optional profile)
 

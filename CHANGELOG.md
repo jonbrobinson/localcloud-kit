@@ -6,6 +6,7 @@ All notable changes to LocalCloud Kit will be documented in this file.
 
 ### Added
 
+- **Adminer**: a lightweight database UI for PostgreSQL, MySQL, and MariaDB at `https://adminer.localcloudkit.com:3030` (direct `http://localhost:8081`). The login page lists saved servers — the bundled PostgreSQL plus RDS instances — for one-click sign-in. RDS gains an **Add to Adminer** checkbox (any engine) and an Adminer toggle and Open button in the connection panel. Adminer appears in the Services menu with live status and has a `/adminer` doc page. Existing installs: re-run `sudo ./scripts/setup-hosts.sh` and `sudo ./scripts/setup-mkcert.sh` for the new hostname.
 - **RDS**: create PostgreSQL, MySQL, or MariaDB instances from **Resources → RDS** — each one is a real database container run by MiniStack. A **Register in pgAdmin** checkbox adds PostgreSQL instances to pgAdmin (with the password saved, so they connect in one click), and an option stores the master credentials in Secrets Manager. A connection panel shows host and Docker endpoints, connection strings, and start/stop/reboot; a `/rds` doc page covers SDK, Laravel, and Prisma setup. New `make rds-list`, `make rds-prune`, and `make rds-clean` targets.
 
 - **Dashboard**: a Recent mail card shows the three newest emails Mailpit has caught, and only appears when there is mail. Click one to open it.

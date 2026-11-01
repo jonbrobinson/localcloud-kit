@@ -79,6 +79,8 @@ PostgreSQL RDS instances created from the dashboard with **Register in pgAdmin**
 
 How it works: the API writes a one-server `servers.json` and a pgpass line into the shared `pgadmin_rds_import` volume; [`pgadmin/rds-sync.sh`](../pgadmin/rds-sync.sh) runs next to pgAdmin, loads new entries with `setup.py load-servers`, and removes servers whose instance was deleted. Registration can also be toggled from the instance's connection panel. See [RDS.md](./RDS.md).
 
+For MySQL and MariaDB instances, use [Adminer](./ADMINER.md), which handles every engine.
+
 ---
 
 ## Connecting from Your App

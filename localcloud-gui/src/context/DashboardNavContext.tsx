@@ -4,6 +4,7 @@ import { createContext, ReactNode, useContext } from "react";
 import { ModalKey } from "@/types";
 
 export type InspectTargetId =
+  | "adminer"
   | "aws-emulator"
   | "s3"
   | "dynamodb"

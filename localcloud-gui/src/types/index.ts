@@ -7,7 +7,7 @@ export interface EmulatorStatus {
 
 // Categorises platform services by their relationship to the developer's app.
 // "instance-service" — always-on infrastructure the app connects to directly (Redis, PostgreSQL).
-// "admin-tool"       — developer-facing management UI (Keycloak, Mailpit, pgAdmin).
+// "admin-tool"       — developer-facing management UI (Adminer, Keycloak, Mailpit, pgAdmin).
 export type ServiceKind = "instance-service" | "admin-tool";
 
 // Modal keys for platform services that open an in-app modal rather than navigating to a page.
@@ -112,6 +112,8 @@ export interface RDSInstanceConfig {
   allocatedStorage?: number;
   /** PostgreSQL only — register the instance as a server in the bundled pgAdmin */
   registerPgAdmin?: boolean;
+  /** Any engine — add the instance to Adminer's saved servers */
+  registerAdminer?: boolean;
   /** Store master credentials as a Secrets Manager secret (rds/<id>/master) */
   storeInSecretsManager?: boolean;
 }
@@ -213,6 +215,14 @@ export interface LangfuseStatus {
   baseUrl?: string;
   /** Traefik UI URL (follows APP_PORT) */
   uiUrl?: string;
+}
+
+export interface AdminerStatus {
+  status: "running" | "stopped" | "unknown";
+  /** Traefik UI URL (follows APP_PORT) */
+  uiUrl?: string;
+  /** Direct host URL (follows ADMINER_PORT) */
+  directUrl?: string;
 }
 
 export interface PosthogStatus {

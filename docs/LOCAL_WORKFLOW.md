@@ -97,6 +97,7 @@ Open in your browser:
 - **Main GUI**: `https://app-local.localcloudkit.com:3030`
 - **API**: `https://app-local.localcloudkit.com:3030/api`
 - **Health Check**: `https://app-local.localcloudkit.com:3030/health`
+- **Adminer**: `https://adminer.localcloudkit.com:3030`
 - **PostHog** (optional profile): `https://posthog.localcloudkit.com:3030`
 - **Langfuse** (optional profile): `https://langfuse.localcloudkit.com:3030`
 
@@ -274,6 +275,7 @@ For dependency changes: `make stop && docker compose build --no-cache gui api &&
 | Web GUI        | `https://app-local.localcloudkit.com:3030`     | Main application         |
 | API            | `https://app-local.localcloudkit.com:3030/api` | REST API                 |
 | Mailpit        | `https://mailpit.localcloudkit.com:3030`       | Email testing UI         |
+| Adminer        | `https://adminer.localcloudkit.com:3030`       | Database UI (PostgreSQL / MySQL / MariaDB) |
 | PostHog        | `https://posthog.localcloudkit.com:3030`       | Product analytics (optional profile) |
 | Langfuse       | `https://langfuse.localcloudkit.com:3030`      | LLM observability (optional profile) |
 

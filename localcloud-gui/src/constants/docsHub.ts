@@ -2,6 +2,7 @@ export type DocsCategory = "infrastructure" | "aws-resources" | "platform-servic
 
 export interface DocsHubEntry {
   id:
+    | "adminer"
     | "aws-emulator"
     | "connect"
     | "s3"
@@ -235,6 +236,21 @@ export const DOCS_HUB_ENTRIES: DocsHubEntry[] = [
     adminUrl: "https://pgadmin.localcloudkit.com:3030",
     adminLabel: "Open Admin UI",
     icon: "logos:postgresql",
+  },
+  {
+    id: "adminer",
+    title: "Adminer",
+    category: "platform-services",
+    docsPath: "/adminer",
+    summary: "One web UI for PostgreSQL, MySQL, and MariaDB — bundled Postgres and RDS instances are one click away.",
+    quickChecks: [
+      "Saved servers list shows LocalCloud PostgreSQL",
+      "RDS instances added to Adminer appear in the list",
+      "One-click login opens the expected database",
+    ],
+    adminUrl: "https://adminer.localcloudkit.com:3030",
+    adminLabel: "Open Adminer",
+    icon: "lucide:table-2",
   },
   {
     id: "keycloak",

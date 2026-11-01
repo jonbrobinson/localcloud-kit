@@ -54,6 +54,7 @@ const AWS_RESOURCE_TYPES = new Set<Resource["type"]>([
 
 export default function Dashboard() {
   const {
+    adminer,
     awsEmulator,
     mailpit,
     redis,
@@ -642,6 +643,7 @@ export default function Dashboard() {
   };
 
   const serviceHealth = summarizeServiceHealth({
+    adminer,
     emulator: emulatorStatus,
     keycloak,
     langfuse,
@@ -820,6 +822,20 @@ export default function Dashboard() {
             { label: "Open Inspector", onClick: () => setShowRedis(true) },
             ...withManager("/cache", "Open Cache Manager"),
             ...withDocs("/redis"),
+          ],
+        };
+      case "adminer":
+        return {
+          title: "Adminer",
+          subtitle: adminer.status === "running" ? "Database admin UI is running" : "Database admin UI is not running",
+          quickChecks: [
+            "Saved servers list shows LocalCloud PostgreSQL",
+            "RDS instances added to Adminer appear in the list",
+            "One-click login opens the expected database",
+          ],
+          actions: [
+            { label: "Open Docs", href: "/adminer" },
+            withAdmin(adminer.uiUrl || "https://adminer.localcloudkit.com:3030"),
           ],
         };
       case "keycloak":

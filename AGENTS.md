@@ -30,6 +30,7 @@ required.
 | `api` | localcloud-api | custom (Dockerfile.api) | 3031 | Express.js backend |
 | `nginx` | localcloud-nginx | nginx:alpine | 80 (internal) | Internal routing |
 | `redis` | localcloud-redis | redis:7-alpine | 6380 (host) | Cache service |
+| `adminer` | localcloud-adminer | adminer:6 | 8081 (host) | Database UI for PostgreSQL / MySQL / MariaDB; `adminer/localcloud-servers.php` lists saved servers |
 | `posthog-*` | localcloud-posthog-* | posthog/clickhouse/kafka stack | — | Product analytics stack |
 | `langfuse-*` | localcloud-langfuse-* | langfuse/langfuse:4 + worker, postgres, clickhouse, redis, minio | 3100 (web), 9190 (minio) | LLM observability (optional `langfuse` profile) |
 
@@ -59,7 +60,7 @@ samples/            # Sample files for S3/DynamoDB testing
 
 - **S3** — bucket management, multipart uploads (up to 100MB), nested folders
 - **DynamoDB** — tables, CRUD, GSI, query/scan
-- **RDS** — real PostgreSQL/MySQL/MariaDB containers started by MiniStack on `lck-network`; create modal can register PostgreSQL instances in pgAdmin (`pgadmin/rds-sync.sh` + shared `pgadmin_rds_import` volume) and store credentials in Secrets Manager. RDS calls use `execFile` with argument arrays (`localcloud-api/lib/rds.js`) because requests carry passwords — never build them as shell strings
+- **RDS** — real PostgreSQL/MySQL/MariaDB containers started by MiniStack on `lck-network`; create modal can add instances to Adminer (any engine; JSON files in the `adminer_servers` volume read by `adminer/localcloud-servers.php`), register PostgreSQL instances in pgAdmin (`pgadmin/rds-sync.sh` + shared `pgadmin_rds_import` volume), and store credentials in Secrets Manager. RDS calls use `execFile` with argument arrays (`localcloud-api/lib/rds.js`) because requests carry passwords — never build them as shell strings
 - **Lambda** — function management, runtime/handler config, placeholder zip creation; upload real code via `update-function-code`
 - **API Gateway** — REST endpoint creation with name and description
 - **IAM** — identity & access management, roles, policies
@@ -353,7 +354,7 @@ a clear two-category model:
 
 | Category | Examples | Managed via | Can destroy? |
 |----------|----------|-------------|--------------|
-| **Platform Services** | Keycloak, Langfuse, Mailpit, PostgreSQL, PostHog, Redis | Their own admin UIs | No — Docker Compose lifecycle |
+| **Platform Services** | Adminer, Keycloak, Langfuse, Mailpit, PostgreSQL, PostHog, Redis | Their own admin UIs | No — Docker Compose lifecycle |
 | **AWS Resources** | S3, DynamoDB, RDS, Lambda, API Gateway, IAM | Dashboard modals | Yes — individually, per project |
 
 ### Navigation Structure
@@ -364,7 +365,7 @@ a clear two-category model:
 
 ### Service Health
 
-There is no always-on status bar. `summarizeServiceHealth()` (`localcloud-gui/src/lib/serviceHealth.ts`) collapses AWS Emulator, Keycloak, Langfuse, Mailpit, PostgreSQL, and Redis status into one summary that two places read. Opt-in profile services (Langfuse) are marked `optional`: when stopped they show "Not started", and they only join `active` (the overall tone and "All N running" count) once running or failing — so a stopped or booting profile never turns the dot red/amber or triggers the alert:
+There is no always-on status bar. `summarizeServiceHealth()` (`localcloud-gui/src/lib/serviceHealth.ts`) collapses Adminer, AWS Emulator, Keycloak, Langfuse, Mailpit, PostgreSQL, and Redis status into one summary that two places read. Opt-in profile services (Langfuse) are marked `optional`: when stopped they show "Not started", and they only join `active` (the overall tone and "All N running" count) once running or failing — so a stopped or booting profile never turns the dot red/amber or triggers the alert:
 
 - **Services** nav menu — a status dot on the menu button (green / amber while starting / red when anything is down), a summary line, and a dot plus "Stopped"/"Failed" label per service.
 - **`ServiceAlert`** — a one-line alert at the top of the dashboard, rendered only while a service is confirmed stopped or failing. "Starting" and "unknown" never trigger it.
