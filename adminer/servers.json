@@ -1,0 +1,11 @@
+[
+  {
+    "label": "LocalCloud PostgreSQL",
+    "engine": "PostgreSQL",
+    "driver": "pgsql",
+    "server": "postgres:5432",
+    "username": "localcloud",
+    "password": "localcloud",
+    "db": "localcloud"
+  }
+]

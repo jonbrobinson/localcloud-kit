@@ -27,7 +27,7 @@ NC := \033[0m # No Color
 .PHONY: setup check-prerequisites docker-build docker-logs
 .PHONY: reset clean-volumes clean-all reset-env
 .PHONY: mailpit-logs mailpit-clear
-.PHONY: postgres-logs keycloak-logs pgadmin-logs posthog-logs
+.PHONY: postgres-logs keycloak-logs pgadmin-logs adminer-logs posthog-logs
 .PHONY: start-langfuse stop-langfuse langfuse-logs
 .PHONY: rds-list rds-prune rds-clean
 
@@ -229,6 +229,9 @@ postgres-logs: ## View PostgreSQL container logs
 
 pgadmin-logs: ## View pgAdmin container logs
 	docker compose logs -f pgadmin
+
+adminer-logs: ## View Adminer container logs
+	docker compose logs -f adminer
 
 # Keycloak
 keycloak-logs: ## View Keycloak container logs

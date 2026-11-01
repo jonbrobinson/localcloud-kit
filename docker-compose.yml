@@ -87,6 +87,7 @@ services:
       # Host-side ports so the GUI shows the URLs you actually started with
       - APP_PORT=${APP_PORT:-3030}
       - LANGFUSE_PORT=${LANGFUSE_PORT:-3100}
+      - ADMINER_PORT=${ADMINER_PORT:-8081}
     volumes:
       - ./localcloud-api:/app
       - /app/node_modules
@@ -95,6 +96,8 @@ services:
       - localcloud-data:/app/data
       # RDS → pgAdmin server registrations (read by pgadmin/rds-sync.sh)
       - pgadmin_rds_import:/app/pgadmin-import
+      # RDS → Adminer saved servers (read by adminer/localcloud-servers.php)
+      - adminer_servers:/app/adminer-servers
     depends_on:
       - aws-emulator
       - redis
@@ -176,6 +179,34 @@ services:
       - "traefik.http.routers.pgadmin.entrypoints=websecure"
       - "traefik.http.routers.pgadmin.tls=true"
       - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
+
+  # Adminer - one web UI for PostgreSQL, MySQL, and MariaDB
+  # adminer/localcloud-servers.php adds one-click "Saved servers" to the login page:
+  # the bundled PostgreSQL (adminer/servers.json) plus RDS instances created with
+  # "Add to Adminer" (written by the API into the adminer_servers volume).
+  adminer:
+    image: adminer:6
+    container_name: localcloud-adminer
+    ports:
+      - "${ADMINER_PORT:-8081}:8080"
+    environment:
+      # Skip the version check against adminer.org (works offline)
+      - ADMINER_PLUGINS=version-noverify
+    # Listen on IPv4 explicitly — the image default ([::]) fails on hosts without IPv6
+    command: ["php", "-S", "0.0.0.0:8080", "-t", "/var/www/html"]
+    volumes:
+      - ./adminer/localcloud-servers.php:/var/www/html/plugins-enabled/localcloud-servers.php:ro
+      - ./adminer/servers.json:/etc/adminer/servers.json:ro
+      - adminer_servers:/adminer-servers:ro
+    networks:
+      - lck-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.rule=Host(`adminer.localcloudkit.com`)"
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.tls=true"
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
 
   # Keycloak - Identity & Access Management
   keycloak:
@@ -771,6 +802,7 @@ volumes:
   aws_emulator_data:
   localcloud-data:
   pgadmin_rds_import:
+  adminer_servers:
   postgres_data:
   posthog_postgres_data:
   posthog_redis_data:
