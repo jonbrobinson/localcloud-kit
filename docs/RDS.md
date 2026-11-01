@@ -25,6 +25,7 @@ Aurora clusters and snapshots work through the MiniStack API but have no GUI yet
 | DB instance identifier | Lowercase letters, numbers, hyphens; starts with a letter |
 | Master username / password | Password generator, show and copy buttons. Rules match RDS: 8–41 characters, no `/ " @` or spaces |
 | Initial database | Optional (`--db-name`) |
+| **Add to Adminer** | Any engine, on by default. Lists the instance under **Saved servers** on Adminer's login page — one click signs in ([ADMINER.md](./ADMINER.md)) |
 | **Register in pgAdmin** | PostgreSQL only, on by default. Adds the instance to pgAdmin under **LocalCloud RDS** with the password saved |
 | **Store credentials in Secrets Manager** | Creates `rds/<id>/master` (JSON: `engine, host, port, username, password, dbname, dockerHost, dockerPort`) |
 | Save as config | Saved per project; **the password is never saved** |
@@ -71,12 +72,12 @@ RDS containers run **outside** Docker Compose:
 | GET | `/api/rds/options` | Engines, versions, instance classes, deleted identifiers |
 | GET | `/api/rds/instances` | List instances (prunes stale pgAdmin registrations) |
 | GET | `/api/rds/instances/:id` | Describe one instance with connection details |
-| POST | `/api/rds/instances` | Create — body: `projectName, engine, engineVersion, dbInstanceIdentifier, masterUsername, masterPassword, dbName?, instanceClass?, registerPgAdmin?, storeInSecretsManager?` |
+| POST | `/api/rds/instances` | Create — body: `projectName, engine, engineVersion, dbInstanceIdentifier, masterUsername, masterPassword, dbName?, instanceClass?, registerPgAdmin?, registerAdminer?, storeInSecretsManager?` |
 | POST | `/api/rds/instances/:id/:action` | `start`, `stop`, or `reboot` |
-| PUT | `/api/rds/instances/:id/pgadmin` | `{ enabled, password? }` — register in or remove from pgAdmin |
+| PUT | `/api/rds/instances/:id/:tool` | `tool` = `pgadmin` or `adminer`; body `{ enabled, password? }` — add or remove the instance |
 | DELETE | `/api/rds/instances/:id` | Delete the instance, its linked secret, and its pgAdmin registration |
 
-RDS also works through the shared resource endpoints (`/api/resources/create-single` with `resourceType: "rds"` and `rdsConfig`, `/api/resources/destroy` with `rds-<id>` ids). Instances carry `lck:project`, `lck:pgadmin`, and `lck:secret` tags.
+RDS also works through the shared resource endpoints (`/api/resources/create-single` with `resourceType: "rds"` and `rdsConfig`, `/api/resources/destroy` with `rds-<id>` ids). Instances carry `lck:project`, `lck:pgadmin`, `lck:adminer`, and `lck:secret` tags.
 
 ## Troubleshooting
 
