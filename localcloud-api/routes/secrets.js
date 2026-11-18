@@ -52,9 +52,21 @@ router.post("/secrets", async (req, res) => {
   }
 });
 
-router.get("/secrets/:secretName", async (req, res) => {
+// Names may contain slashes (RDS stores rds/<instance>/master). A single
+// :param stops at the first slash, so reveal returned 404.
+function secretNameFrom(req) {
+  const raw = req.params.secretName;
+  const name = Array.isArray(raw) ? raw.join("/") : raw || "";
   try {
-    const { secretName } = req.params;
+    return decodeURIComponent(name);
+  } catch {
+    return name;
+  }
+}
+
+router.get("/secrets/*secretName", async (req, res) => {
+  try {
+    const secretName = secretNameFrom(req);
     const { versionId = "", versionStage = "AWSCURRENT", includeValue = "false" } = req.query;
 
     if (!secretName) {
@@ -83,9 +95,9 @@ router.get("/secrets/:secretName", async (req, res) => {
   }
 });
 
-router.put("/secrets/:secretName", async (req, res) => {
+router.put("/secrets/*secretName", async (req, res) => {
   try {
-    const { secretName } = req.params;
+    const secretName = secretNameFrom(req);
     const { secretValue, description, tags, kmsKeyId } = req.body;
 
     if (!secretName) {
@@ -121,9 +133,9 @@ router.put("/secrets/:secretName", async (req, res) => {
   }
 });
 
-router.delete("/secrets/:secretName", async (req, res) => {
+router.delete("/secrets/*secretName", async (req, res) => {
   try {
-    const { secretName } = req.params;
+    const secretName = secretNameFrom(req);
     const { forceDelete = "false" } = req.query;
 
     if (!secretName) {

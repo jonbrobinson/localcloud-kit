@@ -188,7 +188,7 @@ export default function RDSDetailModal({ isOpen, onClose, instanceId, projectNam
             <CopyRow
               label="Connection string (host apps)"
               value={d.hostConnectionString || ""}
-              hint="Replace <password> with the master password"
+              hint="Replace YOUR_PASSWORD with the master password"
             />
             <CopyRow
               label="Connection string (Lambdas & containers on lck-network)"
@@ -199,8 +199,8 @@ export default function RDSDetailModal({ isOpen, onClose, instanceId, projectNam
               <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-ink-2">Environment variables</summary>
               <pre className="overflow-x-auto border-t border-divider bg-surface-2 px-3 py-2 font-mono text-[11px] text-ink">
 {isPostgres
-  ? `PGHOST=${d.endpoint}\nPGPORT=${d.port}\nPGUSER=${d.masterUsername}\nPGPASSWORD=<password>\nPGDATABASE=${d.dbName || "postgres"}`
-  : `${envPrefix}HOST=${d.endpoint}\n${envPrefix}PORT=${d.port}\n${envPrefix}USER=${d.masterUsername}\n${envPrefix}PASSWORD=<password>${d.dbName ? `\n${envPrefix}DATABASE=${d.dbName}` : ""}`}
+  ? `PGHOST=${d.endpoint}\nPGPORT=${d.port}\nPGUSER=${d.masterUsername}\nPGPASSWORD=YOUR_PASSWORD\nPGDATABASE=${d.dbName || "postgres"}`
+  : `${envPrefix}HOST=${d.endpoint}\n${envPrefix}PORT=${d.port}\n${envPrefix}USER=${d.masterUsername}\n${envPrefix}PASSWORD=YOUR_PASSWORD${d.dbName ? `\n${envPrefix}DATABASE=${d.dbName}` : ""}`}
               </pre>
             </details>
 
