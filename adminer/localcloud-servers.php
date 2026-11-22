@@ -42,12 +42,21 @@ class LocalCloudServers extends Adminer\Plugin {
 		}
 	}
 
+	/** True when the current URL is already the saved server (a retry would loop). */
+	private function alreadyThere(array $saved) {
+		$driver = (string) $saved["driver"];
+		$user = isset($saved["username"]) ? (string) $saved["username"] : "";
+		return isset($_GET[$driver]) && (string) $_GET[$driver] === (string) $saved["server"]
+			&& (string) (isset($_GET["username"]) ? $_GET["username"] : "") === $user;
+	}
+
 	/** Printed inside Adminer's login <form>, so each server is a submit button on that form. */
 	function loginForm() {
 		if (!$this->servers) {
 			return null;
 		}
 		$preselect = isset($_GET["lck"]) ? (string) $_GET["lck"] : "";
+		$auto = $preselect !== "" && isset($this->servers[$preselect]) && !$this->alreadyThere($this->servers[$preselect]);
 		// Pressing Enter submits with the form's first submit button; keep that a
 		// plain login so typing credentials below doesn't pick a saved server.
 		echo "<button type='submit' class='lck-default' tabindex='-1' aria-hidden='true'></button>\n";
@@ -56,11 +65,17 @@ class LocalCloudServers extends Adminer\Plugin {
 			$engine = isset($entry["engine"]) ? $entry["engine"] : ($entry["driver"] == "pgsql" ? "PostgreSQL" : "MySQL");
 			$who = (isset($entry["username"]) ? $entry["username"] . "@" : "") . $entry["server"];
 			echo "<p class='lck-server'><button type='submit' name='lck_server' value='" . Adminer\h($label) . "'"
-				. ($preselect === $label ? " autofocus" : "") . ">" . Adminer\h($label) . "</button>"
+				. ($preselect === $label ? " data-lck-go='1' autofocus" : "") . ">" . Adminer\h($label) . "</button>"
 				. " <span class='lck-meta'>" . Adminer\h($engine . " · " . $who) . "</span></p>\n";
 		}
 		echo "<p class='lck-meta'>Or sign in to another server:</p>\n</div>\n";
 		echo "<style>.lck-servers{margin:0 0 1.5em}.lck-server{margin:.35em 0}.lck-server button{min-width:14em;text-align:left;cursor:pointer}.lck-meta{color:#777;font-size:90%}.lck-default{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}</style>\n";
+		// ?lck=<label> is the dashboard "Open" link. Clicking Login instead submits
+		// the form's default host ("db", from the Adminer image) and DNS fails.
+		// Submit the matching saved server, which carries the login token.
+		if ($auto) {
+			echo "<script" . Adminer\nonce() . ">document.addEventListener('DOMContentLoaded',function(){var b=document.querySelector('button[data-lck-go]');if(b)b.click();});</script>\n";
+		}
 		return null;
 	}
 }
