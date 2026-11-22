@@ -22,6 +22,8 @@ The login page lists **Saved servers** above the normal form. Click one to sign 
 
 How it works: [`adminer/localcloud-servers.php`](../adminer/localcloud-servers.php) is an Adminer plugin mounted into `plugins-enabled/`. On every page load it reads `/etc/adminer/servers.json` and every JSON file in the `adminer_servers` volume. The API writes and removes those files when RDS instances are created or deleted, or when **Add to Adminer** is toggled. No sync job is involved.
 
+The RDS connection panel **Open** link is `?lck=<label>`. That signs in with the saved server. The plain **Login** button does not — the Server field is prefilled with `db` by the Adminer image, and nothing on the Docker network has that name.
+
 Entry format (a file holds one object or an array):
 
 ```json
@@ -84,6 +86,8 @@ make adminer-logs   # Follow Adminer container logs
 | PUT | `/api/rds/instances/:id/adminer` | `{ enabled, password? }` — add or remove an RDS instance |
 
 ## Troubleshooting
+
+**`getaddrinfo for db failed: Name does not resolve`.** Login used the Server field, which the Adminer image prefills with `db`. There is no container by that name. Use a saved server (or the RDS **Open** link) so the host is `postgres:5432` or the RDS container name. `localhost` is the Adminer container itself.
 
 **Saved server button shows an error.** The instance may still be booting. Check its status on the dashboard. If the instance was recreated with a reused name, see [RDS troubleshooting](./RDS.md#troubleshooting).
 
